@@ -119,6 +119,7 @@ export interface FormalTestParticipant {
 }
 
 export interface FormalTestSession {
+  assessmentId: string;
   gameId: string;
   nodeId: string;
   status: 'idle' | 'running' | 'paused' | 'review';

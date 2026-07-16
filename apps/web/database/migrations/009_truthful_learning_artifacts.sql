@@ -40,7 +40,7 @@ CREATE TABLE practice_attempts (
   result_json TEXT NOT NULL DEFAULT '{}' CHECK (json_valid(result_json)),
   artifact_json TEXT NOT NULL DEFAULT '{}' CHECK (json_valid(artifact_json)),
   passed INTEGER NOT NULL DEFAULT 0 CHECK (passed IN (0, 1)),
-  origin TEXT NOT NULL DEFAULT 'user' CHECK (origin IN ('demo', 'user')),
+  origin TEXT NOT NULL CHECK (origin IN ('demo', 'user')),
   attempted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
 ) STRICT;

@@ -22,6 +22,7 @@ export interface RecordFormalAttemptInput {
   attemptId: string;
   studentId: string;
   nodeId: string;
+  assessmentId?: string;
   gameId?: string;
   score: number;
   durationSeconds?: number;
@@ -43,6 +44,7 @@ export interface StoredFormalAttempt {
   attemptId: string;
   studentId: string;
   nodeId: string;
+  assessmentId?: string;
   gameId?: string;
   score: number;
   durationSeconds?: number;
@@ -143,6 +145,7 @@ interface FormalAttemptRow {
   attemptId: string;
   studentId: string;
   nodeId: string;
+  assessmentId: string | null;
   gameId: string | null;
   score: number;
   durationSeconds: number | null;
@@ -329,10 +332,10 @@ export class LearningRepository {
       this.assertLearningVersion(topic, expectedVersion);
       this.database.prepare(`
         INSERT INTO formal_attempts (
-          attempt_id, student_id, node_id, game_id, score, duration_seconds,
+          attempt_id, student_id, node_id, assessment_id, game_id, score, duration_seconds,
           mistake_knowledge_point_ids_json, completed_at
         ) VALUES (
-          @attemptId, @studentId, @nodeId, @gameId, @score, @durationSeconds,
+          @attemptId, @studentId, @nodeId, @assessmentId, @gameId, @score, @durationSeconds,
           @mistakeKnowledgePointIdsJson, COALESCE(@completedAt, CURRENT_TIMESTAMP)
         )
       `).run(attempt);
@@ -363,6 +366,7 @@ export class LearningRepository {
           attempt_id AS attemptId,
           student_id AS studentId,
           node_id AS nodeId,
+          assessment_id AS assessmentId,
           game_id AS gameId,
           score,
           duration_seconds AS durationSeconds,
@@ -470,6 +474,7 @@ export class LearningRepository {
         attempt_id AS attemptId,
         student_id AS studentId,
         node_id AS nodeId,
+        assessment_id AS assessmentId,
         game_id AS gameId,
         score,
         duration_seconds AS durationSeconds,
@@ -515,6 +520,7 @@ function normalizeAttempt(input: RecordFormalAttemptInput) {
   assertNonEmpty('attemptId', input.attemptId);
   assertNonEmpty('studentId', input.studentId);
   assertNonEmpty('nodeId', input.nodeId);
+  if (input.assessmentId !== undefined) assertNonEmpty('assessmentId', input.assessmentId);
   if (input.gameId !== undefined) assertNonEmpty('gameId', input.gameId);
   if (!Number.isFinite(input.score) || input.score < 0 || input.score > 100) {
     throw new TypeError('score must be a finite number from 0 through 100.');
@@ -532,6 +538,7 @@ function normalizeAttempt(input: RecordFormalAttemptInput) {
     attemptId: input.attemptId,
     studentId: input.studentId,
     nodeId: input.nodeId,
+    assessmentId: input.assessmentId ?? null,
     gameId: input.gameId ?? null,
     score: input.score,
     durationSeconds: input.durationSeconds ?? null,
@@ -543,6 +550,7 @@ function normalizeAttempt(input: RecordFormalAttemptInput) {
 function sameAttempt(existing: FormalAttemptRow, candidate: ReturnType<typeof normalizeAttempt>): boolean {
   return existing.studentId === candidate.studentId
     && existing.nodeId === candidate.nodeId
+    && existing.assessmentId === candidate.assessmentId
     && existing.gameId === candidate.gameId
     && existing.score === candidate.score
     && existing.durationSeconds === candidate.durationSeconds
@@ -568,6 +576,7 @@ function toStoredAttempt(row: FormalAttemptRow): StoredFormalAttempt {
     attemptId: row.attemptId,
     studentId: row.studentId,
     nodeId: row.nodeId,
+    ...(row.assessmentId === null ? {} : { assessmentId: row.assessmentId }),
     ...(row.gameId === null ? {} : { gameId: row.gameId }),
     score: row.score,
     ...(row.durationSeconds === null ? {} : { durationSeconds: row.durationSeconds }),

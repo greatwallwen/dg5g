@@ -111,6 +111,7 @@ export function isFormalTest(
   value: unknown,
 ): value is NonNullable<ClassroomSessionStateV1['formalTest']> {
   return isRecord(value)
+    && typeof value.assessmentId === 'string'
     && typeof value.gameId === 'string'
     && typeof value.nodeId === 'string'
     && (value.status === 'idle' || value.status === 'running'

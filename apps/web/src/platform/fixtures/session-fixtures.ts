@@ -149,6 +149,7 @@ function buildClassSession(
     selfStudyAnswers: [],
     studentRoster,
     formalTest: {
+      assessmentId: `AS-${nodeId}`,
       gameId: `${nodeId}-formal-test`,
       nodeId,
       status: 'idle',

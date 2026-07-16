@@ -60,7 +60,7 @@ export interface ClassroomSessionStateV1 {
   } | null;
   activityState: ActivityState;
   reviewState: ReviewState;
-  formalTest?: Pick<FormalTestSession, 'gameId' | 'nodeId' | 'status' | 'durationSeconds' | 'startedAt'>;
+  formalTest?: Pick<FormalTestSession, 'assessmentId' | 'gameId' | 'nodeId' | 'status' | 'durationSeconds' | 'startedAt'>;
 }
 
 export interface StoredClassroomSession {

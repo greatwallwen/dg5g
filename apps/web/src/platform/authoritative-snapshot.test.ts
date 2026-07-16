@@ -118,7 +118,7 @@ test('score and submission fields keep their distinct authoritative meanings', (
   }
 });
 
-test('running assessment counts current-window zero-score submissions and remaining active players', () => {
+test('running assessment counts only active assessment identity within the current game and time window', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
@@ -126,12 +126,26 @@ test('running assessment counts current-window zero-score submissions and remain
     const classroom = new ClassroomSessionRepository(fixture.database).readSession('demo-class');
     assert.ok(classroom);
     classroom.state.formalTest = {
+      assessmentId: 'assessment-current',
       gameId: 'P1T1-N02-formal',
       nodeId: 'P1T1-N02',
       status: 'running',
       durationSeconds: 300,
       startedAt: '2026-07-16T01:10:00.000Z',
     };
+    fixture.database.exec(`
+      INSERT INTO formal_assessment_instances (
+        assessment_id, session_id, node_id, game_id, question_version, status, opened_at, closed_at
+      ) VALUES
+        (
+          'assessment-history', 'demo-class', 'P1T1-N02', 'P1T1-N02-formal',
+          'question-v0', 'closed', '2026-07-16T01:10:00.000Z', '2026-07-16T01:18:00.000Z'
+        ),
+        (
+          'assessment-current', 'demo-class', 'P1T1-N02', 'P1T1-N02-formal',
+          'question-v1', 'running', '2026-07-16T01:10:00.000Z', NULL
+        );
+    `);
     fixture.database.prepare(`
       UPDATE classroom_sessions
       SET status = 'active', state_json = ?
@@ -142,22 +156,34 @@ test('running assessment counts current-window zero-score submissions and remain
       attemptId: 'current-window-zero',
       studentId: 'stu-01',
       nodeId: 'P1T1-N02',
+      assessmentId: 'assessment-current',
       gameId: 'P1T1-N02-formal',
       score: 0,
       completedAt: '2026-07-16T01:15:00.000Z',
     }, learning.readTopicVersion('learning:stu-01'));
     learning.recordFormalAttempt({
-      attemptId: 'current-window-other-game',
+      attemptId: 'current-window-history-assessment',
       studentId: 'stu-02',
       nodeId: 'P1T1-N02',
-      gameId: 'other-formal-game',
+      assessmentId: 'assessment-history',
+      gameId: 'P1T1-N02-formal',
       score: 100,
       completedAt: '2026-07-16T01:16:00.000Z',
+    }, learning.readTopicVersion('learning:stu-02'));
+    learning.recordFormalAttempt({
+      attemptId: 'current-assessment-other-game',
+      studentId: 'stu-02',
+      nodeId: 'P1T1-N02',
+      assessmentId: 'assessment-current',
+      gameId: 'other-formal-game',
+      score: 100,
+      completedAt: '2026-07-16T01:17:00.000Z',
     }, learning.readTopicVersion('learning:stu-02'));
     learning.recordFormalAttempt({
       attemptId: 'current-window-after-observation',
       studentId: 'stu-03',
       nodeId: 'P1T1-N02',
+      assessmentId: 'assessment-current',
       gameId: 'P1T1-N02-formal',
       score: 100,
       completedAt: '2026-07-16T01:21:00.000Z',

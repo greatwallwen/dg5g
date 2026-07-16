@@ -112,6 +112,7 @@ export class ClassroomSessionService {
       activityState: 'not_pushed',
       reviewState: 'not_started',
       formalTest: {
+        assessmentId: `AS-${activeNodeId}`,
         gameId: `${activeNodeId}-formal-test`,
         nodeId: activeNodeId,
         status: 'idle',
@@ -234,6 +235,7 @@ export class ClassroomSessionService {
     if (normalized.reviewState !== undefined) state.reviewState = normalized.reviewState;
     if (normalized.formalTest) {
       state.formalTest = {
+        assessmentId: normalized.formalTest.assessmentId,
         gameId: normalized.formalTest.gameId,
         nodeId: normalized.formalTest.nodeId,
         status: normalized.formalTest.status,

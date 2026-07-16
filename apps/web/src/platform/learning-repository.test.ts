@@ -72,10 +72,16 @@ test('stores and replays a structurally valid formal attempt without applying co
   const fixture = repositoryFixture();
   try {
     const repository = new LearningRepository(fixture.database);
+    fixture.database.prepare(`
+      INSERT INTO formal_assessment_instances (
+        assessment_id, node_id, game_id, question_version, status
+      ) VALUES ('assessment-stu-a-001', 'P1T1-N02', 'node-test', 'question-v1', 'running')
+    `).run();
     const attempt = {
       attemptId: 'attempt-stu-a-001',
       studentId: 'stu-a',
       nodeId: 'P1T1-N02',
+      assessmentId: 'assessment-stu-a-001',
       gameId: 'node-test',
       score: 79.5,
       durationSeconds: 203,

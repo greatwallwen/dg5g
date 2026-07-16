@@ -400,9 +400,10 @@ function projectSubmissionMetrics(
     ? []
     : students.flatMap(({ member, learning }) => {
         const scores = learning.nodes.find(({ nodeId }) => nodeId === activeNodeId)?.attempts
-          .filter(({ completedAt, gameId }) => {
+          .filter(({ assessmentId, completedAt, gameId }) => {
             const completedAtMs = Date.parse(completedAt);
-            return gameId === formalTest.gameId
+            return assessmentId === formalTest.assessmentId
+              && gameId === formalTest.gameId
               && Number.isFinite(completedAtMs)
               && completedAtMs >= windowStartedAt
               && completedAtMs <= windowObservedAt;

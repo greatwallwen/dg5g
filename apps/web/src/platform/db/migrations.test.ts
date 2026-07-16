@@ -494,6 +494,20 @@ test('migration 009 records truthful activity, assessment, evidence, and origin 
     assert.equal(columns('professional_outputs').has('origin'), true);
     assert.equal(columns('output_reviews').has('origin'), true);
 
+    testDatabase.database.prepare(`
+      INSERT INTO users (id, username, display_name, role, password_hash)
+      VALUES ('practice-origin-student', 'practice-origin-student', 'Practice origin', 'student', 'disabled')
+    `).run();
+    assert.equal(testDatabase.database.prepare(`
+      SELECT dflt_value
+      FROM pragma_table_info('practice_attempts')
+      WHERE name = 'origin'
+    `).pluck().get(), null);
+    assert.throws(() => testDatabase.database.prepare(`
+      INSERT INTO practice_attempts (attempt_id, student_id, activity_id, node_id)
+      VALUES ('missing-practice-origin', 'practice-origin-student', 'activity-1', 'P1T1-N01')
+    `).run(), /NOT NULL constraint failed/i);
+
     assert.throws(() => testDatabase.database.prepare(`
       INSERT INTO evidence_library (
         evidence_id, kind, title, asset_url, metadata_json, origin

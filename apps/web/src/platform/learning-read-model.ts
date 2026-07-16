@@ -36,6 +36,7 @@ export const REQUIRED_SELF_STUDY_SECTIONS = [
 export interface FormalAttemptProjection {
   attemptId: string;
   nodeId: string;
+  assessmentId?: string;
   gameId?: string;
   score: number;
   durationSeconds?: number;
@@ -220,6 +221,7 @@ function toAttemptProjection(attempt: StoredFormalAttempt): FormalAttemptProject
   return {
     attemptId: attempt.attemptId,
     nodeId: attempt.nodeId,
+    ...(attempt.assessmentId === undefined ? {} : { assessmentId: attempt.assessmentId }),
     ...(attempt.gameId === undefined ? {} : { gameId: attempt.gameId }),
     score: attempt.score,
     ...(attempt.durationSeconds === undefined ? {} : { durationSeconds: attempt.durationSeconds }),
