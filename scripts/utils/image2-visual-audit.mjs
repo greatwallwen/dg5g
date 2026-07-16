@@ -231,7 +231,26 @@ export async function waitForImage2Stability(page, state, timeout = 20_000) {
   await page.waitForFunction(() => (
     [...document.images].every((image) => image.complete)
   ), null, { timeout });
-  await page.waitForTimeout(80);
+  const animationQuietMarker = '__dgbookImage2AnimationQuietSince';
+  await page.waitForFunction(({ quietWindowMs, marker }) => {
+    const running = [...document.getAnimations({ subtree: true })]
+      .some((animation) => animation.playState === 'running');
+    if (running) {
+      window[marker] = undefined;
+      return false;
+    }
+    const now = performance.now();
+    const quietSince = window[marker];
+    if (typeof quietSince !== 'number') {
+      window[marker] = now;
+      return false;
+    }
+    return now - quietSince >= quietWindowMs;
+  }, { quietWindowMs: 120, marker: animationQuietMarker }, {
+    polling: 'raf',
+    timeout: Math.min(timeout, 1_000),
+  });
+  await page.evaluate((marker) => { delete window[marker]; }, animationQuietMarker);
 }
 
 export async function authenticateImage2Context(context, actor, baseUrl, password = '123456') {

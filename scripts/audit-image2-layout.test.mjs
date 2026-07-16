@@ -7,6 +7,7 @@ import {
   evaluateImage2Layout,
   flattenImage2States,
   image2ScreenshotName,
+  waitForImage2Stability,
 } from './utils/image2-visual-audit.mjs';
 import {
   apiResponseCanBeEmpty,
@@ -147,6 +148,37 @@ test('none policy rejects disabled fake primary actions and invalid motion value
   }).map(({ code }) => code);
   assert.ok(codes.includes('primary-action-count'));
   assert.ok(codes.includes('motion-state-invalid'));
+});
+
+test('waits for an animation-free quiet window without weakening the running-animation gate', async () => {
+  const waits = [];
+  let fixedDelayCalls = 0;
+  const page = {
+    waitForLoadState: async () => undefined,
+    evaluate: async () => undefined,
+    locator: () => ({ first: () => ({ waitFor: async () => undefined }) }),
+    waitForFunction: async (predicate, argument, options) => {
+      waits.push({ source: String(predicate), argument, options });
+    },
+    waitForTimeout: async () => { fixedDelayCalls += 1; },
+  };
+
+  await waitForImage2Stability(page, { requiredSelectors: ['[data-ready]'] });
+
+  const animationWait = waits.find(({ source }) => source.includes('getAnimations'));
+  assert.ok(animationWait, 'stability must wait for document animations to settle');
+  assert.match(animationWait.source, /playState\s*===\s*['"]running['"]/);
+  assert.ok(animationWait.argument.quietWindowMs >= 80);
+  assert.ok(animationWait.options.timeout <= 1_000);
+  assert.equal(fixedDelayCalls, 0, 'a condition-based quiet window replaces the fixed delay');
+
+  const failures = evaluateImage2Layout({
+    state: contract.surfaces[0].states[0],
+    contract,
+    profile: contract.viewportProfiles.desktop,
+    observation: healthyObservation({ runningAnimations: 1 }),
+  });
+  assert.ok(failures.some(({ code }) => code === 'reduced-motion-running-animation'));
 });
 
 test('keeps returned, submitted, and verified output states distinct', () => {
