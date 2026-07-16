@@ -7,6 +7,7 @@ import { seedDemo } from './db/demo-seed.ts';
 import { LearningRepository } from './learning-repository.ts';
 import { LearningCommandService } from './learning-command-service.ts';
 import { NodeRouteAccessError } from './access-control.ts';
+import { p01OutputFieldKeys } from '../features/portfolio/p01-output-definition.ts';
 import {
   ProfessionalOutputNotFoundError,
   ProfessionalOutputRepository,
@@ -312,10 +313,11 @@ test('professional output commands reuse node access and derive ownership from t
       () => 'command-output-stu-02-p01',
     );
     const service = new LearningCommandService(learningRepository, undefined, outputRepository);
+    const fields = completeP01Fields('student two evidence');
 
     const draft = service.saveProfessionalOutputDraft(studentTwo, 'P01', {
       expectedStateRevision: 0,
-      fields: { summary: 'student two evidence' },
+      fields,
       upstreamRefs: [],
     });
     assert.equal(draft.head.studentId, 'stu-02');
@@ -323,7 +325,7 @@ test('professional output commands reuse node access and derive ownership from t
     const submitted = service.submitProfessionalOutput(studentTwo, 'P01', {
       outputId: draft.head.outputId,
       expectedStateRevision: 1,
-      fields: { summary: 'student two evidence' },
+      fields,
       upstreamRefs: [],
     });
     assert.equal(submitted.head.status, 'submitted');
@@ -346,7 +348,7 @@ test('professional output access fails closed for locked, not-open, unknown, and
     );
     const command = {
       expectedStateRevision: 0,
-      fields: { summary: 'must not persist' },
+      fields: completeP01Fields('must not persist'),
       upstreamRefs: [],
     };
     for (const [taskId, kind] of [
@@ -374,3 +376,7 @@ test('professional output access fails closed for locked, not-open, unknown, and
     fixture.cleanup();
   }
 });
+
+function completeP01Fields(value: string): Record<string, string> {
+  return Object.fromEntries(p01OutputFieldKeys.map((fieldKey) => [fieldKey, `${value}: ${fieldKey}`]));
+}

@@ -304,8 +304,9 @@ export class ProfessionalOutputReviewStore {
     score?: number,
   ): void {
     this.database.prepare(`
-      INSERT INTO output_reviews (review_id, output_id, reviewer_id, status, score, feedback)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO output_reviews (
+        review_id, output_id, reviewer_id, status, score, feedback, origin
+      ) VALUES (?, ?, ?, ?, ?, ?, 'user')
     `).run(reviewId, head.outputId, command.teacherId, status, score ?? null, command.feedback ?? null);
   }
 
@@ -318,8 +319,9 @@ export class ProfessionalOutputReviewStore {
     outputRubricScore?: number,
   ): void {
     this.database.prepare(`
-      INSERT INTO learning_events (event_id, student_id, node_id, channel, event_type, payload_json)
-      VALUES (?, ?, ?, 'classroom', ?, ?)
+      INSERT INTO learning_events (
+        event_id, student_id, node_id, channel, event_type, payload_json, origin
+      ) VALUES (?, ?, ?, 'classroom', ?, ?, 'user')
     `).run(
       `${head.outputId}:r${stateRevision}:teacher-${status}`,
       head.studentId,
@@ -361,8 +363,8 @@ export class ProfessionalOutputReviewStore {
     this.database.prepare(`
       INSERT INTO frozen_task_scores (
         score_id, student_id, task_id, snapshot_version, provisional_score,
-        official_score, details_json
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        official_score, details_json, origin
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, 'user')
     `).run(
       `${head.outputId}:score:r${stateRevision}`, head.studentId, head.taskId, snapshotVersion,
       taskCompositeScore, taskCompositeScore, JSON.stringify(details),

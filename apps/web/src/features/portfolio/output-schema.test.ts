@@ -9,10 +9,17 @@ import {
   validateProfessionalOutputSubmission,
 } from './output-schema.ts';
 import { OutputFieldsets } from './output-fieldsets.tsx';
+import { p01OutputFieldDefinitions, p01OutputFieldKeys } from './p01-output-definition.ts';
 
-test('the three professional-output schemas project every generated template field and the generated 100-point rubric', () => {
+test('P01 uses the exact ten-field indoor evidence sheet while P02 and P03 retain generated schemas', () => {
   const catalog = loadSelfStudyCatalog();
-  for (const taskId of ['P01', 'P02', 'P03'] as const) {
+  const p01 = professionalOutputSchemaForTask(catalog, 'P01');
+  assert.deepEqual(p01.fields.map(({ key }) => key), p01OutputFieldKeys);
+  assert.deepEqual(p01.fields.map(({ key, label }) => ({ key, label })), p01OutputFieldDefinitions);
+  assert.equal(p01.fields.length, 10);
+  assert.equal(p01.totalScore, 100);
+
+  for (const taskId of ['P02', 'P03'] as const) {
     const source = Object.values(catalog).find((document) => (
       document.taskId === taskId && document.content.kind === 'deep'
     ));
@@ -63,6 +70,28 @@ test('submission validation requires every generated field to contain meaningful
       [schema.fields[0]!.key]: '   ',
     }), /required professional output field/i);
   }
+});
+
+test('P01 submission errors name the missing Chinese field and reject the superseded five-field template', () => {
+  const schema = professionalOutputSchemaForTask(loadSelfStudyCatalog(), 'P01');
+  const complete = Object.fromEntries(schema.fields.map(({ key, label }) => [key, `已填写：${label}`]));
+
+  assert.throws(
+    () => validateProfessionalOutputSubmission(schema, {}),
+    /站点与机房位置证据/,
+  );
+  const missingLocation = { ...complete };
+  delete missingLocation.locationEvidence;
+  assert.throws(
+    () => validateProfessionalOutputSubmission(schema, missingLocation),
+    /设备位置证据/,
+  );
+  assert.throws(
+    () => validateProfessionalOutputDraft(schema, {
+      objectId: 'legacy', fieldName: 'legacy', value: 'legacy', photoIds: 'IMG-001', gap: 'none',
+    }),
+    /unknown professional output field/i,
+  );
 });
 
 test('draft validation allows incomplete generated fields but rejects every unknown field', () => {

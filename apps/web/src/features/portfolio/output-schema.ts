@@ -1,6 +1,7 @@
 import type { ProfessionalOutputFieldValue } from '@/platform/professional-output-repository';
 import type { P1TaskId } from '../platform/p1-content.ts';
 import type { SelfStudyCatalog } from '../textbook-scene/self-study-types.ts';
+import { p01OutputFieldDefinitions } from './p01-output-definition.ts';
 
 export interface ProfessionalOutputFieldSchema {
   key: string;
@@ -35,7 +36,10 @@ export function professionalOutputSchemaForTask(
   if (!source || source.content.kind !== 'deep') {
     throw new ProfessionalOutputSchemaError(`Generated professional output schema is unavailable for ${taskId}.`);
   }
-  const fields = Object.entries(source.content.outputTemplate).map(([key, descriptor]) => {
+  const fieldDefinitions = taskId === 'P01'
+    ? p01OutputFieldDefinitions
+    : Object.entries(source.content.outputTemplate).map(([key, label]) => ({ key, label }));
+  const fields = fieldDefinitions.map(({ key, label: descriptor }) => {
     if (!key.trim() || typeof descriptor !== 'string' || !descriptor.trim()) {
       throw new ProfessionalOutputSchemaError(`${taskId} outputTemplate contains an invalid field definition.`);
     }
@@ -88,7 +92,9 @@ export function validateProfessionalOutputSubmission(
   const validated = validateProfessionalOutputDraft(schema, value);
   for (const field of schema.fields) {
     if (!hasMeaningfulValue(validated[field.key])) {
-      throw new ProfessionalOutputSchemaError(`Required professional output field is incomplete: ${field.key}.`);
+      throw new ProfessionalOutputSchemaError(
+        `Required professional output field is incomplete: ${field.label} (${field.key}).`,
+      );
     }
   }
   return validated;

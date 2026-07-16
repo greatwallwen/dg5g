@@ -1,4 +1,13 @@
 import { randomUUID } from 'node:crypto';
+import { p01Activities } from '../features/learning-activities/activity-catalog.ts';
+import type { ActivityArtifact } from '../features/learning-activities/activity-definition.ts';
+import { readP01EvidenceDefinition } from '../features/portfolio/evidence-library.ts';
+import {
+  isP01OutputFieldKey,
+  projectP01OutputPrefill,
+  type P01ActivityAttemptFact,
+  type P01OutputFieldKey,
+} from '../features/portfolio/p01-output-definition.ts';
 import type { AppDatabase } from './db/database.ts';
 import { SnapshotClock } from './snapshot-clock.ts';
 import {
@@ -31,7 +40,6 @@ export type {
 export type P1OutputTaskId = 'P01' | 'P02' | 'P03';
 export type ProfessionalOutputStatus = 'draft' | 'submitted' | 'returned' | 'verified';
 export type ProfessionalOutputFieldValue = string | number | string[];
-
 export interface ProfessionalOutputHead {
   outputId: string;
   studentId: string;
@@ -45,7 +53,25 @@ export interface ProfessionalOutputUpstreamRef {
   outputId: string;
   version: number;
 }
-
+export interface ProfessionalOutputEvidenceLink {
+  fieldKey: string;
+  evidenceId: string;
+}
+export interface ProfessionalOutputFieldSource {
+  fieldKey: string;
+  sourceNodeId: string;
+  sourceAttemptId: string;
+}
+export interface ProfessionalOutputReviewHistoryEntry {
+  reviewId: string;
+  reviewerId: string;
+  status: 'returned' | 'verified';
+  score?: number;
+  feedback?: string;
+  reviewedAt: string;
+  outputVersion?: number;
+  origin: 'demo' | 'user';
+}
 export interface ProfessionalOutputVersion {
   outputId: string;
   taskId: P1OutputTaskId;
@@ -53,11 +79,14 @@ export interface ProfessionalOutputVersion {
   schemaVersion: 1;
   fields: Record<string, ProfessionalOutputFieldValue>;
   upstreamRefs: ProfessionalOutputUpstreamRef[];
+  evidenceLinks: Record<string, string[]>;
+  fieldSources: ProfessionalOutputFieldSource[];
 }
-
 export interface ProfessionalOutputAggregate {
   head: ProfessionalOutputHead;
   versions: ProfessionalOutputVersion[];
+  submissionCount: number;
+  reviewHistory: ProfessionalOutputReviewHistoryEntry[];
 }
 
 export interface ProfessionalOutputReviewResult {
@@ -73,12 +102,27 @@ export interface WriteProfessionalOutputInput {
   expectedStateRevision: number;
   fields: Record<string, ProfessionalOutputFieldValue>;
   upstreamRefs: ProfessionalOutputUpstreamRef[];
+  evidenceLinks?: Record<string, string[]>;
 }
 
 export class ProfessionalOutputUpstreamError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'ProfessionalOutputUpstreamError';
+  }
+}
+
+export class ProfessionalOutputEvidenceError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ProfessionalOutputEvidenceError';
+  }
+}
+
+export class ProfessionalOutputRevisionRequiredError extends Error {
+  constructor() {
+    super('Returned professional output must create a revised version before resubmission.');
+    this.name = 'ProfessionalOutputRevisionRequiredError';
   }
 }
 
@@ -100,6 +144,17 @@ interface VersionRow {
   upstreamRefsJson: string;
 }
 
+interface ReviewHistoryRow {
+  reviewId: string;
+  reviewerId: string;
+  status: 'returned' | 'verified';
+  score: number | null;
+  feedback: string | null;
+  reviewedAt: string;
+  outputVersion: number | null;
+  origin: 'demo' | 'user';
+}
+
 interface NormalizedWrite {
   outputId?: string;
   studentId: string;
@@ -109,6 +164,8 @@ interface NormalizedWrite {
   fieldsJson: string;
   upstreamRefs: ProfessionalOutputUpstreamRef[];
   upstreamRefsJson: string;
+  evidenceLinks: Record<string, string[]>;
+  evidenceLinksJson: string;
 }
 
 const outputNodeByTask: Record<P1OutputTaskId, string> = {
@@ -217,15 +274,32 @@ export class ProfessionalOutputRepository {
       }
 
       this.assertUpstreamRefs(command);
+      this.assertEvidenceLinks(command);
       const outputId = head?.outputId ?? command.outputId ?? this.createOutputId();
       assertNonEmpty('outputId', outputId);
       const currentVersion = head?.currentVersion ?? 0;
       const current = currentVersion > 0
         ? this.readVersion(outputId, currentVersion)
         : undefined;
+      const currentEvidenceLinks = current
+        ? this.readEvidenceLinks(outputId, currentVersion)
+        : {};
+      const currentFieldSources = current
+        ? this.readFieldSources(outputId, currentVersion)
+        : [];
+      const fieldSources = this.deriveFieldSources(command, currentFieldSources);
       const appendVersion = !current
         || current.fieldsJson !== command.fieldsJson
-        || current.upstreamRefsJson !== command.upstreamRefsJson;
+        || current.upstreamRefsJson !== command.upstreamRefsJson
+        || stableJson(currentEvidenceLinks) !== command.evidenceLinksJson
+        || stableJson(currentFieldSources) !== stableJson(fieldSources);
+      if (targetStatus === 'submitted'
+        && current
+        && !appendVersion
+        && (head?.status === 'returned'
+          || this.latestReturnedVersion(outputId) === currentVersion)) {
+        throw new ProfessionalOutputRevisionRequiredError();
+      }
       const nextVersion = appendVersion ? currentVersion + 1 : currentVersion;
       const nextRevision = actualRevision + 1;
       const nodeId = outputNodeByTask[command.taskId];
@@ -234,8 +308,8 @@ export class ProfessionalOutputRepository {
         this.database.prepare(`
           INSERT INTO professional_outputs (
             output_id, student_id, task_id, node_id, status, content_json,
-            submitted_at, current_version, state_revision, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            submitted_at, current_version, state_revision, origin, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'user', CURRENT_TIMESTAMP)
         `).run(
           outputId,
           command.studentId,
@@ -251,7 +325,7 @@ export class ProfessionalOutputRepository {
         this.database.prepare(`
           UPDATE professional_outputs
           SET status = ?, content_json = ?, submitted_at = ?, current_version = ?,
-              state_revision = ?, updated_at = CURRENT_TIMESTAMP
+              state_revision = ?, origin = 'user', updated_at = CURRENT_TIMESTAMP
           WHERE output_id = ?
         `).run(
           targetStatus,
@@ -275,6 +349,8 @@ export class ProfessionalOutputRepository {
           command.fieldsJson,
           command.upstreamRefsJson,
         );
+        this.insertEvidenceLinks(outputId, nextVersion, command.evidenceLinks);
+        this.insertFieldSources(outputId, nextVersion, fieldSources);
       }
 
       this.appendLearningEvent({
@@ -322,6 +398,121 @@ export class ProfessionalOutputRepository {
     }
   }
 
+  private assertEvidenceLinks(command: NormalizedWrite): void {
+    for (const [fieldKey, evidenceIds] of Object.entries(command.evidenceLinks)) {
+      if (!(fieldKey in command.fields)) {
+        throw new ProfessionalOutputEvidenceError(
+          `Evidence field must exist in this output version: ${fieldKey}.`,
+        );
+      }
+      if (command.taskId !== 'P01' || !isP01OutputFieldKey(fieldKey)) {
+        throw new ProfessionalOutputEvidenceError(
+          `Evidence links are not supported for output field: ${fieldKey}.`,
+        );
+      }
+      for (const evidenceId of evidenceIds) {
+        const definition = readP01EvidenceDefinition(evidenceId);
+        if (!definition || !definition.allowedFieldKeys.includes(fieldKey)) {
+          throw new ProfessionalOutputEvidenceError(
+            `Evidence ${evidenceId} cannot be linked to ${fieldKey}.`,
+          );
+        }
+        const persisted = this.database.prepare(`
+          SELECT 1 FROM evidence_library WHERE evidence_id = ?
+        `).pluck().get(evidenceId);
+        if (persisted !== 1) {
+          throw new ProfessionalOutputEvidenceError(`Evidence is not seeded: ${evidenceId}.`);
+        }
+      }
+    }
+  }
+
+  private deriveFieldSources(
+    command: NormalizedWrite,
+    current: ProfessionalOutputFieldSource[],
+  ): ProfessionalOutputFieldSource[] {
+    if (command.taskId !== 'P01') return [];
+    const attempts = this.readLatestPassedP01ActivityFacts(command.studentId);
+    const prefill = projectP01OutputPrefill(attempts, p01Activities);
+    const derived = Object.entries(prefill).flatMap(([fieldKey, field]) => {
+      if (!isP01OutputFieldKey(fieldKey) || !(fieldKey in command.fields)) return [];
+      return field.sources.map(({ sourceNodeId, sourceAttemptId }) => ({
+        fieldKey,
+        sourceNodeId,
+        sourceAttemptId,
+      }));
+    });
+    return normalizeFieldSources([...current, ...derived]);
+  }
+
+  private readLatestPassedP01ActivityFacts(studentId: string): P01ActivityAttemptFact[] {
+    const rows = this.database.prepare(`
+      SELECT attempt_id AS attemptId, student_id AS studentId,
+        activity_id AS activityId, node_id AS nodeId, passed, origin,
+        attempted_at AS attemptedAt, artifact_json AS artifactJson
+      FROM practice_attempts
+      WHERE student_id = ? AND passed = 1
+        AND node_id IN ('P1T1-N01', 'P1T1-N02', 'P1T1-N03')
+      ORDER BY attempted_at, attempt_id
+    `).all(studentId) as Array<Omit<P01ActivityAttemptFact, 'passed' | 'artifact'> & {
+      passed: 0 | 1;
+      artifactJson: string;
+    }>;
+    return rows.map(({ artifactJson, passed, ...row }) => ({
+      ...row,
+      passed: passed === 1,
+      artifact: JSON.parse(artifactJson) as ActivityArtifact,
+    }));
+  }
+
+  private insertEvidenceLinks(
+    outputId: string,
+    version: number,
+    links: Record<string, string[]>,
+  ): void {
+    const insert = this.database.prepare(`
+      INSERT INTO output_evidence_links (output_id, version, field_key, evidence_id)
+      VALUES (?, ?, ?, ?)
+    `);
+    for (const [fieldKey, evidenceIds] of Object.entries(links)) {
+      for (const evidenceId of evidenceIds) insert.run(outputId, version, fieldKey, evidenceId);
+    }
+  }
+
+  private insertFieldSources(
+    outputId: string,
+    version: number,
+    sources: ProfessionalOutputFieldSource[],
+  ): void {
+    const insert = this.database.prepare(`
+      INSERT INTO output_field_sources (
+        output_id, version, field_key, source_node_id, source_attempt_id
+      ) VALUES (?, ?, ?, ?, ?)
+    `);
+    for (const source of sources) {
+      insert.run(
+        outputId,
+        version,
+        source.fieldKey,
+        source.sourceNodeId,
+        source.sourceAttemptId,
+      );
+    }
+  }
+
+  private latestReturnedVersion(outputId: string): number | undefined {
+    const value = this.database.prepare(`
+      SELECT CAST(json_extract(event.payload_json, '$.version') AS INTEGER)
+      FROM output_reviews AS review
+      LEFT JOIN learning_events AS event
+        ON json_extract(event.payload_json, '$.reviewId') = review.review_id
+      WHERE review.output_id = ? AND review.status = 'returned'
+      ORDER BY review.reviewed_at DESC, review.review_id DESC
+      LIMIT 1
+    `).pluck().get(outputId) as number | null | undefined;
+    return value === null || value === undefined ? undefined : value;
+  }
+
   private appendLearningEvent(input: {
     outputId: string;
     studentId: string;
@@ -334,8 +525,8 @@ export class ProfessionalOutputRepository {
   }): void {
     this.database.prepare(`
       INSERT INTO learning_events (
-        event_id, student_id, node_id, channel, event_type, payload_json
-      ) VALUES (?, ?, ?, 'self-study', ?, ?)
+        event_id, student_id, node_id, channel, event_type, payload_json, origin
+      ) VALUES (?, ?, ?, 'self-study', ?, ?, 'user')
     `).run(
       `${input.outputId}:r${input.stateRevision}:${input.status}`,
       input.studentId,
@@ -370,8 +561,82 @@ export class ProfessionalOutputRepository {
     `).all(head.outputId) as VersionRow[];
     return {
       head: toHead(head),
-      versions: rows.map(toVersion),
+      versions: rows.map((row) => this.toVersion(row)),
+      submissionCount: this.readSubmissionCount(head.outputId),
+      reviewHistory: this.readReviewHistory(head.outputId),
     };
+  }
+
+  private toVersion(row: VersionRow): ProfessionalOutputVersion {
+    return {
+      outputId: row.outputId,
+      taskId: row.taskId,
+      version: row.version,
+      schemaVersion: row.schemaVersion,
+      fields: JSON.parse(row.fieldsJson) as Record<string, ProfessionalOutputFieldValue>,
+      upstreamRefs: JSON.parse(row.upstreamRefsJson) as ProfessionalOutputUpstreamRef[],
+      evidenceLinks: this.readEvidenceLinks(row.outputId, row.version),
+      fieldSources: this.readFieldSources(row.outputId, row.version),
+    };
+  }
+
+  private readEvidenceLinks(outputId: string, version: number): Record<string, string[]> {
+    const rows = this.database.prepare(`
+      SELECT field_key AS fieldKey, evidence_id AS evidenceId
+      FROM output_evidence_links
+      WHERE output_id = ? AND version = ?
+      ORDER BY field_key, evidence_id
+    `).all(outputId, version) as ProfessionalOutputEvidenceLink[];
+    const links: Record<string, string[]> = {};
+    for (const { fieldKey, evidenceId } of rows) {
+      (links[fieldKey] ??= []).push(evidenceId);
+    }
+    return links;
+  }
+
+  private readFieldSources(outputId: string, version: number): ProfessionalOutputFieldSource[] {
+    return this.database.prepare(`
+      SELECT field_key AS fieldKey, source_node_id AS sourceNodeId,
+        source_attempt_id AS sourceAttemptId
+      FROM output_field_sources
+      WHERE output_id = ? AND version = ?
+      ORDER BY field_key, source_node_id, source_attempt_id
+    `).all(outputId, version) as ProfessionalOutputFieldSource[];
+  }
+
+  private readSubmissionCount(outputId: string): number {
+    return this.database.prepare(`
+      SELECT COUNT(*) FROM learning_events
+      WHERE event_type = 'evidence_submitted'
+        AND json_extract(payload_json, '$.outputId') = ?
+    `).pluck().get(outputId) as number;
+  }
+
+  private readReviewHistory(outputId: string): ProfessionalOutputReviewHistoryEntry[] {
+    const rows = this.database.prepare(`
+      SELECT review.review_id AS reviewId, review.reviewer_id AS reviewerId,
+        review.status, review.score, review.feedback,
+        review.reviewed_at AS reviewedAt, review.origin,
+        CAST((
+          SELECT json_extract(event.payload_json, '$.version')
+          FROM learning_events AS event
+          WHERE json_extract(event.payload_json, '$.reviewId') = review.review_id
+          ORDER BY event.occurred_at DESC, event.event_id DESC LIMIT 1
+        ) AS INTEGER) AS outputVersion
+      FROM output_reviews AS review
+      WHERE review.output_id = ?
+      ORDER BY review.reviewed_at, review.review_id
+    `).all(outputId) as ReviewHistoryRow[];
+    return rows.map((row) => ({
+      reviewId: row.reviewId,
+      reviewerId: row.reviewerId,
+      status: row.status,
+      ...(row.score === null ? {} : { score: row.score }),
+      ...(row.feedback === null ? {} : { feedback: row.feedback }),
+      reviewedAt: row.reviewedAt,
+      ...(row.outputVersion === null ? {} : { outputVersion: row.outputVersion }),
+      origin: row.origin,
+    }));
   }
 
   private readVersion(outputId: string, version: number): VersionRow | undefined {
@@ -423,6 +688,9 @@ function normalizeWrite(input: WriteProfessionalOutputInput): NormalizedWrite {
   }
   const fields = Object.fromEntries(Object.entries(input.fields).map(([key, value]) => {
     assertNonEmpty('field name', key);
+    if (input.taskId === 'P01' && !isP01OutputFieldKey(key)) {
+      throw new TypeError(`Unsupported P01 professional output field: ${key}.`);
+    }
     if (typeof value === 'string') return [key, value];
     if (typeof value === 'number' && Number.isFinite(value)) return [key, value];
     if (Array.isArray(value)
@@ -444,6 +712,27 @@ function normalizeWrite(input: WriteProfessionalOutputInput): NormalizedWrite {
     seen.add(identity);
     return { outputId: String(outputId), version: Number(version) };
   });
+  const evidenceInput = input.evidenceLinks ?? {};
+  if (!isRecord(evidenceInput)) throw new TypeError('evidenceLinks must be an object.');
+  if (input.taskId !== 'P01' && Object.keys(evidenceInput).length > 0) {
+    throw new ProfessionalOutputEvidenceError(`${input.taskId} does not support P01 evidence links.`);
+  }
+  const evidenceLinks = Object.fromEntries(Object.entries(evidenceInput).map(([fieldKey, value]) => {
+    assertNonEmpty('evidence field name', fieldKey);
+    if (!isP01OutputFieldKey(fieldKey)) {
+      throw new ProfessionalOutputEvidenceError(`Unknown evidence field: ${fieldKey}.`);
+    }
+    if (!Array.isArray(value)) {
+      throw new TypeError(`evidenceLinks.${fieldKey} must be an array.`);
+    }
+    const ids = value.map((evidenceId, index) => {
+      if (typeof evidenceId !== 'string' || !evidenceId.trim()) {
+        throw new TypeError(`evidenceLinks.${fieldKey}[${index}] must be a non-empty string.`);
+      }
+      return evidenceId.trim();
+    });
+    return [fieldKey, [...new Set(ids)].sort()];
+  })) as Record<P01OutputFieldKey, string[]>;
   return {
     ...(input.outputId === undefined ? {} : { outputId: input.outputId }),
     studentId: input.studentId,
@@ -453,6 +742,8 @@ function normalizeWrite(input: WriteProfessionalOutputInput): NormalizedWrite {
     fieldsJson: stableJson(fields),
     upstreamRefs,
     upstreamRefsJson: stableJson(upstreamRefs),
+    evidenceLinks,
+    evidenceLinksJson: stableJson(evidenceLinks),
   };
 }
 
@@ -467,17 +758,6 @@ function toHead(row: HeadRow): ProfessionalOutputHead {
   };
 }
 
-function toVersion(row: VersionRow): ProfessionalOutputVersion {
-  return {
-    outputId: row.outputId,
-    taskId: row.taskId,
-    version: row.version,
-    schemaVersion: row.schemaVersion,
-    fields: JSON.parse(row.fieldsJson) as Record<string, ProfessionalOutputFieldValue>,
-    upstreamRefs: JSON.parse(row.upstreamRefsJson) as ProfessionalOutputUpstreamRef[],
-  };
-}
-
 function stableJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
   if (isRecord(value)) {
@@ -486,6 +766,20 @@ function stableJson(value: unknown): string {
     )).join(',')}}`;
   }
   return JSON.stringify(value);
+}
+
+function normalizeFieldSources(
+  sources: ProfessionalOutputFieldSource[],
+): ProfessionalOutputFieldSource[] {
+  const unique = new Map(sources.map((source) => [
+    `${source.fieldKey}\u0000${source.sourceNodeId}\u0000${source.sourceAttemptId}`,
+    source,
+  ]));
+  return [...unique.values()].sort((left, right) => (
+    left.fieldKey.localeCompare(right.fieldKey)
+    || left.sourceNodeId.localeCompare(right.sourceNodeId)
+    || left.sourceAttemptId.localeCompare(right.sourceAttemptId)
+  ));
 }
 
 function assertTaskId(taskId: string): asserts taskId is P1OutputTaskId {

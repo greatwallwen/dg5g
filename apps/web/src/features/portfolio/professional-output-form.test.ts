@@ -51,7 +51,11 @@ test('a persisted draft restores its current immutable version while submitted o
         schemaVersion: 1,
         fields: versionFields,
         upstreamRefs: [{ outputId: 'output-p01', version: 1 }],
+        evidenceLinks: {},
+        fieldSources: [],
       }],
+      submissionCount: status === 'submitted' ? 1 : 0,
+      reviewHistory: [],
     };
   }
 });
@@ -161,6 +165,10 @@ function outputAggregate(
       schemaVersion: 1,
       fields: { stationAndRoom: '海河路站 / 01号机房' },
       upstreamRefs: [],
+      evidenceLinks: {},
+      fieldSources: [],
     }],
+    submissionCount: status === 'submitted' ? 1 : 0,
+    reviewHistory: [],
   };
 }

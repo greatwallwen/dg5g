@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadP1DemoContent } from '../features/platform/p1-content.ts';
 import { buildP1PortfolioViewModel } from '../features/portfolio/p1-portfolio-model.ts';
+import { p01OutputFieldKeys } from '../features/portfolio/p01-output-definition.ts';
 import { migrateDatabase } from './db/migrations.ts';
 import { seedDemo } from './db/demo-seed.ts';
 import { createTestDatabase } from './db/test-database.ts';
@@ -80,11 +81,12 @@ test('a returned v1 revised and resubmitted as v2 is current on both project and
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
     const repository = new ProfessionalOutputRepository(fixture.database, () => 'projection-output-p01');
+    const firstFields = completeP01Fields('v1');
     const draft = repository.saveDraft({
       studentId: 'stu-01',
       taskId: 'P01',
       expectedStateRevision: 0,
-      fields: { evidence: 'v1' },
+      fields: firstFields,
       upstreamRefs: [],
     });
     const submitted = repository.submit({
@@ -108,7 +110,7 @@ test('a returned v1 revised and resubmitted as v2 is current on both project and
       studentId: 'stu-01',
       taskId: 'P01',
       expectedStateRevision: 3,
-      fields: { evidence: 'v2' },
+      fields: { ...firstFields, connectionDirection: 'v2' },
       upstreamRefs: [],
     });
     repository.submit({
@@ -134,3 +136,7 @@ test('a returned v1 revised and resubmitted as v2 is current on both project and
     fixture.cleanup();
   }
 });
+
+function completeP01Fields(value: string): Record<string, string> {
+  return Object.fromEntries(p01OutputFieldKeys.map((fieldKey) => [fieldKey, `${value}: ${fieldKey}`]));
+}

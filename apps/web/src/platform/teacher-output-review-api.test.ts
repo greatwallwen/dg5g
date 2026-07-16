@@ -76,9 +76,11 @@ test('teacher lists a submitted class output and verifies it through the unique 
     process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
     closeDatabase();
     const repository = new ProfessionalOutputRepository(fixture.database, () => 'api-review-output');
+    const schema = professionalOutputSchemaForTask(loadSelfStudyCatalog(), 'P01');
+    const fields = Object.fromEntries(schema.fields.map(({ key }) => [key, `submitted output: ${key}`]));
     const draft = repository.saveDraft({
       studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
-      fields: { result: 'submitted output' }, upstreamRefs: [],
+      fields, upstreamRefs: [],
     });
     repository.submit({
       outputId: draft.head.outputId, studentId: 'stu-01', taskId: 'P01',
@@ -101,7 +103,6 @@ test('teacher lists a submitted class output and verifies it through the unique 
     const listed = await listResponse.json();
     assert.equal(listed.outputs.length, 1);
     assert.equal(listed.outputs[0].outputId, 'api-review-output');
-    const schema = professionalOutputSchemaForTask(loadSelfStudyCatalog(), 'P01');
     assert.deepEqual(
       listed.outputs[0].rubric.map(({ label, maxScore }: { label: string; maxScore: number }) => ({
         criterion: label,

@@ -3,6 +3,7 @@ import test from 'node:test';
 import { seedBase } from './db/demo-seed.ts';
 import { migrateDatabase } from './db/migrations.ts';
 import { createTestDatabase } from './db/test-database.ts';
+import { p01OutputFieldKeys } from '../features/portfolio/p01-output-definition.ts';
 import { ProfessionalOutputRepository } from './professional-output-repository.ts';
 
 test('teacher verification freezes 80/90 as 86 without changing the N02 attempt history', () => {
@@ -15,7 +16,7 @@ test('teacher verification freezes 80/90 as 86 without changing the N02 attempt 
       studentId: 'stu-01',
       taskId: 'P01',
       expectedStateRevision: 0,
-      fields: { evidencePackage: '已完成室内信息采集成果' },
+      fields: completeP01Fields('已完成室内信息采集成果'),
       upstreamRefs: [],
     });
     const submitted = repository.submit({
@@ -89,9 +90,10 @@ test('teacher review queue contains only current submitted outputs from the teac
     seedBase(fixture.database);
     const ids = ['submitted-stu-01', 'draft-stu-02'];
     const repository = new ProfessionalOutputRepository(fixture.database, () => ids.shift()!);
+    const submittedFields = completeP01Fields('stu-01 submitted result');
     const submittedDraft = repository.saveDraft({
       studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
-      fields: { result: 'stu-01 submitted result' }, upstreamRefs: [],
+      fields: submittedFields, upstreamRefs: [],
     });
     repository.submit({
       outputId: submittedDraft.head.outputId,
@@ -100,7 +102,7 @@ test('teacher review queue contains only current submitted outputs from the teac
     });
     repository.saveDraft({
       studentId: 'stu-02', taskId: 'P01', expectedStateRevision: 0,
-      fields: { result: 'stu-02 draft result' }, upstreamRefs: [],
+      fields: completeP01Fields('stu-02 draft result'), upstreamRefs: [],
     });
 
     const queue = repository.listSubmittedForTeacher('teacher-01', 'demo-class');
@@ -114,7 +116,7 @@ test('teacher review queue contains only current submitted outputs from the teac
       status: 'submitted',
       currentVersion: 1,
       stateRevision: 2,
-      fields: { result: 'stu-01 submitted result' },
+      fields: submittedFields,
     });
     assert.deepEqual(repository.listSubmittedForTeacher('teacher-outside', 'demo-class'), []);
   } finally {
@@ -130,7 +132,7 @@ test('returning a submitted output records feedback and advances revision withou
     const repository = new ProfessionalOutputRepository(fixture.database, () => 'output-return-p01');
     const draft = repository.saveDraft({
       studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
-      fields: { result: 'missing evidence index' }, upstreamRefs: [],
+      fields: completeP01Fields('missing evidence index'), upstreamRefs: [],
     });
     const submitted = repository.submit({
       outputId: draft.head.outputId,
@@ -183,7 +185,7 @@ test('portfolio facts expose the current head, current-version review, and froze
     const repository = new ProfessionalOutputRepository(fixture.database, () => 'portfolio-output-p01');
     const draft = repository.saveDraft({
       studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
-      fields: { privateEvidence: 'must not leave repository aggregate' }, upstreamRefs: [],
+      fields: completeP01Fields('must not leave repository aggregate'), upstreamRefs: [],
     });
     const submitted = repository.submit({
       outputId: draft.head.outputId,
@@ -221,3 +223,7 @@ test('portfolio facts expose the current head, current-version review, and froze
     fixture.cleanup();
   }
 });
+
+function completeP01Fields(value: string): Record<string, string> {
+  return Object.fromEntries(p01OutputFieldKeys.map((fieldKey) => [fieldKey, `${value}: ${fieldKey}`]));
+}
