@@ -25,6 +25,10 @@ test('reads only the owned output with immutable evidence, sources, annotations,
     assert.deepEqual(facts.output?.versions.map(({ version }) => version), [1, 2]);
     assert.equal(facts.output?.versions[0]?.evidenceLinks.siteRoom?.[0]?.title, 'HY-01机房与采集环境全景');
     assert.equal(facts.output?.versions[0]?.evidenceLinks.siteRoom?.[0]?.assetUrl, '/media/5g/image29.png');
+    assert.equal(facts.output?.versions[0]?.evidenceLinks.siteRoom?.[0]?.metadata.annotation, '站点、机房与室内采集环境同框');
+    assert.equal(facts.output?.versions[0]?.evidenceLinks.deviceIdentity, undefined);
+    assert.equal(facts.output?.versions[1]?.evidenceLinks.siteRoom, undefined);
+    assert.equal(facts.output?.versions[1]?.evidenceLinks.deviceIdentity?.[0]?.evidenceId, 'P01-EV-BBU-NAMEPLATE');
     assert.deepEqual(facts.output?.versions[1]?.fieldSources, [{
       fieldKey: 'siteRoom', sourceNodeId: 'P1T1-N01', sourceAttemptId: 'attempt-scope',
     }]);
@@ -113,9 +117,10 @@ function seedPortfolioFacts(database: ReturnType<typeof createTestDatabase>['dat
   insertVersion(database, 'output-stu-01', 1, { siteRoom: 'HY-01 / 01号机房', evidenceGap: '缺柜号同框' });
   insertVersion(database, 'output-stu-01', 2, { siteRoom: 'HY-01 / 01号机房 / 02号柜', evidenceGap: '缺口已闭环' });
   for (const version of [1, 2]) {
-    database.prepare(`INSERT INTO output_evidence_links (output_id, version, field_key, evidence_id) VALUES (?, ?, 'siteRoom', 'P01-EV-ROOM-OVERVIEW')`).run('output-stu-01', version);
     database.prepare(`INSERT INTO output_field_sources (output_id, version, field_key, source_node_id, source_attempt_id) VALUES (?, ?, 'siteRoom', 'P1T1-N01', 'attempt-scope')`).run('output-stu-01', version);
   }
+  database.prepare(`INSERT INTO output_evidence_links (output_id, version, field_key, evidence_id) VALUES ('output-stu-01', 1, 'siteRoom', 'P01-EV-ROOM-OVERVIEW')`).run();
+  database.prepare(`INSERT INTO output_evidence_links (output_id, version, field_key, evidence_id) VALUES ('output-stu-01', 2, 'deviceIdentity', 'P01-EV-BBU-NAMEPLATE')`).run();
   insertReview(database, 'review-return', 'returned', 1, 'siteRoom', '补拍柜号与设备同框照片。', '2026-07-16T08:00:00.000Z');
   insertReview(database, 'review-verify', 'verified', 2, 'evidenceGap', '缺口已闭环。', '2026-07-16T09:00:00.000Z');
 
