@@ -1,0 +1,57 @@
+{
+  "learningEvents": [
+    "demo-event-stu-01-p1t1-n01",
+    "demo-event-stu-01-p1t1-n02",
+    "demo-event-stu-02-p1t1-n01",
+    "demo-event-stu-02-p1t1-n02",
+    "demo-event-stu-02-p1t1-n03",
+    "demo-event-stu-02-p1t1-n04",
+    "demo-event-stu-02-p1t2-n01",
+    "demo-event-stu-03-p1t1-n01-v2",
+    "demo-event-stu-03-p1t1-n02",
+    "demo-event-stu-03-p1t1-n03",
+    "demo-event-stu-03-p1t1-n04",
+    "demo-event-stu-03-p1t2-n01",
+    "demo-event-stu-03-p1t2-n02",
+    "demo-event-stu-03-p1t2-n03",
+    "demo-event-stu-03-p1t2-n04",
+    "demo-event-stu-03-p1t3-n01",
+    "stu-01:P1T1-N02:self-study:evidence",
+    "stu-01:P1T1-N02:self-study:explain",
+    "stu-01:P1T1-N02:self-study:practice",
+    "stu-01:P1T1-N02:self-study:understand"
+  ],
+  "formalAttempts": [
+    "demo-attempt-stu-01-p1t1-n02",
+    "demo-attempt-stu-02-p1t1-n02-v2",
+    "demo-attempt-stu-03-p1t1-n02",
+    "demo-attempt-stu-03-p1t2-n02"
+  ],
+  "professionalOutputs": [
+    "demo-output-stu-02-p1t1-n04",
+    "demo-output-stu-03-p1t1-n04",
+    "demo-output-stu-03-p1t2-n04"
+  ],
+  "frozenTaskScores": [
+    "demo-task-score-stu-02-p01-v2",
+    "demo-task-score-stu-03-p1t1-v1",
+    "demo-task-score-stu-03-p1t2-v1"
+  ],
+  "cursors": [
+    {
+      "studentId": "stu-01",
+      "nodeId": "P1T1-N02",
+      "actionId": "P1T1-N02-lesson-case"
+    },
+    {
+      "studentId": "stu-02",
+      "nodeId": "P1T2-N02",
+      "actionId": "P1T2-N02-lesson-case"
+    },
+    {
+      "studentId": "stu-03",
+      "nodeId": "P1T3-N02",
+      "actionId": "P1T3-N02-lesson-case"
+    }
+  ]
+}

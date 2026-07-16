@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import os from 'node:os';
 import path from 'node:path';
@@ -366,6 +366,82 @@ test('migration records before and after schema, user, event, and output counts 
   assert.ok(verify > demoSeed && after > verify, 'the final audit must follow seed and db:verify');
   assert.ok(preserve > verify, 'the final audit must compare all pre-seed learning rows');
   assert.match(critical, /"database":\{"before":before,"after":after\}/);
+});
+
+test('database preservation audit permits only the exact retired v8 demo identities to be replaced', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'dgbook-db-audit-'));
+  const scriptPath = path.join(directory, 'db-audit.cjs');
+  const databasePath = path.join(directory, 'audit.sqlite');
+  const beforePath = path.join(directory, 'before.json');
+  const allowedAfterPath = path.join(directory, 'allowed-after.json');
+  const rejectedAfterPath = path.join(directory, 'rejected-after.json');
+  const preSwitch = fixturePlan().remote.preSwitch;
+  const startMarker = `cat > "$state/db-audit.cjs" <<'DGBOOK_DB_AUDIT'\n`;
+  const start = preSwitch.indexOf(startMarker);
+  const end = preSwitch.indexOf('\nDGBOOK_DB_AUDIT', start + startMarker.length);
+  assert.ok(start >= 0 && end > start, 'generated database audit body must be extractable');
+  await writeFile(scriptPath, preSwitch.slice(start + startMarker.length, end), 'utf8');
+
+  const requireFromWeb = createRequire(path.join(root, 'apps/web/package.json'));
+  const Database = requireFromWeb('better-sqlite3');
+  const database = new Database(databasePath);
+  try {
+    database.exec(`
+      CREATE TABLE users (id TEXT PRIMARY KEY) STRICT;
+      CREATE TABLE learning_events (
+        event_id TEXT PRIMARY KEY, origin TEXT NOT NULL, payload_json TEXT NOT NULL
+      ) STRICT;
+      CREATE TABLE professional_outputs (
+        output_id TEXT PRIMARY KEY, origin TEXT NOT NULL, content_json TEXT NOT NULL
+      ) STRICT;
+      INSERT INTO users VALUES ('stu-01');
+      INSERT INTO learning_events VALUES
+        ('demo-event-stu-01-p1t1-n01', 'demo', '{}'),
+        ('runtime-event-before-truth-origin', 'demo', '{"kept":true}');
+      INSERT INTO professional_outputs VALUES
+        ('demo-output-stu-02-p1t1-n04', 'demo', '{"legacy":true}'),
+        ('user-output-sentinel', 'user', '{"kept":true}');
+      PRAGMA user_version = 11;
+    `);
+  } finally {
+    database.close();
+  }
+
+  const runAudit = (outputPath, ...comparison) => spawnSync(
+    process.execPath,
+    [scriptPath, databasePath, outputPath, ...comparison],
+    { cwd: root, encoding: 'utf8' },
+  );
+
+  try {
+    const capture = runAudit(beforePath);
+    assert.equal(capture.status, 0, capture.stderr);
+
+    const upgraded = new Database(databasePath);
+    try {
+      upgraded.exec(`
+        DELETE FROM learning_events WHERE event_id = 'demo-event-stu-01-p1t1-n01';
+        DELETE FROM professional_outputs WHERE output_id = 'demo-output-stu-02-p1t1-n04';
+      `);
+    } finally {
+      upgraded.close();
+    }
+    const allowed = runAudit(allowedAfterPath, 'preserve', beforePath);
+    assert.equal(allowed.status, 0, allowed.stderr);
+
+    const tampered = new Database(databasePath);
+    try {
+      tampered.prepare(`
+        DELETE FROM learning_events WHERE event_id = 'runtime-event-before-truth-origin'
+      `).run();
+    } finally {
+      tampered.close();
+    }
+    const rejected = runAudit(rejectedAfterPath, 'preserve', beforePath);
+    assert.notEqual(rejected.status, 0, 'non-whitelisted runtime facts must remain protected');
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
 });
 
 test('rollback restores the verified pre-migration SQLite backup atomically without a down migration', () => {

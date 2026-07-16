@@ -1,5 +1,11 @@
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+const legacyDemoV8Facts = JSON.parse(readFileSync(
+  path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../apps/web/database/legacy-demo-v8-facts.json'),
+  'utf8',
+));
 
 export const DEFAULT_DEPLOY_PATHS = Object.freeze({
   baseDir: '/var/www/dgbook-web',
@@ -409,6 +415,13 @@ const count = (table) => tableExists(table)
 const rows = (table) => tableExists(table)
   ? database.prepare('SELECT * FROM "' + table + '" ORDER BY 1').all()
   : [];
+const replaceableLegacyDemoIds = {
+  learningEvents: new Set(${JSON.stringify(legacyDemoV8Facts.learningEvents)}),
+  professionalOutputs: new Set(${JSON.stringify(legacyDemoV8Facts.professionalOutputs)}),
+};
+const mustPreserve = (label, primaryKey, row) => !(
+  row.origin === 'demo' && replaceableLegacyDemoIds[label].has(row[primaryKey])
+);
 try {
   assert.equal(database.pragma('integrity_check', { simple: true }), 'ok', 'SQLite integrity_check failed');
   assert.deepEqual(database.pragma('foreign_key_check'), [], 'SQLite foreign_key_check failed');
@@ -432,10 +445,16 @@ try {
     assert.ok(summary.counts.users >= expected.counts.users, 'seed removed users');
     for (const [label, primaryKey] of [['learningEvents', 'event_id'], ['professionalOutputs', 'output_id']]) {
       const currentById = new Map(summary.protectedRows[label].map((row) => [row[primaryKey], row]));
-      for (const row of expected.protectedRows[label]) {
+      const protectedExpectedRows = expected.protectedRows[label].filter((row) => (
+        mustPreserve(label, primaryKey, row)
+      ));
+      for (const row of protectedExpectedRows) {
         assert.deepEqual(currentById.get(row[primaryKey]), row, 'seed overwrote protected learning data');
       }
-      assert.ok(summary.counts[label] >= expected.counts[label], 'seed removed protected learning data');
+      assert.ok(
+        summary.counts[label] >= protectedExpectedRows.length,
+        'seed removed protected learning data',
+      );
     }
   } else if (comparison) {
     throw new Error('unknown SQLite audit comparison');

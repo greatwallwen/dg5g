@@ -17,7 +17,7 @@ import {
   seedBase,
   seedDemo,
 } from './demo-seed.ts';
-import { migrateDatabase } from './migrations.ts';
+import { migrateDatabase, readMigrations } from './migrations.ts';
 import { createTestDatabase } from './test-database.ts';
 
 test('three demo personas are rebuilt from complete truthful demo facts', () => {
@@ -51,6 +51,203 @@ test('base and demo seeding are deterministic and keep one teacher with exactly 
       SELECT password_hash AS passwordHash FROM users
     `).all() as Array<{ passwordHash: string }>;
     assert.equal(passwordRows.every(({ passwordHash }) => verifyPassword('123456', passwordHash)), true);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('demo seeding upgrades a legacy demo output that occupies the same student task identity', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    fixture.database.exec(`
+      INSERT INTO professional_outputs (
+        output_id, student_id, task_id, node_id, status, content_json,
+        current_version, state_revision, origin
+      ) VALUES (
+        'demo-output-stu-02-p1t1-n04', 'stu-02', 'P01', 'P1T1-N04',
+        'verified', '{"kind":"legacy-placeholder"}', 1, 1, 'demo'
+      );
+      INSERT INTO professional_output_versions (
+        output_id, task_id, version, schema_version, fields_json, upstream_refs_json
+      ) VALUES (
+        'demo-output-stu-02-p1t1-n04', 'P01', 1, 1,
+        '{"kind":"legacy-placeholder"}', '[]'
+      );
+      INSERT INTO learning_events (
+        event_id, student_id, node_id, channel, event_type, payload_json, origin
+      ) VALUES (
+        'user-fact-survives-demo-upgrade', 'stu-02', 'P1T1-N01',
+        'self-study', 'section_completed', '{}', 'user'
+      );
+    `);
+
+    assert.doesNotThrow(() => seedDemo(fixture.database));
+    assert.equal(count(fixture.database, `
+      SELECT COUNT(*) FROM professional_outputs
+      WHERE output_id = 'demo-output-stu-02-p1t1-n04'
+    `), 0);
+    assert.deepEqual(fixture.database.prepare(`
+      SELECT output_id AS outputId, status, origin
+      FROM professional_outputs
+      WHERE student_id = 'stu-02' AND task_id = 'P01'
+    `).get(), {
+      outputId: 'demo-output-stu-02-p01',
+      status: 'returned',
+      origin: 'demo',
+    });
+    assert.equal(count(fixture.database, `
+      SELECT COUNT(*) FROM learning_events
+      WHERE event_id = 'user-fact-survives-demo-upgrade' AND origin = 'user'
+    `), 1);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('demo seeding removes obsolete demo facts and resets legacy-only cursors to the current personas', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    fixture.database.exec(`
+      INSERT INTO learning_events (
+        event_id, student_id, node_id, channel, event_type, payload_json, origin
+      ) VALUES
+        ('demo-event-stu-01-p1t1-n01', 'stu-01', 'P1T1-N02',
+          'self-study', 'micro_practice_passed', '{"masteryPercent":74}', 'demo'),
+        ('demo-event-stu-02-p1t1-n01', 'stu-02', 'P1T1-N01',
+          'self-study', 'micro_practice_passed', '{"masteryPercent":88}', 'demo'),
+        ('demo-event-stu-03-p1t1-n01-v2', 'stu-03', 'P1T1-N01',
+          'self-study', 'micro_practice_passed', '{"masteryPercent":94}', 'demo');
+      INSERT INTO formal_attempts (
+        attempt_id, student_id, node_id, game_id, score, origin
+      ) VALUES (
+        'demo-attempt-stu-01-p1t1-n02', 'stu-01', 'P1T1-N02', 'node-test', 74, 'demo'
+      );
+      INSERT INTO frozen_task_scores (
+        score_id, student_id, task_id, snapshot_version,
+        provisional_score, official_score, details_json, origin
+      ) VALUES (
+        'demo-task-score-stu-02-p01-v2', 'stu-02', 'P01', 2,
+        89, 89, '{"source":"legacy-demo"}', 'demo'
+      );
+      INSERT INTO self_study_cursors (
+        student_id, node_id, unit_id, action_id, action_index, position_ms, is_active
+      ) VALUES
+        ('stu-01', 'P1T1-N02', 'P01-ku-02', 'P1T1-N02-lesson-case', 0, 0, 1),
+        ('stu-02', 'P1T2-N02', 'P02-ku-02', 'P1T2-N02-lesson-case', 0, 0, 1),
+        ('stu-03', 'P1T3-N02', 'P03-ku-02', 'P1T3-N02-lesson-case', 0, 0, 1);
+    `);
+
+    seedDemo(fixture.database);
+
+    assert.equal(count(fixture.database, `
+      SELECT COUNT(*) FROM learning_events WHERE event_id LIKE 'demo-event-%'
+    `), 0, 'learning_events must not retain obsolete demo facts');
+    assert.equal(count(fixture.database, `
+      SELECT COUNT(*) FROM formal_attempts WHERE attempt_id LIKE 'demo-attempt-%-p1t%'
+    `), 0, 'formal_attempts must not retain obsolete demo facts');
+    assert.equal(count(fixture.database, `
+      SELECT COUNT(*) FROM frozen_task_scores WHERE score_id LIKE 'demo-task-score-%'
+    `), 0, 'frozen_task_scores must not retain obsolete demo facts');
+    assert.deepEqual(fixture.database.prepare(`
+      SELECT student_id AS studentId, node_id AS nodeId
+      FROM self_study_cursors
+      WHERE is_active = 1
+      ORDER BY student_id
+    `).all(), [
+      { studentId: 'stu-01', nodeId: 'P1T1-N01' },
+      { studentId: 'stu-02', nodeId: 'P1T1-N04' },
+      { studentId: 'stu-03', nodeId: 'P1T3-N04' },
+    ]);
+    assertTruthfulPersonas(fixture.database);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('a v8 production-shaped demo upgrades through v11 without deleting an unknown legacy runtime fact', () => {
+  const fixture = createTestDatabase();
+  try {
+    applyMigrationsThrough(fixture.database, 8);
+    seedBase(fixture.database);
+    fixture.database.exec(`
+      INSERT INTO learning_events (
+        event_id, student_id, node_id, channel, event_type, payload_json
+      ) VALUES
+        ('demo-event-stu-01-p1t1-n01', 'stu-01', 'P1T1-N01',
+          'self-study', 'micro_practice_passed', '{"masteryPercent":92}'),
+        ('demo-event-stu-02-p1t1-n01', 'stu-02', 'P1T1-N01',
+          'self-study', 'micro_practice_passed', '{"masteryPercent":88}'),
+        ('demo-event-stu-03-p1t1-n01-v2', 'stu-03', 'P1T1-N01',
+          'self-study', 'micro_practice_passed', '{"masteryPercent":94}'),
+        ('runtime-event-before-truth-origin', 'stu-02', 'P1T2-N02',
+          'self-study', 'section_completed', '{"source":"runtime"}');
+      INSERT INTO formal_attempts (
+        attempt_id, student_id, node_id, game_id, score
+      ) VALUES
+        ('demo-attempt-stu-01-p1t1-n02', 'stu-01', 'P1T1-N02', 'node-test', 74),
+        ('demo-attempt-stu-02-p1t1-n02-v2', 'stu-02', 'P1T1-N02', 'node-test', 88),
+        ('demo-attempt-stu-03-p1t1-n02', 'stu-03', 'P1T1-N02', 'node-test', 93),
+        ('demo-attempt-stu-03-p1t2-n02', 'stu-03', 'P1T2-N02', 'node-test', 91);
+      INSERT INTO professional_outputs (
+        output_id, student_id, task_id, node_id, status, content_json,
+        current_version, state_revision
+      ) VALUES
+        ('demo-output-stu-02-p1t1-n04', 'stu-02', 'P01', 'P1T1-N04',
+          'verified', '{"kind":"legacy-p01"}', 1, 1),
+        ('demo-output-stu-03-p1t1-n04', 'stu-03', 'P01', 'P1T1-N04',
+          'verified', '{"kind":"legacy-p01"}', 1, 1),
+        ('demo-output-stu-03-p1t2-n04', 'stu-03', 'P02', 'P1T2-N04',
+          'verified', '{"kind":"legacy-p02"}', 1, 1);
+      INSERT INTO professional_output_versions (
+        output_id, task_id, version, schema_version, fields_json, upstream_refs_json
+      ) VALUES
+        ('demo-output-stu-02-p1t1-n04', 'P01', 1, 1, '{"kind":"legacy-p01"}', '[]'),
+        ('demo-output-stu-03-p1t1-n04', 'P01', 1, 1, '{"kind":"legacy-p01"}', '[]'),
+        ('demo-output-stu-03-p1t2-n04', 'P02', 1, 1, '{"kind":"legacy-p02"}', '[]');
+      INSERT INTO self_study_cursors (
+        student_id, node_id, unit_id, action_id, action_index, position_ms, is_active
+      ) VALUES
+        ('stu-01', 'P1T1-N02', 'P01-ku-02', 'P1T1-N02-lesson-case', 0, 0, 1),
+        ('stu-02', 'P1T2-N02', 'P02-ku-02', 'P1T2-N02-lesson-case', 0, 0, 1),
+        ('stu-03', 'P1T3-N02', 'P03-ku-02', 'P1T3-N02-lesson-case', 0, 0, 1);
+      INSERT INTO frozen_task_scores (
+        score_id, student_id, task_id, snapshot_version,
+        provisional_score, official_score, details_json
+      ) VALUES
+        ('demo-task-score-stu-02-p01-v2', 'stu-02', 'P01', 2, 89, 89, '{}'),
+        ('demo-task-score-stu-03-p1t1-v1', 'stu-03', 'P01', 1, 94, 94, '{}'),
+        ('demo-task-score-stu-03-p1t2-v1', 'stu-03', 'P02', 1, 92, 92, '{}');
+    `);
+
+    assert.deepEqual(migrateDatabase(fixture.database).appliedVersions, [9, 10, 11]);
+    seedDemo(fixture.database);
+
+    assert.equal(count(fixture.database, `
+      SELECT COUNT(*) FROM learning_events WHERE event_id = 'runtime-event-before-truth-origin'
+    `), 1);
+    assert.equal(count(fixture.database, `
+      SELECT COUNT(*) FROM learning_events WHERE event_id LIKE 'demo-event-%'
+    `), 0);
+    assert.equal(count(fixture.database, `
+      SELECT COUNT(*) FROM professional_outputs WHERE output_id LIKE 'demo-output-%-p1t%-n04'
+    `), 0);
+    assert.deepEqual(fixture.database.prepare(`
+      SELECT student_id AS studentId, node_id AS nodeId
+      FROM self_study_cursors WHERE is_active = 1 ORDER BY student_id
+    `).all(), [
+      { studentId: 'stu-01', nodeId: 'P1T1-N01' },
+      { studentId: 'stu-02', nodeId: 'P1T2-N02' },
+      { studentId: 'stu-03', nodeId: 'P1T3-N04' },
+    ]);
+    const first = mutableCounts(fixture.database);
+    seedDemo(fixture.database);
+    assert.deepEqual(mutableCounts(fixture.database), first);
+    assert.equal(fixture.database.pragma('integrity_check', { simple: true }), 'ok');
+    assert.deepEqual(fixture.database.pragma('foreign_key_check'), []);
   } finally {
     fixture.cleanup();
   }
@@ -515,5 +712,29 @@ function assertTopicsAdvanced(before: ReturnType<typeof topicVersions>, after: R
       true,
       `${studentId}: ${before.students[studentId]} -> ${after.students[studentId]}`,
     );
+  }
+}
+
+function applyMigrationsThrough(
+  database: ReturnType<typeof createTestDatabase>['database'],
+  targetVersion: number,
+): void {
+  database.exec(`
+    CREATE TABLE schema_migrations (
+      version INTEGER PRIMARY KEY,
+      name TEXT NOT NULL,
+      checksum TEXT NOT NULL,
+      applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) STRICT
+  `);
+  for (const migration of readMigrations().filter(({ version }) => version <= targetVersion)) {
+    database.transaction(() => {
+      database.exec(migration.sql);
+      database.prepare(`
+        INSERT INTO schema_migrations (version, name, checksum)
+        VALUES (?, ?, ?)
+      `).run(migration.version, migration.name, migration.checksum);
+      database.pragma(`user_version = ${migration.version}`);
+    })();
   }
 }

@@ -17,6 +17,7 @@ import { getFormalAssessmentValidationPolicy } from '../formal-assessment-catalo
 import { validatePersistedAssessmentDiagnostic } from '../persisted-assessment-diagnostic.ts';
 import { SnapshotClock } from '../snapshot-clock.ts';
 import type { AppDatabase } from './database.ts';
+import { upgradeLegacyDemoV8Facts } from './legacy-demo-v8-upgrade.ts';
 
 export const DEMO_TEACHER_ID = 'teacher-01';
 export const DEMO_STUDENT_IDS = ['stu-01', 'stu-02', 'stu-03'] as const;
@@ -355,6 +356,7 @@ export function seedDemo(database: AppDatabase, seed = readDemoSeed()): void {
   `);
 
   database.transaction(() => {
+    upgradeLegacyDemoV8Facts(database, DEMO_STUDENT_IDS);
     for (const event of seed.demo.events) {
       upsertEvent.run({ ...event, payloadJson: JSON.stringify(event.payload) });
     }
