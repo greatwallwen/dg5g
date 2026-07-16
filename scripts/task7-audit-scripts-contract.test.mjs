@@ -61,7 +61,7 @@ test('one isolated server/reset run executes snapshot, classroom, and self-study
   assert.ok(runner.includes("'--allow-local-mutation'"));
   assert.ok(runner.includes("'--isolated-sqlite', databasePath"));
   assert.equal(count(runner, 'db:reset:demo'), 1);
-  assert.equal(count(runner, 'const server = spawn('), 1);
+  assert.equal(count(runner, 'server = spawn('), 1);
 });
 
 test('three-terminal audit uses a bounded stable-version handshake and API-to-DOM assertions', () => {
