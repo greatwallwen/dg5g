@@ -28,7 +28,7 @@ The real shared classroom is `demo-class`:
 - student: `/classroom/demo-class`
 - projector: `/present/demo-class`
 
-The active node/unit and revision remain session data. The formal-test route is `/learn/P1T1-N02?mode=challenge`; the three N04 professional-output states also use `?mode=challenge`.
+The active node/unit and revision remain session data. The formal-test route is the independent `/learn/P1T1-N02/test`; only the three N04 professional-output states use `?mode=challenge`. N02 and formal-test captures read the persisted stu-03 demo prerequisites, while N04 and portfolio capture exact returned, verified and demo-complete states instead of manufacturing learning events or scores.
 
 ## Capture loop
 
@@ -55,7 +55,7 @@ The reduced-motion review emulates `(prefers-reduced-motion: reduce)`, requires 
 
 ## Audit boundary
 
-`scripts/image2-route-contract.test.mjs` owns schema and mutation tests for the full state/actor/390 matrix, real `demo-class` routes, real challenge query, six reference mappings, long-page captures and interaction policies.
+`scripts/image2-route-contract.test.mjs` owns schema and mutation tests for the full state/actor/390 matrix, real `demo-class` routes, the independent formal-test route, N04 challenge queries, six reference mappings, long-page captures and interaction policies.
 
 `scripts/audit-image2-reference.mjs` validates only the v2 static contract, these two documents and the six stored V4 files. It reports surfaces, states, actors, resolved routes and viewport profiles. Browser behavior belongs to later capture/layout/journey scripts and cannot be inferred from a green static audit.
 

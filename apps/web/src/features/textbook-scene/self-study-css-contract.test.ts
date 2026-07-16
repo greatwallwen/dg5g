@@ -9,6 +9,7 @@ const classroomCssUrl = new URL('../../app/student-classroom-runtime.css', impor
 const layoutUrl = new URL('../../app/layout.tsx', import.meta.url);
 const textbookCssUrl = new URL('../../app/digital-textbook-v4.css', import.meta.url);
 const textbookSceneCssUrl = new URL('../../app/textbook-scene.css', import.meta.url);
+const authCssUrl = new URL('../../app/auth.css', import.meta.url);
 
 test('the six-section textbook owns a responsive Image2 engineering stage', async () => {
   const [css, layout] = await Promise.all([
@@ -66,4 +67,13 @@ test('the formal challenge stacks the game and evidence panels at 390px', async 
   assert.match(sceneCss, /@media \(max-width: 760px\)[\s\S]*?\.skill-game-replay-frame\s*\{[^}]*min-width:\s*0[^}]*max-width:\s*100%[^}]*grid-template-columns:\s*auto minmax\(0,\s*1fr\)/);
   assert.match(sceneCss, /@media \(max-width: 760px\)[\s\S]*?\.skill-game-replay-frame dl,\.skill-game-replay-frame > button\s*\{[^}]*grid-column:\s*1\s*\/\s*-1/);
   assert.match(sceneCss, /@media \(max-width: 760px\)[\s\S]*?\.skill-game-replay-frame > button\s*\{[^}]*width:\s*100%[^}]*max-width:\s*100%/);
+});
+
+test('the 390px learning topbar removes its account min-content overflow source', async () => {
+  const css = await readFile(authCssUrl, 'utf8');
+
+  assert.match(
+    css,
+    /@media \(max-width: 720px\)[\s\S]*?\.scene-topbar \.account-menu-identity\s*\{[^}]*display:\s*none/,
+  );
 });

@@ -28,20 +28,20 @@ Mobile coverage is mandatory for login, both role homes, P1, all three N02 pages
 
 | Surface | States and actors | Route |
 | --- | --- | --- |
-| Login | student / teacher | `/` |
-| Student home | P01 stu-01 / P02 stu-02 / P03 stu-03 | `/student/home` |
+| Login | student01 / teacher01 credentials in one shared form | `/` |
+| Student home | P01 newcomer stu-01 / P01 returned stu-02 / P03 cursor stu-03 | `/student/home` |
 | Teacher workbench | teacher01 | `/teacher/workbench` |
-| P1 project | P01 / P02 / P03 current | `/student/projects/p1` |
-| Three N02 pages | figure state for stu-01 / stu-02 / stu-03 | `/learn/P1T1-N02`, `/learn/P1T2-N02`, `/learn/P1T3-N02` |
-| Formal test | open | `/learn/P1T1-N02?mode=challenge` |
-| Three N04 pages | returned / draft / submitted | each N04 route with `?mode=challenge` |
-| Portfolio | incomplete / complete | `/student/projects/p1/portfolio` |
+| P1 project | P01 newcomer / P01 returned / demo-complete | `/student/projects/p1` |
+| Three N02 pages | figure state for seeded learner stu-03 | `/learn/P1T1-N02`, `/learn/P1T2-N02`, `/learn/P1T3-N02` |
+| Formal test | server-issued independent paper for stu-03 | `/learn/P1T1-N02/test` |
+| Three N04 pages | P01 returned-and-revising for stu-02 / P02-P03 verified demo output for stu-03 | each N04 route with `?mode=challenge` |
+| Portfolio | incomplete / demo-complete | `/student/projects/p1/portfolio` |
 | Teacher session | teaching | `/teacher/sessions/demo-class` |
 | Student classroom | follow / self / entry-or-left | `/classroom/demo-class` |
 | Projector | active read-only | `/present/demo-class` |
 | Course graph | P1 current | `/course` |
 
-The classroom route identifies the real session. Its current node and unit come from session data; a node ID is never used as a session ID. Formal testing uses the real `?mode=challenge` query and never the retired `?state=formal-test` capture fiction.
+The classroom route identifies the real session. Its current node and unit come from session data; a node ID is never used as a session ID. Formal testing uses the independent authenticated `/test` route and a server-issued paper. Only N04 professional-output views use `?mode=challenge`; neither surface uses the retired `?state=formal-test` capture fiction.
 
 ## Direct V4 references
 
@@ -61,7 +61,7 @@ All other states use `derivedFrom` and resolve directly to these selected files.
 ## Shared interaction contract
 
 - The document must not overflow by more than 1px, and hiding document overflow is not an accepted fix. Only `allowedInternalScrollers` may scroll internally.
-- Every primary control uses `[data-primary-action]`. `exactly-one` means one visible, enabled action; `none` is deliberate for read-only submitted/complete/projector states.
+- Every primary control uses `[data-primary-action]`. `exactly-one` means one visible, enabled action; `none` is deliberate for read-only verified/demo-complete/projector states.
 - Keyboard review covers visible focus, Enter/Space activation, Escape drawer close and focus return. Sticky controls must not cover required regions.
 - The reduced-motion path uses `(prefers-reduced-motion: reduce)` plus `[data-motion="paused|reduced"]`; non-essential animation is disabled without hiding state.
 - Long P1, N04 and portfolio states produce viewport, full-page and bottom evidence. The screenshot name is `<surface>--<state>--<actor>--<viewport>.png`.

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -155,12 +155,20 @@ async function openState(page, job, baseUrl) {
   if (!response?.ok()) throw new Error(`${job.key} returned ${response?.status() ?? 'no response'}`);
   if (job.surfaceId === 'login') {
     await page.locator('main[data-login-role="gateway"]').waitFor({ state: 'visible' });
-    const username = job.stateId === 'teacher' ? 'teacher01' : 'student01';
+    const username = job.state.setup.account;
+    if (typeof username !== 'string' || !username.trim()) throw new Error(`${job.key} omitted the credential account`);
     await page.locator('input[autocomplete="username"]').fill(username);
   }
   if (job.surfaceId.startsWith('n02-')) {
     const nav = page.locator('.self-study-head nav button');
     if (await nav.count() >= 2) await nav.nth(1).click();
+  }
+  if (job.state.setup.editorState === 'revising') {
+    const field = page.locator('[data-output-field] textarea').first();
+    await field.waitFor({ state: 'visible' });
+    await field.fill(`${await field.inputValue()}（已按教师意见补充复核证据）`);
+    await page.locator('[data-output-workflow="revising"][data-output-status="returned"] [data-primary-action]:not([disabled])')
+      .waitFor({ state: 'visible' });
   }
   await waitForImage2Stability(page, job.state).catch(() => undefined);
 }
@@ -249,134 +257,33 @@ export class Image2FixtureManager {
 
   async ensure(key) {
     if (this.completed.has(key)) return;
-    if (key === 'n04-p01/returned') await this.ensureOutputState('stu-01', 'P01', 'P1T1', 'returned');
-    if (key === 'n04-p02/draft') await this.ensureOutputState('stu-02', 'P02', 'P1T2', 'draft');
-    if (key === 'n04-p03/submitted') await this.ensureOutputState('stu-03', 'P03', 'P1T3', 'submitted');
-    if (key === 'portfolio/complete') await this.ensureStudentThreePortfolioComplete();
+    if (key === 'n04-p01/returned') await this.ensureOutputState('stu-02', 'P01', 'returned');
+    if (key === 'n04-p02/verified') await this.ensureOutputState('stu-03', 'P02', 'verified');
+    if (key === 'n04-p03/verified') await this.ensureOutputState('stu-03', 'P03', 'verified');
+    if (key === 'portfolio/demo-complete') await this.ensureDemoPortfolioState();
     if (key.startsWith('teacher-session/') || key.startsWith('student-follow/') || key.startsWith('projector/')) {
       await this.ensureClassroomFixture();
     }
     this.completed.add(key);
   }
 
-  async ensureOutputState(actor, taskId, nodePrefix, desired) {
+  async ensureOutputState(actor, taskId, desired) {
     const context = await this.context(actor);
-    let output = await this.api(context, 'GET', `/api/outputs/${taskId}`, undefined, {
-      allowLocked: true,
-      allowNull: true,
-    });
-    if (outputStateSatisfies(output?.head?.status, desired)) return output;
-    await this.ensureOutputAccess(context, taskId, nodePrefix);
-    output = await this.api(context, 'GET', `/api/outputs/${taskId}`, undefined, { allowNull: true });
-    if (outputStateSatisfies(output?.head?.status, desired)) return output;
-    if (!output || output.head.status === 'returned') {
-      output = await this.writeOutputThroughUi(context, taskId, nodePrefix, output, desired === 'draft' ? 'draft' : 'submitted');
-    } else if (output.head.status === 'draft' && desired !== 'draft') {
-      output = await this.submitExistingOutput(context, taskId, nodePrefix);
-    }
-    if (desired === 'returned' && output?.head?.status === 'submitted') {
-      const teacher = await this.context('teacher01');
-      const queue = await this.api(teacher, 'GET', '/api/teacher/outputs');
-      const item = queue.outputs.find((candidate) => candidate.outputId === output.head.outputId);
-      if (!item) throw new Error(`${taskId} submitted output is absent from teacher queue`);
-      await this.api(teacher, 'POST', `/api/teacher/outputs/${item.outputId}/reviews`, {
-        expectedStateRevision: item.stateRevision,
-        action: 'return',
-        feedback: '请补齐关键证据索引和连接方向判断依据后修订。',
-      });
-      output = await this.api(context, 'GET', `/api/outputs/${taskId}`);
-    }
+    const envelope = await this.api(context, 'GET', `/api/outputs/${taskId}`);
+    const output = envelope?.output;
     if (!outputStateSatisfies(output?.head?.status, desired)) {
       throw new Error(`${actor} ${taskId} expected ${desired}, received ${output?.head?.status}`);
     }
     return output;
   }
 
-  async ensureOutputAccess(context, taskId, nodePrefix) {
-    let learning = await this.api(context, 'GET', '/api/learning/me');
-    learning = await this.learningEvent(context, learning, `${nodePrefix}-N02`, `${taskId}-n02`);
-    if (needsFormalAttempt(learning, `${nodePrefix}-N02`)) {
-      learning = await this.api(context, 'POST', `/api/learning/nodes/${nodePrefix}-N02/attempts`, {
-        attemptId: `image2-${taskId}-${randomUUID()}`,
-        gameId: 'node-test',
-        score: 90,
-        durationSeconds: 180,
-        mistakeKnowledgePointIds: [],
-        expectedVersion: learning.version,
-      });
-    }
-    learning = await this.learningEvent(context, learning, `${nodePrefix}-N03`, `${taskId}-n03`);
-    await this.learningEvent(context, learning, `${nodePrefix}-N04`, `${taskId}-n04`);
-  }
-
-  async learningEvent(context, learning, nodeId, suffix) {
-    return this.api(context, 'POST', `/api/learning/nodes/${nodeId}/events`, {
-      eventId: `image2-${suffix}-${randomUUID()}`,
-      channel: 'game',
-      eventType: 'game_completed',
-      payload: { completed: true, formal: false, score: 100 },
-      expectedVersion: learning.version,
-    });
-  }
-
-  async writeOutputThroughUi(context, taskId, nodePrefix, existing, target) {
-    const page = await context.newPage();
-    try {
-      await page.goto(new URL(`/learn/${nodePrefix}-N04?mode=challenge`, this.baseUrl).toString(), { waitUntil: 'networkidle' });
-      const form = page.locator(`form[data-professional-output="${taskId}"]`);
-      await form.waitFor({ state: 'visible', timeout: 20_000 });
-      const fields = form.locator('[data-output-field] textarea');
-      const count = await fields.count();
-      for (let index = 0; index < count; index += 1) {
-        const value = await fields.nth(index).inputValue();
-        if (!value.trim()) await fields.nth(index).fill(`样张证据 ${taskId}-${index + 1}：现场对象、时间、位置、身份与连接方向均已记录，可由照片索引复核。`);
-      }
-      if (existing?.head?.status === 'returned' && count) {
-        await fields.first().fill(`${await fields.first().inputValue()} 已按教师意见补齐复核路径。`);
-      }
-      if (target === 'draft') {
-        await page.getByRole('button', { name: /保存草稿/ }).click();
-      } else {
-        await page.getByRole('button', { name: /提交教师复核/ }).click();
-      }
-      await page.waitForFunction(({ taskId, target }) => (
-        document.querySelector(`form[data-professional-output="${taskId}"]`)?.getAttribute('data-output-status') === target
-      ), { taskId, target }, { timeout: 20_000 });
-    } finally {
-      await page.close();
-    }
-    return this.api(context, 'GET', `/api/outputs/${taskId}`);
-  }
-
-  async submitExistingOutput(context, taskId, nodePrefix) {
-    return this.writeOutputThroughUi(context, taskId, nodePrefix, await this.api(context, 'GET', `/api/outputs/${taskId}`), 'submitted');
-  }
-
-  async ensureStudentThreePortfolioComplete() {
+  async ensureDemoPortfolioState() {
     const student = await this.context('stu-03');
-    const p03 = await this.ensureOutputState('stu-03', 'P03', 'P1T3', 'submitted');
-    if (p03.head.status === 'submitted') await this.verifyOutput(p03.head.outputId);
-    const portfolioResponse = await student.request.get(new URL('/api/learning/p1-project', this.baseUrl).toString());
-    if (portfolioResponse.ok()) {
-      const project = await portfolioResponse.json();
-      if (project.packageStatus && project.packageStatus !== 'complete') {
-        throw new Error(`stu-03 portfolio did not complete: ${project.packageStatus}`);
-      }
+    const snapshot = await this.api(student, 'GET', '/api/snapshot?audience=student&sessionId=demo-class');
+    const portfolioStatus = snapshot?.me?.project?.portfolioStatus;
+    if (portfolioStatus !== 'demo-complete') {
+      throw new Error(`stu-03 portfolio expected demo-complete, received ${portfolioStatus ?? 'none'}`);
     }
-  }
-
-  async verifyOutput(outputId) {
-    const teacher = await this.context('teacher01');
-    const queue = await this.api(teacher, 'GET', '/api/teacher/outputs');
-    const item = queue.outputs.find((candidate) => candidate.outputId === outputId);
-    if (!item) return;
-    const rubricScores = Object.fromEntries(item.rubric.map(({ key, maxScore }) => [key, maxScore]));
-    await this.api(teacher, 'POST', `/api/teacher/outputs/${outputId}/reviews`, {
-      expectedStateRevision: item.stateRevision,
-      action: 'verify',
-      feedback: '样张证据完整，达到职业化成果标准。',
-      rubricScores,
-    });
   }
 
   async ensureClassroomFixture() {
@@ -433,12 +340,7 @@ export class Image2FixtureManager {
 }
 
 export function outputStateSatisfies(actual, desired) {
-  return actual === desired || (desired === 'submitted' && actual === 'verified');
-}
-
-export function needsFormalAttempt(learning, nodeId, passScore = 80) {
-  const node = learning?.nodes?.find((candidate) => candidate.nodeId === nodeId);
-  return (node?.bestFormalScore ?? -1) < passScore;
+  return actual === desired;
 }
 
 export function apiResponseCanBeEmpty(status, body, { allowLocked = false, allowNull = false } = {}) {

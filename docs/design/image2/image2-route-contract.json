@@ -47,14 +47,14 @@
           "route": "/",
           "query": "",
           "actor": "anonymous-student",
-          "setup": { "fixture": "demo-seed", "loginRole": "student" },
+          "setup": { "fixture": "demo-seed", "account": "student01" },
           "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
           "reference": "docs/design/image2/dgbook-image2-login-dark-v4.png",
           "primaryActionPolicy": "exactly-one",
           "allowedInternalScrollers": [],
           "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
           "screenshotPolicy": { "captures": ["viewport"], "mobile": "full" },
-          "requiredSelectors": [".login-page-v3", ".login-scene", ".login-form-v3", "[data-login-role-option=\"student\"]", "[data-primary-action]"],
+          "requiredSelectors": [".login-page-v3", ".login-scene", ".login-form-v3", "input[autocomplete=\"username\"]", "input[autocomplete=\"current-password\"]", "[data-primary-action]"],
           "regions": [
             { "name": "course-context", "selector": ".login-scene" },
             { "name": "role-login", "selector": ".login-form-v3" }
@@ -65,14 +65,14 @@
           "route": "/",
           "query": "",
           "actor": "anonymous-teacher",
-          "setup": { "fixture": "demo-seed", "loginRole": "teacher" },
+          "setup": { "fixture": "demo-seed", "account": "teacher01" },
           "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
           "derivedFrom": ["login/student"],
           "primaryActionPolicy": "exactly-one",
           "allowedInternalScrollers": [],
           "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
           "screenshotPolicy": { "captures": ["viewport"], "mobile": "full" },
-          "requiredSelectors": [".login-page-v3", ".login-scene", ".login-form-v3", "[data-login-role-option=\"teacher\"]", "[data-primary-action]"],
+          "requiredSelectors": [".login-page-v3", ".login-scene", ".login-form-v3", "input[autocomplete=\"username\"]", "input[autocomplete=\"current-password\"]", "[data-primary-action]"],
           "regions": [
             { "name": "course-context", "selector": ".login-scene" },
             { "name": "role-login", "selector": ".login-form-v3" }
@@ -103,18 +103,18 @@
           ]
         },
         {
-          "id": "P02-current",
+          "id": "P01-returned",
           "route": "/student/home",
           "query": "",
           "actor": "stu-02",
-          "setup": { "fixture": "demo-seed", "currentTask": "P02" },
+          "setup": { "fixture": "demo-seed", "currentTask": "P01", "outputStatus": "returned" },
           "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
           "derivedFrom": ["course-graph/P1-current", "n02-p01/figure"],
           "primaryActionPolicy": "exactly-one",
           "allowedInternalScrollers": [],
           "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
           "screenshotPolicy": { "captures": ["viewport"], "mobile": "full" },
-          "requiredSelectors": ["[data-student-home]", "[data-student-current-task=\"P02\"]", "[data-student-home-primary-path]", "[data-student-home-progress]", "[data-student-home-recommendations]", "[data-primary-action]"],
+          "requiredSelectors": ["[data-student-home]", "[data-student-current-task=\"P01\"]", "[data-student-home-primary-path]", "[data-student-home-progress]", "[data-student-home-recommendations]", "[data-primary-action]"],
           "regions": [
             { "name": "four-question-path", "selector": "[data-student-home-primary-path]" },
             { "name": "learning-progress", "selector": "[data-student-home-progress]" }
@@ -187,41 +187,41 @@
           ]
         },
         {
-          "id": "P02-current",
+          "id": "P01-returned",
           "route": "/student/projects/p1",
           "query": "",
           "actor": "stu-02",
-          "setup": { "fixture": "demo-seed", "currentTask": "P02" },
+          "setup": { "fixture": "demo-seed", "currentTask": "P01", "outputStatus": "returned" },
           "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
           "derivedFrom": ["course-graph/P1-current", "n02-p01/figure"],
           "primaryActionPolicy": "exactly-one",
           "allowedInternalScrollers": [],
           "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
           "screenshotPolicy": { "captures": ["viewport", "full-page", "bottom"], "mobile": "full" },
-          "requiredSelectors": ["[data-p1-project=\"P1\"]", "[data-p1-current-task=\"P02\"]", "[data-p1-task=\"P01\"]", "[data-p1-task=\"P03\"]", "[data-primary-action]"],
+          "requiredSelectors": ["[data-p1-project=\"P1\"]", "[data-p1-current-task=\"P01\"]", "[data-p1-task=\"P01\"]", "[data-p1-task=\"P03\"]", "[data-primary-action]"],
           "regions": [
-            { "name": "current-task", "selector": "[data-p1-current-task=\"P02\"]" },
-            { "name": "previous-task", "selector": "[data-p1-task=\"P01\"]" },
+            { "name": "current-task", "selector": "[data-p1-current-task=\"P01\"]" },
+            { "name": "returned-task", "selector": "[data-p1-task=\"P01\"]" },
             { "name": "next-task", "selector": "[data-p1-task=\"P03\"]" }
           ]
         },
         {
-          "id": "P03-current",
+          "id": "demo-complete",
           "route": "/student/projects/p1",
           "query": "",
           "actor": "stu-03",
-          "setup": { "fixture": "demo-seed", "currentTask": "P03" },
+          "setup": { "fixture": "demo-seed", "packageStatus": "demo-complete" },
           "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
           "derivedFrom": ["course-graph/P1-current", "n02-p01/figure"],
-          "primaryActionPolicy": "exactly-one",
+          "primaryActionPolicy": "none",
           "allowedInternalScrollers": [],
           "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
           "screenshotPolicy": { "captures": ["viewport", "full-page", "bottom"], "mobile": "full" },
-          "requiredSelectors": ["[data-p1-project=\"P1\"]", "[data-p1-current-task=\"P03\"]", "[data-p1-task=\"P03\"]", "[data-p1-portfolio-link]", "[data-primary-action]"],
+          "requiredSelectors": ["[data-p1-project=\"P1\"]", "[data-p1-portfolio-status=\"demo-complete\"]", "[data-p1-task=\"P03\"]", "[data-p1-portfolio-link=\"demo-complete\"]"],
           "regions": [
-            { "name": "current-task", "selector": "[data-p1-current-task=\"P03\"]" },
+            { "name": "demo-package-status", "selector": "[data-p1-portfolio-status=\"demo-complete\"]" },
             { "name": "p03-task", "selector": "[data-p1-task=\"P03\"]" },
-            { "name": "project-outcome", "selector": "[data-p1-portfolio-link]" }
+            { "name": "project-outcome", "selector": "[data-p1-portfolio-link=\"demo-complete\"]" }
           ]
         }
       ]
@@ -233,7 +233,7 @@
           "id": "figure",
           "route": "/learn/P1T1-N02",
           "query": "",
-          "actor": "stu-01",
+          "actor": "stu-03",
           "setup": { "fixture": "demo-seed", "section": "figure" },
           "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
           "reference": "docs/design/image2/dgbook-image2-learning-dark-v4.png",
@@ -257,7 +257,7 @@
           "id": "figure",
           "route": "/learn/P1T2-N02",
           "query": "",
-          "actor": "stu-02",
+          "actor": "stu-03",
           "setup": { "fixture": "demo-seed", "section": "figure" },
           "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
           "derivedFrom": ["n02-p01/figure"],
@@ -301,20 +301,20 @@
       "states": [
         {
           "id": "open",
-          "route": "/learn/P1T1-N02",
-          "query": "?mode=challenge",
-          "actor": "stu-01",
-          "setup": { "fixture": "demo-seed", "challenge": "open" },
+          "route": "/learn/P1T1-N02/test",
+          "query": "",
+          "actor": "stu-03",
+          "setup": { "fixture": "demo-seed", "assessment": "server-issued" },
           "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
           "reference": "docs/design/image2/dgbook-image2-pixi-dark-v4.png",
           "primaryActionPolicy": "exactly-one",
-          "allowedInternalScrollers": [".challenge-game-stage"],
+          "allowedInternalScrollers": [],
           "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
           "screenshotPolicy": { "captures": ["viewport"], "mobile": "full" },
-          "requiredSelectors": ["[data-scene-surface=\"student\"][data-scene-mode=\"challenge\"]", ".challenge-scene", ".challenge-game-stage", "[data-formal-test=\"true\"][data-skill-game=\"P1T1-N02\"]", "[data-primary-action]"],
+          "requiredSelectors": [".formal-assessment-page", "[data-formal-assessment=\"P1T1-N02\"]", ".formal-assessment-paper", "[data-assessment-paper=\"P1T1-N02\"]", "[data-assessment-question]", "[data-primary-action]"],
           "regions": [
-            { "name": "formal-test", "selector": ".challenge-scene" },
-            { "name": "pixi-stage", "selector": ".challenge-game-stage" }
+            { "name": "formal-test", "selector": ".formal-assessment-paper" },
+            { "name": "question-paper", "selector": "[data-assessment-paper=\"P1T1-N02\"]" }
           ]
         }
       ]
@@ -326,15 +326,15 @@
           "id": "returned",
           "route": "/learn/P1T1-N04",
           "query": "?mode=challenge",
-          "actor": "stu-01",
-          "setup": { "fixture": "demo-seed", "outputStatus": "returned" },
+          "actor": "stu-02",
+          "setup": { "fixture": "demo-seed", "outputStatus": "returned", "editorState": "revising" },
           "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
           "derivedFrom": ["n02-p01/figure", "formal-test/open"],
           "primaryActionPolicy": "exactly-one",
           "allowedInternalScrollers": [".professional-output-body"],
           "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
           "screenshotPolicy": { "captures": ["viewport", "full-page", "bottom"], "mobile": "top-and-bottom" },
-          "requiredSelectors": ["[data-professional-output=\"P01\"]", "[data-output-status=\"returned\"]", "[data-output-field]", ".professional-output-actions", "[data-primary-action]"],
+          "requiredSelectors": ["[data-professional-output=\"P01\"]", "[data-output-status=\"returned\"]", "[data-output-workflow=\"revising\"]", "[data-output-field]", ".professional-output-actions", "[data-primary-action]"],
           "regions": [
             { "name": "output-form", "selector": "[data-professional-output=\"P01\"]" },
             { "name": "output-actions", "selector": ".professional-output-actions" }
@@ -346,21 +346,21 @@
       "id": "n04-p02",
       "states": [
         {
-          "id": "draft",
+          "id": "verified",
           "route": "/learn/P1T2-N04",
           "query": "?mode=challenge",
-          "actor": "stu-02",
-          "setup": { "fixture": "demo-seed", "outputStatus": "draft-restored" },
+          "actor": "stu-03",
+          "setup": { "fixture": "demo-seed", "outputStatus": "verified" },
           "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
           "derivedFrom": ["n02-p01/figure", "formal-test/open"],
-          "primaryActionPolicy": "exactly-one",
+          "primaryActionPolicy": "none",
           "allowedInternalScrollers": [".professional-output-body"],
           "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
           "screenshotPolicy": { "captures": ["viewport", "full-page", "bottom"], "mobile": "top-and-bottom" },
-          "requiredSelectors": ["[data-professional-output=\"P02\"]", "[data-output-status=\"draft\"]", "[data-output-field]", ".professional-output-actions", "[data-primary-action]"],
+          "requiredSelectors": ["[data-professional-output=\"P02\"]", "[data-output-status=\"verified\"]", "[data-output-readonly=\"true\"]", "[data-output-version]"],
           "regions": [
-            { "name": "output-form", "selector": "[data-professional-output=\"P02\"]" },
-            { "name": "output-actions", "selector": ".professional-output-actions" }
+            { "name": "verified-output", "selector": "[data-professional-output=\"P02\"]" },
+            { "name": "immutable-version", "selector": "[data-output-version]" }
           ]
         }
       ]
@@ -369,20 +369,20 @@
       "id": "n04-p03",
       "states": [
         {
-          "id": "submitted",
+          "id": "verified",
           "route": "/learn/P1T3-N04",
           "query": "?mode=challenge",
           "actor": "stu-03",
-          "setup": { "fixture": "demo-seed", "outputStatus": "submitted" },
+          "setup": { "fixture": "demo-seed", "outputStatus": "verified" },
           "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
           "derivedFrom": ["n02-p01/figure", "formal-test/open"],
           "primaryActionPolicy": "none",
           "allowedInternalScrollers": [".professional-output-body"],
           "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
           "screenshotPolicy": { "captures": ["viewport", "full-page", "bottom"], "mobile": "top-and-bottom" },
-          "requiredSelectors": ["[data-professional-output=\"P03\"]", "[data-output-status=\"submitted\"]", "[data-output-readonly=\"true\"]", "[data-output-version]"],
+          "requiredSelectors": ["[data-professional-output=\"P03\"]", "[data-output-status=\"verified\"]", "[data-output-readonly=\"true\"]", "[data-output-version]"],
           "regions": [
-            { "name": "submitted-output", "selector": "[data-professional-output=\"P03\"]" },
+            { "name": "verified-output", "selector": "[data-professional-output=\"P03\"]" },
             { "name": "immutable-version", "selector": "[data-output-version]" }
           ]
         }
@@ -411,20 +411,20 @@
           ]
         },
         {
-          "id": "complete",
+          "id": "demo-complete",
           "route": "/student/projects/p1/portfolio",
           "query": "",
           "actor": "stu-03",
-          "setup": { "fixture": "complete-portfolio", "packageStatus": "complete" },
+          "setup": { "fixture": "demo-seed", "packageStatus": "demo-complete" },
           "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
           "derivedFrom": ["course-graph/P1-current", "n02-p01/figure"],
           "primaryActionPolicy": "none",
           "allowedInternalScrollers": [],
           "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
           "screenshotPolicy": { "captures": ["viewport", "full-page", "bottom"], "mobile": "full" },
-          "requiredSelectors": ["[data-p1-portfolio=\"complete\"]", "[data-p1-package-reference]", "[data-p1-portfolio-item=\"P01\"]", "[data-p1-portfolio-item=\"P02\"]", "[data-p1-portfolio-item=\"P03\"]"],
+          "requiredSelectors": ["[data-p1-portfolio=\"demo-complete\"]", "[data-p1-package-reference]", "[data-p1-portfolio-item=\"P01\"]", "[data-p1-portfolio-item=\"P02\"]", "[data-p1-portfolio-item=\"P03\"]"],
           "regions": [
-            { "name": "complete-package", "selector": "[data-p1-portfolio=\"complete\"]" },
+            { "name": "demo-package", "selector": "[data-p1-portfolio=\"demo-complete\"]" },
             { "name": "immutable-references", "selector": "[data-p1-package-reference]" }
           ]
         }
@@ -545,7 +545,7 @@
           "route": "/course",
           "query": "",
           "actor": "stu-03",
-          "setup": { "fixture": "complete-portfolio", "focusProject": "P1" },
+          "setup": { "fixture": "demo-seed", "focusProject": "P1", "packageStatus": "demo-complete" },
           "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
           "reference": "docs/design/image2/dgbook-image2-capability-graph-dark-v4.png",
           "primaryActionPolicy": "exactly-one",

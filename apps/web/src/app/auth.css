@@ -300,6 +300,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 @media (max-width: 720px) {
   .account-menu { gap: 5px; }
   .account-menu-identity { max-width: 96px; font-size: 12px; }
+  .scene-topbar .account-menu-identity { display: none; }
   .account-menu-logout { min-width: 62px; padding: 0 7px; }
   .scene-topbar .scene-brand strong { display: none; }
 }

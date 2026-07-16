@@ -10,7 +10,6 @@ import {
 } from './utils/image2-visual-audit.mjs';
 import {
   apiResponseCanBeEmpty,
-  needsFormalAttempt,
   outputStateSatisfies,
   planClassroomActivationPhases,
 } from './capture-image2-implementation.mjs';
@@ -150,19 +149,29 @@ test('none policy rejects disabled fake primary actions and invalid motion value
   assert.ok(codes.includes('motion-state-invalid'));
 });
 
-test('treats a verified output as an idempotent terminal form of submitted without allowing downgrades', () => {
+test('keeps returned, submitted, and verified output states distinct', () => {
   assert.equal(outputStateSatisfies('submitted', 'submitted'), true);
-  assert.equal(outputStateSatisfies('verified', 'submitted'), true);
+  assert.equal(outputStateSatisfies('verified', 'verified'), true);
+  assert.equal(outputStateSatisfies('returned', 'returned'), true);
+  assert.equal(outputStateSatisfies('verified', 'submitted'), false);
   assert.equal(outputStateSatisfies('verified', 'draft'), false);
   assert.equal(outputStateSatisfies('verified', 'returned'), false);
   assert.equal(outputStateSatisfies(undefined, 'submitted'), false);
 });
 
-test('reuses an already passing formal score instead of consuming a fourth attempt', () => {
-  const nodeId = 'P1T1-N02';
-  assert.equal(needsFormalAttempt({ nodes: [{ nodeId, bestFormalScore: 85, attempts: [{}, {}, {}] }] }, nodeId), false);
-  assert.equal(needsFormalAttempt({ nodes: [{ nodeId, bestFormalScore: 79, attempts: [{}, {}] }] }, nodeId), true);
-  assert.equal(needsFormalAttempt({ nodes: [] }, nodeId), true);
+test('fixture setup never forges learning events or client-reported formal scores', () => {
+  const source = readFileSync(new URL('./capture-image2-implementation.mjs', import.meta.url), 'utf8');
+  assert.doesNotMatch(source, /game_completed/);
+  assert.doesNotMatch(source, /score:\s*90/);
+  assert.doesNotMatch(source, /\/api\/learning\/nodes\/\$\{nodePrefix\}-N02\/attempts/);
+  assert.doesNotMatch(source, /needsFormalAttempt|ensureOutputAccess|learningEvent/);
+  assert.match(source, /n04-p01\/returned[\s\S]*stu-02[\s\S]*P01[\s\S]*returned/);
+  assert.match(source, /editorState === 'revising'[\s\S]*\[data-output-field\] textarea[\s\S]*\.fill\(/);
+  assert.match(source, /n04-p02\/verified[\s\S]*stu-03[\s\S]*P02[\s\S]*verified/);
+  assert.match(source, /n04-p03\/verified[\s\S]*stu-03[\s\S]*P03[\s\S]*verified/);
+  assert.match(source, /const envelope = await this\.api[\s\S]*const output = envelope\?\.output/);
+  assert.match(source, /portfolio\/demo-complete/);
+  assert.match(source, /snapshot\?\.me\?\.project\?\.portfolioStatus/);
 });
 
 test('plans the shortest legal path to an active lecture classroom', () => {

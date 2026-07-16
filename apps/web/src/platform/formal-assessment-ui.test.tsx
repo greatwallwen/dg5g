@@ -39,6 +39,13 @@ test('assessment client uses native uncontrolled selectors so real radio and che
   assert.doesNotMatch(client, /checked=\{/);
 });
 
+test('assessment paper declares the Image2 motion and single-primary-action contract', () => {
+  const client = read('features/formal-assessment/formal-assessment-client.tsx');
+  assert.match(client, /className="formal-assessment-paper"[^>]*data-motion="paused"/);
+  assert.match(client, /data-primary-action-policy="exactly-one"/);
+  assert.match(client, /data-assessment-paper=\{issued\.paper\.nodeId\}/);
+});
+
 test('public assessment contract is isolated from the server-private grading catalog', () => {
   const client = read('features/formal-assessment/formal-assessment-client.tsx');
   const contract = read('platform/formal-assessment-contract.ts');

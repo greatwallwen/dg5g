@@ -15,21 +15,21 @@ const expectedMatrix = new Map(Object.entries({
   'login/student': ['/', '', 'anonymous-student'],
   'login/teacher': ['/', '', 'anonymous-teacher'],
   'student-home/P01-current': ['/student/home', '', 'stu-01'],
-  'student-home/P02-current': ['/student/home', '', 'stu-02'],
+  'student-home/P01-returned': ['/student/home', '', 'stu-02'],
   'student-home/P03-current': ['/student/home', '', 'stu-03'],
   'teacher-workbench/current': ['/teacher/workbench', '', 'teacher01'],
   'p1-project/P01-current': ['/student/projects/p1', '', 'stu-01'],
-  'p1-project/P02-current': ['/student/projects/p1', '', 'stu-02'],
-  'p1-project/P03-current': ['/student/projects/p1', '', 'stu-03'],
-  'n02-p01/figure': ['/learn/P1T1-N02', '', 'stu-01'],
-  'n02-p02/figure': ['/learn/P1T2-N02', '', 'stu-02'],
+  'p1-project/P01-returned': ['/student/projects/p1', '', 'stu-02'],
+  'p1-project/demo-complete': ['/student/projects/p1', '', 'stu-03'],
+  'n02-p01/figure': ['/learn/P1T1-N02', '', 'stu-03'],
+  'n02-p02/figure': ['/learn/P1T2-N02', '', 'stu-03'],
   'n02-p03/figure': ['/learn/P1T3-N02', '', 'stu-03'],
-  'formal-test/open': ['/learn/P1T1-N02', '?mode=challenge', 'stu-01'],
-  'n04-p01/returned': ['/learn/P1T1-N04', '?mode=challenge', 'stu-01'],
-  'n04-p02/draft': ['/learn/P1T2-N04', '?mode=challenge', 'stu-02'],
-  'n04-p03/submitted': ['/learn/P1T3-N04', '?mode=challenge', 'stu-03'],
+  'formal-test/open': ['/learn/P1T1-N02/test', '', 'stu-03'],
+  'n04-p01/returned': ['/learn/P1T1-N04', '?mode=challenge', 'stu-02'],
+  'n04-p02/verified': ['/learn/P1T2-N04', '?mode=challenge', 'stu-03'],
+  'n04-p03/verified': ['/learn/P1T3-N04', '?mode=challenge', 'stu-03'],
   'portfolio/incomplete': ['/student/projects/p1/portfolio', '', 'stu-01'],
-  'portfolio/complete': ['/student/projects/p1/portfolio', '', 'stu-03'],
+  'portfolio/demo-complete': ['/student/projects/p1/portfolio', '', 'stu-03'],
   'teacher-session/teaching': ['/teacher/sessions/demo-class', '', 'teacher01'],
   'student-follow/follow': ['/classroom/demo-class', '', 'stu-01'],
   'student-follow/self': ['/classroom/demo-class', '', 'stu-02'],
@@ -45,12 +45,12 @@ const expectedReferences = new Map(Object.entries({
   'student-follow/follow': 'docs/design/image2/dgbook-image2-student-follow-dark-v4.png',
   'formal-test/open': 'docs/design/image2/dgbook-image2-pixi-dark-v4.png',
 }));
-const noPrimaryAction = new Set(['n04-p03/submitted', 'portfolio/incomplete', 'portfolio/complete', 'projector/active']);
+const noPrimaryAction = new Set(['p1-project/demo-complete', 'n04-p02/verified', 'n04-p03/verified', 'portfolio/incomplete', 'portfolio/demo-complete', 'projector/active']);
 const atMostOnePrimaryAction = new Set();
 const longPageStates = new Set([
-  'p1-project/P01-current', 'p1-project/P02-current', 'p1-project/P03-current',
-  'n04-p01/returned', 'n04-p02/draft', 'n04-p03/submitted',
-  'portfolio/incomplete', 'portfolio/complete',
+  'p1-project/P01-current', 'p1-project/P01-returned', 'p1-project/demo-complete',
+  'n04-p01/returned', 'n04-p02/verified', 'n04-p03/verified',
+  'portfolio/incomplete', 'portfolio/demo-complete',
 ]);
 
 test('defines the complete Image2 v2 surface, state, actor and 390px matrix', () => {
@@ -107,6 +107,23 @@ test('defines the complete Image2 v2 surface, state, actor and 390px matrix', ()
   }
 });
 
+test('login audit uses the single credential form instead of a role selector', () => {
+  const states = flattenStates(readContract());
+  for (const key of ['login/student', 'login/teacher']) {
+    const state = states.get(key);
+    assert.ok(state, key);
+    assert.equal(Object.hasOwn(state.setup, 'loginRole'), false, `${key} must not model a role picker`);
+    assert.ok(state.requiredSelectors.includes('.login-form-v3'), `${key} credential form`);
+    assert.ok(state.requiredSelectors.includes('input[autocomplete="username"]'), `${key} username input`);
+    assert.ok(state.requiredSelectors.includes('input[autocomplete="current-password"]'), `${key} password input`);
+    assert.equal(
+      state.requiredSelectors.some((selector) => selector.includes('data-login-role-option')),
+      false,
+      `${key} must not require a deleted role option`,
+    );
+  }
+});
+
 test('keeps exactly six direct V4 state references and resolves every derived state to them', () => {
   const contract = readContract();
   const states = flattenStates(contract);
@@ -127,14 +144,51 @@ test('keeps exactly six direct V4 state references and resolves every derived st
   }
 });
 
-test('uses real demo-class routes and challenge query without legacy node-session or fake formal state', () => {
+test('uses real demo-class routes and the independent formal-assessment route', () => {
   const contractText = readFileSync(contractFile, 'utf8');
   for (const route of ['/teacher/sessions/demo-class', '/classroom/demo-class', '/present/demo-class']) {
     assert.match(contractText, new RegExp(route.replaceAll('/', '\\/')));
   }
   assert.doesNotMatch(contractText, /\/(?:teacher\/sessions|classroom|present)\/P1T1-N02/);
   assert.doesNotMatch(contractText, /\?state=formal-test/);
-  assert.equal((contractText.match(/\?mode=challenge/g) ?? []).length, 4);
+  assert.match(contractText, /\/learn\/P1T1-N02\/test/);
+  assert.equal((contractText.match(/\?mode=challenge/g) ?? []).length, 3);
+});
+
+test('uses persisted demo prerequisites and truthful N04/portfolio terminal states', () => {
+  const states = flattenStates(readContract());
+  const returnedHome = states.get('student-home/P01-returned');
+  assert.equal(returnedHome?.setup.currentTask, 'P01');
+  assert.equal(returnedHome?.setup.outputStatus, 'returned');
+  assert.ok(returnedHome?.requiredSelectors.includes('[data-student-current-task="P01"]'));
+  const returnedProject = states.get('p1-project/P01-returned');
+  assert.equal(returnedProject?.setup.currentTask, 'P01');
+  assert.equal(returnedProject?.setup.outputStatus, 'returned');
+  assert.ok(returnedProject?.requiredSelectors.includes('[data-p1-current-task="P01"]'));
+  const demoProject = states.get('p1-project/demo-complete');
+  assert.equal(demoProject?.setup.packageStatus, 'demo-complete');
+  assert.equal(demoProject?.primaryActionPolicy, 'none');
+  assert.ok(demoProject?.requiredSelectors.includes('[data-p1-portfolio-status="demo-complete"]'));
+
+  for (const key of ['n02-p01/figure', 'n02-p02/figure', 'n02-p03/figure', 'formal-test/open']) {
+    assert.equal(states.get(key)?.actor, 'stu-03', `${key} must use the seeded completed-prerequisite learner`);
+  }
+  const formal = states.get('formal-test/open');
+  assert.ok(formal?.requiredSelectors.includes('[data-formal-assessment="P1T1-N02"]'));
+  assert.ok(formal?.requiredSelectors.includes('[data-assessment-paper="P1T1-N02"]'));
+  assert.equal(formal?.requiredSelectors.some((selector) => selector.includes('challenge-game-stage')), false);
+
+  assert.equal(states.get('n04-p01/returned')?.actor, 'stu-02');
+  assert.equal(states.get('n04-p01/returned')?.setup.editorState, 'revising');
+  assert.ok(states.get('n04-p01/returned')?.requiredSelectors.includes('[data-output-status="returned"]'));
+  for (const key of ['n04-p02/verified', 'n04-p03/verified']) {
+    assert.equal(states.get(key)?.actor, 'stu-03');
+    assert.ok(states.get(key)?.requiredSelectors.includes('[data-output-status="verified"]'));
+  }
+  const portfolio = states.get('portfolio/demo-complete');
+  assert.equal(portfolio?.setup.packageStatus, 'demo-complete');
+  assert.ok(portfolio?.requiredSelectors.includes('[data-p1-portfolio="demo-complete"]'));
+  assert.equal(states.has('portfolio/complete'), false);
 });
 
 test('audit rejects drift in routes, mobile coverage, formal query and interaction contracts', async () => {
@@ -148,7 +202,7 @@ test('audit rejects drift in routes, mobile coverage, formal query and interacti
     (candidate) => { stateAt(candidate, 'teacher-session/teaching').route = '/teacher/sessions/P1T1-N02'; },
     (candidate) => { stateAt(candidate, 'formal-test/open').query = '?state=formal-test'; },
     (candidate) => { stateAt(candidate, 'student-home/P01-current').primaryActionPolicy = 'none'; },
-    (candidate) => { stateAt(candidate, 'n04-p02/draft').screenshotPolicy.captures = ['viewport']; },
+    (candidate) => { stateAt(candidate, 'n04-p02/verified').screenshotPolicy.captures = ['viewport']; },
     (candidate) => { delete candidate.interactionPolicies.keyboard; },
     (candidate) => { delete candidate.interactionPolicies.reducedMotion; },
   ]) {

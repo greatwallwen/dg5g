@@ -19,21 +19,21 @@ const expectedMatrix = new Map(Object.entries({
   'login/student': ['/', '', 'anonymous-student'],
   'login/teacher': ['/', '', 'anonymous-teacher'],
   'student-home/P01-current': ['/student/home', '', 'stu-01'],
-  'student-home/P02-current': ['/student/home', '', 'stu-02'],
+  'student-home/P01-returned': ['/student/home', '', 'stu-02'],
   'student-home/P03-current': ['/student/home', '', 'stu-03'],
   'teacher-workbench/current': ['/teacher/workbench', '', 'teacher01'],
   'p1-project/P01-current': ['/student/projects/p1', '', 'stu-01'],
-  'p1-project/P02-current': ['/student/projects/p1', '', 'stu-02'],
-  'p1-project/P03-current': ['/student/projects/p1', '', 'stu-03'],
-  'n02-p01/figure': ['/learn/P1T1-N02', '', 'stu-01'],
-  'n02-p02/figure': ['/learn/P1T2-N02', '', 'stu-02'],
+  'p1-project/P01-returned': ['/student/projects/p1', '', 'stu-02'],
+  'p1-project/demo-complete': ['/student/projects/p1', '', 'stu-03'],
+  'n02-p01/figure': ['/learn/P1T1-N02', '', 'stu-03'],
+  'n02-p02/figure': ['/learn/P1T2-N02', '', 'stu-03'],
   'n02-p03/figure': ['/learn/P1T3-N02', '', 'stu-03'],
-  'formal-test/open': ['/learn/P1T1-N02', '?mode=challenge', 'stu-01'],
-  'n04-p01/returned': ['/learn/P1T1-N04', '?mode=challenge', 'stu-01'],
-  'n04-p02/draft': ['/learn/P1T2-N04', '?mode=challenge', 'stu-02'],
-  'n04-p03/submitted': ['/learn/P1T3-N04', '?mode=challenge', 'stu-03'],
+  'formal-test/open': ['/learn/P1T1-N02/test', '', 'stu-03'],
+  'n04-p01/returned': ['/learn/P1T1-N04', '?mode=challenge', 'stu-02'],
+  'n04-p02/verified': ['/learn/P1T2-N04', '?mode=challenge', 'stu-03'],
+  'n04-p03/verified': ['/learn/P1T3-N04', '?mode=challenge', 'stu-03'],
   'portfolio/incomplete': ['/student/projects/p1/portfolio', '', 'stu-01'],
-  'portfolio/complete': ['/student/projects/p1/portfolio', '', 'stu-03'],
+  'portfolio/demo-complete': ['/student/projects/p1/portfolio', '', 'stu-03'],
   'teacher-session/teaching': ['/teacher/sessions/demo-class', '', 'teacher01'],
   'student-follow/follow': ['/classroom/demo-class', '', 'stu-01'],
   'student-follow/self': ['/classroom/demo-class', '', 'stu-02'],
@@ -49,12 +49,12 @@ const expectedReferences = new Map(Object.entries({
   'student-follow/follow': 'docs/design/image2/dgbook-image2-student-follow-dark-v4.png',
   'formal-test/open': 'docs/design/image2/dgbook-image2-pixi-dark-v4.png',
 }));
-const noPrimary = new Set(['n04-p03/submitted', 'portfolio/incomplete', 'portfolio/complete', 'projector/active']);
+const noPrimary = new Set(['p1-project/demo-complete', 'n04-p02/verified', 'n04-p03/verified', 'portfolio/incomplete', 'portfolio/demo-complete', 'projector/active']);
 const atMostOnePrimary = new Set();
 const longPages = new Set([
-  'p1-project/P01-current', 'p1-project/P02-current', 'p1-project/P03-current',
-  'n04-p01/returned', 'n04-p02/draft', 'n04-p03/submitted',
-  'portfolio/incomplete', 'portfolio/complete',
+  'p1-project/P01-current', 'p1-project/P01-returned', 'p1-project/demo-complete',
+  'n04-p01/returned', 'n04-p02/verified', 'n04-p03/verified',
+  'portfolio/incomplete', 'portfolio/demo-complete',
 ]);
 
 export function validateImage2Contract(candidate) {

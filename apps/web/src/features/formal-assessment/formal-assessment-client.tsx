@@ -44,7 +44,13 @@ export function FormalAssessmentClient({ issued }: { issued: IssuedAssessmentPap
   if (result) return <FormalAssessmentResult result={result} />;
 
   return (
-    <form className="formal-assessment-paper" data-assessment-paper={issued.paper.nodeId} onSubmit={submit}>
+    <form
+      className="formal-assessment-paper"
+      data-motion="paused"
+      data-primary-action-policy="exactly-one"
+      data-assessment-paper={issued.paper.nodeId}
+      onSubmit={submit}
+    >
       <header>
         <div>
           <span>{issued.paper.nodeId} · 独立正式测试</span>
