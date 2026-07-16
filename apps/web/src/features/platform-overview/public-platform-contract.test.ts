@@ -39,7 +39,8 @@ test('all four public route entries stay free of authentication guards', () => {
 });
 
 test('repository audit enforces the shared view and redirect boundaries', () => {
-  const audit = readFileSync(path.join(repositoryRoot, 'scripts/audit-digital-textbook-v3.mjs'), 'utf8');
+  const audit = readFileSync(path.join(repositoryRoot, 'scripts/audit-digital-textbook-v3.mjs'), 'utf8')
+    .replaceAll('\r\n', '\n');
 
   assert.match(audit, /forbidSnippets\('apps\/web\/src\/features\/platform-overview\/public-platform-view\.tsx'/);
   assert.match(audit, /forbidSnippets\('apps\/web\/next\.config\.mjs'/);
