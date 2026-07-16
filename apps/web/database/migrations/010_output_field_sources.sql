@@ -24,8 +24,26 @@ BEGIN
   SELECT RAISE(ABORT, 'output field sources are immutable');
 END;
 
+CREATE TRIGGER output_field_sources_no_delete
+BEFORE DELETE ON output_field_sources
+WHEN EXISTS (
+  SELECT 1 FROM professional_outputs WHERE output_id = OLD.output_id
+)
+BEGIN
+  SELECT RAISE(ABORT, 'output field sources are immutable');
+END;
+
 CREATE TRIGGER output_evidence_links_no_update
 BEFORE UPDATE ON output_evidence_links
+BEGIN
+  SELECT RAISE(ABORT, 'output evidence links are immutable');
+END;
+
+CREATE TRIGGER output_evidence_links_no_delete
+BEFORE DELETE ON output_evidence_links
+WHEN EXISTS (
+  SELECT 1 FROM professional_outputs WHERE output_id = OLD.output_id
+)
 BEGIN
   SELECT RAISE(ABORT, 'output evidence links are immutable');
 END;

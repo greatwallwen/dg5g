@@ -394,6 +394,82 @@ test('persisted returned head status blocks unchanged resubmission even for a le
   }
 });
 
+test('new provenance alone cannot satisfy a teacher return when editable fields and evidence are unchanged', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    const repository = new ProfessionalOutputRepository(fixture.database, () => 'source-only-revision');
+    const fields = completeP01Fields();
+    repository.saveDraft({
+      studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
+      fields, upstreamRefs: [],
+    });
+    repository.submit({
+      outputId: 'source-only-revision', studentId: 'stu-01', taskId: 'P01',
+      expectedStateRevision: 1, fields, upstreamRefs: [],
+    });
+    repository.reviewSubmitted({
+      teacherId: 'teacher-01', classId: 'demo-class', outputId: 'source-only-revision',
+      expectedStateRevision: 2, action: 'return', feedback: '请修订最终可交付字段。',
+    });
+    seedPassedP01Activities(fixture.database, 'stu-01');
+
+    assert.throws(() => repository.submit({
+      outputId: 'source-only-revision', studentId: 'stu-01', taskId: 'P01',
+      expectedStateRevision: 3, fields, upstreamRefs: [],
+    }), ProfessionalOutputRevisionRequiredError);
+    const unchanged = repository.read('stu-01', 'P01', 'source-only-revision')!;
+    assert.equal(unchanged.head.status, 'returned');
+    assert.equal(unchanged.head.currentVersion, 1);
+    assert.equal(unchanged.submissionCount, 1);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('changing then reverting to the exact returned fields cannot bypass the revision requirement', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    const repository = new ProfessionalOutputRepository(fixture.database, () => 'reverted-revision');
+    const returnedFields = completeP01Fields();
+    repository.saveDraft({
+      studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
+      fields: returnedFields, upstreamRefs: [],
+    });
+    repository.submit({
+      outputId: 'reverted-revision', studentId: 'stu-01', taskId: 'P01',
+      expectedStateRevision: 1, fields: returnedFields, upstreamRefs: [],
+    });
+    repository.reviewSubmitted({
+      teacherId: 'teacher-01', classId: 'demo-class', outputId: 'reverted-revision',
+      expectedStateRevision: 2, action: 'return', feedback: '连接方向需要实质修订。',
+    });
+    const changed = repository.saveDraft({
+      outputId: 'reverted-revision', studentId: 'stu-01', taskId: 'P01',
+      expectedStateRevision: 3,
+      fields: { ...returnedFields, connectionDirection: '曾经修改但最终撤销' },
+      upstreamRefs: [],
+    });
+    const reverted = repository.saveDraft({
+      outputId: 'reverted-revision', studentId: 'stu-01', taskId: 'P01',
+      expectedStateRevision: 4, fields: returnedFields, upstreamRefs: [],
+    });
+    assert.equal(changed.head.currentVersion, 2);
+    assert.equal(reverted.head.currentVersion, 3);
+
+    assert.throws(() => repository.submit({
+      outputId: 'reverted-revision', studentId: 'stu-01', taskId: 'P01',
+      expectedStateRevision: 5, fields: returnedFields, upstreamRefs: [],
+    }), ProfessionalOutputRevisionRequiredError);
+    assert.equal(repository.read('stu-01', 'P01', 'reverted-revision')!.head.status, 'draft');
+  } finally {
+    fixture.cleanup();
+  }
+});
+
 test('unknown or cross-field evidence and unknown P01 fields roll back every output fact', () => {
   const fixture = createTestDatabase();
   try {

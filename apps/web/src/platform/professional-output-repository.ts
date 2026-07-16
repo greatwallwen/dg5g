@@ -48,7 +48,6 @@ export interface ProfessionalOutputHead {
   stateRevision: number;
   status: ProfessionalOutputStatus;
 }
-
 export interface ProfessionalOutputUpstreamRef {
   outputId: string;
   version: number;
@@ -88,13 +87,11 @@ export interface ProfessionalOutputAggregate {
   submissionCount: number;
   reviewHistory: ProfessionalOutputReviewHistoryEntry[];
 }
-
 export interface ProfessionalOutputReviewResult {
   review: ProfessionalOutputReview;
   output: ProfessionalOutputAggregate;
   frozenTaskScore?: FrozenTaskScore;
 }
-
 export interface WriteProfessionalOutputInput {
   outputId?: string;
   studentId: string;
@@ -104,28 +101,24 @@ export interface WriteProfessionalOutputInput {
   upstreamRefs: ProfessionalOutputUpstreamRef[];
   evidenceLinks?: Record<string, string[]>;
 }
-
 export class ProfessionalOutputUpstreamError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'ProfessionalOutputUpstreamError';
   }
 }
-
 export class ProfessionalOutputEvidenceError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'ProfessionalOutputEvidenceError';
   }
 }
-
 export class ProfessionalOutputRevisionRequiredError extends Error {
   constructor() {
     super('Returned professional output must create a revised version before resubmission.');
     this.name = 'ProfessionalOutputRevisionRequiredError';
   }
 }
-
 interface HeadRow {
   outputId: string;
   studentId: string;
@@ -293,12 +286,17 @@ export class ProfessionalOutputRepository {
         || current.upstreamRefsJson !== command.upstreamRefsJson
         || stableJson(currentEvidenceLinks) !== command.evidenceLinksJson
         || stableJson(currentFieldSources) !== stableJson(fieldSources);
-      if (targetStatus === 'submitted'
-        && current
-        && !appendVersion
-        && (head?.status === 'returned'
-          || this.latestReturnedVersion(outputId) === currentVersion)) {
-        throw new ProfessionalOutputRevisionRequiredError();
+      if (targetStatus === 'submitted' && current) {
+        const returnedVersion = this.latestReturnedVersion(outputId)
+          ?? (head?.status === 'returned' ? currentVersion : undefined);
+        const returned = returnedVersion === undefined
+          ? undefined
+          : this.readVersion(outputId, returnedVersion);
+        if (returned
+          && stableJson(JSON.parse(returned.fieldsJson)) === command.fieldsJson
+          && stableJson(this.readEvidenceLinks(outputId, returned.version)) === command.evidenceLinksJson) {
+          throw new ProfessionalOutputRevisionRequiredError();
+        }
       }
       const nextVersion = appendVersion ? currentVersion + 1 : currentVersion;
       const nextRevision = actualRevision + 1;
@@ -507,7 +505,8 @@ export class ProfessionalOutputRepository {
       LEFT JOIN learning_events AS event
         ON json_extract(event.payload_json, '$.reviewId') = review.review_id
       WHERE review.output_id = ? AND review.status = 'returned'
-      ORDER BY review.reviewed_at DESC, review.review_id DESC
+      ORDER BY CAST(json_extract(event.payload_json, '$.stateRevision') AS INTEGER) DESC,
+        review.reviewed_at DESC, review.review_id DESC
       LIMIT 1
     `).pluck().get(outputId) as number | null | undefined;
     return value === null || value === undefined ? undefined : value;

@@ -28,8 +28,8 @@ test('teacher verification freezes 80/90 as 86 without changing the N02 attempt 
       upstreamRefs: [],
     });
     fixture.database.prepare(`
-      INSERT INTO formal_attempts (attempt_id, student_id, node_id, game_id, score)
-      VALUES ('attempt-review-80', 'stu-01', 'P1T1-N02', 'node-test', 80)
+      INSERT INTO formal_attempts (attempt_id, student_id, node_id, game_id, score, origin)
+      VALUES ('attempt-review-80', 'stu-01', 'P1T1-N02', 'node-test', 80, 'user')
     `).run();
     const attemptsBefore = fixture.database.prepare(`
       SELECT attempt_id AS attemptId, score FROM formal_attempts
@@ -80,6 +80,50 @@ test('teacher verification freezes 80/90 as 86 without changing the N02 attempt 
   function topicVersion(topic: string): number {
     return fixture.database.prepare('SELECT version FROM snapshot_versions WHERE topic = ?')
       .pluck().get(topic) as number;
+  }
+});
+
+test('teacher verification never launders a demo-only formal score into a user frozen task score', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    const repository = new ProfessionalOutputRepository(fixture.database, () => 'demo-score-output-p01');
+    const fields = completeP01Fields('demo score must remain labelled');
+    repository.saveDraft({
+      studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
+      fields, upstreamRefs: [],
+    });
+    repository.submit({
+      outputId: 'demo-score-output-p01', studentId: 'stu-01', taskId: 'P01',
+      expectedStateRevision: 1, fields, upstreamRefs: [],
+    });
+    fixture.database.prepare(`
+      INSERT INTO formal_attempts (
+        attempt_id, student_id, node_id, game_id, score, origin
+      ) VALUES (
+        'demo-only-formal-score', 'stu-01', 'P1T1-N02', 'node-test', 100, 'demo'
+      )
+    `).run();
+
+    const result = repository.reviewSubmitted({
+      teacherId: 'teacher-01', classId: 'demo-class',
+      outputId: 'demo-score-output-p01', expectedStateRevision: 2,
+      action: 'verify', feedback: '成果本身通过。',
+      rubricScores: { evidenceCompleteness: 40, professionalJudgement: 50 },
+    });
+
+    assert.equal(result.output.head.status, 'verified');
+    assert.equal(result.frozenTaskScore, undefined);
+    assert.equal(fixture.database.prepare(`
+      SELECT COUNT(*) FROM frozen_task_scores
+      WHERE student_id = 'stu-01' AND task_id = 'P01'
+    `).pluck().get(), 0);
+    assert.equal(fixture.database.prepare(`
+      SELECT origin FROM formal_attempts WHERE attempt_id = 'demo-only-formal-score'
+    `).pluck().get(), 'demo');
+  } finally {
+    fixture.cleanup();
   }
 });
 
@@ -193,8 +237,8 @@ test('portfolio facts expose the current head, current-version review, and froze
       fields: draft.versions[0]!.fields, upstreamRefs: [],
     });
     fixture.database.prepare(`
-      INSERT INTO formal_attempts (attempt_id, student_id, node_id, score)
-      VALUES ('portfolio-attempt', 'stu-01', 'P1T1-N02', 80)
+      INSERT INTO formal_attempts (attempt_id, student_id, node_id, score, origin)
+      VALUES ('portfolio-attempt', 'stu-01', 'P1T1-N02', 80, 'user')
     `).run();
     repository.reviewSubmitted({
       teacherId: 'teacher-01', classId: 'demo-class', outputId: submitted.head.outputId,

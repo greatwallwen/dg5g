@@ -87,8 +87,8 @@ test('teacher lists a submitted class output and verifies it through the unique 
       expectedStateRevision: 1, fields: draft.versions[0]!.fields, upstreamRefs: [],
     });
     fixture.database.prepare(`
-      INSERT INTO formal_attempts (attempt_id, student_id, node_id, score)
-      VALUES ('api-review-attempt', 'stu-01', 'P1T1-N02', 80)
+      INSERT INTO formal_attempts (attempt_id, student_id, node_id, score, origin)
+      VALUES ('api-review-attempt', 'stu-01', 'P1T1-N02', 80, 'user')
     `).run();
     const teacher = new AuthService(fixture.database).login({
       username: 'teacher01', password: process.env.DGBOOK_DEMO_PASSWORD ?? '123456',

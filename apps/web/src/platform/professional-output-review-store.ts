@@ -348,7 +348,8 @@ export class ProfessionalOutputReviewStore {
   ): FrozenTaskScore | undefined {
     const nodeId = testNodeByTask[head.taskId];
     const nodeTestHighestScore = this.database.prepare(`
-      SELECT MAX(score) FROM formal_attempts WHERE student_id = ? AND node_id = ?
+      SELECT MAX(score) FROM formal_attempts
+      WHERE student_id = ? AND node_id = ? AND origin = 'user'
     `).pluck().get(head.studentId, nodeId) as number | null;
     if (nodeTestHighestScore === null || nodeTestHighestScore === undefined) return undefined;
     const taskCompositeScore = calculateTaskCompositeScore({

@@ -543,6 +543,14 @@ test('migration 010 stores immutable output field provenance against exact versi
       INSERT INTO professional_output_versions (
         output_id, task_id, version, schema_version, fields_json, upstream_refs_json
       ) VALUES ('output-source', 'P01', 1, 1, '{}', '[]');
+      INSERT INTO evidence_library (
+        evidence_id, kind, title, asset_url, metadata_json, origin
+      ) VALUES (
+        'evidence-source', 'photo', 'Evidence source', '/media/5g/image29.png', '{}', 'demo'
+      );
+      INSERT INTO output_evidence_links (
+        output_id, version, field_key, evidence_id
+      ) VALUES ('output-source', 1, 'siteRoom', 'evidence-source');
       INSERT INTO output_field_sources (
         output_id, version, field_key, source_node_id, source_attempt_id
       ) VALUES ('output-source', 1, 'siteRoom', 'P1T1-N01', 'attempt-source');
@@ -564,6 +572,14 @@ test('migration 010 stores immutable output field provenance against exact versi
       WHERE output_id = 'output-source'
     `).run(), /output field sources are immutable/i);
     assert.throws(() => testDatabase.database.prepare(`
+      DELETE FROM output_field_sources
+      WHERE output_id = 'output-source' AND version = 1
+    `).run(), /output field sources are immutable/i);
+    assert.throws(() => testDatabase.database.prepare(`
+      DELETE FROM output_evidence_links
+      WHERE output_id = 'output-source' AND version = 1
+    `).run(), /output evidence links are immutable/i);
+    assert.throws(() => testDatabase.database.prepare(`
       INSERT INTO output_field_sources (
         output_id, version, field_key, source_node_id, source_attempt_id
       ) VALUES ('output-source', 2, 'siteRoom', 'P1T1-N01', 'attempt-source')
@@ -573,6 +589,26 @@ test('migration 010 stores immutable output field provenance against exact versi
         output_id, version, field_key, source_node_id, source_attempt_id
       ) VALUES ('output-source', 1, 'siteRoom', 'P1T1-N02', 'attempt-source')
     `).run(), /FOREIGN KEY constraint failed/i);
+
+    testDatabase.database.prepare(`
+      DELETE FROM professional_outputs WHERE output_id = 'output-source'
+    `).run();
+    for (const table of [
+      'professional_outputs',
+      'professional_output_versions',
+      'output_evidence_links',
+      'output_field_sources',
+    ]) {
+      assert.equal(testDatabase.database.prepare(`
+        SELECT COUNT(*) FROM ${table} WHERE output_id = 'output-source'
+      `).pluck().get(), 0, table);
+    }
+    assert.equal(testDatabase.database.prepare(`
+      SELECT COUNT(*) FROM practice_attempts WHERE attempt_id = 'attempt-source'
+    `).pluck().get(), 1);
+    assert.equal(testDatabase.database.prepare(`
+      SELECT COUNT(*) FROM evidence_library WHERE evidence_id = 'evidence-source'
+    `).pluck().get(), 1);
   } finally {
     testDatabase.cleanup();
   }
