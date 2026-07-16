@@ -112,7 +112,11 @@ export function P1ProjectView({
               href="/student/projects/p1/portfolio"
             >
               <Icon name="briefcase" size={16} />
-              {model.portfolioStatus === 'complete' ? '查看项目成果包' : '查看成果包进度'}
+              {model.portfolioStatus === 'complete'
+                ? '查看项目成果包'
+                : model.portfolioStatus === 'demo-complete'
+                  ? '查看演示成果包'
+                  : '查看成果包进度'}
               <Icon name="arrow" size={15} />
             </Link>
             <small>快照版本 · {model.snapshotVersion}</small>

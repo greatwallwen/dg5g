@@ -2,6 +2,7 @@ import { getDatabase, type AppDatabase } from './db/database.ts';
 import { LearningReadModel, type StudentLearningSnapshot, type StudentNodeLearningSnapshot } from './learning-read-model.ts';
 import { LearningRepository } from './learning-repository.ts';
 import type { NodeLearningState } from './learning-status.ts';
+import type { LearningOrigin } from './learning-origin.ts';
 import {
   loadP1DemoContent,
   type P1DemoContent,
@@ -43,6 +44,7 @@ export interface P1ProjectTaskProjection {
   nextNodeId?: P1NodeId;
   outputStatus: ProfessionalOutputProjectionStatus;
   outputId?: string;
+  outputOrigin?: LearningOrigin;
   currentOutputVersion?: number;
   teacherFeedback?: string;
   verifiedOutputReference?: {
@@ -52,6 +54,7 @@ export interface P1ProjectTaskProjection {
   nodeTestHighestScore?: number;
   outputRubricScore?: number;
   taskCompositeScore?: number;
+  taskScoreOrigin?: LearningOrigin;
 }
 
 export interface P1ProjectProjection {
@@ -61,8 +64,9 @@ export interface P1ProjectProjection {
   studentVersion: number;
   snapshotVersion: number;
   tasks: P1ProjectTaskProjection[];
-  portfolioStatus: 'not-started' | 'collecting' | 'awaiting-review' | 'complete';
+  portfolioStatus: 'not-started' | 'collecting' | 'awaiting-review' | 'demo-complete' | 'complete';
   projectCompositeScore?: number;
+  projectCompositeOrigin?: LearningOrigin;
 }
 
 export function readP1ProjectProjection(
@@ -94,6 +98,7 @@ export function projectP1Project(
     const outputNode = requiredNode(nodesById, task.nodes[3].id);
     const outputStatus = projectOutputStatus(outputNode);
     const outputId = outputNode.evidence?.outputId;
+    const outputOrigin = outputNode.evidence?.origin;
     const currentOutputVersion = outputNode.evidence?.version;
     const teacherFeedback = outputNode.review?.feedback;
     const verifiedOutputReference = outputStatus === 'verified'
@@ -115,14 +120,18 @@ export function projectP1Project(
       ...(nextNode ? { nextNodeId: nextNode.nodeId } : {}),
       outputStatus,
       ...(outputId === undefined ? {} : { outputId }),
+      ...(outputOrigin === undefined ? {} : { outputOrigin }),
       ...(currentOutputVersion === undefined ? {} : { currentOutputVersion }),
       ...(teacherFeedback === undefined ? {} : { teacherFeedback }),
       ...(verifiedOutputReference === undefined ? {} : { verifiedOutputReference }),
       ...(taskScore?.nodeTestHighestScore === undefined ? {} : { nodeTestHighestScore: taskScore.nodeTestHighestScore }),
       ...(taskScore?.outputRubricScore === undefined ? {} : { outputRubricScore: taskScore.outputRubricScore }),
       ...(taskScore?.taskCompositeScore === undefined ? {} : { taskCompositeScore: taskScore.taskCompositeScore }),
+      ...(taskScore?.origin === undefined ? {} : { taskScoreOrigin: taskScore.origin }),
     };
   });
+  const portfolioStatus = projectPortfolioStatus(tasks);
+  const canShowProjectScore = portfolioStatus === 'complete' || portfolioStatus === 'demo-complete';
 
   return {
     projectId: 'P1',
@@ -131,8 +140,13 @@ export function projectP1Project(
     studentVersion: learning.version,
     snapshotVersion: learning.globalVersion,
     tasks,
-    portfolioStatus: projectPortfolioStatus(tasks),
-    ...(learning.projectCompositeScore === undefined ? {} : { projectCompositeScore: learning.projectCompositeScore }),
+    portfolioStatus,
+    ...(!canShowProjectScore || learning.projectCompositeScore === undefined
+      ? {}
+      : { projectCompositeScore: learning.projectCompositeScore }),
+    ...(!canShowProjectScore || learning.projectCompositeOrigin === undefined
+      ? {}
+      : { projectCompositeOrigin: learning.projectCompositeOrigin }),
   };
 }
 
@@ -168,7 +182,9 @@ function projectTaskState(
 function projectPortfolioStatus(
   tasks: P1ProjectTaskProjection[],
 ): P1ProjectProjection['portfolioStatus'] {
-  if (tasks.every(({ verifiedOutputReference }) => verifiedOutputReference !== undefined)) return 'complete';
+  const allVerified = tasks.every(({ verifiedOutputReference }) => verifiedOutputReference !== undefined);
+  if (allVerified && tasks.every(({ outputOrigin }) => outputOrigin === 'user')) return 'complete';
+  if (allVerified && tasks.every(({ outputOrigin }) => outputOrigin === 'demo')) return 'demo-complete';
   if (tasks.some(({ outputStatus }) => outputStatus === 'submitted')) return 'awaiting-review';
   const hasActivity = tasks.some(({ nodes }) => nodes.some(
     ({ state }) => state !== 'locked' && state !== 'available',

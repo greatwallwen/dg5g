@@ -32,7 +32,9 @@ export function P1PortfolioView({
           <div>
             <span className="p1-project-kicker">{model.projectId} · 项目最终产出</span>
             <h1>{model.packageTitle}</h1>
-            <p>由 P01、P02、P03 当前职业产出组成；只有三份产出均经教师认证，才形成可交付成果包。</p>
+            <p>{model.packageStatus === 'demo-complete'
+              ? '以下内容用于展示完整交付形态，均为预置演示数据；学生真实完成三项产出后才形成可交付成果包。'
+              : '由 P01、P02、P03 当前职业产出组成；只有三份真实产出均经教师认证，才形成可交付成果包。'}</p>
           </div>
           <aside>
             <span>{model.packageStatusLabel}</span>
@@ -41,7 +43,7 @@ export function P1PortfolioView({
           </aside>
         </section>
 
-        {model.packageStatus === 'complete' ? (
+        {model.packageStatus !== 'not-formed' ? (
           <section className="p1-package-reference-strip" aria-label="成果包版本引用">
             <header>
               <Icon name="lock" size={18} />

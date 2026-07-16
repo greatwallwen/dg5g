@@ -30,6 +30,9 @@ test('projects the authoritative P01 to P03 chain for each seeded student', () =
     assert.equal(studentOne.tasks[0].nextNodeId, 'P1T1-N01');
     assert.equal(studentTwo.tasks[0].nextNodeId, 'P1T1-N04');
     assert.equal(studentThree.tasks[2].nextNodeId, undefined);
+    assert.equal(studentTwo.tasks[0].outputOrigin, 'demo');
+    assert.equal(studentThree.tasks.every(({ outputOrigin }) => outputOrigin === 'demo'), true);
+    assert.equal(studentThree.portfolioStatus, 'demo-complete');
 
     assert.equal(studentOne.tasks[1].state, 'locked');
     assert.equal(studentOne.tasks[1].nextNodeId, undefined);
@@ -123,6 +126,7 @@ test('a returned v1 revised and resubmitted as v2 is current on both project and
     const portfolio = buildP1PortfolioViewModel(projection);
 
     assert.equal(projection.tasks[0].currentOutputVersion, 2);
+    assert.equal(projection.tasks[0].outputOrigin, 'user');
     assert.equal(projection.tasks[0].outputStatus, 'submitted');
     assert.equal(projection.tasks[0].teacherFeedback, undefined);
     assert.equal(projection.tasks[0].verifiedOutputReference, undefined);

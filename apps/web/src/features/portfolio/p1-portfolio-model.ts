@@ -5,7 +5,7 @@ import type {
 } from '../../platform/p1-project-projection.ts';
 import type { P1TaskId } from '../platform/p1-content.ts';
 
-export type P1PortfolioPackageStatus = 'not-formed' | 'complete';
+export type P1PortfolioPackageStatus = 'not-formed' | 'demo-complete' | 'complete';
 
 export interface P1PortfolioReferenceViewModel {
   taskId: P1TaskId;
@@ -47,9 +47,15 @@ export function buildP1PortfolioViewModel(projection: P1ProjectProjection): P1Po
   ));
   const hasOneReferencePerTask = verifiedReferences.length === 3
     && new Set(verifiedReferences.map(({ taskId }) => taskId)).size === 3;
-  const packageReferences = hasOneReferencePerTask ? verifiedReferences : [];
-  const packageStatus: P1PortfolioPackageStatus = hasOneReferencePerTask ? 'complete' : 'not-formed';
-  const projectCompositeScore = packageStatus === 'complete'
+  const allUserOutputs = hasOneReferencePerTask && projection.tasks.every(({ outputOrigin }) => outputOrigin === 'user');
+  const allDemoOutputs = hasOneReferencePerTask && projection.tasks.every(({ outputOrigin }) => outputOrigin === 'demo');
+  const packageReferences = allUserOutputs || allDemoOutputs ? verifiedReferences : [];
+  const packageStatus: P1PortfolioPackageStatus = allUserOutputs
+    ? 'complete'
+    : allDemoOutputs
+      ? 'demo-complete'
+      : 'not-formed';
+  const projectCompositeScore = packageStatus !== 'not-formed'
     ? calculateProjectCompositeScore(projection.tasks.map(({ taskCompositeScore }) => taskCompositeScore))
     : undefined;
 
@@ -59,9 +65,13 @@ export function buildP1PortfolioViewModel(projection: P1ProjectProjection): P1Po
     packageTitle: projection.finalOutputTitle,
     snapshotVersion: projection.snapshotVersion,
     packageStatus,
-    packageStatusLabel: packageStatus === 'complete' ? '成果包已形成' : '尚未形成',
+    packageStatusLabel: packageStatus === 'complete'
+      ? '成果包已形成'
+      : packageStatus === 'demo-complete'
+        ? '演示成果包已形成'
+        : '尚未形成',
     ...(projectCompositeScore === undefined ? {} : { projectCompositeScore }),
-    projectCompositeScoreLabel: formatScore(projectCompositeScore),
+    projectCompositeScoreLabel: formatScore(projectCompositeScore, packageStatus === 'demo-complete'),
     packageReferences,
     items: projection.tasks.map((task) => ({
       taskId: task.taskId,
@@ -71,9 +81,9 @@ export function buildP1PortfolioViewModel(projection: P1ProjectProjection): P1Po
       outputTitle: task.taskOutputTitle,
       versionLabel: task.currentOutputVersion === undefined ? '尚未形成' : `v${task.currentOutputVersion}`,
       status: task.outputStatus,
-      statusLabel: outputStatusLabels[task.outputStatus],
+      statusLabel: `${outputStatusLabels[task.outputStatus]}${task.outputOrigin === 'demo' ? ' · 演示数据' : ''}`,
       teacherFeedback: task.teacherFeedback ?? '暂无教师反馈',
-      taskCompositeScoreLabel: formatScore(task.taskCompositeScore),
+      taskCompositeScoreLabel: formatScore(task.taskCompositeScore, task.taskScoreOrigin === 'demo'),
     })),
   };
 }
@@ -86,6 +96,6 @@ const outputStatusLabels: Record<ProfessionalOutputProjectionStatus, string> = {
   verified: '教师已认证',
 };
 
-function formatScore(score: number | undefined): string {
-  return score === undefined ? '尚未形成' : String(Math.round(score));
+function formatScore(score: number | undefined, demoData = false): string {
+  return score === undefined ? '尚未形成' : `${Math.round(score)}${demoData ? ' · 演示数据' : ''}`;
 }

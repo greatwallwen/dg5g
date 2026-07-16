@@ -67,6 +67,21 @@ test('shows an explicit unformed state without inventing package references or a
   assert.match(html, /查看成果与证据/);
 });
 
+test('renders a demo-complete package with an explicit demonstration label', () => {
+  const model = completeModel();
+  model.packageStatus = 'demo-complete';
+  model.packageStatusLabel = '演示成果包已形成';
+  model.projectCompositeScoreLabel = '88 · 演示数据';
+  model.items = model.items.map((item) => ({ ...item, statusLabel: '教师已认证 · 演示数据' }));
+
+  const html = renderToStaticMarkup(<P1PortfolioView displayName="学生三" model={model} />);
+
+  assert.match(html, /data-p1-portfolio="demo-complete"/);
+  assert.match(html, /演示成果包已形成/);
+  assert.match(html, /88 · 演示数据/);
+  assert.doesNotMatch(html, />成果包已形成</);
+});
+
 function completeModel(): P1PortfolioViewModel {
   return {
     projectId: 'P1',

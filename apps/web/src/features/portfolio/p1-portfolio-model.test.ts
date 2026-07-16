@@ -98,6 +98,24 @@ test('the package is only three immutable verified references and scores them eq
   ]);
 });
 
+test('three verified demo outputs form only a labelled demonstration package', () => {
+  const outputs = Object.fromEntries((['P01', 'P02', 'P03'] as const).map((taskId, index) => [taskId, {
+    outputId: `demo-${taskId}`,
+    currentOutputVersion: 1,
+    outputStatus: 'verified' as const,
+    outputOrigin: 'demo' as const,
+    taskCompositeScore: 90 + index,
+    taskScoreOrigin: 'demo' as const,
+    verifiedOutputReference: { outputId: `demo-${taskId}`, version: 1 },
+  }])) as Record<'P01' | 'P02' | 'P03', Partial<P1ProjectProjection['tasks'][number]>>;
+  const model = buildP1PortfolioViewModel(projectFixture({ outputs }));
+
+  assert.equal(model.packageStatus, 'demo-complete');
+  assert.equal(model.packageStatusLabel, '演示成果包已形成');
+  assert.match(model.projectCompositeScoreLabel, /演示数据/);
+  assert.ok(model.items.every(({ statusLabel }) => statusLabel.includes('演示数据')));
+});
+
 test('an unformed task still links to its truthful reason instead of a silent fallback', () => {
   const model = buildP1PortfolioViewModel(projectFixture({
     outputs: { P01: {}, P02: {}, P03: {} },
@@ -133,6 +151,8 @@ function projectFixture({
       state: 'output-pending',
       nodes: [],
       outputStatus: 'not-started',
+      outputOrigin: 'user',
+      taskScoreOrigin: 'user',
       ...outputs[taskId],
     })),
   };

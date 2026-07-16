@@ -71,7 +71,7 @@ export function buildP1ProjectViewModel(projection: P1ProjectProjection): P1Proj
     portfolioStatusLabel: portfolioStatusLabels[projection.portfolioStatus],
     completedTaskCount: tasks.filter(({ state }) => state === 'complete').length,
     taskCount: tasks.length,
-    projectCompositeScoreLabel: formatScore(projection.projectCompositeScore),
+    projectCompositeScoreLabel: formatScore(projection.projectCompositeScore, projection.projectCompositeOrigin),
     currentAction: tasks.flatMap(({ nextAction }) => nextAction ? [nextAction] : [])[0],
     tasks,
   };
@@ -104,13 +104,13 @@ function buildTask(task: P1ProjectTaskProjection, index: number): P1TaskCardView
     ...(nextAction ? { nextAction } : {}),
     output: {
       status: task.outputStatus,
-      statusLabel: outputStatusLabels[task.outputStatus],
+      statusLabel: withOrigin(outputStatusLabels[task.outputStatus], task.outputOrigin),
       versionLabel: task.currentOutputVersion === undefined
         ? '版本尚未建立'
         : `v${task.currentOutputVersion}`,
     },
-    nodeTestHighestScoreLabel: formatScore(task.nodeTestHighestScore),
-    taskCompositeScoreLabel: formatScore(task.taskCompositeScore),
+    nodeTestHighestScoreLabel: formatScore(task.nodeTestHighestScore, task.taskScoreOrigin),
+    taskCompositeScoreLabel: formatScore(task.taskCompositeScore, task.taskScoreOrigin),
   };
 }
 
@@ -135,9 +135,14 @@ const portfolioStatusLabels: Record<P1ProjectProjection['portfolioStatus'], stri
   'not-started': '尚未开始',
   collecting: '采集中',
   'awaiting-review': '待教师复核',
+  'demo-complete': '演示成果包已形成',
   complete: '项目完成',
 };
 
-function formatScore(score: number | undefined): string {
-  return score === undefined ? '尚未形成' : String(Math.round(score));
+function formatScore(score: number | undefined, origin?: 'demo' | 'user'): string {
+  return score === undefined ? '尚未形成' : `${Math.round(score)}${origin === 'demo' ? ' · 演示数据' : ''}`;
+}
+
+function withOrigin(label: string, origin?: 'demo' | 'user'): string {
+  return `${label}${origin === 'demo' ? ' · 演示数据' : ''}`;
 }
