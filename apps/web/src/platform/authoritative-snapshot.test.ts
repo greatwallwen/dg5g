@@ -146,6 +146,22 @@ test('running assessment counts current-window zero-score submissions and remain
       score: 0,
       completedAt: '2026-07-16T01:15:00.000Z',
     }, learning.readTopicVersion('learning:stu-01'));
+    learning.recordFormalAttempt({
+      attemptId: 'current-window-other-game',
+      studentId: 'stu-02',
+      nodeId: 'P1T1-N02',
+      gameId: 'other-formal-game',
+      score: 100,
+      completedAt: '2026-07-16T01:16:00.000Z',
+    }, learning.readTopicVersion('learning:stu-02'));
+    learning.recordFormalAttempt({
+      attemptId: 'current-window-after-observation',
+      studentId: 'stu-03',
+      nodeId: 'P1T1-N02',
+      gameId: 'P1T1-N02-formal',
+      score: 100,
+      completedAt: '2026-07-16T01:21:00.000Z',
+    }, learning.readTopicVersion('learning:stu-03'));
 
     const snapshot = new AuthoritativeSnapshotReader(fixture.database)
       .read(teacherActor(), 'teacher', { now });

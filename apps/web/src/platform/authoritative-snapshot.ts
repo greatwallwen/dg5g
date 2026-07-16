@@ -314,7 +314,13 @@ export class AuthoritativeSnapshotReader {
         taskIds: ['P01', 'P02', 'P03'],
       },
       membership: { classSize: students.length, joinedCount, followingCount },
-      submissions: projectSubmissionMetrics(session, students, activeNodeId, activePolicy?.formalPassScore ?? 80),
+      submissions: projectSubmissionMetrics(
+        session,
+        students,
+        activeNodeId,
+        activePolicy?.formalPassScore ?? 80,
+        observedAt,
+      ),
       classScores,
       helper: projectHelper(device, observedAt),
     };
@@ -373,6 +379,7 @@ function projectSubmissionMetrics(
   students: ProjectedStudent[],
   activeNodeId: P1NodeId | undefined,
   passScore: number,
+  observedAt: Date,
 ): SnapshotSubmissionMetrics {
   const classSize = students.length;
   const classroomSubmitted = !activeNodeId ? 0 : students.filter(({ learning }) => (
@@ -383,11 +390,23 @@ function projectSubmissionMetrics(
     ? storedFormalTest
     : undefined;
   const assessmentStatus = formalTest?.status ?? 'idle';
-  const attemptsInWindow = assessmentStatus === 'idle' || !formalTest?.startedAt || !activeNodeId
+  const windowStartedAt = formalTest?.startedAt ? Date.parse(formalTest.startedAt) : Number.NaN;
+  const windowObservedAt = observedAt.getTime();
+  const attemptsInWindow = assessmentStatus === 'idle'
+    || !formalTest
+    || !activeNodeId
+    || !Number.isFinite(windowStartedAt)
+    || !Number.isFinite(windowObservedAt)
     ? []
     : students.flatMap(({ member, learning }) => {
         const scores = learning.nodes.find(({ nodeId }) => nodeId === activeNodeId)?.attempts
-          .filter(({ completedAt }) => Date.parse(completedAt) >= Date.parse(formalTest.startedAt!))
+          .filter(({ completedAt, gameId }) => {
+            const completedAtMs = Date.parse(completedAt);
+            return gameId === formalTest.gameId
+              && Number.isFinite(completedAtMs)
+              && completedAtMs >= windowStartedAt
+              && completedAtMs <= windowObservedAt;
+          })
           .map(({ score }) => score) ?? [];
         return scores.length === 0 ? [] : [{ studentId: member.studentId, score: Math.max(...scores) }];
       });
