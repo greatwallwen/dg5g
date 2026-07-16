@@ -15,6 +15,7 @@ export interface ActivityMaterial {
   id: string;
   label: string;
   detail: string;
+  sourceValue?: string;
 }
 
 export interface ActivityInteraction {
@@ -28,14 +29,13 @@ export interface ActivityFeedback {
   failed: string;
 }
 
-export interface ActivityDefinition {
+export interface ActivityPublicDto {
   id: string;
   nodeId: P1NodeId;
   kind: ActivityKind;
   prompt: string;
   materials: ActivityMaterial[];
   interaction: ActivityInteraction;
-  answerModel: Record<string, unknown>;
   feedback: ActivityFeedback;
   correctionPath: string[];
   transferTarget: string;
@@ -59,10 +59,10 @@ export interface ActivityAttemptResult {
   version: number;
 }
 
-export function activityDefinitionFromPractice(
+export function publicActivityFromPractice(
   practice: P1SelfStudyPractice,
   nodeId: P1NodeId,
-): ActivityDefinition | undefined {
+): ActivityPublicDto | undefined {
   if (!practice.activityKind) return undefined;
   return {
     id: practice.id,
@@ -71,7 +71,6 @@ export function activityDefinitionFromPractice(
     prompt: practice.prompt,
     materials: practice.materials ?? [],
     interaction: practice.interaction ?? { type: 'record-form' },
-    answerModel: practice.answerModel ?? {},
     feedback: practice.targetedFeedback ?? {
       passed: practice.feedback,
       failed: practice.feedback,

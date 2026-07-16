@@ -17,6 +17,7 @@ import './role-home-v5.css';
 import './p1-project.css';
 import './annotated-engineering-figure.css';
 import './self-study-textbook.css';
+import './learning-activities.css';
 import './professional-output.css';
 
 export const metadata: Metadata = {

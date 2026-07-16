@@ -21,13 +21,12 @@ export interface P1SelfStudyPractice {
     | 'structured-record'
     | 'four-state-judgement'
     | 'defective-sheet-revision';
-  materials?: Array<{ id: string; label: string; detail: string }>;
+  materials?: Array<{ id: string; label: string; detail: string; sourceValue?: string }>;
   interaction?: {
     type: 'classification-board' | 'sequence-builder' | 'record-form' | 'state-matrix' | 'revision-form';
     categories?: Array<{ id: string; label: string }>;
     fields?: Array<{ id: string; label: string; placeholder: string }>;
   };
-  answerModel?: Record<string, unknown>;
   targetedFeedback?: { passed: string; failed: string };
   transferTarget?: string;
 }
@@ -453,7 +452,7 @@ function validatePractices(value: unknown, path: string): void {
     const practicePath = `${path}[${index}]`;
     const practice = objectValue(practiceValue, practicePath);
     const baseKeys = ['id', 'prompt', 'expectedEvidence', 'feedback', 'correctionPath', 'retryable'];
-    const activityKeys = ['activityKind', 'materials', 'interaction', 'answerModel', 'targetedFeedback', 'transferTarget'];
+    const activityKeys = ['activityKind', 'materials', 'interaction', 'targetedFeedback', 'transferTarget'];
     exactKeys(practice, 'activityKind' in practice ? [...baseKeys, ...activityKeys] : baseKeys, practicePath);
     nonEmptyString(practice.id, `${practicePath}.id`);
     nonEmptyString(practice.prompt, `${practicePath}.prompt`);
@@ -475,10 +474,13 @@ function validateActivityPractice(practice: Record<string, unknown>, path: strin
   materials.forEach((value, index) => {
     const materialPath = `${path}.materials[${index}]`;
     const material = objectValue(value, materialPath);
-    exactKeys(material, ['id', 'label', 'detail'], materialPath);
+    exactKeys(material, 'sourceValue' in material
+      ? ['id', 'label', 'detail', 'sourceValue']
+      : ['id', 'label', 'detail'], materialPath);
     nonEmptyString(material.id, `${materialPath}.id`);
     nonEmptyString(material.label, `${materialPath}.label`);
     nonEmptyString(material.detail, `${materialPath}.detail`);
+    if ('sourceValue' in material) nonEmptyString(material.sourceValue, `${materialPath}.sourceValue`);
   });
   const interaction = objectValue(practice.interaction, `${path}.interaction`);
   const interactionKeys = Object.keys(interaction);
@@ -500,7 +502,6 @@ function validateActivityPractice(practice: Record<string, unknown>, path: strin
       if (collectionKey === 'fields') nonEmptyString(item.placeholder, `${itemPath}.placeholder`);
     });
   }
-  nonEmptyObject(practice.answerModel, `${path}.answerModel`);
   const feedback = objectValue(practice.targetedFeedback, `${path}.targetedFeedback`);
   exactKeys(feedback, ['passed', 'failed'], `${path}.targetedFeedback`);
   nonEmptyString(feedback.passed, `${path}.targetedFeedback.passed`);

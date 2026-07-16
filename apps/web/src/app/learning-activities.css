@@ -1,0 +1,126 @@
+.activity-materials,
+.activity-classification-board,
+.activity-record-form {
+  display: grid;
+  gap: 10px;
+}
+
+.activity-materials section,
+.activity-classification-board fieldset {
+  min-width: 0;
+  margin: 0;
+  border: 1px solid #29495e;
+  border-radius: 6px;
+  padding: 10px;
+  background: #0a1f31;
+}
+
+.activity-materials p,
+.activity-classification-board small,
+.activity-state-matrix small {
+  display: block;
+  margin: 5px 0 0;
+  color: #a8c0ca;
+  font-weight: 400;
+}
+
+.activity-classification-board legend {
+  padding: 0 4px;
+}
+
+.activity-classification-board label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 8px 0 0;
+  border: 1px solid #365a6e;
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: #0c2b40;
+}
+
+.activity-sequence-builder {
+  display: grid;
+  gap: 9px;
+}
+
+.activity-sequence-builder ol {
+  min-height: 48px;
+  margin: 0;
+  border: 1px dashed #4adbd4;
+  border-radius: 6px;
+  padding: 10px 10px 10px 34px;
+  background: #0a1f31;
+}
+
+.activity-sequence-builder > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.activity-sequence-builder button,
+.activity-submit {
+  min-height: 38px;
+  border: 1px solid #365a6e;
+  border-radius: 6px;
+  padding: 8px 11px;
+  color: #d8e8ed;
+  background: #0c2b40;
+}
+
+.activity-sequence-builder button:disabled,
+.activity-submit:disabled {
+  opacity: .45;
+}
+
+.activity-record-form {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.activity-record-form label {
+  display: grid;
+  gap: 5px;
+}
+
+.activity-record-form input,
+.activity-revision-table input {
+  min-width: 0;
+  border: 1px solid #365a6e;
+  border-radius: 5px;
+  padding: 9px;
+  color: #edf6f8;
+  background: #081b2b;
+}
+
+.activity-state-matrix,
+.activity-revision-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #0a1f31;
+}
+
+.activity-state-matrix th,
+.activity-state-matrix td,
+.activity-revision-table th,
+.activity-revision-table td {
+  border: 1px solid #29495e;
+  padding: 9px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.activity-state-matrix td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.activity-state-matrix input[type='radio'] {
+  width: 18px;
+  height: 18px;
+  accent-color: #4adbd4;
+}
+
+.activity-revision-table input {
+  width: 100%;
+}

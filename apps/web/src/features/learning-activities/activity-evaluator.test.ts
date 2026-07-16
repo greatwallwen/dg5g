@@ -3,12 +3,14 @@ import test from 'node:test';
 import { migrateDatabase } from '../../platform/db/migrations.ts';
 import { seedBase } from '../../platform/db/demo-seed.ts';
 import { createTestDatabase } from '../../platform/db/test-database.ts';
+import { loadP1DemoContent } from '../platform/p1-content.ts';
+import { publicActivityFromPractice } from './activity-definition.ts';
 import { p01Activities } from './activity-catalog.ts';
 import { evaluateActivity } from './activity-evaluator.ts';
 import { ActivityRepository } from './activity-repository.ts';
 
 test('P01 exposes six authentic activity kinds in node order', () => {
-  assert.deepEqual(p01Activities.map(({ kind }) => kind), [
+  assert.deepEqual(p01Activities.map(({ activity }) => activity.kind), [
     'scope-classification',
     'evidence-classification',
     'link-reconstruction',
@@ -16,8 +18,8 @@ test('P01 exposes six authentic activity kinds in node order', () => {
     'four-state-judgement',
     'defective-sheet-revision',
   ]);
-  assert.equal(new Set(p01Activities.map(({ id }) => id)).size, 6);
-  for (const activity of p01Activities) {
+  assert.equal(new Set(p01Activities.map(({ activity }) => activity.id)).size, 6);
+  for (const { activity } of p01Activities) {
     assert.ok(activity.materials.length > 0);
     assert.ok(activity.feedback.passed.length > 0);
     assert.ok(activity.feedback.failed.length > 0);
@@ -47,7 +49,7 @@ test('scope classification fails an incomplete answer and passes the corrected a
   const corrected = evaluateActivity(scopeActivity, correctedResponse);
   assert.equal(corrected.passed, true);
   assert.equal(corrected.correctionPath.length, 0);
-  assert.equal(corrected.artifact.activityId, scopeActivity.id);
+  assert.equal(corrected.artifact.activityId, scopeActivity.activity.id);
 });
 
 test('each activity kind uses its own answer model', () => {
@@ -61,7 +63,7 @@ test('each activity kind uses its own answer model', () => {
   ];
 
   p01Activities.forEach((activity, index) => {
-    assert.equal(evaluateActivity(activity, correctResponses[index]).passed, true, activity.kind);
+    assert.equal(evaluateActivity(activity, correctResponses[index]).passed, true, activity.activity.kind);
   });
 });
 
@@ -95,8 +97,8 @@ test('repository persists the server-evaluated attempt in migration 009 practice
       FROM practice_attempts WHERE attempt_id = ?
     `).get('practice-attempt-001'), {
       studentId: 'stu-01',
-      activityId: activity.id,
-      nodeId: activity.nodeId,
+      activityId: activity.activity.id,
+      nodeId: activity.activity.nodeId,
       passed: 1,
       origin: 'user',
     });
@@ -110,4 +112,48 @@ test('repository persists the server-evaluated attempt in migration 009 practice
   } finally {
     fixture.cleanup();
   }
+});
+
+test('the self-study public activity payload contains no private answer model', () => {
+  const content = loadP1DemoContent();
+  const node = content.tasks[0].nodes[0];
+  const practice = node.selfStudy.kind === 'standard' ? node.selfStudy.microPractice[0]! : undefined;
+  assert.ok(practice);
+  const publicActivity = publicActivityFromPractice(practice, node.id);
+  assert.ok(publicActivity);
+
+  for (const serialized of [JSON.stringify(publicActivity), JSON.stringify(content.tasks[0].nodes)]) {
+    assert.doesNotMatch(serialized, /answerModel|answerKey|correctAnswer|evaluationRule/i);
+  }
+});
+
+test('defective-sheet revision normalizes text and accepts multiple valid corrections', () => {
+  const revisionActivity = p01Activities[5]!;
+  const validResponses = [
+    {
+      revisions: {
+        duplicatePhotoId: ' img-024b ',
+        missingSource: ' img-021 ',
+        openGap: 'GAP-03：补拍接地排标识',
+      },
+    },
+    {
+      revisions: {
+        duplicatePhotoId: 'IMG-025',
+        missingSource: 'IMG-022',
+        openGap: '安排工程师重拍 GAP03 grounding cable label',
+      },
+    },
+  ];
+
+  for (const response of validResponses) {
+    assert.equal(evaluateActivity(revisionActivity, response).passed, true);
+  }
+  assert.equal(evaluateActivity(revisionActivity, {
+    revisions: {
+      duplicatePhotoId: 'IMG-024',
+      missingSource: 'IMG-099',
+      openGap: 'GAP-03 保持未拍到',
+    },
+  }).passed, false);
 });

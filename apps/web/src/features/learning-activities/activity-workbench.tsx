@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react';
 import type {
   ActivityAttemptResult,
-  ActivityDefinition,
+  ActivityPublicDto,
 } from './activity-definition.ts';
+import { ActivityControl } from './activity-controls.tsx';
 
 export function ActivityWorkbench({ activity, level, levelLabel, passed, onPass }: {
-  activity: ActivityDefinition;
+  activity: ActivityPublicDto;
   level: 'foundation' | 'application' | 'transfer';
   levelLabel: string;
   passed: boolean;
@@ -66,9 +67,13 @@ export function ActivityWorkbench({ activity, level, levelLabel, passed, onPass 
     setRequestError('');
   }
 
+  const practiceStateClass = result?.passed || passed
+    ? 'is-correct'
+    : result ? 'is-wrong' : 'is-idle';
+
   return (
     <article
-      className={`self-study-practice-card is-${result?.passed || passed ? 'correct' : result ? 'wrong' : 'idle'}`}
+      className={`self-study-practice-card ${practiceStateClass}`}
       data-activity-kind={activity.kind}
       data-practice-level={level}
     >
@@ -83,7 +88,7 @@ export function ActivityWorkbench({ activity, level, levelLabel, passed, onPass 
       <ActivityControl activity={activity} onOrderChange={setOrder} onValueChange={(key, value) => (
         setValues((current) => ({ ...current, [key]: value }))
       )} order={order} values={values} />
-      <button disabled={saving} onClick={submitAttempt} type="button">
+      <button className="activity-submit" disabled={saving} onClick={submitAttempt} type="button">
         {saving ? '正在评估' : '提交岗位作答'}
       </button>
       <div className="self-study-practice-feedback" hidden={!result && !requestError} role="status">
@@ -107,69 +112,8 @@ export function ActivityWorkbench({ activity, level, levelLabel, passed, onPass 
   );
 }
 
-function ActivityControl({ activity, values, order, onValueChange, onOrderChange }: {
-  activity: ActivityDefinition;
-  values: Record<string, string>;
-  order: string[];
-  onValueChange: (key: string, value: string) => void;
-  onOrderChange: (value: string[]) => void;
-}) {
-  if (activity.kind === 'link-reconstruction') {
-    return (
-      <div className="activity-sequence-builder">
-        <ol>{order.map((id) => <li key={id}>{activity.materials.find((item) => item.id === id)?.label}</li>)}</ol>
-        <div>{activity.materials.map((material) => (
-          <button
-            disabled={order.includes(material.id)}
-            key={material.id}
-            onClick={() => onOrderChange([...order, material.id])}
-            type="button"
-          >
-            加入下一步：{material.label}
-          </button>
-        ))}</div>
-      </div>
-    );
-  }
-
-  if (activity.kind === 'structured-record' || activity.kind === 'defective-sheet-revision') {
-    return (
-      <div className="activity-record-form">
-        {(activity.interaction.fields ?? []).map((field) => (
-          <label key={field.id}>
-            <span>{field.label}</span>
-            <input
-              onChange={(event) => onValueChange(field.id, event.target.value)}
-              placeholder={field.placeholder}
-              type="text"
-              value={values[field.id] ?? ''}
-            />
-          </label>
-        ))}
-      </div>
-    );
-  }
-
-  const valueName = activity.kind === 'four-state-judgement' ? '状态' : '分类';
-  return (
-    <div className="activity-classification-board">
-      {activity.materials.map((material) => (
-        <label key={material.id}>
-          <span>{material.label}</span>
-          <select onChange={(event) => onValueChange(material.id, event.target.value)} value={values[material.id] ?? ''}>
-            <option value="">选择{valueName}</option>
-            {(activity.interaction.categories ?? []).map((category) => (
-              <option key={category.id} value={category.id}>{category.label}</option>
-            ))}
-          </select>
-        </label>
-      ))}
-    </div>
-  );
-}
-
 function responseFor(
-  activity: ActivityDefinition,
+  activity: ActivityPublicDto,
   values: Record<string, string>,
   order: string[],
 ): Record<string, unknown> {

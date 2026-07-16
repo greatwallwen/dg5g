@@ -73,11 +73,6 @@ P01_ACTIVITY_SPECS: dict[str, dict[str, Any]] = {
                 {"id": "out-of-scope", "label": "排除并说明"},
             ],
         },
-        "answerModel": {"assignments": {
-            "room-01-cabinets": "in-scope",
-            "shared-operator-cabinet": "out-of-scope",
-            "room-02-cabinets": "out-of-scope",
-        }},
         "targetedFeedback": {
             "passed": "范围已与任务单、机房入口和柜号三项证据对齐。",
             "failed": "仍有对象未回到任务单边界；同站点不等于同一采集范围。",
@@ -99,11 +94,6 @@ P01_ACTIVITY_SPECS: dict[str, dict[str, Any]] = {
                 {"id": "link", "label": "方向链路"},
             ],
         },
-        "answerModel": {"assignments": {
-            "room-overview": "location",
-            "device-nameplate": "identity",
-            "two-ended-port-trace": "link",
-        }},
         "targetedFeedback": {
             "passed": "三类材料分别回答了在哪里、是谁、从哪里到哪里。",
             "failed": "请按材料能直接证明的问题分类，不要让设备近照替代位置或链路证据。",
@@ -119,7 +109,6 @@ P01_ACTIVITY_SPECS: dict[str, dict[str, Any]] = {
             {"id": "aau-port", "label": "AAU-01 OPT-1", "detail": "线缆标签 FO-22。"},
         ],
         "interaction": {"type": "sequence-builder"},
-        "answerModel": {"order": ["bbu-port", "odf-in", "odf-out", "aau-port"]},
         "targetedFeedback": {
             "passed": "起点、中间跳接和终点编号连续，链路已经闭合。",
             "failed": "当前顺序存在标签断点；从 BBU 端口开始逐段核对线缆和 ODF 跳接。",
@@ -142,10 +131,6 @@ P01_ACTIVITY_SPECS: dict[str, dict[str, Any]] = {
                 {"id": "farPort", "label": "对端端口", "placeholder": "例如 AAU-1"},
             ],
         },
-        "answerModel": {"fields": {
-            "siteId": "HY-01", "roomId": "01", "cabinetId": "K02",
-            "deviceId": "BBU-01", "nearPort": "BBU-1/0", "farPort": "AAU-1",
-        }},
         "targetedFeedback": {
             "passed": "结构化记录已把设备、位置和双端端口汇成可回查条目。",
             "failed": "记录仍有字段与证据包不一致；请逐项核对站点、机柜、设备和双端端口。",
@@ -169,10 +154,6 @@ P01_ACTIVITY_SPECS: dict[str, dict[str, Any]] = {
                 {"id": "conflicting", "label": "冲突"},
             ],
         },
-        "answerModel": {"states": {
-            "power": "confirmed", "grounding": "missing",
-            "transport": "confirmed", "environment": "conflicting",
-        }},
         "targetedFeedback": {
             "passed": "四类条件已按证据充分性区分确认、缺证与冲突。",
             "failed": "不要把有记录等同于已确认；缺失和互相矛盾的材料必须单独标记。",
@@ -182,9 +163,24 @@ P01_ACTIVITY_SPECS: dict[str, dict[str, Any]] = {
     "P1T1-N04-micro-01": {
         "activityKind": "defective-sheet-revision",
         "materials": [
-            {"id": "duplicate-photo", "label": "重复照片编号", "detail": "端口照片与机柜全景都编号 IMG-024。"},
-            {"id": "missing-source", "label": "设备型号无来源", "detail": "BBU-01 型号已填写，但来源照片字段为空。"},
-            {"id": "open-gap", "label": "接地缺口无动作", "detail": "GAP-03 只写“未拍到”，没有补采责任与动作。"},
+            {
+                "id": "duplicate-photo",
+                "label": "重复照片编号",
+                "detail": "端口照片与机柜全景都占用 IMG-024；IMG-024B 与 IMG-025 尚未占用，可作为端口照片的新编号。",
+                "sourceValue": "端口照片 IMG-024；机柜全景 IMG-024",
+            },
+            {
+                "id": "missing-source",
+                "label": "设备型号无来源",
+                "detail": "IMG-021 与 IMG-022 均完整显示 BBU-01 铭牌和型号，可任选其一补入来源字段。",
+                "sourceValue": "BBU-01 型号来源：（空）",
+            },
+            {
+                "id": "open-gap",
+                "label": "接地缺口无动作",
+                "detail": "GAP-03 缺少接地线与接地排标识证据，需写明补拍、重拍或补采动作。",
+                "sourceValue": "GAP-03：未拍到",
+            },
         ],
         "interaction": {
             "type": "revision-form",
@@ -194,11 +190,6 @@ P01_ACTIVITY_SPECS: dict[str, dict[str, Any]] = {
                 {"id": "openGap", "label": "补齐缺口动作", "placeholder": "输入缺口编号与动作"},
             ],
         },
-        "answerModel": {"revisions": {
-            "duplicatePhotoId": "IMG-024B",
-            "missingSource": "IMG-021",
-            "openGap": "GAP-03: reshoot grounding label",
-        }},
         "targetedFeedback": {
             "passed": "重复编号、无来源字段和开放缺口均已修订为可追溯记录。",
             "failed": "至少一项缺陷仍未闭合；唯一编号、证据来源和补采动作都必须明确。",

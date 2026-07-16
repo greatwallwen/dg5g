@@ -126,7 +126,8 @@
             "properties": {
               "id": { "type": "string", "minLength": 1 },
               "label": { "type": "string", "minLength": 1 },
-              "detail": { "type": "string", "minLength": 1 }
+              "detail": { "type": "string", "minLength": 1 },
+              "sourceValue": { "type": "string", "minLength": 1 }
             }
           }
         },
@@ -165,7 +166,6 @@
             }
           }
         },
-        "answerModel": { "type": "object", "minProperties": 1 },
         "targetedFeedback": {
           "type": "object",
           "additionalProperties": false,
@@ -178,7 +178,7 @@
         "transferTarget": { "type": "string", "minLength": 1 }
       },
       "dependentRequired": {
-        "activityKind": ["materials", "interaction", "answerModel", "targetedFeedback", "transferTarget"]
+        "activityKind": ["materials", "interaction", "targetedFeedback", "transferTarget"]
       }
     },
     "example": {

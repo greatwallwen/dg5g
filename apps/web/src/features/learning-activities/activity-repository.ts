@@ -1,14 +1,14 @@
 import type { AppDatabase } from '../../platform/db/database.ts';
 import type {
   ActivityAttemptResult,
-  ActivityDefinition,
 } from './activity-definition.ts';
+import type { ServerActivityDefinition } from './activity-rules.ts';
 import { evaluateActivity } from './activity-evaluator.ts';
 
 export interface RecordEvaluatedAttemptInput {
   attemptId: string;
   studentId: string;
-  activity: ActivityDefinition;
+  activity: ServerActivityDefinition;
   response: unknown;
   expectedVersion: number;
 }
@@ -40,7 +40,7 @@ export class ActivityRepository {
         SELECT student_id AS studentId, activity_id AS activityId, result_json AS resultJson
         FROM practice_attempts WHERE attempt_id = ?
       `).get(input.attemptId) as AttemptRow | undefined;
-      if (existing && (existing.studentId !== input.studentId || existing.activityId !== input.activity.id)) {
+      if (existing && (existing.studentId !== input.studentId || existing.activityId !== input.activity.activity.id)) {
         throw new TypeError('attemptId does not identify this student activity.');
       }
       const actualVersion = existing
@@ -76,8 +76,8 @@ export class ActivityRepository {
         `).run(
           input.attemptId,
           input.studentId,
-          input.activity.id,
-          input.activity.nodeId,
+          input.activity.activity.id,
+          input.activity.activity.nodeId,
           ...values,
         );
       }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { activityDefinitionFromPractice } from '../learning-activities/activity-definition.ts';
+import { publicActivityFromPractice } from '../learning-activities/activity-definition.ts';
 import { ActivityWorkbench } from '../learning-activities/activity-workbench.tsx';
 import { Icon } from '../../ui/foundation/icons.tsx';
 import type { SelfStudyDocument, SelfStudyPractice } from './self-study-types.ts';
@@ -19,7 +19,7 @@ export function PracticeSection({ document, passedIds, onPass }: {
       <header><span>分层练习</span><h2 id={`${document.nodeId}-practice-title`}>从基础判断到迁移应用</h2><p>每题都提供即时反馈、改正路径与重新作答。</p></header>
       <div>
         {practiceRowsFor(document).map(({ level, levelLabel, practice }) => {
-          const activity = activityDefinitionFromPractice(practice, document.nodeId);
+          const activity = publicActivityFromPractice(practice, document.nodeId);
           return activity ? (
             <ActivityWorkbench
               activity={activity}
@@ -63,8 +63,12 @@ function WrittenPracticeCard({ level, levelLabel, practice, passed, onPass }: {
     onPass();
   }
 
+  const practiceStateClass = answer === 'correct'
+    ? 'is-correct'
+    : answer === 'wrong' ? 'is-wrong' : 'is-idle';
+
   return (
-    <article className={`self-study-practice-card is-${answer}`} data-practice-level={level}>
+    <article className={`self-study-practice-card ${practiceStateClass}`} data-practice-level={level}>
       <header><span>{levelLabel}</span><strong>{practice.prompt}</strong></header>
       <div className="self-study-practice-options">
         <label>

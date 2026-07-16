@@ -1,15 +1,20 @@
 import type {
   ActivityArtifact,
   ActivityAttemptResult,
-  ActivityDefinition,
 } from './activity-definition.ts';
+import type {
+  ActivityEvaluationRule,
+  RevisionConstraint,
+  ServerActivityDefinition,
+} from './activity-rules.ts';
 
 export function evaluateActivity(
-  activity: ActivityDefinition,
+  definition: ServerActivityDefinition,
   response: unknown,
 ): Omit<ActivityAttemptResult, 'version'> {
+  const { activity, rule } = definition;
   const normalizedResponse = isRecord(response) ? response : {};
-  const passed = matchesAnswer(activity, normalizedResponse);
+  const passed = matchesRule(rule, normalizedResponse);
   const artifact: ActivityArtifact = {
     type: 'learning-activity-artifact',
     activityId: activity.id,
@@ -26,20 +31,45 @@ export function evaluateActivity(
   };
 }
 
-function matchesAnswer(activity: ActivityDefinition, response: Record<string, unknown>): boolean {
-  switch (activity.kind) {
-    case 'scope-classification':
-    case 'evidence-classification':
-      return exactStringMap(response.assignments, activity.answerModel.assignments);
-    case 'link-reconstruction':
-      return exactStringArray(response.order, activity.answerModel.order);
-    case 'structured-record':
-      return exactStringMap(response.fields, activity.answerModel.fields);
-    case 'four-state-judgement':
-      return exactStringMap(response.states, activity.answerModel.states);
-    case 'defective-sheet-revision':
-      return exactStringMap(response.revisions, activity.answerModel.revisions);
+function matchesRule(rule: ActivityEvaluationRule, response: Record<string, unknown>): boolean {
+  switch (rule.type) {
+    case 'exact-map':
+      return exactStringMap(response[rule.responseKey], rule.expected);
+    case 'exact-sequence':
+      return exactStringArray(response[rule.responseKey], rule.expected);
+    case 'revision-constraints':
+      return matchesRevisionConstraints(response[rule.responseKey], rule.constraints);
   }
+}
+
+function matchesRevisionConstraints(actual: unknown, constraints: Record<string, RevisionConstraint>): boolean {
+  if (!isRecord(actual) || Object.keys(actual).length !== Object.keys(constraints).length) return false;
+  return Object.entries(constraints).every(([field, constraint]) => {
+    const value = actual[field];
+    if (typeof value !== 'string') return false;
+    if (constraint.type === 'new-photo-id') {
+      const normalized = normalizeIdentifier(value);
+      return /^IMG-\d{3}[A-Z]?$/.test(normalized)
+        && constraint.accepted.map(normalizeIdentifier).includes(normalized)
+        && !constraint.forbidden.map(normalizeIdentifier).includes(normalized);
+    }
+    if (constraint.type === 'evidence-source') {
+      const normalized = normalizeIdentifier(value);
+      return constraint.accepted.map(normalizeIdentifier).includes(normalized);
+    }
+    const normalized = normalizeSearchText(value);
+    return constraint.groups.every((group) => group.some((term) => (
+      normalized.includes(normalizeSearchText(term))
+    )));
+  });
+}
+
+function normalizeIdentifier(value: string): string {
+  return value.normalize('NFKC').trim().toUpperCase().replace(/\s+/g, '');
+}
+
+function normalizeSearchText(value: string): string {
+  return value.normalize('NFKC').trim().toUpperCase().replace(/[\s\p{P}\p{S}]+/gu, '');
 }
 
 function exactStringMap(actual: unknown, expected: unknown): boolean {
