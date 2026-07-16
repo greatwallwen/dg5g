@@ -292,7 +292,8 @@ function insertUserFormalAssessment(
       completed_at, question_version, answers_json, diagnostics_json, origin
     ) VALUES (?, 'stu-01', 'P1T1-N02', ?, 'p01-n02-formal', ?, ?, 'p01-n02-v1', '{}', ?, 'user')
   `).run(attemptId, assessmentId, score, completedAt, JSON.stringify({
-    assessmentId, attemptId, nodeId: 'P1T1-N02', questionVersion: 'p01-n02-v1',
+    assessmentId, attemptId, studentId: 'stu-01', nodeId: 'P1T1-N02',
+    gameId: 'p01-n02-formal', questionVersion: 'p01-n02-v1',
     totalScore: score, passed: score >= 80, dimensions, remediationTargets: [],
     origin: 'user', completedAt,
   }));

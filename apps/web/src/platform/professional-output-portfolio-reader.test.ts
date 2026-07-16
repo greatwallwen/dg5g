@@ -72,6 +72,27 @@ test('returns an explicit unformed fact set and never crosses the student plus t
   }
 });
 
+test('does not expose a frozen diagnosis that fails the shared persisted-assessment validator', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    seedP01EvidenceLibrary(fixture.database);
+    seedPortfolioFacts(fixture.database);
+    fixture.database.prepare(`
+      UPDATE formal_attempts SET diagnostics_json = json_set(
+        diagnostics_json, '$.dimensions.evidenceClassification.score', 30
+      ) WHERE attempt_id = 'formal-user-frozen'
+    `).run();
+
+    const facts = new ProfessionalOutputPortfolioReader(fixture.database).read('stu-01', 'P01');
+
+    assert.equal(facts.assessment, undefined);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
 test('production verification freezes and reads the exact highest valid attempt rather than a later lower attempt', () => {
   const fixture = createTestDatabase();
   try {
@@ -90,6 +111,12 @@ test('production verification freezes and reads the exact highest valid attempt 
     });
     insertFormal(fixture.database, 'formal-production-92', 'assessment-production-92', 'stu-01', 92, 'user', '2026-07-16T07:00:00.000Z');
     insertFormal(fixture.database, 'formal-production-later-84', 'assessment-production-later-84', 'stu-01', 84, 'user', '2026-07-16T10:00:00.000Z');
+    insertFormal(fixture.database, 'formal-malformed-100', 'assessment-malformed-100', 'stu-01', 100, 'user', '2026-07-16T11:00:00.000Z');
+    fixture.database.prepare(`
+      UPDATE formal_attempts SET diagnostics_json = json_set(
+        diagnostics_json, '$.dimensions.evidenceClassification.score', 30
+      ) WHERE attempt_id = 'formal-malformed-100'
+    `).run();
     const reviewed = repository.reviewSubmitted({
       teacherId: 'teacher-01', classId: 'demo-class', outputId: 'output-production-reader',
       expectedStateRevision: 2, action: 'verify', feedback: '证据闭环。',
@@ -216,7 +243,7 @@ function insertFormal(
   `).run(attemptId, studentId, assessmentId, score, completedAt,
     JSON.stringify({ secret: 'secret-answer' }),
     JSON.stringify({
-      assessmentId, attemptId, nodeId: 'P1T1-N02', questionVersion: 'p01-n02-v1',
+      assessmentId, attemptId, studentId, nodeId: 'P1T1-N02', gameId: 'game-topology', questionVersion: 'p01-n02-v1',
       totalScore: score, passed: score >= 80, dimensions, remediationTargets: [], origin, completedAt,
     }), origin);
 }

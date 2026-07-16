@@ -12,6 +12,11 @@ import type {
   ProfessionalOutputStatus,
 } from './professional-output-repository.ts';
 import type { AppDatabase } from './db/database.ts';
+import { getFormalAssessmentValidationPolicy } from './formal-assessment-catalog.server.ts';
+import {
+  validatePersistedAssessmentDiagnostic,
+  type PersistedAssessmentCandidate,
+} from './persisted-assessment-diagnostic.ts';
 
 interface HeadRow {
   outputId: string;
@@ -32,16 +37,8 @@ interface VersionRow {
   upstreamRefsJson: string;
 }
 
-interface FormalRow {
-  attemptId: string;
-  studentId: string;
-  nodeId: string;
-  assessmentId: string | null;
-  questionVersion: string | null;
-  score: number;
-  diagnosticsJson: string;
+interface FormalRow extends PersistedAssessmentCandidate {
   origin: LearningOrigin;
-  completedAt: string;
 }
 
 const assessmentNodeByTask: Record<P1OutputTaskId, string> = {
@@ -184,45 +181,50 @@ export class ProfessionalOutputPortfolioReader {
   }
 
   private readFormalById(studentId: string, nodeId: string, attemptId: string): FormalRow | undefined {
-    return this.database.prepare(`${formalSelect()} WHERE attempt_id = ? AND student_id = ? AND node_id = ?`)
+    return this.database.prepare(`${formalSelect()} WHERE attempt.attempt_id = ? AND attempt.student_id = ? AND attempt.node_id = ?`)
       .get(attemptId, studentId, nodeId) as FormalRow | undefined;
   }
 
   private readCurrentFormal(studentId: string, nodeId: string): FormalRow | undefined {
     return this.database.prepare(`${formalSelect()}
-      WHERE student_id = ? AND node_id = ?
-      ORDER BY CASE origin WHEN 'user' THEN 0 ELSE 1 END,
-        julianday(completed_at) DESC, attempt_id DESC LIMIT 1
+      WHERE attempt.student_id = ? AND attempt.node_id = ?
+      ORDER BY CASE attempt.origin WHEN 'user' THEN 0 ELSE 1 END,
+        julianday(attempt.completed_at) DESC, attempt.attempt_id DESC LIMIT 1
     `).get(studentId, nodeId) as FormalRow | undefined;
   }
 }
 
 function formalSelect(): string {
-  return `SELECT attempt_id AS attemptId, student_id AS studentId, node_id AS nodeId,
-    assessment_id AS assessmentId, question_version AS questionVersion, score,
-    diagnostics_json AS diagnosticsJson, origin, completed_at AS completedAt
-    FROM formal_attempts`;
+  return `SELECT attempt.attempt_id AS attemptId, attempt.student_id AS studentId,
+    attempt.node_id AS nodeId, attempt.assessment_id AS assessmentId,
+    attempt.game_id AS gameId, attempt.question_version AS questionVersion,
+    attempt.score, attempt.diagnostics_json AS diagnosticsJson,
+    attempt.origin, attempt.completed_at AS completedAt,
+    instance.assessment_id AS instanceAssessmentId,
+    instance.node_id AS instanceNodeId, instance.game_id AS instanceGameId,
+    instance.question_version AS instanceQuestionVersion,
+    instance.status AS instanceStatus
+    FROM formal_attempts AS attempt
+    INNER JOIN formal_assessment_instances AS instance
+      ON instance.assessment_id = attempt.assessment_id`;
 }
 
 function projectFormalRow(row: FormalRow): PortfolioAssessmentFact | undefined {
-  const value = parseJsonRecord(row.diagnosticsJson);
-  if (!value || row.assessmentId === null || row.questionVersion === null
-    || value.assessmentId !== row.assessmentId || value.attemptId !== row.attemptId
-    || value.nodeId !== row.nodeId || value.questionVersion !== row.questionVersion
-    || value.totalScore !== row.score || value.origin !== row.origin
-    || value.completedAt !== row.completedAt || !isRecord(value.dimensions)
-    || !Array.isArray(value.remediationTargets) || typeof value.passed !== 'boolean') return undefined;
+  const policy = getFormalAssessmentValidationPolicy(row.nodeId);
+  if (!policy) return undefined;
+  const value = validatePersistedAssessmentDiagnostic(row, policy);
+  if (!value) return undefined;
   return {
-    assessmentId: row.assessmentId,
-    attemptId: row.attemptId,
-    nodeId: row.nodeId,
-    questionVersion: row.questionVersion,
-    totalScore: row.score,
+    assessmentId: value.assessmentId,
+    attemptId: value.attemptId,
+    nodeId: value.nodeId,
+    questionVersion: value.questionVersion,
+    totalScore: value.totalScore,
     passed: value.passed,
     dimensions: value.dimensions as PortfolioAssessmentFact['dimensions'],
     remediationTargets: value.remediationTargets as PortfolioAssessmentFact['remediationTargets'],
-    origin: row.origin,
-    completedAt: row.completedAt,
+    origin: value.origin,
+    completedAt: value.completedAt,
   };
 }
 
