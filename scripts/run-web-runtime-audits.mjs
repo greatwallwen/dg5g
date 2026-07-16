@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import os from 'node:os';
@@ -22,6 +23,7 @@ const auditEnv = {
   ...process.env,
   DGBOOK_SQLITE_PATH: databasePath,
   DGBOOK_AUDIT_ISOLATED_SQLITE: '1',
+  DGBOOK_HELPER_TOKEN: process.env.DGBOOK_HELPER_TOKEN || randomBytes(32).toString('base64url'),
 };
 
 let server = null;

@@ -38,7 +38,7 @@ try {
   };
 
   await assertTeacherEntry(teacher);
-  const cursorBefore = await readCursor(students['stu-02'], 'P1T2-N02');
+  const cursorBefore = await readCursor(students['stu-02'], 'P1T1-N04');
   const activation = await activateClassroom(teacher, fixture);
   report.checkpoints.push({ name: 'teacher-started-p1t1-n02', ...activation });
 
@@ -82,33 +82,54 @@ try {
   await fixture.api(students['stu-02'], 'DELETE', '/api/class-sessions/demo-class/participation');
   await fixture.api(students['stu-02'], 'PUT', '/api/class-sessions/demo-class/participation');
   await fixture.api(students['stu-02'], 'PATCH', '/api/class-sessions/demo-class/participation', { mode: 'self' });
-  const cursorAfter = await readCursor(students['stu-02'], 'P1T2-N02');
+  const cursorAfter = await readCursor(students['stu-02'], 'P1T1-N04');
   assert(JSON.stringify(cursorAfter) === JSON.stringify(cursorBefore), 'leave/rejoin overwrote the student self-study cursor');
   report.checkpoints.push({ name: 'leave-rejoin-preserves-personal-progress', cursorBefore, cursorAfter });
 
   const outputs = [];
-  for (const flow of [
-    ['stu-01', 'P01', 'P1T1'],
-    ['stu-02', 'P02', 'P1T2'],
-    ['stu-03', 'P03', 'P1T3'],
-  ]) {
-    const [actor, taskId, nodePrefix] = flow;
-    const output = await fixture.ensureOutputState(actor, taskId, nodePrefix, 'submitted');
-    outputs.push({ actor, taskId, outputId: output.head.outputId, stateRevision: output.head.stateRevision });
+  for (const taskId of ['P01', 'P02', 'P03']) {
+    const envelope = await fixture.api(students['stu-03'], 'GET', `/api/outputs/${taskId}`);
+    const output = envelope?.output;
+    assert(output?.head.status === 'verified', `stu-03 ${taskId} is not teacher verified`);
+    assert(output.head.origin === 'demo', `stu-03 ${taskId} must remain visibly demo-origin`);
+    assert(output.submissionCount >= 1, `stu-03 ${taskId} has no persisted submission event`);
+    assert(
+      output.reviewHistory.some((review) => review.status === 'verified' && review.origin === 'demo'),
+      `stu-03 ${taskId} has no demo-origin teacher verification event`,
+    );
+    const current = output.versions.find((version) => version.version === output.head.currentVersion);
+    assert(current && Object.keys(current.fields).length > 0, `stu-03 ${taskId} has no real output fields`);
+    outputs.push({
+      actor: 'stu-03',
+      taskId,
+      outputId: output.head.outputId,
+      status: output.head.status,
+      origin: output.head.origin,
+      submissionCount: output.submissionCount,
+    });
   }
-  report.checkpoints.push({ name: 'three-task-professional-outputs-submitted', outputs });
+  report.checkpoints.push({
+    name: 'three-task-professional-outputs-submitted',
+    source: 'demo-seed',
+    outputs,
+  });
 
-  for (const output of outputs) await fixture.verifyOutput(output.outputId);
-  for (const output of outputs) {
-    const verified = await fixture.api(students[output.actor], 'GET', `/api/outputs/${output.taskId}`);
-    assert(verified.head.status === 'verified', `${output.actor} ${output.taskId} was not teacher verified`);
-  }
-  report.checkpoints.push({ name: 'teacher-verified-three-professional-outputs', count: outputs.length });
+  const reviewQueue = await fixture.api(teacher, 'GET', '/api/teacher/outputs');
+  const verifiedIds = new Set(outputs.map(({ outputId }) => outputId));
+  assert(
+    !reviewQueue.outputs.some(({ outputId }) => verifiedIds.has(outputId)),
+    'teacher review queue still contains a verified demo output',
+  );
+  report.checkpoints.push({
+    name: 'teacher-verified-three-professional-outputs',
+    source: 'demo-seed',
+    count: outputs.length,
+  });
 
   const portfolioPage = await students['stu-03'].newPage();
   await goto(portfolioPage, '/student/projects/p1/portfolio');
-  await portfolioPage.locator('[data-p1-portfolio="complete"]').waitFor({ state: 'visible', timeout: 20_000 });
-  assert(await portfolioPage.locator('[data-p1-portfolio-item]').count() === 3, 'complete portfolio must contain three task outputs');
+  await portfolioPage.locator('[data-p1-portfolio="demo-complete"]').waitFor({ state: 'visible', timeout: 20_000 });
+  assert(await portfolioPage.locator('[data-p1-portfolio-item]').count() === 3, 'demo-complete portfolio must contain three task outputs');
   await screenshot(portfolioPage, 'portfolio-complete.png');
   await portfolioPage.close();
 
@@ -130,7 +151,7 @@ try {
   report.checkpoints.push({
     name: 'portfolio-and-graph-authoritative-update',
     snapshotVersion: versions[0],
-    portfolio: 'complete',
+    portfolio: 'demo-complete',
     graph: 'P03-present',
   });
 } catch (error) {

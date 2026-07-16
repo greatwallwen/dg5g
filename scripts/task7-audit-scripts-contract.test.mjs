@@ -9,6 +9,7 @@ const runner = await source('run-web-runtime-audits.mjs');
 const consistency = await source('audit-p1-three-terminal-consistency.mjs');
 const portfolio = await source('audit-p1-output-portfolio.mjs');
 const crossContext = await source('audit-class-session-cross-context.mjs');
+const completeJourney = await source('audit-p1-complete-journey.mjs');
 
 test('runtime audit uses the authoritative four-audience snapshot and real demo-class routes', () => {
   for (const audience of ['student', 'teacher', 'projector', 'graph']) {
@@ -62,6 +63,7 @@ test('one isolated server/reset run executes snapshot, classroom, and self-study
   assert.ok(runner.includes("'--isolated-sqlite', databasePath"));
   assert.equal(count(runner, 'db:reset:demo'), 1);
   assert.equal(count(runner, 'server = spawn('), 1);
+  assert.ok(runner.includes("DGBOOK_HELPER_TOKEN: process.env.DGBOOK_HELPER_TOKEN || randomBytes(32).toString('base64url')"));
 });
 
 test('three-terminal audit uses a bounded stable-version handshake and API-to-DOM assertions', () => {
@@ -100,6 +102,16 @@ test('cross-context audit proves projector page controls, follow revision, and s
     'assertNoPersonLevelData',
   ]) assert.ok(crossContext.includes(proof), `cross-context audit omits ${proof}`);
   assert.equal(crossContext.includes("locator('[data-session-action]').count() === 0"), false);
+});
+
+test('complete journey preserves a cursor the seeded self-study actor can actually access', () => {
+  assert.equal(count(completeJourney, "readCursor(students['stu-02'], 'P1T1-N04')"), 2);
+  assert.equal(completeJourney.includes("readCursor(students['stu-02'], 'P1T2-N02')"), false);
+  assert.equal(completeJourney.includes('ensureOutputState(actor, taskId, nodePrefix'), false);
+  assert.ok(completeJourney.includes("output.head.origin === 'demo'"));
+  assert.ok(completeJourney.includes("review.status === 'verified' && review.origin === 'demo'"));
+  assert.ok(completeJourney.includes('data-p1-portfolio="demo-complete"'));
+  assert.equal(completeJourney.includes('data-p1-portfolio="complete"'), false);
 });
 
 async function source(name) {
