@@ -93,7 +93,7 @@
     "audit:legacy-runtime-closure": "node scripts/audit-legacy-runtime-closure.mjs",
     "test:workspace-cleanup": "node --test scripts/active-workspace-policy.test.mjs scripts/release-evidence-index.test.mjs scripts/audit-active-workspace.test.mjs scripts/cleanup-runtime-artifacts.test.mjs",
     "test:legacy-runtime-closure": "node --test scripts/audit-legacy-runtime-closure.test.mjs",
-    "test:web-media-cutover": "node --test scripts/web-media-cutover-plan.test.mjs scripts/audit-web-media-cutover.test.mjs scripts/cutover-web-media.test.mjs scripts/quarantine-web-media-rollback.test.mjs scripts/audit-web-media-runtime.test.mjs scripts/web-source-release-policy.test.mjs scripts/prepare-web-source-release.test.mjs scripts/prepare-web-release.test.mjs",
+    "test:web-media-cutover": "node --test scripts/web-media-cutover-plan.test.mjs scripts/audit-web-media-cutover.test.mjs scripts/cutover-web-media.test.mjs scripts/quarantine-web-media-rollback.test.mjs scripts/audit-web-media-runtime.test.mjs scripts/web-source-release-policy.test.mjs scripts/web-media-eol-policy.test.mjs scripts/prepare-web-source-release.test.mjs scripts/prepare-web-release.test.mjs",
     "audit:web-media-cutover": "node scripts/audit-web-media-cutover.mjs",
     "cutover:web-media": "node scripts/cutover-web-media.mjs",
     "deploy:web": "node scripts/prepare-web-release.mjs",
