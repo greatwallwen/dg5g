@@ -2,8 +2,19 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readActivityDefinition } from '../../features/learning-activities/activity-catalog.ts';
-import { seedP01EvidenceLibrary } from '../../features/portfolio/evidence-library.ts';
+import { evaluateActivity } from '../../features/learning-activities/activity-evaluator.ts';
+import {
+  readEvidenceDefinition,
+  seedEvidenceLibrary,
+} from '../../features/portfolio/evidence-library.ts';
+import {
+  professionalOutputSchemaForTask,
+  validateProfessionalOutputSubmission,
+} from '../../features/portfolio/output-schema.ts';
+import { loadSelfStudyCatalog } from '../../features/textbook-scene/self-study-content.ts';
 import { hashPassword, verifyPassword } from '../auth/password.ts';
+import { getFormalAssessmentValidationPolicy } from '../formal-assessment-catalog.server.ts';
+import { validatePersistedAssessmentDiagnostic } from '../persisted-assessment-diagnostic.ts';
 import { SnapshotClock } from '../snapshot-clock.ts';
 import type { AppDatabase } from './database.ts';
 
@@ -85,6 +96,11 @@ interface DemoSeed {
         fields: Record<string, unknown>;
         upstreamRefs: Array<{ outputId: string; version: number }>;
         evidenceLinks: Record<string, string[]>;
+        fieldSources: Array<{
+          fieldKey: string;
+          sourceNodeId: string;
+          sourceAttemptId: string;
+        }>;
       }>;
     }>;
     reviews: Array<{
@@ -215,8 +231,10 @@ export function seedBase(database: AppDatabase, seed = readDemoSeed()): void {
 }
 
 export function seedDemo(database: AppDatabase, seed = readDemoSeed()): void {
+  validateStableBase(seed);
+  validateDemoFacts(seed);
   seedBase(database, seed);
-  seedP01EvidenceLibrary(database);
+  seedEvidenceLibrary(database);
   const upsertEvent = database.prepare(`
     INSERT INTO learning_events (
       event_id, student_id, node_id, channel, event_type, payload_json, origin
@@ -281,6 +299,14 @@ export function seedDemo(database: AppDatabase, seed = readDemoSeed()): void {
     VALUES (@outputId, @version, @fieldKey, @evidenceId)
     ON CONFLICT(output_id, version, field_key, evidence_id) DO NOTHING
   `);
+  const upsertFieldSource = database.prepare(`
+    INSERT INTO output_field_sources (
+      output_id, version, field_key, source_node_id, source_attempt_id
+    ) VALUES (
+      @outputId, @version, @fieldKey, @sourceNodeId, @sourceAttemptId
+    )
+    ON CONFLICT(output_id, version, field_key, source_node_id, source_attempt_id) DO NOTHING
+  `);
   const upsertReview = database.prepare(`
     INSERT INTO output_reviews (
       review_id, output_id, reviewer_id, status, score, feedback, origin
@@ -337,19 +363,18 @@ export function seedDemo(database: AppDatabase, seed = readDemoSeed()): void {
       if (!definition || definition.activity.nodeId !== attempt.nodeId) {
         throw new Error(`Unknown demo practice activity: ${attempt.activityId}.`);
       }
-      const artifact = {
-        type: 'learning-activity-artifact',
-        activityId: attempt.activityId,
-        nodeId: attempt.nodeId,
-        kind: definition.activity.kind,
-        response: attempt.response,
-        transferTarget: definition.activity.transferTarget,
-      };
+      const result = evaluateActivity(definition, attempt.response);
+      if (!result.passed) throw new Error(`Demo practice response does not pass: ${attempt.activityId}.`);
       upsertPracticeAttempt.run({
         ...attempt,
         responseJson: JSON.stringify(attempt.response),
-        resultJson: JSON.stringify({ passed: true, feedback: definition.activity.feedback.passed }),
-        artifactJson: JSON.stringify(artifact),
+        resultJson: JSON.stringify({
+          passed: result.passed,
+          feedback: result.feedback,
+          correctionPath: result.correctionPath,
+          version: 1,
+        }),
+        artifactJson: JSON.stringify(result.artifact),
       });
     }
     for (const instance of seed.demo.assessmentInstances) upsertAssessmentInstance.run(instance);
@@ -381,6 +406,13 @@ export function seedDemo(database: AppDatabase, seed = readDemoSeed()): void {
             upsertEvidenceLink.run({ outputId: output.outputId, version: version.version, fieldKey, evidenceId });
           }
         }
+        for (const source of version.fieldSources) {
+          upsertFieldSource.run({
+            outputId: output.outputId,
+            version: version.version,
+            ...source,
+          });
+        }
       }
     }
     for (const review of seed.demo.reviews) {
@@ -404,6 +436,186 @@ export function seedDemo(database: AppDatabase, seed = readDemoSeed()): void {
       });
     }
   })();
+}
+
+function validateDemoFacts(seed: DemoSeed): void {
+  const practiceById = new Map<string, DemoSeed['demo']['practiceAttempts'][number]>();
+  for (const attempt of seed.demo.practiceAttempts) {
+    if (practiceById.has(attempt.attemptId)) {
+      throw new Error(`Duplicate demo practice attempt: ${attempt.attemptId}.`);
+    }
+    const definition = readActivityDefinition(attempt.activityId);
+    if (!definition || definition.activity.nodeId !== attempt.nodeId) {
+      throw new Error(`Unknown demo practice activity: ${attempt.activityId}.`);
+    }
+    if (!evaluateActivity(definition, attempt.response).passed) {
+      throw new Error(`Demo practice response does not pass: ${attempt.activityId}.`);
+    }
+    practiceById.set(attempt.attemptId, attempt);
+  }
+
+  for (const attempt of seed.demo.attempts) {
+    const instance = seed.demo.assessmentInstances.find((candidate) => (
+      candidate.assessmentId === attempt.assessmentId
+    ));
+    const policy = getFormalAssessmentValidationPolicy(attempt.nodeId);
+    const validated = instance && policy ? validatePersistedAssessmentDiagnostic({
+      attemptId: attempt.attemptId,
+      studentId: attempt.studentId,
+      nodeId: attempt.nodeId,
+      assessmentId: attempt.assessmentId,
+      gameId: attempt.gameId,
+      questionVersion: attempt.questionVersion,
+      score: attempt.score,
+      diagnosticsJson: JSON.stringify(attempt.diagnostics),
+      origin: 'demo',
+      completedAt: attempt.completedAt,
+      instanceAssessmentId: instance.assessmentId,
+      instanceNodeId: instance.nodeId,
+      instanceGameId: instance.gameId,
+      instanceQuestionVersion: instance.questionVersion,
+      instanceStatus: instance.status,
+    }, policy) : undefined;
+    if (!validated) {
+      throw new Error(`Invalid persisted demo formal assessment: ${attempt.attemptId}.`);
+    }
+  }
+
+  const catalog = loadSelfStudyCatalog();
+  const outputIds = new Set<string>();
+  for (const output of seed.demo.outputs) {
+    if (outputIds.has(output.outputId)) throw new Error(`Duplicate demo output: ${output.outputId}.`);
+    outputIds.add(output.outputId);
+    const taskId = canonicalOutputTaskId(output.taskId);
+    const schema = professionalOutputSchemaForTask(catalog, taskId);
+    const fieldKeys = schema.fields.map(({ key }) => key).sort();
+    if (output.versions.length === 0
+      || !output.versions.some(({ version }) => version === output.currentVersion)) {
+      throw new Error(`Demo output has no current version: ${output.outputId}.`);
+    }
+    const versionNumbers = new Set<number>();
+    for (const version of output.versions) {
+      if (!Number.isSafeInteger(version.version) || version.version < 1 || versionNumbers.has(version.version)) {
+        throw new Error(`Invalid demo output version: ${output.outputId} v${version.version}.`);
+      }
+      versionNumbers.add(version.version);
+      validateProfessionalOutputSubmission(schema, version.fields);
+      if (!sameKeys(version.evidenceLinks, fieldKeys)) {
+        throw new Error(`Demo output evidence must cover every professional output field: ${output.outputId} v${version.version}.`);
+      }
+      for (const [fieldKey, evidenceIds] of Object.entries(version.evidenceLinks)) {
+        if (!Array.isArray(evidenceIds) || evidenceIds.length === 0) {
+          throw new Error(`Demo output evidence is empty: ${output.outputId} v${version.version}.${fieldKey}.`);
+        }
+        for (const evidenceId of evidenceIds) {
+          const definition = readEvidenceDefinition(taskId, evidenceId);
+          if (!definition?.allowedFieldKeys.includes(fieldKey)) {
+            throw new Error(`Demo evidence ${evidenceId} cannot be linked to ${taskId}.${fieldKey}.`);
+          }
+        }
+      }
+      if (!Array.isArray(version.fieldSources)
+        || !sameFieldSourceKeys(version.fieldSources, fieldKeys)) {
+        throw new Error(`Demo output provenance must cover every professional output field: ${output.outputId} v${version.version}.`);
+      }
+      for (const source of version.fieldSources) {
+        const attempt = practiceById.get(source.sourceAttemptId);
+        if (!attempt
+          || attempt.studentId !== output.studentId
+          || attempt.nodeId !== source.sourceNodeId) {
+          throw new Error(`Invalid demo output provenance: ${output.outputId} v${version.version}.${source.fieldKey}.`);
+        }
+      }
+    }
+
+    if (output.status === 'verified') {
+      const review = seed.demo.reviews.find((candidate) => (
+        candidate.outputId === output.outputId
+        && candidate.outputVersion === output.currentVersion
+        && candidate.status === 'verified'
+      ));
+      const submittedEvents = seed.demo.events.filter((event) => (
+        event.studentId === output.studentId
+        && event.eventType === 'evidence_submitted'
+        && event.payload.outputId === output.outputId
+        && event.payload.version === output.currentVersion
+      ));
+      const verifiedEvents = review ? seed.demo.events.filter((event) => (
+        event.studentId === output.studentId
+        && event.eventType === 'teacher_verified'
+        && event.payload.outputId === output.outputId
+        && event.payload.version === output.currentVersion
+        && event.payload.reviewId === review.reviewId
+      )) : [];
+      if (!review || submittedEvents.length !== 1 || verifiedEvents.length !== 1) {
+        throw new Error(`Verified demo output lacks bound submission and review events: ${output.outputId}.`);
+      }
+    }
+  }
+
+  for (const frozen of seed.demo.frozenTaskScores) {
+    const taskId = canonicalOutputTaskId(frozen.taskId);
+    const output = seed.demo.outputs.find((candidate) => (
+      candidate.studentId === frozen.studentId
+      && canonicalOutputTaskId(candidate.taskId) === taskId
+      && candidate.status === 'verified'
+    ));
+    const review = output ? seed.demo.reviews.find((candidate) => (
+      candidate.outputId === output.outputId
+      && candidate.outputVersion === output.currentVersion
+      && candidate.status === 'verified'
+    )) : undefined;
+    const attemptId = frozen.details.nodeTestAttemptId;
+    const attempt = typeof attemptId === 'string'
+      ? seed.demo.attempts.find((candidate) => (
+        candidate.attemptId === attemptId && candidate.studentId === frozen.studentId
+      ))
+      : undefined;
+    const weights = isRecord(frozen.details.weights) ? frozen.details.weights : undefined;
+    const officialScore = frozen.officialScore;
+    const composite = attempt && review?.score !== undefined
+      ? Math.round(attempt.score * 0.4 + review.score * 0.6)
+      : undefined;
+    const validDetails = output && review && attempt && officialScore !== null
+      && sameKeys(frozen.details, [
+        'assessmentId', 'nodeId', 'nodeTestAttemptId', 'nodeTestHighestScore',
+        'outputId', 'outputRubricScore', 'outputVersion', 'questionVersion',
+        'source', 'taskCompositeScore', 'weights',
+      ])
+      && frozen.details.source === 'demo-seed'
+      && frozen.details.nodeId === attempt.nodeId
+      && frozen.details.outputId === output.outputId
+      && frozen.details.outputVersion === output.currentVersion
+      && frozen.details.assessmentId === attempt.assessmentId
+      && frozen.details.questionVersion === attempt.questionVersion
+      && frozen.details.nodeTestHighestScore === attempt.score
+      && frozen.details.outputRubricScore === review.score
+      && frozen.details.taskCompositeScore === composite
+      && frozen.provisionalScore === composite
+      && officialScore === composite
+      && sameKeys(weights ?? {}, ['nodeTest', 'professionalOutput'])
+      && weights?.nodeTest === 0.4
+      && weights.professionalOutput === 0.6;
+    if (!validDetails) {
+      throw new Error(`Invalid demo frozen task score: ${frozen.scoreId}.`);
+    }
+  }
+}
+
+function sameKeys(value: Record<string, unknown>, expected: readonly string[]): boolean {
+  return Object.keys(value).sort().join('\u0000') === expected.join('\u0000');
+}
+
+function sameFieldSourceKeys(
+  sources: Array<{ fieldKey: string }>,
+  expected: readonly string[],
+): boolean {
+  return [...new Set(sources.map(({ fieldKey }) => fieldKey))].sort().join('\u0000')
+    === expected.join('\u0000');
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function canonicalOutputTaskId(taskId: string): 'P01' | 'P02' | 'P03' {

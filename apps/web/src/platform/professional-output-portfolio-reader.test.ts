@@ -3,13 +3,17 @@ import test from 'node:test';
 import { assessmentDimensionKeys } from './formal-assessment-contract.ts';
 import { seedP01EvidenceLibrary } from '../features/portfolio/evidence-library.ts';
 import { p01OutputFieldKeys } from '../features/portfolio/p01-output-definition.ts';
-import { seedBase } from './db/demo-seed.ts';
+import { seedBase, seedDemo } from './db/demo-seed.ts';
 import { migrateDatabase } from './db/migrations.ts';
 import { createTestDatabase } from './db/test-database.ts';
 import { ProfessionalOutputPortfolioReader } from './professional-output-portfolio-reader.ts';
 import { ProfessionalOutputRepository } from './professional-output-repository.ts';
 import { LearningReadModel } from './learning-read-model.ts';
 import { LearningRepository } from './learning-repository.ts';
+import { loadP1DemoContent } from '../features/platform/p1-content.ts';
+import { buildP1PortfolioDetailDefinition } from '../features/portfolio/p1-portfolio-detail-definition.ts';
+import { buildP1PortfolioDetailModel } from '../features/portfolio/p1-portfolio-detail-model.ts';
+import { loadSelfStudyCatalog } from '../features/textbook-scene/self-study-content.ts';
 
 test('reads only the owned output with immutable evidence, sources, annotations, and the frozen diagnosis', () => {
   const fixture = createTestDatabase();
@@ -137,6 +141,38 @@ test('production verification freezes and reads the exact highest valid attempt 
     const facts = new ProfessionalOutputPortfolioReader(fixture.database).read('stu-01', 'P01');
     assert.equal(facts.assessment?.attemptId, 'formal-production-92');
     assert.equal(facts.assessment?.totalScore, 92);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('seeded P02 and P03 details expose six known evidence-backed fields with sources, reviews, and diagnosis', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    const reader = new ProfessionalOutputPortfolioReader(fixture.database);
+    const content = loadP1DemoContent();
+    const catalog = loadSelfStudyCatalog();
+
+    for (const taskId of ['P02', 'P03'] as const) {
+      const definition = buildP1PortfolioDetailDefinition(taskId, content, catalog);
+      const facts = reader.read('stu-03', taskId);
+      const model = buildP1PortfolioDetailModel(definition, facts);
+      assert.equal(model.formation, 'formed');
+      assert.equal(model.deliveryState, 'demo-only');
+      assert.equal(model.versions.length, 1);
+      const fields = model.versions[0]!.fields;
+      assert.equal(fields.length, 6);
+      assert.equal(fields.some(({ unknownField }) => unknownField), false);
+      assert.equal(fields.every(({ evidence, sources }) => evidence.length > 0 && sources.length > 0), true);
+      assert.deepEqual(model.reviewTimeline.map(({ status, outputVersion, origin }) => ({
+        status, outputVersion, origin,
+      })), [{ status: 'verified', outputVersion: 1, origin: 'demo' }]);
+      assert.equal(model.assessment?.nodeId, taskId === 'P02' ? 'P1T2-N02' : 'P1T3-N02');
+      assert.equal(model.assessment?.originLabel, '演示数据');
+      assert.equal(model.assessment?.dimensions.length, 4);
+    }
   } finally {
     fixture.cleanup();
   }

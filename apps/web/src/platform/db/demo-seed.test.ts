@@ -1,5 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {
+  evidenceLibraryForTask,
+  readEvidenceDefinition,
+} from '../../features/portfolio/evidence-library.ts';
+import {
+  professionalOutputSchemaForTask,
+  validateProfessionalOutputSubmission,
+} from '../../features/portfolio/output-schema.ts';
+import { loadSelfStudyCatalog } from '../../features/textbook-scene/self-study-content.ts';
 import { verifyPassword } from '../auth/password.ts';
 import {
   DEMO_STUDENT_IDS,
@@ -151,6 +160,120 @@ test('frozen demo score snapshots never exceed the monotonic global snapshot', (
   }
 });
 
+test('every demo output version uses the exact generated schema with evidence, provenance, and bound review events', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    const catalog = loadSelfStudyCatalog();
+    const seed = readDemoSeed();
+    for (const output of seed.demo.outputs) {
+      const taskId = output.taskId as 'P01' | 'P02' | 'P03';
+      const schema = professionalOutputSchemaForTask(catalog, taskId);
+      const expectedKeys = schema.fields.map(({ key }) => key).sort();
+      for (const version of output.versions) {
+        assert.deepEqual(Object.keys(version.fields).sort(), expectedKeys, `${output.outputId} v${version.version}`);
+        assert.doesNotThrow(() => validateProfessionalOutputSubmission(schema, version.fields));
+        assert.deepEqual(Object.keys(version.evidenceLinks).sort(), expectedKeys);
+        assert.deepEqual(
+          [...new Set(version.fieldSources.map(({ fieldKey }) => fieldKey))].sort(),
+          expectedKeys,
+          `${output.outputId} v${version.version} provenance`,
+        );
+        for (const [fieldKey, evidenceIds] of Object.entries(version.evidenceLinks)) {
+          assert.ok(evidenceIds.length > 0, `${output.outputId} v${version.version}.${fieldKey}`);
+          for (const evidenceId of evidenceIds) {
+            const definition = readEvidenceDefinition(taskId, evidenceId);
+            assert.ok(definition?.allowedFieldKeys.includes(fieldKey), `${taskId}.${fieldKey}:${evidenceId}`);
+          }
+        }
+      }
+    }
+
+    const persistedSources = fixture.database.prepare(`
+      SELECT source.output_id AS outputId, source.version, source.field_key AS fieldKey,
+        source.source_node_id AS sourceNodeId, source.source_attempt_id AS sourceAttemptId,
+        attempt.student_id AS sourceStudentId, attempt.node_id AS attemptNodeId,
+        output.student_id AS outputStudentId
+      FROM output_field_sources AS source
+      INNER JOIN professional_outputs AS output ON output.output_id = source.output_id
+      INNER JOIN practice_attempts AS attempt ON attempt.attempt_id = source.source_attempt_id
+      ORDER BY source.output_id, source.version, source.field_key, source.source_attempt_id
+    `).all() as Array<{
+      outputId: string; version: number; fieldKey: string; sourceNodeId: string;
+      sourceAttemptId: string; sourceStudentId: string; attemptNodeId: string; outputStudentId: string;
+    }>;
+    assert.ok(persistedSources.length > 0);
+    assert.equal(persistedSources.every((source) => (
+      source.sourceStudentId === source.outputStudentId
+      && source.sourceNodeId === source.attemptNodeId
+    )), true);
+
+    const verified = fixture.database.prepare(`
+      SELECT output_id AS outputId, student_id AS studentId, task_id AS taskId,
+        current_version AS currentVersion
+      FROM professional_outputs WHERE status = 'verified'
+      ORDER BY task_id
+    `).all() as Array<{ outputId: string; studentId: string; taskId: string; currentVersion: number }>;
+    assert.equal(verified.length, 3);
+    for (const output of verified) {
+      assert.equal(count(fixture.database, `
+        SELECT COUNT(*) FROM learning_events
+        WHERE student_id = '${output.studentId}' AND event_type = 'evidence_submitted'
+          AND json_extract(payload_json, '$.outputId') = '${output.outputId}'
+          AND json_extract(payload_json, '$.version') = ${output.currentVersion}
+      `), 1, `${output.taskId} current version requires one submission`);
+      assert.equal(count(fixture.database, `
+        SELECT COUNT(*) FROM output_reviews AS review
+        INNER JOIN learning_events AS event
+          ON json_extract(event.payload_json, '$.reviewId') = review.review_id
+        WHERE review.output_id = '${output.outputId}' AND review.status = 'verified'
+          AND event.event_type = 'teacher_verified'
+          AND json_extract(event.payload_json, '$.version') = ${output.currentVersion}
+      `), 1, `${output.taskId} current version requires one verified review event`);
+    }
+
+    assert.deepEqual(evidenceDiffFields(
+      seed.demo.outputs.find(({ outputId }) => outputId === 'demo-output-stu-03-p01')!,
+    ), ['evidenceGap', 'locationEvidence']);
+    assert.ok(evidenceLibraryForTask('P01').some(({ evidenceId }) => evidenceId === 'P01-EV-CLOSEOUT'));
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('unknown or missing seeded output fields are rejected before any demo mutation', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    const before = mutableCounts(fixture.database);
+    const invalidSeeds = [
+      { seed: (() => {
+        const seed = structuredClone(readDemoSeed());
+        seed.demo.outputs.find(({ taskId }) => taskId === 'P02')!.versions[0]!.fields.invented = 'forged';
+        return seed;
+      })(), expected: /professional output field/i },
+      { seed: (() => {
+        const seed = structuredClone(readDemoSeed());
+        delete seed.demo.outputs.find(({ taskId }) => taskId === 'P03')!.versions[0]!.fields.complaintBaseline;
+        return seed;
+      })(), expected: /professional output field/i },
+      { seed: (() => {
+        const seed = structuredClone(readDemoSeed());
+        seed.demo.frozenTaskScores.find(({ taskId }) => taskId === 'P02')!.details.outputVersion = 99;
+        return seed;
+      })(), expected: /frozen task score/i },
+    ];
+    for (const { seed: invalidSeed, expected } of invalidSeeds) {
+      assert.throws(() => resetDemo(fixture.database, invalidSeed), expected);
+      assert.deepEqual(mutableCounts(fixture.database), before);
+    }
+  } finally {
+    fixture.cleanup();
+  }
+});
+
 function assertTruthfulPersonas(database: ReturnType<typeof createTestDatabase>['database']) {
   for (const table of [
     'learning_events', 'practice_attempts', 'formal_attempts',
@@ -221,11 +344,17 @@ function assertTruthfulPersonas(database: ReturnType<typeof createTestDatabase>[
   const v2 = JSON.parse(versions[1]!.fieldsJson);
   const changedP01Fields = Object.keys(v2).filter((fieldKey) => v1[fieldKey] !== v2[fieldKey]);
   assert.deepEqual(changedP01Fields.sort(), ['evidenceGap', 'locationEvidence']);
-  assert.deepEqual(
-    evidenceLinksByField(database, completeP01.outputId, 1),
-    evidenceLinksByField(database, completeP01.outputId, 2),
-    'V1 and V2 evidence sets must not manufacture unrelated version differences',
-  );
+  const v1Evidence = evidenceLinksByField(database, completeP01.outputId, 1);
+  const v2Evidence = evidenceLinksByField(database, completeP01.outputId, 2);
+  const evidenceKeys = new Set([...Object.keys(v1Evidence), ...Object.keys(v2Evidence)]);
+  const changedEvidenceFields = [...evidenceKeys].filter((fieldKey) => (
+    JSON.stringify(v1Evidence[fieldKey] ?? []) !== JSON.stringify(v2Evidence[fieldKey] ?? [])
+  ));
+  assert.deepEqual(changedEvidenceFields.sort(), ['evidenceGap', 'locationEvidence']);
+  assert.equal(v1Evidence.locationEvidence?.includes('P01-EV-CLOSEOUT') ?? false, false);
+  assert.equal(v1Evidence.evidenceGap?.includes('P01-EV-CLOSEOUT') ?? false, false);
+  assert.equal(v2Evidence.locationEvidence?.includes('P01-EV-CLOSEOUT'), true);
+  assert.equal(v2Evidence.evidenceGap?.includes('P01-EV-CLOSEOUT'), true);
   assert.deepEqual(database.prepare(`
     SELECT status, origin FROM output_reviews
     WHERE output_id = ? ORDER BY reviewed_at, review_id
@@ -343,11 +472,22 @@ function evidenceLinksByField(
   }, {});
 }
 
+function evidenceDiffFields(output: ReturnType<typeof readDemoSeed>['demo']['outputs'][number]): string[] {
+  const first = output.versions.find(({ version }) => version === 1)!;
+  const second = output.versions.find(({ version }) => version === 2)!;
+  const keys = new Set([...Object.keys(first.evidenceLinks), ...Object.keys(second.evidenceLinks)]);
+  return [...keys].filter((key) => (
+    JSON.stringify([...(first.evidenceLinks[key] ?? [])].sort())
+    !== JSON.stringify([...(second.evidenceLinks[key] ?? [])].sort())
+  )).sort();
+}
+
 function mutableCounts(database: ReturnType<typeof createTestDatabase>['database']) {
   return Object.fromEntries([
     'learning_events', 'practice_attempts', 'formal_assessment_instances', 'formal_assessment_tokens',
     'formal_attempts', 'professional_outputs', 'professional_output_versions', 'output_evidence_links',
-    'output_reviews', 'output_review_annotations', 'self_study_cursors', 'frozen_task_scores',
+    'output_field_sources', 'output_reviews', 'output_review_annotations',
+    'self_study_cursors', 'frozen_task_scores',
   ].map((table) => [table, count(database, `SELECT COUNT(*) FROM ${table}`)]));
 }
 
