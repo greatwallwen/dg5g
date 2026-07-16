@@ -56,13 +56,13 @@ export const curriculumGraphNodes: CurriculumGraphNode[] = [
 
   graphNode('practice-p01', 'activity', '微练习', 90, 850, 150, 58, 'detail', { subtitle: '连线与翻卡片' }),
   graphNode('game-topology', 'activity', '设备拓扑正式测试', 300, 850, 190, 58, 'route', { nodeId: 'P1T1-N02', taskId: 'P01', action: 'formal-test' }),
-  graphNode('game-evidence', 'activity', '室内信息采集专业产出', 760, 850, 220, 58, 'route', { nodeId: 'P1T1-N04', taskId: 'P01' }),
+  graphNode('game-evidence', 'activity', '室内信息采集专业产出', 760, 850, 220, 58, 'route', { nodeId: 'P1T1-N04', taskId: 'P01', action: 'professional-output' }),
   graphNode('achievement-p01', 'achievement', '任务综合分', 1120, 850, 170, 58, 'route', { taskId: 'P01' }),
-  graphNode('game-beam', 'activity', '天线姿态正式测试', 300, 920, 190, 58, 'route', { nodeId: 'P1T2-N02', taskId: 'P02' }),
-  graphNode('game-route', 'activity', '室外信息采集专业产出', 760, 920, 220, 58, 'route', { nodeId: 'P1T2-N04', taskId: 'P02' }),
+  graphNode('game-beam', 'activity', '天线姿态正式测试', 300, 920, 190, 58, 'route', { nodeId: 'P1T2-N02', taskId: 'P02', action: 'formal-test' }),
+  graphNode('game-route', 'activity', '室外信息采集专业产出', 760, 920, 220, 58, 'route', { nodeId: 'P1T2-N04', taskId: 'P02', action: 'professional-output' }),
   graphNode('achievement-p02', 'achievement', '任务综合分', 1120, 920, 170, 58, 'route', { taskId: 'P02' }),
-  graphNode('game-complaint', 'activity', '复现场景正式测试', 300, 990, 190, 58, 'route', { nodeId: 'P1T3-N02', taskId: 'P03' }),
-  graphNode('evidence-p03', 'activity', '投诉信息采集专业产出', 760, 990, 220, 58, 'route', { nodeId: 'P1T3-N04', taskId: 'P03' }),
+  graphNode('game-complaint', 'activity', '复现场景正式测试', 300, 990, 190, 58, 'route', { nodeId: 'P1T3-N02', taskId: 'P03', action: 'formal-test' }),
+  graphNode('evidence-p03', 'activity', '投诉信息采集专业产出', 760, 990, 220, 58, 'route', { nodeId: 'P1T3-N04', taskId: 'P03', action: 'professional-output' }),
   graphNode('achievement-p03', 'achievement', '任务综合分', 1120, 990, 170, 58, 'route', { taskId: 'P03' }),
 ];
 

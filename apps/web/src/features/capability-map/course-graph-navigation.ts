@@ -1,7 +1,7 @@
 import type { CurriculumGraphNode } from '../../platform/models.ts';
 import type { P1TaskId } from '../../platform/learning-policy.ts';
 
-export type CourseGraphNodeAction = 'learn' | 'formal-test';
+export type CourseGraphNodeAction = 'learn' | 'formal-test' | 'professional-output';
 
 export function dispatchCurriculumGraphNode(
   node: CurriculumGraphNode,
@@ -23,5 +23,17 @@ export function navigateStudentGraphNode(
   action: CourseGraphNodeAction,
 ): void {
   const nodeHref = `/learn/${encodeURIComponent(nodeId)}`;
-  push(action === 'formal-test' ? `${nodeHref}/test` : nodeHref);
+  switch (action) {
+    case 'learn':
+      push(nodeHref);
+      return;
+    case 'formal-test':
+      push(`${nodeHref}/test`);
+      return;
+    case 'professional-output':
+      push(`${nodeHref}?mode=challenge`);
+      return;
+    default:
+      throw new Error(`Unsupported course graph action: ${String(action)}`);
+  }
 }

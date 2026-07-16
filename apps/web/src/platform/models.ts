@@ -498,7 +498,7 @@ export interface CurriculumGraphNode {
   projectId?: string;
   score?: number;
   locked?: boolean;
-  action?: 'learn' | 'formal-test';
+  action?: 'learn' | 'formal-test' | 'professional-output';
 }
 
 export type SemanticEdgeKind = 'prerequisite' | 'evidence' | 'output' | 'review' | 'assessment';
