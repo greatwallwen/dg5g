@@ -14,10 +14,7 @@ import { LearningRepository } from './learning-repository.ts';
 import { loadSelfStudyCatalog } from '../features/textbook-scene/self-study-content.ts';
 import { professionalOutputSchemaForTask } from '../features/portfolio/output-schema.ts';
 import { p01Activities } from '../features/learning-activities/activity-catalog.ts';
-import {
-  p01EvidenceLibrary,
-  seedP01EvidenceLibrary,
-} from '../features/portfolio/evidence-library.ts';
+import { p01EvidenceLibrary } from '../features/portfolio/evidence-library.ts';
 import { ActivityRepository } from '../features/learning-activities/activity-repository.ts';
 
 registerHooks({
@@ -156,9 +153,10 @@ test('P01 GET projects passed activity facts and draft persistence derives field
     const envelope = await readResponse.json();
     assert.equal(envelope.output, null);
     assert.match(envelope.prefill.siteRoom.value, /01号机房/);
-    assert.deepEqual(envelope.prefill.siteRoom.sources, [{
-      sourceNodeId: 'P1T1-N01', sourceAttemptId: 'route-prefill-scope',
-    }]);
+    assert.deepEqual(envelope.prefill.siteRoom.sources, [
+      { sourceNodeId: 'P1T1-N01', sourceAttemptId: 'route-prefill-scope' },
+      { sourceNodeId: 'P1T1-N02', sourceAttemptId: 'demo-stu2-n02-transfer' },
+    ]);
 
     const draftResponse = await outputDraftRoute.POST(jsonRequest(
       'http://localhost/api/outputs/P01/draft',
@@ -172,9 +170,10 @@ test('P01 GET projects passed activity facts and draft persistence derives field
     ), { params: { taskId: 'P01' } });
     assert.equal(draftResponse.status, 200);
     const draft = await draftResponse.json();
-    assert.deepEqual(draft.versions[0].fieldSources, [{
-      fieldKey: 'siteRoom', sourceNodeId: 'P1T1-N01', sourceAttemptId: 'route-prefill-scope',
-    }]);
+    assert.deepEqual(draft.versions[0].fieldSources, [
+      { fieldKey: 'siteRoom', sourceNodeId: 'P1T1-N01', sourceAttemptId: 'route-prefill-scope' },
+      { fieldKey: 'siteRoom', sourceNodeId: 'P1T1-N02', sourceAttemptId: 'demo-stu2-n02-transfer' },
+    ]);
   });
 });
 
@@ -724,7 +723,6 @@ async function withAuthenticatedFixture(
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
-    seedP01EvidenceLibrary(fixture.database);
     passRequiredPractice(fixture.database, 'stu-01', 'P1T1-N01-micro-01', 'P1T1-N01');
     process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
     closeDatabase();

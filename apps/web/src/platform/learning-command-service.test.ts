@@ -348,7 +348,9 @@ test('professional output commands reuse node access and derive ownership from t
     assert.equal(submitted.head.status, 'submitted');
     const envelope = service.readProfessionalOutput(studentTwo, 'P01', draft.head.outputId);
     assert.equal(envelope.output?.head.outputId, draft.head.outputId);
-    assert.deepEqual(envelope.prefill, {});
+    assert.equal(envelope.prefill.siteRoom?.sources.some(
+      ({ sourceAttemptId }) => sourceAttemptId === 'demo-stu2-n01',
+    ), true);
     assert.equal(envelope.evidenceLibrary.length, p01EvidenceLibrary.length);
   } finally {
     fixture.cleanup();
