@@ -2,42 +2,53 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { projectOutputWorkflow } from './output-workflow-state.ts';
 
-const head = (status: 'draft' | 'submitted' | 'returned' | 'verified', currentVersion = 1) => ({
+const head = (
+  status: 'draft' | 'submitted' | 'returned' | 'verified',
+  currentVersion = 1,
+  origin: 'demo' | 'user' = 'demo',
+) => ({
   outputId: 'output-p01',
   studentId: 'stu-01',
   taskId: 'P01' as const,
   currentVersion,
   stateRevision: 1,
   status,
+  origin,
 });
 
 test('projects all six output workflow states from persisted facts only', () => {
   assert.deepEqual(projectOutputWorkflow({
     head: head('draft'), submissionCount: 0, reviewHistory: [],
-  }), { state: 'editing', label: '编辑中' });
+  }), { state: 'editing', label: '编辑中', origin: 'demo' });
   assert.deepEqual(projectOutputWorkflow({
     head: head('submitted'), submissionCount: 1, reviewHistory: [],
-  }), { state: 'submitted', label: '已提交' });
+  }), { state: 'submitted', label: '已提交', origin: 'demo' });
   assert.deepEqual(projectOutputWorkflow({
     head: head('returned'), submissionCount: 1,
     reviewHistory: [{ reviewId: 'r1', status: 'returned' }],
-  }), { state: 'returned', label: '教师退回' });
+  }), { state: 'returned', label: '教师退回', origin: 'demo' });
   assert.deepEqual(projectOutputWorkflow({
     head: head('draft', 2), submissionCount: 1,
     reviewHistory: [{ reviewId: 'r1', status: 'returned' }],
-  }), { state: 'revising', label: '修订中' });
+  }), { state: 'revising', label: '修订中', origin: 'demo' });
   assert.deepEqual(projectOutputWorkflow({
     head: head('submitted'), submissionCount: 2,
     reviewHistory: [{ reviewId: 'r1', status: 'returned' }],
-  }), { state: 'resubmitted', label: '再次提交' });
+  }), { state: 'resubmitted', label: '再次提交', origin: 'demo' });
   assert.deepEqual(projectOutputWorkflow({
     head: head('verified'), submissionCount: 2,
     reviewHistory: [{ reviewId: 'r2', status: 'verified' }],
-  }), { state: 'verified', label: '教师确认' });
+  }), { state: 'verified', label: '教师确认', origin: 'demo' });
 });
 
 test('a draft v2 without a returned review is still editing and version does not invent workflow state', () => {
   assert.deepEqual(projectOutputWorkflow({
     head: head('draft', 2), submissionCount: 0, reviewHistory: [],
-  }), { state: 'editing', label: '编辑中' });
+  }), { state: 'editing', label: '编辑中', origin: 'demo' });
+});
+
+test('a user write replaces demo provenance in the projected workflow', () => {
+  assert.equal(projectOutputWorkflow({
+    head: head('draft', 2, 'user'), submissionCount: 0, reviewHistory: [],
+  }).origin, 'user');
 });

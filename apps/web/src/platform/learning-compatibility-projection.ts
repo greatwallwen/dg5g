@@ -1,4 +1,5 @@
 import type { NodeLearningState, SkillProgress, TaskMasteryProgress } from './models.ts';
+import type { LearningOrigin } from './learning-origin.ts';
 import { nodeLearningStateCompletionPercent } from './learning-status.ts';
 import { getNodeLearningPolicy, nodeLearningPolicies } from './learning-policy.ts';
 import {
@@ -14,6 +15,7 @@ export interface LearningProgressSnapshot {
   progress: SkillProgress[];
   tasks: TaskMasteryProgress[];
   projectCompositeScore?: number;
+  projectCompositeOrigin?: LearningOrigin;
 }
 
 export function projectStudentLearningSnapshot(snapshot: StudentLearningSnapshot): LearningProgressSnapshot {
@@ -24,6 +26,7 @@ export function projectStudentLearningSnapshot(snapshot: StudentLearningSnapshot
     progress: snapshot.nodes.map((node) => projectSkillProgress(snapshot.studentId, node)),
     tasks: snapshot.tasks.map((task) => projectTaskProgress(snapshot.studentId, task, snapshot.nodes)),
     ...(snapshot.projectCompositeScore === undefined ? {} : { projectCompositeScore: snapshot.projectCompositeScore }),
+    ...(snapshot.projectCompositeOrigin ? { projectCompositeOrigin: snapshot.projectCompositeOrigin } : {}),
   };
 }
 
@@ -78,6 +81,7 @@ function projectSkillProgress(studentId: string, node: StudentNodeLearningSnapsh
     requiresTeacherVerification: policy?.requiresTeacherVerification,
     professionalOutputId: node.evidence?.outputId,
     professionalOutputVersion: node.evidence?.version,
+    ...(node.origin ? { origin: node.origin } : {}),
   };
 }
 
@@ -118,6 +122,7 @@ function projectTaskProgress(
     ...(teacherVerified && task.taskCompositeScore !== undefined
       ? { officialScore: task.taskCompositeScore }
       : {}),
+    ...(task.origin ? { origin: task.origin } : {}),
   };
 }
 

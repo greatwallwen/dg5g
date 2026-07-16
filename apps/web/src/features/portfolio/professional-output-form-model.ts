@@ -167,7 +167,7 @@ function jsonPost(body: unknown): RequestInit {
 
 function markLocallyRevising(state: ProfessionalOutputFormState): ProfessionalOutputFormState {
   return state.workflow.state === 'returned'
-    ? { ...state, workflow: { state: 'revising', label: '修订中' } }
+    ? { ...state, workflow: { ...state.workflow, state: 'revising', label: '修订中' } }
     : state;
 }
 

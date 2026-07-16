@@ -48,6 +48,7 @@ test('saving a draft creates immutable v1 and submitting the same fields advance
       currentVersion: 1,
       stateRevision: 1,
       status: 'draft',
+      origin: 'user',
     });
     assert.deepEqual(draft.versions, [{
       outputId: 'output-stu-01-p01',
@@ -364,6 +365,7 @@ test('P01 atomically stores exact fields, evidence links, derived field sources,
     assert.deepEqual(fixture.database.prepare(`
       SELECT origin FROM professional_outputs WHERE output_id = 'truthful-output'
     `).get(), { origin: 'user' });
+    assert.equal(draft.head.origin, 'user');
     assert.deepEqual(fixture.database.prepare(`
       SELECT DISTINCT origin FROM learning_events
       WHERE json_extract(payload_json, '$.outputId') = 'truthful-output'

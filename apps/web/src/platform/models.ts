@@ -1,4 +1,5 @@
 import type { NodeLearningState } from './learning-status';
+import type { LearningOrigin } from './learning-origin';
 
 export type { NodeLearningState } from './learning-status';
 
@@ -109,6 +110,7 @@ export interface GameAttemptSummary {
   formal: boolean;
   completedAt: string;
   mistakeKnowledgePointIds: string[];
+  origin?: LearningOrigin;
 }
 
 export interface FormalTestParticipant {
@@ -187,6 +189,7 @@ export interface SkillProgress {
   requiresTeacherVerification?: boolean;
   professionalOutputId?: string;
   professionalOutputVersion?: number;
+  origin?: LearningOrigin;
 }
 
 export interface TaskMasteryProgress {
@@ -208,6 +211,7 @@ export interface TaskMasteryProgress {
   professionalOutputScore?: number;
   provisionalScore?: number;
   officialScore?: number;
+  origin?: LearningOrigin;
 }
 
 export interface ProjectMasteryProgress {

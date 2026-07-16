@@ -52,7 +52,34 @@ test('formal challenge preserves a submitted zero score and zero duration', () =
   assert.match(html, /<small>0分钟<\/small>/);
 });
 
-function progressWithZeroAttempt(): SkillProgress {
+test('formal challenge labels persisted demo scores and attempt diagnostics but not user attempts', () => {
+  const catalog = loadSelfStudyCatalog();
+  const profile = createDemoTaskProfiles(catalog).P01;
+  const unit = profile.units.find(({ capabilityNodeId }) => capabilityNodeId === 'P1T1-N02')!;
+  const render = (origin: 'demo' | 'user') => renderToStaticMarkup(createElement(ChallengeScene, {
+    profile,
+    unit,
+    nodeProgress: progressWithZeroAttempt(origin),
+    gameConfig: { title: '设备证据正式测试' } as never,
+    studentId: 'stu-01',
+    studentVersion: 2,
+    onProgress: () => undefined,
+    onContinue: () => undefined,
+    onReturnToMap: () => undefined,
+  }));
+
+  const demo = render('demo');
+  assert.match(demo, /data-formal-score-origin="demo"/);
+  assert.match(demo, /data-formal-attempt-origin="demo"/);
+  assert.match(demo, /演示数据/);
+
+  const user = render('user');
+  assert.match(user, /data-formal-score-origin="user"/);
+  assert.match(user, /data-formal-attempt-origin="user"/);
+  assert.doesNotMatch(user, /演示数据/);
+});
+
+function progressWithZeroAttempt(origin?: 'demo' | 'user'): SkillProgress {
   return {
     studentId: 'stu-01',
     nodeId: 'P1T1-N02',
@@ -73,6 +100,7 @@ function progressWithZeroAttempt(): SkillProgress {
       formal: true,
       completedAt: '2026-07-16T02:00:00.000Z',
       mistakeKnowledgePointIds: [],
+      ...(origin ? { origin } : {}),
     }],
     firstGameScore: 0,
     bestGameScore: 0,
@@ -83,5 +111,6 @@ function progressWithZeroAttempt(): SkillProgress {
     teacherVerified: false,
     learningState: 'learning',
     learningStateTrail: ['learning'],
+    ...(origin ? { origin } : {}),
   };
 }

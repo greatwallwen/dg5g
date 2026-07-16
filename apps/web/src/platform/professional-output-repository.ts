@@ -53,6 +53,7 @@ export interface ProfessionalOutputHead {
   currentVersion: number;
   stateRevision: number;
   status: ProfessionalOutputStatus;
+  origin: 'demo' | 'user';
 }
 export interface ProfessionalOutputUpstreamRef {
   outputId: string;
@@ -127,6 +128,7 @@ interface HeadRow {
   status: ProfessionalOutputStatus;
   currentVersion: number;
   stateRevision: number;
+  origin: 'demo' | 'user';
 }
 
 interface VersionRow {
@@ -682,7 +684,7 @@ export class ProfessionalOutputRepository {
 function headSelect(): string {
   return `
     SELECT output_id AS outputId, student_id AS studentId, task_id AS taskId,
-      status, current_version AS currentVersion, state_revision AS stateRevision
+      status, current_version AS currentVersion, state_revision AS stateRevision, origin
     FROM professional_outputs
   `;
 }
@@ -760,6 +762,7 @@ function toHead(row: HeadRow): ProfessionalOutputHead {
     currentVersion: row.currentVersion,
     stateRevision: row.stateRevision,
     status: row.status,
+    origin: row.origin,
   };
 }
 

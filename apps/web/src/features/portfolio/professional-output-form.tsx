@@ -115,12 +115,12 @@ export function ProfessionalOutputForm({
   const submitBlockedByReturn = state.workflow.state === 'returned';
   const visibleTeacherFeedback = teacherFeedback ?? state.teacherFeedback;
   return (
-    <form className="professional-output-form" data-motion="paused" data-output-readonly={state.readOnly} data-output-revision={state.stateRevision} data-output-status={state.status} data-output-version={state.currentVersion} data-output-workflow={state.workflow.state} data-primary-action-policy={state.readOnly ? 'none' : 'exactly-one'} data-professional-output={schema.taskId} onSubmit={(event) => { event.preventDefault(); void persist('submit'); }}>
+    <form className="professional-output-form" data-motion="paused" data-output-origin={state.workflow.origin} data-output-readonly={state.readOnly} data-output-revision={state.stateRevision} data-output-status={state.status} data-output-version={state.currentVersion} data-output-workflow={state.workflow.state} data-primary-action-policy={state.readOnly ? 'none' : 'exactly-one'} data-professional-output={schema.taskId} onSubmit={(event) => { event.preventDefault(); void persist('submit'); }}>
       <header>
         <div><span>{schema.taskId} · N04 职业成果</span><h1>{statusCopy.title}</h1><p>{statusCopy.description}</p></div>
-        <dl><div><dt>版本</dt><dd>v{state.currentVersion}</dd></div><div><dt>流程状态</dt><dd>{state.workflow.label}</dd></div><div><dt>量规</dt><dd>{schema.totalScore}分</dd></div></dl>
+        <dl><div><dt>版本</dt><dd>v{state.currentVersion}</dd></div><div><dt>流程状态</dt><dd>{state.workflow.label}{state.workflow.origin === 'demo' ? ' · 演示数据' : ''}</dd></div><div><dt>量规</dt><dd>{schema.totalScore}分</dd></div></dl>
       </header>
-      {(state.workflow.state === 'returned' || state.workflow.state === 'revising') ? <p className="professional-output-feedback"><Icon name="arrow" size={17} /><span><strong>教师退回修订</strong>{visibleTeacherFeedback ?? '请按复核意见补齐证据链后重新提交。'}</span></p> : null}
+      {(state.workflow.state === 'returned' || state.workflow.state === 'revising') ? <p className="professional-output-feedback"><Icon name="arrow" size={17} /><span><strong>教师退回修订{state.workflow.origin === 'demo' ? ' · 演示数据' : ''}</strong>{visibleTeacherFeedback ?? '请按复核意见补齐证据链后重新提交。'}</span></p> : null}
       <div className="professional-output-workspace">
         <OutputFieldsets evidenceLibrary={state.evidenceLibrary} evidenceLinks={state.evidenceLinks} fieldSources={state.fieldSources} onEvidenceChange={(fieldKey, ids) => { setState((current) => reviseProfessionalOutputEvidence(current, fieldKey, ids)); clearMessages(); }} onFieldChange={(key, value) => { setState((current) => reviseProfessionalOutputField(current, key, value)); clearMessages(); }} readOnly={state.readOnly} schema={schema} values={state.fields} />
         <aside className="professional-output-rubric">

@@ -82,6 +82,28 @@ test('all six persisted workflow states render exact event-derived labels and re
   }
 });
 
+test('N04 labels demo workflow state and teacher feedback while user output stays unlabelled', () => {
+  const schema = professionalOutputSchemaForTask(loadSelfStudyCatalog(), 'P01');
+  const demoReview = { ...returnedReview(), origin: 'demo' as const };
+  const render = (origin: 'demo' | 'user') => renderToStaticMarkup(createElement(ProfessionalOutputForm, {
+    schema,
+    upstreamRefs: [],
+    initialEnvelope: envelope(aggregate(
+      'returned', 1, [origin === 'demo' ? demoReview : returnedReview()],
+      completeFields(), {}, [], origin,
+    )),
+  }));
+
+  const demo = render('demo');
+  assert.match(demo, /data-output-origin="demo"/);
+  assert.match(demo, /<dd>教师退回 · 演示数据<\/dd>/);
+  assert.match(demo, /<strong>教师退回修订 · 演示数据<\/strong>/);
+
+  const user = render('user');
+  assert.match(user, /data-output-origin="user"/);
+  assert.doesNotMatch(user, /演示数据/);
+});
+
 test('the exact ten P01 fields show source chips and whitelisted built-in evidence preview/remove controls', () => {
   const schema = professionalOutputSchemaForTask(loadSelfStudyCatalog(), 'P01');
   const output = aggregate('draft', 0, [], completeFields(), {
@@ -205,11 +227,12 @@ function aggregate(
   fields: Record<string, string> = completeFields(),
   evidenceLinks: Record<string, string[]> = {},
   fieldSources: ProfessionalOutputAggregate['versions'][number]['fieldSources'] = [],
+  origin: 'demo' | 'user' = 'user',
 ): ProfessionalOutputAggregate {
   return {
     head: {
       outputId: 'output-p01', studentId: 'stu-01', taskId: 'P01',
-      currentVersion: 1, stateRevision: status === 'draft' ? 1 : 2, status,
+      currentVersion: 1, stateRevision: status === 'draft' ? 1 : 2, status, origin,
     },
     versions: [{
       outputId: 'output-p01', taskId: 'P01', version: 1, schemaVersion: 1,

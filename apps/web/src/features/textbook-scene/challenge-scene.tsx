@@ -57,7 +57,7 @@ export function ChallengeScene({
     <section className="challenge-scene" data-motion="paused" data-primary-action-policy="exactly-one" data-task-challenge={profile.taskId} data-task-mastery={mastery?.state ?? 'learning'}>
       <header className="challenge-scene-head">
         <div><span>{profile.taskId} · {unit.capabilityNodeId} · 正式测试</span><h1>{gameConfig.title}</h1><p>{unit.action}，得分将写入能力图谱与教师端成绩册。</p></div>
-        <div className="challenge-score" data-formal-score-state={bestFormalScore === undefined ? 'untested' : 'formed'}><strong>{formalScoreLabel(bestFormalScore)}</strong>{bestFormalScore === undefined ? null : <span>/ 100</span>}<small>最高分 · {challenge.formalPassScore}分达标</small></div>
+        <div className="challenge-score" data-formal-score-origin={nodeProgress?.origin} data-formal-score-state={bestFormalScore === undefined ? 'untested' : 'formed'}><strong>{formalScoreLabel(bestFormalScore)}</strong>{bestFormalScore === undefined ? null : <span>/ 100</span>}<small>最高分 · {challenge.formalPassScore}分达标</small>{nodeProgress?.origin === 'demo' ? <em>演示数据</em> : null}</div>
       </header>
       <div className="challenge-layout">
         <div className="challenge-game-stage">
@@ -78,7 +78,7 @@ export function ChallengeScene({
           <h2>{unit.title}</h2>
           <p>每次正式作答均保留；未达标后完成定向再学即可再次测试。</p>
           <div className="formal-score-grid"><div><small>首分</small><strong>{formalScoreLabel(nodeProgress?.firstGameScore)}</strong></div><div><small>最高分</small><strong>{formalScoreLabel(bestFormalScore)}</strong></div><div><small>最近分</small><strong>{formalScoreLabel(nodeProgress?.latestGameScore)}</strong></div></div>
-          <ol className="formal-attempt-list">{attempts.length ? attempts.map((attempt, index) => <li key={attempt.attemptId}><span>第{index + 1}次</span><strong>{attempt.score}分</strong><small>{formalDurationLabel(attempt.durationSeconds)}</small></li>) : <li><span>尚未提交</span><small>完成三阶段后形成第1次成绩</small></li>}</ol>
+          <ol className="formal-attempt-list">{attempts.length ? attempts.map((attempt, index) => <li data-formal-attempt-origin={attempt.origin} key={attempt.attemptId}><span>第{index + 1}次</span><strong>{attempt.score}分</strong><small>{formalDurationLabel(attempt.durationSeconds)}</small>{attempt.origin === 'demo' ? <em>演示数据</em> : null}</li>) : <li><span>尚未提交</span><small>完成三阶段后形成第1次成绩</small></li>}</ol>
           <div className="challenge-gate-list">
             <div className="is-done"><Icon name="check" size={17} /><span><strong>节点学习</strong><small>正文与微练习已完成</small></span></div>
             <div className={passed ? 'is-done' : ''}><Icon name={passed ? 'check' : 'target'} size={17} /><span><strong>正式测试</strong><small>{passed ? formalTestPassedLabel(bestFormalScore) : `达到${challenge.formalPassScore}分后测试达标`}</small></span></div>

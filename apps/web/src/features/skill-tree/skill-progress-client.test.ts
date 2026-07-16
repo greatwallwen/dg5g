@@ -104,6 +104,49 @@ test('compatibility projection keeps an untested node and unformed task score ab
   assert.equal(projected.tasks[0]?.taskScore, undefined);
 });
 
+test('compatibility projection preserves persisted origins for node, attempts, task, and project', () => {
+  const projected = projectStudentLearningSnapshot({
+    version: 7,
+    globalVersion: 17,
+    studentId: 'stu-03',
+    nodes: [{
+      nodeId: 'P1T1-N02',
+      state: 'formal-test-passed',
+      stateTrail: ['learning', 'micro-practice-passed', 'formal-test-passed'],
+      completedSections: ['understand', 'evidence', 'explain', 'practice'],
+      classroomSubmitted: false,
+      attempts: [{
+        attemptId: 'demo-formal-attempt',
+        nodeId: 'P1T1-N02',
+        gameId: 'P1T1-N02-formal',
+        score: 93,
+        mistakeKnowledgePointIds: ['kp-direction'],
+        completedAt: '2026-07-16T08:00:00.000Z',
+        origin: 'demo',
+      }],
+      prerequisites: [],
+      bestFormalScore: 93,
+      nextRequirement: '继续学习',
+      origin: 'demo',
+    }],
+    tasks: [{
+      taskId: 'P01',
+      nodeTestHighestScore: 93,
+      taskCompositeScore: 94,
+      origin: 'demo',
+      realTaskCertified: false,
+      demoTaskCertified: true,
+    }],
+    projectCompositeScore: 94,
+    projectCompositeOrigin: 'demo',
+  });
+
+  assert.equal(projected.progress[0]?.origin, 'demo');
+  assert.equal(projected.progress[0]?.gameAttempts?.[0]?.origin, 'demo');
+  assert.equal(projected.tasks[0]?.origin, 'demo');
+  assert.equal(projected.projectCompositeOrigin, 'demo');
+});
+
 test('compatibility projection preserves a real zero score while workflow completion follows canonical state', () => {
   const projected = projectStudentLearningSnapshot({
     version: 2,
