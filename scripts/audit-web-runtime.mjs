@@ -46,11 +46,16 @@ try {
   await assertP1ProjectPage(studentTwo, 'stu-02', 'P02');
   await assertP1ProjectPage(studentThree, 'stu-03', 'P03');
   await assertP1PortfolioPage(studentOne, 'stu-01', { viewportLabel: '1440', expectedVersion: undefined });
-  await assertP1PortfolioPage(studentTwo, 'stu-02', { viewportLabel: '390', expectedVersion: 'v1', expectedTaskScore: '89' });
+  await assertP1PortfolioPage(studentTwo, 'stu-02', {
+    viewportLabel: '390',
+    expectedVersion: 'v1',
+    expectedTaskScoreLabel: '尚未形成',
+    forbiddenTaskScore: '89',
+  });
   await assertLockedNodePage(studentOne, '/learn/P1T2-N01', 'P1T1-N04');
   await assertCapabilityGraph(studentThree);
-  await assertFullSelfStudyPage(studentOne, {
-    studentId: 'stu-01',
+  await assertFullSelfStudyPage(studentThree, {
+    studentId: 'stu-03',
     nodeId: 'P1T1-N02',
     evidenceAssertions: [
       ['设备位置证据', /位置证据|设备在哪里/],
@@ -59,8 +64,8 @@ try {
       ['证据判断原因', /为什么/],
     ],
   });
-  await assertFullSelfStudyPage(studentTwo, {
-    studentId: 'stu-02',
+  await assertFullSelfStudyPage(studentThree, {
+    studentId: 'stu-03',
     nodeId: 'P1T2-N02',
     evidenceAssertions: [
       ['天线方位角', /方位角/],
@@ -348,9 +353,12 @@ async function assertP1ProjectPage(context, studentId, expectedTaskId) {
     };
   });
   assert(scroll.bodyOverflowY === 'auto', `${studentId} P1 page body remains scroll-locked`);
-  assert(scroll.scrollHeight > scroll.viewportHeight, `${studentId} P1 page does not expose its full task chain to scrolling`);
-  assert(scroll.scrollTop > 0, `${studentId} P1 page could not scroll to the final task`);
-  assert(scroll.lastTaskBottom <= scroll.viewportHeight + 2, `${studentId} P03 card remains clipped after scrolling`);
+  if (scroll.scrollHeight > scroll.viewportHeight) {
+    assert(scroll.scrollTop > 0, `${studentId} P1 page could not scroll to the final task`);
+    assert(scroll.lastTaskBottom <= scroll.viewportHeight + 2, `${studentId} P03 card remains clipped after scrolling`);
+  } else {
+    assert(scroll.lastTaskBottom <= scroll.viewportHeight + 2, `${studentId} P03 card is clipped even though the page fits one viewport`);
+  }
   await page.evaluate(() => window.scrollTo(0, 0));
   const expectedTask = page.locator(`[data-p1-task="${expectedTaskId}"]`);
   assert(await expectedTask.count() === 1, `${studentId} current task ${expectedTaskId} is missing`);
@@ -360,7 +368,12 @@ async function assertP1ProjectPage(context, studentId, expectedTaskId) {
   await page.close();
 }
 
-async function assertP1PortfolioPage(context, studentId, { viewportLabel, expectedVersion, expectedTaskScore }) {
+async function assertP1PortfolioPage(context, studentId, {
+  viewportLabel,
+  expectedVersion,
+  expectedTaskScoreLabel,
+  forbiddenTaskScore,
+}) {
   const page = await context.newPage();
   const route = '/student/projects/p1/portfolio';
   const response = await page.goto(api(route), { waitUntil: 'networkidle' });
@@ -373,7 +386,12 @@ async function assertP1PortfolioPage(context, studentId, { viewportLabel, expect
   assert(await page.locator('a[href="/student/projects/p1"]').count() >= 1, `${studentId} portfolio omitted the return-to-P1 entry`);
   const firstItemText = (await page.locator('[data-p1-portfolio-item="P01"]').innerText()).replace(/\s+/g, ' ');
   if (expectedVersion !== undefined) assert(firstItemText.includes(expectedVersion), `${studentId} portfolio omitted current ${expectedVersion}`);
-  if (expectedTaskScore !== undefined) assert(firstItemText.includes(expectedTaskScore), `${studentId} portfolio omitted frozen task score ${expectedTaskScore}`);
+  if (expectedTaskScoreLabel !== undefined) {
+    assert(firstItemText.includes(expectedTaskScoreLabel), `${studentId} portfolio omitted truthful task score label ${expectedTaskScoreLabel}`);
+  }
+  if (forbiddenTaskScore !== undefined) {
+    assert(!firstItemText.includes(forbiddenTaskScore), `${studentId} portfolio exposed obsolete task score ${forbiddenTaskScore}`);
+  }
   const layout = await portfolio.evaluate((element) => {
     const rect = element.getBoundingClientRect();
     return { left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width), viewportWidth: window.innerWidth };
@@ -390,7 +408,8 @@ async function assertP1PortfolioPage(context, studentId, { viewportLabel, expect
     packageStatus: 'not-formed',
     taskCount: 3,
     ...(expectedVersion === undefined ? {} : { expectedVersion }),
-    ...(expectedTaskScore === undefined ? {} : { expectedTaskScore }),
+    ...(expectedTaskScoreLabel === undefined ? {} : { expectedTaskScoreLabel }),
+    ...(forbiddenTaskScore === undefined ? {} : { forbiddenTaskScore }),
     layout,
   });
   await page.close();

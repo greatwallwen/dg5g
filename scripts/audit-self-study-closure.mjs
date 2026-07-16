@@ -42,6 +42,25 @@ try {
   });
 
   if (mutationMode) {
+    const scopeAttempt = await requestJson(
+      studentContext,
+      'POST',
+      '/api/learning/activities/P1T1-N01-micro-01/attempts',
+      {
+        attemptId: `self-study-audit-scope-${randomUUID()}`,
+        expectedVersion: 0,
+        response: {
+          assignments: {
+            'room-01-cabinets': 'in-scope',
+            'shared-operator-cabinet': 'out-of-scope',
+            'room-02-cabinets': 'out-of-scope',
+          },
+        },
+      },
+    );
+    if (!scopeAttempt.passed) throw new Error('N01 scope activity did not pass server evaluation.');
+    studentSnapshot = await requestJson(studentContext, 'GET', '/api/learning/me');
+
     for (const sectionId of ['understand', 'evidence', 'explain', 'practice']) {
       studentSnapshot = await requestJson(
         studentContext,
@@ -56,19 +75,79 @@ try {
         },
       );
     }
-    studentSnapshot = await requestJson(
+
+    const practices = [
+      {
+        activityId: 'P1T1-N02-foundation-01',
+        response: {
+          assignments: {
+            'room-overview': 'location',
+            'device-nameplate': 'identity',
+            'two-ended-port-trace': 'link',
+          },
+        },
+      },
+      {
+        activityId: 'P1T1-N02-application-01',
+        response: { order: ['bbu-port', 'odf-in', 'odf-out', 'aau-port'] },
+      },
+      {
+        activityId: 'P1T1-N02-transfer-01',
+        response: {
+          fields: {
+            siteId: 'HY-01',
+            roomId: '01',
+            cabinetId: 'K02',
+            deviceId: 'BBU-01',
+            nearPort: 'BBU-1/0',
+            farPort: 'AAU-1',
+          },
+        },
+      },
+    ];
+    const practiceResults = [];
+    for (const practice of practices) {
+      const result = await requestJson(
+        studentContext,
+        'POST',
+        `/api/learning/activities/${practice.activityId}/attempts`,
+        {
+          attemptId: `self-study-audit-${practice.activityId}-${randomUUID()}`,
+          expectedVersion: 0,
+          response: practice.response,
+        },
+      );
+      if (!result.passed) throw new Error(`${practice.activityId} did not pass server evaluation.`);
+      practiceResults.push(practice.activityId);
+      studentSnapshot = await requestJson(studentContext, 'GET', '/api/learning/me');
+    }
+
+    const issued = await requestJson(
+      studentContext,
+      'GET',
+      '/api/learning/nodes/P1T1-N02/assessment',
+    );
+    if (!issued.attemptToken) throw new Error('Formal assessment did not issue an attempt token.');
+    const diagnostic = await requestJson(
       studentContext,
       'POST',
-      '/api/learning/nodes/P1T1-N02/attempts',
+      '/api/learning/nodes/P1T1-N02/assessment',
       {
-        attemptId: `self-study-audit-attempt-${randomUUID()}`,
-        gameId: 'node-test',
-        score: 85,
-        durationSeconds: 180,
-        mistakeKnowledgePointIds: [],
-        expectedVersion: studentSnapshot.version,
+        answers: {
+          evidenceClassification: 'nameplate-photo',
+          linkReconstruction: ['source-device', 'source-port', 'cable-label', 'peer-port', 'peer-device'],
+          defectiveOutputRevision: ['restore-source', 'add-photo-index', 'record-direction'],
+          professionalConclusion: {
+            confirmedFact: '设备铭牌和序列号清晰，源端端口照片已确认。',
+            evidenceGap: '对端端口照片模糊，存在证据缺口，暂时无法确认。',
+            risk: '证据不足会导致链路判断错误并影响成果交付。',
+            action: '重新拍摄对端端口，补齐照片索引后复核链路方向。',
+          },
+        },
       },
+      { 'x-assessment-token': issued.attemptToken },
     );
+    studentSnapshot = await requestJson(studentContext, 'GET', '/api/learning/me');
     const node = studentSnapshot.nodes?.find(({ nodeId }) => nodeId === 'P1T1-N02');
     report.checkpoints.push({
       name: 'isolated-self-study-write',
@@ -77,6 +156,9 @@ try {
       completedSections: node?.completedSections ?? [],
       attemptCount: node?.attempts?.length ?? 0,
       bestFormalScore: node?.bestFormalScore,
+      scopeActivityPassed: scopeAttempt.passed,
+      practiceActivities: practiceResults,
+      formalScore: diagnostic.totalScore,
     });
   }
 
@@ -121,9 +203,10 @@ async function login(context, username) {
   if (!response.ok()) throw new Error(`Login failed for ${username}: ${response.status()}`);
 }
 
-async function requestJson(context, method, route, data) {
+async function requestJson(context, method, route, data, headers = {}) {
   const response = await context.request.fetch(new URL(route, baseUrl).toString(), {
     method,
+    headers,
     ...(data === undefined ? {} : { data }),
   });
   const body = await response.json().catch(() => ({}));
@@ -158,7 +241,11 @@ function collectBlockingIssues() {
   if (mutationMode) {
     const mutation = checkpoints['isolated-self-study-write'];
     const sections = mutation?.completedSections ?? [];
+    const practiceActivities = mutation?.practiceActivities ?? [];
     if (!['understand', 'evidence', 'explain', 'practice'].every((sectionId) => sections.includes(sectionId))
+      || mutation?.scopeActivityPassed !== true
+      || !['P1T1-N02-foundation-01', 'P1T1-N02-application-01', 'P1T1-N02-transfer-01']
+        .every((activityId) => practiceActivities.includes(activityId))
       || (mutation?.bestFormalScore ?? -1) < 80) {
       report.blockingIssues.push({ code: 'isolated-self-study-write-invalid', checkpoint: mutation });
     }

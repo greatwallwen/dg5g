@@ -154,8 +154,9 @@ async function openState(page, job, baseUrl) {
   const response = await page.goto(target, { waitUntil: 'networkidle', timeout: 60_000 });
   if (!response?.ok()) throw new Error(`${job.key} returned ${response?.status() ?? 'no response'}`);
   if (job.surfaceId === 'login') {
-    const role = job.stateId === 'teacher' ? 'teacher' : 'student';
-    await page.locator(`[data-login-role-option="${role}"]`).click();
+    await page.locator('main[data-login-role="gateway"]').waitFor({ state: 'visible' });
+    const username = job.stateId === 'teacher' ? 'teacher01' : 'student01';
+    await page.locator('input[autocomplete="username"]').fill(username);
   }
   if (job.surfaceId.startsWith('n02-')) {
     const nav = page.locator('.self-study-head nav button');
