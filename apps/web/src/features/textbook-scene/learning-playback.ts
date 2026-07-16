@@ -11,12 +11,19 @@ export function playbackSceneForLearningUnit(unit: DemoUnit, taskId: DemoTaskId)
       sceneId: prefix,
       title: `${taskId} · ${unit.title}`,
       presenterId: 'teacher-zhang',
-      actions: p01TeachingPackage.flatMap(({ pages }) => pages).map((page) => speech(
-        `${prefix}-${page.id.toLowerCase()}`,
-        page.id,
-        page.title,
-        page.teacherExplanation,
-      )),
+      actions: p01TeachingPackage.flatMap(({ pages }) => pages).map((page) => {
+        const narration = p01AcceptedNarration[page.id];
+        return speech(
+          `${prefix}-${page.id.toLowerCase()}`,
+          page.id,
+          page.title,
+          narration?.spokenText ?? page.teacherExplanation,
+          narration ? {
+            audioId: narration.audioId,
+            audioUrl: `/media/tts/qwen-cherry/${narration.audioId.toLowerCase()}.wav`,
+          } : undefined,
+        );
+      }),
     };
   }
   return {
@@ -33,6 +40,33 @@ export function playbackSceneForLearningUnit(unit: DemoUnit, taskId: DemoTaskId)
     ],
   };
 }
+
+const p01AcceptedNarration: Record<string, { audioId: string; spokenText: string }> = {
+  'P01-L1-P01': {
+    audioId: 'P01-story-speech-006',
+    spokenText: '室内信息采集要先锁定资源边界：机房位置、机柜编号、BBU、AAU或RRU、电源、传输、接地和温控共同决定站点可用性。',
+  },
+  'P01-L1-P03': {
+    audioId: 'P01-story-speech-011',
+    spokenText: '设备记录不止列型号，还要说明端口、光纤、电源线和传输承载的连接关系，后续定位才知道从哪一段查起。',
+  },
+  'P01-L1-P04': {
+    audioId: 'P01-story-speech-012',
+    spokenText: '设备拓扑说明链路走到哪一步；端口、光纤、电源线、传输分别对应角色、接口、状态和约束。',
+  },
+  'P01-L2-P03': {
+    audioId: 'P01-story-speech-014',
+    spokenText: '不要把端口、光纤、电源线、传输中的单个现象当作完整流程；缺少前后文会误判故障点。',
+  },
+  'P01-L2-P05': {
+    audioId: 'P01-story-speech-021',
+    spokenText: '现场证据要能对应机柜、端口和走线路径，表单字段要能追溯到实体对象，避免后续复核时只剩孤立图片。',
+  },
+  'P01-L2-P06': {
+    audioId: 'P01-story-speech-023',
+    spokenText: '把机柜、端口、走线、证据回连到照片、日志、表单或网管记录，确认每个结论都有来源。',
+  },
+};
 
 function speech(id: string, targetId: string, caption: string, spokenText: string, audio?: { audioId: string; audioUrl: string }) {
   return {

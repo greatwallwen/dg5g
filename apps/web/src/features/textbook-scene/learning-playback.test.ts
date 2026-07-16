@@ -33,4 +33,19 @@ test('learning playback follows the twelve-page two-lesson teaching package', ()
   );
   assert.ok(scene.actions.every((action) => action.caption && action.spokenText));
   assert.ok(scene.actions.every((action) => typeof action.durationMs === 'number' && action.durationMs >= 2_600));
+  assert.deepEqual(
+    scene.actions.flatMap((action) => action.audioId ? [[
+      action.targetId,
+      action.audioId,
+      action.audioUrl,
+    ]] : []),
+    [
+      ['P01-L1-P01', 'P01-story-speech-006', '/media/tts/qwen-cherry/p01-story-speech-006.wav'],
+      ['P01-L1-P03', 'P01-story-speech-011', '/media/tts/qwen-cherry/p01-story-speech-011.wav'],
+      ['P01-L1-P04', 'P01-story-speech-012', '/media/tts/qwen-cherry/p01-story-speech-012.wav'],
+      ['P01-L2-P03', 'P01-story-speech-014', '/media/tts/qwen-cherry/p01-story-speech-014.wav'],
+      ['P01-L2-P05', 'P01-story-speech-021', '/media/tts/qwen-cherry/p01-story-speech-021.wav'],
+      ['P01-L2-P06', 'P01-story-speech-023', '/media/tts/qwen-cherry/p01-story-speech-023.wav'],
+    ],
+  );
 });
