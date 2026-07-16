@@ -7,6 +7,8 @@ const webRoot = existsSync(path.join(process.cwd(), 'src/app'))
   ? process.cwd()
   : path.join(process.cwd(), 'apps/web');
 const repositoryRoot = path.resolve(webRoot, '../..');
+const anonymousRoutes = ['platform', 'resources', 'governance', 'delivery'] as const;
+const authGuards = ['requireUser', 'readServerActor', 'requireClassRole', 'redirect('] as const;
 
 test('small platform text uses exact WCAG AA color tokens', () => {
   const css = readFileSync(path.join(webRoot, 'src/app/platform-overview.css'), 'utf8');
@@ -27,11 +29,29 @@ test('shared public view and redirect config preserve anonymous read-only access
   assert.doesNotMatch(nextConfig, /\{\s*source:\s*['"]\/platform['"]\s*,\s*destination:/);
 });
 
+test('all four public route entries stay free of authentication guards', () => {
+  for (const route of anonymousRoutes) {
+    const source = readFileSync(path.join(webRoot, 'src/app', route, 'page.tsx'), 'utf8');
+    for (const guard of authGuards) {
+      assert.equal(source.includes(guard), false, `${route} must not use ${guard}`);
+    }
+  }
+});
+
 test('repository audit enforces the shared view and redirect boundaries', () => {
   const audit = readFileSync(path.join(repositoryRoot, 'scripts/audit-digital-textbook-v3.mjs'), 'utf8');
 
   assert.match(audit, /forbidSnippets\('apps\/web\/src\/features\/platform-overview\/public-platform-view\.tsx'/);
   assert.match(audit, /forbidSnippets\('apps\/web\/next\.config\.mjs'/);
+
+  const routeAuditStart = audit.indexOf("for (const file of [\n  'apps/web/src/app/platform/page.tsx'");
+  const routeAuditEnd = audit.indexOf("\n}\nrequireSnippets('apps/web/src/features/auth/role-session.ts'", routeAuditStart);
+  assert.notEqual(routeAuditStart, -1, 'anonymous route audit loop is missing');
+  assert.notEqual(routeAuditEnd, -1, 'anonymous route audit loop is incomplete');
+  const routeAudit = audit.slice(routeAuditStart, routeAuditEnd);
+  for (const guard of authGuards) {
+    assert.equal(routeAudit.includes(`'${guard}'`), true, `route audit must forbid ${guard}`);
+  }
 });
 
 function selectorColor(css: string, selector: string): string {

@@ -90,7 +90,16 @@ for (const file of [
   'apps/web/src/app/delivery/page.tsx',
 ]) {
   requireSnippets(file, ['PublicPlatformView', 'buildPublicPlatformModel']);
-  forbidSnippets(file, ['AuthoritativeSnapshotReader', 'getDatabase', '<button', "method: 'POST'"]);
+  forbidSnippets(file, [
+    'AuthoritativeSnapshotReader',
+    'getDatabase',
+    '<button',
+    "method: 'POST'",
+    'requireUser',
+    'readServerActor',
+    'requireClassRole',
+    'redirect(',
+  ]);
 }
 requireSnippets('apps/web/src/features/auth/role-session.ts', [
   'S20260101',
