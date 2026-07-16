@@ -1,0 +1,327 @@
+{
+  "base": {
+    "users": [
+      {
+        "id": "teacher-01",
+        "username": "teacher01",
+        "displayName": "张老师",
+        "role": "teacher",
+        "isActive": true
+      },
+      {
+        "id": "stu-01",
+        "username": "student01",
+        "displayName": "学生一",
+        "role": "student",
+        "isActive": true
+      },
+      {
+        "id": "stu-02",
+        "username": "student02",
+        "displayName": "学生二",
+        "role": "student",
+        "isActive": true
+      },
+      {
+        "id": "stu-03",
+        "username": "student03",
+        "displayName": "学生三",
+        "role": "student",
+        "isActive": true
+      }
+    ],
+    "classrooms": [
+      {
+        "sessionId": "demo-class",
+        "classId": "demo-class",
+        "name": "5G 网络优化演示班",
+        "teacherId": "teacher-01",
+        "status": "paused",
+        "activeNodeId": "P1T1-N02",
+        "activeUnitId": "P01-ku-02"
+      }
+    ],
+    "memberships": [
+      { "sessionId": "demo-class", "studentId": "stu-01" },
+      { "sessionId": "demo-class", "studentId": "stu-02" },
+      { "sessionId": "demo-class", "studentId": "stu-03" }
+    ]
+  },
+  "demo": {
+    "events": [
+      {
+        "eventId": "demo-event-stu-01-p1t1-n01",
+        "studentId": "stu-01",
+        "nodeId": "P1T1-N01",
+        "channel": "self-study",
+        "eventType": "micro_practice_passed",
+        "payload": { "masteryPercent": 92, "evidenceStatus": "verified" }
+      },
+      {
+        "eventId": "demo-event-stu-01-p1t1-n02",
+        "studentId": "stu-01",
+        "nodeId": "P1T1-N02",
+        "channel": "self-study",
+        "eventType": "micro_practice_passed",
+        "payload": { "masteryPercent": 74, "evidenceStatus": "not-submitted" }
+      },
+      {
+        "eventId": "demo-event-stu-02-p1t1-n01",
+        "studentId": "stu-02",
+        "nodeId": "P1T1-N01",
+        "channel": "self-study",
+        "eventType": "micro_practice_passed",
+        "payload": { "masteryPercent": 88, "evidenceStatus": "verified" }
+      },
+      {
+        "eventId": "demo-event-stu-02-p1t1-n02",
+        "studentId": "stu-02",
+        "nodeId": "P1T1-N02",
+        "channel": "self-study",
+        "eventType": "micro_practice_passed",
+        "payload": { "masteryPercent": 88, "evidenceStatus": "verified" }
+      },
+      {
+        "eventId": "demo-event-stu-02-p1t1-n03",
+        "studentId": "stu-02",
+        "nodeId": "P1T1-N03",
+        "channel": "self-study",
+        "eventType": "micro_practice_passed",
+        "payload": { "masteryPercent": 90, "evidenceStatus": "verified" }
+      },
+      {
+        "eventId": "demo-event-stu-02-p1t1-n04",
+        "studentId": "stu-02",
+        "nodeId": "P1T1-N04",
+        "channel": "self-study",
+        "eventType": "micro_practice_passed",
+        "payload": { "masteryPercent": 90, "evidenceStatus": "verified" }
+      },
+      {
+        "eventId": "demo-event-stu-02-p1t2-n01",
+        "studentId": "stu-02",
+        "nodeId": "P1T2-N01",
+        "channel": "self-study",
+        "eventType": "micro_practice_passed",
+        "payload": { "masteryPercent": 86, "evidenceStatus": "verified" }
+      },
+      {
+        "eventId": "demo-event-stu-03-p1t1-n01-v2",
+        "studentId": "stu-03",
+        "nodeId": "P1T1-N01",
+        "channel": "self-study",
+        "eventType": "micro_practice_passed",
+        "payload": { "masteryPercent": 94, "evidenceStatus": "verified" }
+      },
+      {
+        "eventId": "demo-event-stu-03-p1t1-n02",
+        "studentId": "stu-03",
+        "nodeId": "P1T1-N02",
+        "channel": "self-study",
+        "eventType": "micro_practice_passed",
+        "payload": { "masteryPercent": 93, "evidenceStatus": "verified" }
+      },
+      {
+        "eventId": "demo-event-stu-03-p1t1-n03",
+        "studentId": "stu-03",
+        "nodeId": "P1T1-N03",
+        "channel": "self-study",
+        "eventType": "micro_practice_passed",
+        "payload": { "masteryPercent": 95, "evidenceStatus": "verified" }
+      },
+      {
+        "eventId": "demo-event-stu-03-p1t1-n04",
+        "studentId": "stu-03",
+        "nodeId": "P1T1-N04",
+        "channel": "self-study",
+        "eventType": "micro_practice_passed",
+        "payload": { "masteryPercent": 94, "evidenceStatus": "verified" }
+      },
+      {
+        "eventId": "demo-event-stu-03-p1t2-n01",
+        "studentId": "stu-03",
+        "nodeId": "P1T2-N01",
+        "channel": "self-study",
+        "eventType": "micro_practice_passed",
+        "payload": { "masteryPercent": 91, "evidenceStatus": "verified" }
+      },
+      {
+        "eventId": "demo-event-stu-03-p1t2-n02",
+        "studentId": "stu-03",
+        "nodeId": "P1T2-N02",
+        "channel": "self-study",
+        "eventType": "micro_practice_passed",
+        "payload": { "masteryPercent": 91, "evidenceStatus": "verified" }
+      },
+      {
+        "eventId": "demo-event-stu-03-p1t2-n03",
+        "studentId": "stu-03",
+        "nodeId": "P1T2-N03",
+        "channel": "self-study",
+        "eventType": "micro_practice_passed",
+        "payload": { "masteryPercent": 93, "evidenceStatus": "verified" }
+      },
+      {
+        "eventId": "demo-event-stu-03-p1t2-n04",
+        "studentId": "stu-03",
+        "nodeId": "P1T2-N04",
+        "channel": "self-study",
+        "eventType": "micro_practice_passed",
+        "payload": { "masteryPercent": 92, "evidenceStatus": "verified" }
+      },
+      {
+        "eventId": "demo-event-stu-03-p1t3-n01",
+        "studentId": "stu-03",
+        "nodeId": "P1T3-N01",
+        "channel": "self-study",
+        "eventType": "micro_practice_passed",
+        "payload": { "masteryPercent": 89, "evidenceStatus": "verified" }
+      }
+    ],
+    "attempts": [
+      {
+        "attemptId": "demo-attempt-stu-01-p1t1-n02",
+        "studentId": "stu-01",
+        "nodeId": "P1T1-N02",
+        "gameId": "node-test",
+        "score": 74,
+        "durationSeconds": 224,
+        "mistakeKnowledgePointIds": ["P1T1-N02-kp-boundary"]
+      },
+      {
+        "attemptId": "demo-attempt-stu-02-p1t1-n02-v2",
+        "studentId": "stu-02",
+        "nodeId": "P1T1-N02",
+        "gameId": "node-test",
+        "score": 88,
+        "durationSeconds": 238,
+        "mistakeKnowledgePointIds": []
+      },
+      {
+        "attemptId": "demo-attempt-stu-03-p1t1-n02",
+        "studentId": "stu-03",
+        "nodeId": "P1T1-N02",
+        "gameId": "node-test",
+        "score": 93,
+        "durationSeconds": 205,
+        "mistakeKnowledgePointIds": []
+      },
+      {
+        "attemptId": "demo-attempt-stu-03-p1t2-n02",
+        "studentId": "stu-03",
+        "nodeId": "P1T2-N02",
+        "gameId": "node-test",
+        "score": 91,
+        "durationSeconds": 216,
+        "mistakeKnowledgePointIds": []
+      }
+    ],
+    "outputs": [
+      {
+        "outputId": "demo-output-stu-02-p1t1-n04",
+        "studentId": "stu-02",
+        "taskId": "P1T1",
+        "nodeId": "P1T1-N04",
+        "status": "verified",
+        "content": { "kind": "indoor-device-link-evidence-sheet", "version": 1 }
+      },
+      {
+        "outputId": "demo-output-stu-03-p1t1-n04",
+        "studentId": "stu-03",
+        "taskId": "P1T1",
+        "nodeId": "P1T1-N04",
+        "status": "verified",
+        "content": { "kind": "indoor-device-link-evidence-sheet", "version": 1 }
+      },
+      {
+        "outputId": "demo-output-stu-03-p1t2-n04",
+        "studentId": "stu-03",
+        "taskId": "P1T2",
+        "nodeId": "P1T2-N04",
+        "status": "verified",
+        "content": { "kind": "outdoor-site-coverage-collection-sheet", "version": 1 }
+      }
+    ],
+    "reviews": [
+      {
+        "reviewId": "demo-review-stu-02-p1t1-n04",
+        "outputId": "demo-output-stu-02-p1t1-n04",
+        "reviewerId": "teacher-01",
+        "status": "verified",
+        "score": 90,
+        "feedback": "室内设备与链路证据完整，可复核。"
+      },
+      {
+        "reviewId": "demo-review-stu-03-p1t1-n04",
+        "outputId": "demo-output-stu-03-p1t1-n04",
+        "reviewerId": "teacher-01",
+        "status": "verified",
+        "score": 94,
+        "feedback": "室内设备身份、位置与连接方向证据完整。"
+      },
+      {
+        "reviewId": "demo-review-stu-03-p1t2-n04",
+        "outputId": "demo-output-stu-03-p1t2-n04",
+        "reviewerId": "teacher-01",
+        "status": "verified",
+        "score": 92,
+        "feedback": "室外站点与覆盖采集证据完整，可复核。"
+      }
+    ],
+    "cursors": [
+      {
+        "studentId": "stu-01",
+        "nodeId": "P1T1-N02",
+        "unitId": "P01-ku-02",
+        "actionId": "P1T1-N02-lesson-case",
+        "actionIndex": 0,
+        "positionMs": 0
+      },
+      {
+        "studentId": "stu-02",
+        "nodeId": "P1T2-N02",
+        "unitId": "P02-ku-02",
+        "actionId": "P1T2-N02-lesson-case",
+        "actionIndex": 0,
+        "positionMs": 0
+      },
+      {
+        "studentId": "stu-03",
+        "nodeId": "P1T3-N02",
+        "unitId": "P03-ku-02",
+        "actionId": "P1T3-N02-lesson-case",
+        "actionIndex": 0,
+        "positionMs": 0
+      }
+    ],
+    "frozenTaskScores": [
+      {
+        "scoreId": "demo-task-score-stu-02-p01-v2",
+        "studentId": "stu-02",
+        "taskId": "P01",
+        "snapshotVersion": 2,
+        "provisionalScore": 89,
+        "officialScore": 89,
+        "details": { "source": "demo-seed", "nodeTestHighestScore": 88, "outputRubricScore": 90, "taskCompositeScore": 89, "weights": { "nodeTest": 0.4, "professionalOutput": 0.6 } }
+      },
+      {
+        "scoreId": "demo-task-score-stu-03-p1t1-v1",
+        "studentId": "stu-03",
+        "taskId": "P01",
+        "snapshotVersion": 1,
+        "provisionalScore": 94,
+        "officialScore": 94,
+        "details": { "source": "demo-seed", "nodeTestHighestScore": 93, "outputRubricScore": 94 }
+      },
+      {
+        "scoreId": "demo-task-score-stu-03-p1t2-v1",
+        "studentId": "stu-03",
+        "taskId": "P02",
+        "snapshotVersion": 1,
+        "provisionalScore": 92,
+        "officialScore": 92,
+        "details": { "source": "demo-seed", "nodeTestHighestScore": 91, "outputRubricScore": 92 }
+      }
+    ]
+  }
+}

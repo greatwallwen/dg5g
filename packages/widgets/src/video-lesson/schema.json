@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "教学视频讲解",
+  "type": "object",
+  "properties": {
+    "videoId": {
+      "type": "string",
+      "title": "视频元素 ID",
+      "default": "dgbook-video-lesson",
+      "description": "播放脚本中 play_video 动作使用的 elementId"
+    },
+    "title": {
+      "type": "string",
+      "title": "标题",
+      "default": "教学视频"
+    },
+    "src": {
+      "type": "string",
+      "title": "视频 URL",
+      "default": "",
+      "description": "可为空；为空时显示可播放的分镜占位"
+    },
+    "poster": {
+      "type": "string",
+      "title": "封面 URL",
+      "default": ""
+    },
+    "durationSeconds": {
+      "type": "number",
+      "title": "占位播放时长",
+      "minimum": 3,
+      "maximum": 120,
+      "default": 18
+    },
+    "generationPrompt": {
+      "type": "string",
+      "title": "视频生成提示",
+      "format": "multiline",
+      "default": ""
+    },
+    "chapters": {
+      "type": "string",
+      "title": "分镜",
+      "format": "multiline",
+      "default": "00:00 采集现网指标\n00:06 定位弱覆盖与质差点\n00:12 验证优化后指标改善"
+    },
+    "transcript": {
+      "type": "string",
+      "title": "讲解稿",
+      "format": "multiline",
+      "default": ""
+    }
+  },
+  "required": ["videoId", "title"]
+}

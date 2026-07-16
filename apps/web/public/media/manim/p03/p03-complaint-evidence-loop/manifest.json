@@ -1,0 +1,107 @@
+{
+  "schema": "dgbook.asset.manim-animation/v1",
+  "id": "p03-p03-complaint-evidence-loop",
+  "title": "投诉信息：从用户感知追到证据链",
+  "body": "把主诉、位置、日志和复测结论串成闭环",
+  "sceneName": "P03P03ComplaintEvidenceLoop",
+  "status": "rendered",
+  "source": {
+    "path": "tools/manim-scenes/generated/p03-p03-complaint-evidence-loop.py",
+    "templateId": "p03-complaint-evidence-loop",
+    "projectId": "P03",
+    "beatIds": [
+      "P03-beat-01",
+      "P03-beat-02",
+      "P03-beat-03"
+    ]
+  },
+  "sceneGrammar": {
+    "sceneTemplateId": "p03-complaint-evidence-chain",
+    "grammar": "flow",
+    "visualMode": "closed-evidence-loop",
+    "generator": "generic",
+    "stages": [
+      "01 接收主诉",
+      "02 对齐证据",
+      "03 形成结论"
+    ],
+    "items": [
+      [
+        "主诉",
+        "场景"
+      ],
+      [
+        "位置",
+        "小区"
+      ],
+      [
+        "日志",
+        "时间"
+      ],
+      [
+        "复测",
+        "结论"
+      ]
+    ],
+    "knowledgeParameters": {
+      "unitId": "P03-ku-complaint-chain",
+      "knowledgePoint": "投诉处理要把用户主诉和网络侧证据闭环",
+      "engineeringObject": "投诉工单到小区日志链",
+      "primaryMetric": "投诉时间窗/小区/业务类型匹配度",
+      "evidence": [
+        "投诉描述",
+        "位置小区",
+        "信令日志",
+        "复测结果"
+      ],
+      "decisionRule": "只有主诉没有网络证据时不能定根因"
+    }
+  },
+  "knowledgeParameters": {
+    "unitId": "P03-ku-complaint-chain",
+    "knowledgePoint": "投诉处理要把用户主诉和网络侧证据闭环",
+    "engineeringObject": "投诉工单到小区日志链",
+    "primaryMetric": "投诉时间窗/小区/业务类型匹配度",
+    "evidence": [
+      "投诉描述",
+      "位置小区",
+      "信令日志",
+      "复测结果"
+    ],
+    "decisionRule": "只有主诉没有网络证据时不能定根因"
+  },
+  "visual": {
+    "signature": "complaint-evidence-chain-loop",
+    "motif": "closed-evidence-loop",
+    "learningFocus": "connect complaint, location, logs, and retest result into one causal chain",
+    "primitives": [
+      "voice-ticket",
+      "geo-pin",
+      "log-strip",
+      "closed-loop-arrows"
+    ],
+    "palette": [
+      "#2563eb",
+      "#f59e0b",
+      "#dc2626",
+      "#0f766e"
+    ]
+  },
+  "outputs": {
+    "manifest": "/media/manim/p03/p03-complaint-evidence-loop/manifest.json",
+    "videoUrl": "/media/manim/p03/p03-complaint-evidence-loop/p03-p03-complaint-evidence-loop.webm",
+    "posterUrl": "/media/manim/p03/p03-complaint-evidence-loop/poster.png",
+    "durationMs": 32000,
+    "format": "webm"
+  },
+  "constraints": {
+    "maxVisibleTextChars": 90,
+    "safeArea": {
+      "left": 48,
+      "top": 40,
+      "right": 48,
+      "bottom": 56
+    }
+  },
+  "diagnostics": []
+}

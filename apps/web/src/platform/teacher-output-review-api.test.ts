@@ -1,0 +1,179 @@
+import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
+import { registerHooks } from 'node:module';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import test from 'node:test';
+import { AuthService } from './auth/auth-service.ts';
+import { AUTH_COOKIE_NAME } from './auth/cookie.ts';
+import { closeDatabase } from './db/database.ts';
+import { seedBase } from './db/demo-seed.ts';
+import { migrateDatabase } from './db/migrations.ts';
+import { createTestDatabase } from './db/test-database.ts';
+import { ProfessionalOutputRepository } from './professional-output-repository.ts';
+import { loadSelfStudyCatalog } from '../features/textbook-scene/self-study-content.ts';
+import { professionalOutputSchemaForTask } from '../features/portfolio/output-schema.ts';
+
+registerHooks({
+  resolve(specifier, context, nextResolve) {
+    if (specifier === 'next/server') return nextResolve('next/server.js', context);
+    if (specifier.startsWith('@/')) {
+      const sourcePath = resolve(process.cwd(), 'apps/web/src', specifier.slice(2));
+      const candidate = [`${sourcePath}.ts`, `${sourcePath}.tsx`, resolve(sourcePath, 'index.ts')].find(existsSync);
+      if (candidate) return nextResolve(pathToFileURL(candidate).href, context);
+    }
+    if (specifier.startsWith('.') && context.parentURL?.includes('/apps/web/src/') && !specifier.endsWith('.ts') && !specifier.endsWith('.tsx')) {
+      return nextResolve(`${specifier}.ts`, context);
+    }
+    return nextResolve(specifier, context);
+  },
+});
+
+const outputsRoute = await import('../app/api/teacher/outputs/route.ts');
+const reviewsRoute = await import('../app/api/teacher/outputs/[outputId]/reviews/route.ts');
+
+test('submitted-output endpoints reject anonymous and student actors', async () => {
+  const fixture = createTestDatabase();
+  const previousPath = process.env.DGBOOK_SQLITE_PATH;
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
+    closeDatabase();
+    assert.equal(outputsRoute.GET(new Request('http://localhost/api/teacher/outputs')).status, 401);
+    const student = new AuthService(fixture.database).login({
+      username: 'student01', password: process.env.DGBOOK_DEMO_PASSWORD ?? '123456',
+    });
+    assert.ok(student);
+    const cookie = `${AUTH_COOKIE_NAME}=${student.token}`;
+    assert.equal(outputsRoute.GET(new Request('http://localhost/api/teacher/outputs', {
+      headers: { cookie },
+    })).status, 403);
+    const anonymousReview = await reviewsRoute.POST(jsonRequest(
+      'http://localhost/api/teacher/outputs/missing/reviews', '',
+      { expectedStateRevision: 0, action: 'verify', rubricScores: { quality: 90 } },
+    ), { params: { outputId: 'missing' } });
+    assert.equal(anonymousReview.status, 401);
+    const studentReview = await reviewsRoute.POST(jsonRequest(
+      'http://localhost/api/teacher/outputs/missing/reviews', cookie,
+      { expectedStateRevision: 0, action: 'verify', rubricScores: { quality: 90 } },
+    ), { params: { outputId: 'missing' } });
+    assert.equal(studentReview.status, 403);
+  } finally {
+    closeDatabase();
+    if (previousPath === undefined) delete process.env.DGBOOK_SQLITE_PATH;
+    else process.env.DGBOOK_SQLITE_PATH = previousPath;
+    fixture.cleanup();
+  }
+});
+
+test('teacher lists a submitted class output and verifies it through the unique review API', async () => {
+  const fixture = createTestDatabase();
+  const previousPath = process.env.DGBOOK_SQLITE_PATH;
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
+    closeDatabase();
+    const repository = new ProfessionalOutputRepository(fixture.database, () => 'api-review-output');
+    const draft = repository.saveDraft({
+      studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
+      fields: { result: 'submitted output' }, upstreamRefs: [],
+    });
+    repository.submit({
+      outputId: draft.head.outputId, studentId: 'stu-01', taskId: 'P01',
+      expectedStateRevision: 1, fields: draft.versions[0]!.fields, upstreamRefs: [],
+    });
+    fixture.database.prepare(`
+      INSERT INTO formal_attempts (attempt_id, student_id, node_id, score)
+      VALUES ('api-review-attempt', 'stu-01', 'P1T1-N02', 80)
+    `).run();
+    const teacher = new AuthService(fixture.database).login({
+      username: 'teacher01', password: process.env.DGBOOK_DEMO_PASSWORD ?? '123456',
+    });
+    assert.ok(teacher);
+    const cookie = `${AUTH_COOKIE_NAME}=${teacher.token}`;
+
+    const listResponse = outputsRoute.GET(new Request('http://localhost/api/teacher/outputs', {
+      headers: { cookie },
+    }));
+    assert.equal(listResponse.status, 200);
+    const listed = await listResponse.json();
+    assert.equal(listed.outputs.length, 1);
+    assert.equal(listed.outputs[0].outputId, 'api-review-output');
+    const schema = professionalOutputSchemaForTask(loadSelfStudyCatalog(), 'P01');
+    assert.deepEqual(
+      listed.outputs[0].rubric.map(({ label, maxScore }: { label: string; maxScore: number }) => ({
+        criterion: label,
+        maxScore,
+      })),
+      schema.rubric,
+    );
+    assert.deepEqual(
+      listed.outputs[0].fieldSchema,
+      schema.fields.map(({ key, label }) => ({ key, label })),
+    );
+    const rubricScores = Object.fromEntries(schema.rubric.map(({ criterion, maxScore }, index) => [
+      criterion,
+      index === schema.rubric.length - 1 ? 0 : maxScore,
+    ]));
+
+    const invalidResponse = await reviewsRoute.POST(jsonRequest(
+      'http://localhost/api/teacher/outputs/api-review-output/reviews',
+      cookie,
+      {
+        expectedStateRevision: 2,
+        action: 'verify',
+        rubricScores: { fakeCriterion: 90 },
+      },
+    ), { params: { outputId: 'api-review-output' } });
+    assert.equal(invalidResponse.status, 400);
+    assert.equal(repository.read('stu-01', 'P01')?.head.stateRevision, 2);
+    const firstCriterion = schema.rubric[0]!;
+    const overMaxResponse = await reviewsRoute.POST(jsonRequest(
+      'http://localhost/api/teacher/outputs/api-review-output/reviews',
+      cookie,
+      {
+        expectedStateRevision: 2,
+        action: 'verify',
+        rubricScores: {
+          ...rubricScores,
+          [firstCriterion.criterion]: firstCriterion.maxScore + 1,
+        },
+      },
+    ), { params: { outputId: 'api-review-output' } });
+    assert.equal(overMaxResponse.status, 400);
+    assert.equal(repository.read('stu-01', 'P01')?.head.stateRevision, 2);
+
+    const response = await reviewsRoute.POST(jsonRequest(
+      'http://localhost/api/teacher/outputs/api-review-output/reviews',
+      cookie,
+      {
+        expectedStateRevision: 2,
+        action: 'verify',
+        feedback: '达到岗位交付标准。',
+        rubricScores,
+      },
+    ), { params: { outputId: 'api-review-output' } });
+    assert.equal(response.status, 200);
+    const result = await response.json();
+    assert.equal(result.output.head.status, 'verified');
+    assert.equal(result.frozenTaskScore.officialScore, 86);
+    assert.equal(fixture.database.prepare(`
+      SELECT COUNT(*) FROM formal_attempts WHERE attempt_id = 'api-review-attempt' AND score = 80
+    `).pluck().get(), 1);
+  } finally {
+    closeDatabase();
+    if (previousPath === undefined) delete process.env.DGBOOK_SQLITE_PATH;
+    else process.env.DGBOOK_SQLITE_PATH = previousPath;
+    fixture.cleanup();
+  }
+});
+
+function jsonRequest(url: string, cookie: string, body: unknown): Request {
+  return new Request(url, {
+    method: 'POST',
+    headers: { cookie, 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+}

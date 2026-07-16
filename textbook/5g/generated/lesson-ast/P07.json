@@ -1,0 +1,1124 @@
+{
+  "schema": "dgbook.lesson-ast/v1",
+  "source": {
+    "kind": "docx",
+    "path": "content/5g/5g.docx",
+    "importer": "scripts/import-5g-docx.py"
+  },
+  "project": {
+    "id": "P07",
+    "title": "5G网管架构和功能",
+    "sourceNo": "1",
+    "chapterTitle": "5G网络信息管理",
+    "taskIndex": 1
+  },
+  "lesson": {
+    "id": "P07",
+    "title": "5G网管架构和功能",
+    "widgetId": "P07-lesson-animation-001",
+    "scenario": "network-management",
+    "scenarioLabel": "网管闭环"
+  },
+  "content": {
+    "sections": [
+      {
+        "id": "sec-overview",
+        "title": "导学摘要",
+        "icon": "overview",
+        "texts": [
+          "本节把网管操作看成对象管理模型：从 ManagedElement、小区、告警、PM、CM 到权限审计，形成可追踪的运维闭环。"
+        ]
+      },
+      {
+        "id": "P07-ku-01",
+        "title": "概念与对象",
+        "icon": "radar",
+        "texts": [
+          "网管入口不是菜单集合，而是网络对象管理模型，需理解 ManagedElement、小区、告警、PM 和 CM 的层级关系。"
+        ]
+      },
+      {
+        "id": "P07-ku-02",
+        "title": "概念与对象",
+        "icon": "route",
+        "texts": [
+          "告警监控要过滤严重级别、发生时间、清除状态、关联对象和影响范围，优先处理影响业务的事件。"
+        ]
+      },
+      {
+        "id": "P07-ku-03",
+        "title": "工程判读",
+        "icon": "chart",
+        "texts": [
+          "性能查询关注趋势、忙时、同比和环比，不把瞬时值当作全局结论。"
+        ]
+      },
+      {
+        "id": "P07-ku-04",
+        "title": "数据与现场佐证",
+        "icon": "tool",
+        "texts": [
+          "配置核查要确认当前值、规划值、版本来源和变更记录，识别参数漂移和误配置风险。"
+        ]
+      },
+      {
+        "id": "P07-ku-05",
+        "title": "操作校验",
+        "icon": "search",
+        "texts": [
+          "网管操作要明确角色权限和审计记录，查询、修改、派单和回退不能混用责任边界。"
+        ]
+      },
+      {
+        "id": "P07-ku-06",
+        "title": "闭环复盘",
+        "icon": "check",
+        "texts": [
+          "网管价值在于把发现、定位、派单、处理和复核连成闭环，形成可追踪的运维记录。"
+        ]
+      }
+    ],
+    "blocks": [
+      {
+        "id": "block-001",
+        "kind": "paragraph",
+        "order": 1,
+        "text": "项目概述"
+      },
+      {
+        "id": "block-002",
+        "kind": "paragraph",
+        "order": 2,
+        "text": "5G网络信息管理是对于网络运行状态、网络性能指标、网络参数检查和配置的重要管理系统，本项目通过介绍5G网络告警及性能的监控方法，以及与5G网络优化相关的无线接入网参数、传输网参数和核心网参数的检查和设置，使得学员完成本项目学习后，掌握5G网络运行监控，网络参数检查和网络参数调整等技能。"
+      },
+      {
+        "id": "block-003",
+        "kind": "paragraph",
+        "order": 3,
+        "text": "项目导学"
+      },
+      {
+        "id": "block-004",
+        "kind": "paragraph",
+        "order": 4,
+        "mediaRefs": [
+          "rId101"
+        ]
+      },
+      {
+        "id": "block-005",
+        "kind": "paragraph",
+        "order": 5,
+        "text": "任务导入"
+      },
+      {
+        "id": "block-006",
+        "kind": "paragraph",
+        "order": 6,
+        "text": "在2G,3G,4G系统，网管的主要功能有哪些呢？除了满足网络日常运行维护，告警管理，参数设置，网络性能监控等传统网络管理功能，针对5G网络优化自动化，智能化，远程化的发展趋势，大家设想一下5G网管可以添加哪些新功能呢？"
+      },
+      {
+        "id": "block-007",
+        "kind": "paragraph",
+        "order": 7,
+        "text": "任务要求"
+      },
+      {
+        "id": "block-008",
+        "kind": "paragraph",
+        "order": 8,
+        "text": "完成5G网络基本架构知识学习。"
+      },
+      {
+        "id": "block-009",
+        "kind": "paragraph",
+        "order": 9,
+        "text": "完成5G网管软、硬件组成知识学习。"
+      },
+      {
+        "id": "block-010",
+        "kind": "paragraph",
+        "order": 10,
+        "text": "完成5G网管功能组件知识学习。"
+      },
+      {
+        "id": "block-011",
+        "kind": "paragraph",
+        "order": 11,
+        "text": "知识准备"
+      },
+      {
+        "id": "block-012",
+        "kind": "paragraph",
+        "order": 12,
+        "text": "一．5G网管特性"
+      },
+      {
+        "id": "block-013",
+        "kind": "paragraph",
+        "order": 13,
+        "text": "统一网管平台，提供零宕机升级，提升容量和可扩展性"
+      },
+      {
+        "id": "block-014",
+        "kind": "paragraph",
+        "order": 14,
+        "text": "Web 方式的用户界面"
+      },
+      {
+        "id": "block-015",
+        "kind": "paragraph",
+        "order": 15,
+        "text": "统一的RAN网络管理（如：4G / 5G融合）"
+      },
+      {
+        "id": "block-016",
+        "kind": "paragraph",
+        "order": 16,
+        "text": "RAN网络智能分析"
+      },
+      {
+        "id": "block-017",
+        "kind": "paragraph",
+        "order": 17,
+        "text": "开放的API接口"
+      },
+      {
+        "id": "block-018",
+        "kind": "paragraph",
+        "order": 18,
+        "text": "虚拟化部署"
+      },
+      {
+        "id": "block-019",
+        "kind": "paragraph",
+        "order": 19,
+        "text": "5G网管特性，如图3-1-1"
+      },
+      {
+        "id": "block-020",
+        "kind": "paragraph",
+        "order": 20,
+        "mediaRefs": [
+          "rId102"
+        ]
+      },
+      {
+        "id": "block-021",
+        "kind": "paragraph",
+        "order": 21,
+        "text": "图3-1-1 5G网管特性"
+      },
+      {
+        "id": "block-022",
+        "kind": "paragraph",
+        "order": 22,
+        "text": "5G网管是对于SDN网络的管理编排系统，是未来管理SDN/NFV网络的核心产品，通过集成的控制组件，融合管理层和控制层功能，实现网络自我管理、业务自动发放和运维自动化。"
+      },
+      {
+        "id": "block-023",
+        "kind": "paragraph",
+        "order": 23,
+        "text": "5G网管位于5G云网络的管控层，向下对PTN/IPRAN网络、IP+光网络、OTN网络和SDN网络进行拓扑管理、资源分析、网络监控、业务诊断部署和系统管理。对单域、多域及跨层业务进行自动化的统一管控。"
+      },
+      {
+        "id": "block-024",
+        "kind": "paragraph",
+        "order": 24,
+        "text": "5G网管向上对接第三方管控系统和网络平台，实现跨厂商业务的编排和自动化管理。采用开放式的接口，支持客户端应用的快速开发。"
+      },
+      {
+        "id": "block-025",
+        "kind": "paragraph",
+        "order": 25,
+        "text": "二． 5G网管基本架构"
+      },
+      {
+        "id": "block-026",
+        "kind": "paragraph",
+        "order": 26,
+        "text": "5G网管采用NFV架构，如图3-1-2所示。"
+      },
+      {
+        "id": "block-027",
+        "kind": "paragraph",
+        "order": 27,
+        "mediaRefs": [
+          "rId103"
+        ]
+      },
+      {
+        "id": "block-028",
+        "kind": "paragraph",
+        "order": 28,
+        "text": "图3-1-2 5G网管架构"
+      },
+      {
+        "id": "block-029",
+        "kind": "paragraph",
+        "order": 29,
+        "text": "1.IaaS（Infrastructure as a service – 基础设施即服务）"
+      },
+      {
+        "id": "block-030",
+        "kind": "paragraph",
+        "order": 30,
+        "text": "IaaS 是云服务的最底层，主要提供一些基础资源。用户可以在云服务提供商提供的基础设施上部署和运行任何软件，包括操作系统和应用软件。用户没有权限管理和访问底层的基础设施，如服务器、交换机、硬盘等，但是有权管理操作系统、存储内容，可以安装管理应用程序，甚至是有权管理网络组件。简单的说用户使用IaaS，有权管理操作系统之上的一切功能。我们常见的IaaS服务有虚拟机、虚拟网络、以及存储。"
+      },
+      {
+        "id": "block-031",
+        "kind": "paragraph",
+        "order": 31,
+        "text": "2.PaaS（Platform as a service – 平台即服务）"
+      },
+      {
+        "id": "block-032",
+        "kind": "paragraph",
+        "order": 32,
+        "text": "PaaS 提供软件部署平台（runtime），抽象掉了硬件和操作系统细节，可以无缝地扩展。开发者只需要关注自己的业务逻辑，不需要关注底层。PaaS给用户提供的能力是使用由云服务提供商支持的编程语言、库、服务以及开发工具来创建、开发应用程序并部署在相关的基础设施上。用户无需管理底层的基础设施，包括网络、服务器，操作系统或者存储。只能控制部署在基础设施中操作系统上的应用程序，配置应用程序所托管的环境的可配置参数。常见的PaaS服务有数据库服务、web应用以及容器服务。成熟的PaaS服务会简化开发人员，提供完备的PC端和移动端软件开发套件（SDK），拥有丰富的开发环境（Inteli、Eclipse、VS等），完全可托管的数据库服务，可配置式的应用程序构建，支持多语言的开发，面向应用市场。"
+      },
+      {
+        "id": "block-033",
+        "kind": "paragraph",
+        "order": 33,
+        "text": "3.SaaS（Software as a Service – 软件即服务）"
+      },
+      {
+        "id": "block-034",
+        "kind": "paragraph",
+        "order": 34,
+        "text": "SaaS 是软件的开发、管理、部署都交给第三方，不需要关心技术问题，可以拿来即用。 SaaS给用户提供的能力是使用在云基础架构上运行的云服务提供商的应用程序。可以通过轻量的客户端接口（诸如web浏览器（例如，基于web的电子邮件））或程序接口从各种客户端设备访问应用程序。 用户无需管理或控制底层云基础架构，包括网络，服务器，操作系统，存储甚至单独的应用程序功能，可能的例外是有限的用户特定应用程序配置设置。类似的服务有：各类的网盘(Dropbox、百度网盘等)，JIRA，GitLab等服务。而这些应用的提供者不仅仅是云服务提供商，还有众多的第三方提供商（ISV: independent software provider）。"
+      },
+      {
+        "id": "block-035",
+        "kind": "paragraph",
+        "order": 35,
+        "text": "SAAS、PaaS和IaaS架构如图3-1-3。"
+      },
+      {
+        "id": "block-036",
+        "kind": "paragraph",
+        "order": 36,
+        "mediaRefs": [
+          "rId104"
+        ]
+      },
+      {
+        "id": "block-037",
+        "kind": "paragraph",
+        "order": 37,
+        "text": "图3-1-3 SaaS、PaaS和IaaS"
+      },
+      {
+        "id": "block-038",
+        "kind": "paragraph",
+        "order": 38,
+        "text": "TECS集成解决方案，是根据多年的集成经验，结合运营商实际存在的各种场景，提供的一套完整的NFV系统的集成解决方案；包含了对NFV系统所具备的完整架构、组件和TECS之间的多种集成方式和工作流程、组件扩容和升级的方法、整系统的优化&测试&验证等内容的描述。"
+      },
+      {
+        "id": "block-039",
+        "kind": "paragraph",
+        "order": 39,
+        "text": "三．5G网管软、硬件组成"
+      },
+      {
+        "id": "block-040",
+        "kind": "paragraph",
+        "order": 40,
+        "text": "5G网管软硬件部署策略如图3-1-4所示。"
+      },
+      {
+        "id": "block-041",
+        "kind": "paragraph",
+        "order": 41,
+        "mediaRefs": [
+          "rId105"
+        ]
+      },
+      {
+        "id": "block-042",
+        "kind": "paragraph",
+        "order": 42,
+        "text": "图3-1-4 5G网管部署策略"
+      },
+      {
+        "id": "block-043",
+        "kind": "paragraph",
+        "order": 43,
+        "text": "底层采用服务器提供基础的CPU、内存、存储等物理资源，通过TECS平台抽取具体资源形成虚拟网管平台，然后向高层提供网管功能，包括系统管理、自运维管理、智能运维管理和无线应用等APP功能，客户端可远程接入5G网管。"
+      },
+      {
+        "id": "block-044",
+        "kind": "paragraph",
+        "order": 44,
+        "text": "四． 5G网管功能组件"
+      },
+      {
+        "id": "block-045",
+        "kind": "paragraph",
+        "order": 45,
+        "text": "5G网管功能组件如图3-1-5所示。"
+      },
+      {
+        "id": "block-046",
+        "kind": "paragraph",
+        "order": 46,
+        "mediaRefs": [
+          "rId106"
+        ]
+      },
+      {
+        "id": "block-047",
+        "kind": "paragraph",
+        "order": 47,
+        "text": "图3-1-5 5G网管功能组件"
+      },
+      {
+        "id": "block-048",
+        "kind": "paragraph",
+        "order": 48,
+        "text": "5G网管系统组件包括："
+      },
+      {
+        "id": "block-049",
+        "kind": "paragraph",
+        "order": 49,
+        "text": "系统管理提供安全管理、日志管理和备份恢复功能。"
+      },
+      {
+        "id": "block-050",
+        "kind": "paragraph",
+        "order": 50,
+        "text": "自运维管理提供应用性能管理。"
+      },
+      {
+        "id": "block-051",
+        "kind": "paragraph",
+        "order": 51,
+        "text": "智能运维提供告警根因分析、网络智能分析高级应用、开发自动化平台和全局策略管理。"
+      },
+      {
+        "id": "block-052",
+        "kind": "paragraph",
+        "order": 52,
+        "text": "无线应用提供数据采集、北向接口管理、网络智能分析、无线配置管理、无线网元管理、无线网络运维监控、信令跟踪分析、网元开通升级中心和通用网元管理。"
+      },
+      {
+        "id": "block-053",
+        "kind": "paragraph",
+        "order": 53,
+        "text": "公共应用提供全网告警和拓扑管理。"
+      },
+      {
+        "id": "block-054",
+        "kind": "paragraph",
+        "order": 54,
+        "text": "任务实施"
+      },
+      {
+        "id": "block-055",
+        "kind": "paragraph",
+        "order": 55,
+        "text": "5G网管常用功能包括："
+      },
+      {
+        "id": "block-056",
+        "kind": "paragraph",
+        "order": 56,
+        "text": "一．任务背景以及规划数据表的获取。"
+      },
+      {
+        "id": "block-057",
+        "kind": "paragraph",
+        "order": 57,
+        "text": "（1）使用学生账号登录5G网络优化仿真实训系统，如图3-1-6"
+      },
+      {
+        "id": "block-058",
+        "kind": "paragraph",
+        "order": 58,
+        "mediaRefs": [
+          "rId107"
+        ]
+      },
+      {
+        "id": "block-059",
+        "kind": "paragraph",
+        "order": 59,
+        "text": "图3-1-6 登录5G网络优化仿真实训系统"
+      },
+      {
+        "id": "block-060",
+        "kind": "paragraph",
+        "order": 60,
+        "text": "（2）打开任务说明，如图3-1-7"
+      },
+      {
+        "id": "block-061",
+        "kind": "paragraph",
+        "order": 61,
+        "mediaRefs": [
+          "rId108"
+        ]
+      },
+      {
+        "id": "block-062",
+        "kind": "paragraph",
+        "order": 62,
+        "text": "图3-1-7 任务说明"
+      },
+      {
+        "id": "block-063",
+        "kind": "paragraph",
+        "order": 63,
+        "text": "二．网络规划，包括容量计算、覆盖计算和功率计算三部分。"
+      },
+      {
+        "id": "block-064",
+        "kind": "paragraph",
+        "order": 64,
+        "text": "（1）容量计算，如图3-1-8"
+      },
+      {
+        "id": "block-065",
+        "kind": "paragraph",
+        "order": 65,
+        "mediaRefs": [
+          "rId109"
+        ]
+      },
+      {
+        "id": "block-066",
+        "kind": "paragraph",
+        "order": 66,
+        "text": "图3-1-8 容量计算"
+      },
+      {
+        "id": "block-067",
+        "kind": "paragraph",
+        "order": 67,
+        "text": "（2）覆盖计算，如图3-1-9"
+      },
+      {
+        "id": "block-068",
+        "kind": "paragraph",
+        "order": 68,
+        "mediaRefs": [
+          "rId110"
+        ]
+      },
+      {
+        "id": "block-069",
+        "kind": "paragraph",
+        "order": 69,
+        "text": "图3-1-9 覆盖计算"
+      },
+      {
+        "id": "block-070",
+        "kind": "paragraph",
+        "order": 70,
+        "text": "功率计算 如图3-1-10"
+      },
+      {
+        "id": "block-071",
+        "kind": "paragraph",
+        "order": 71,
+        "mediaRefs": [
+          "rId111"
+        ]
+      },
+      {
+        "id": "block-072",
+        "kind": "paragraph",
+        "order": 72,
+        "text": "图3-1-10 功率计算"
+      },
+      {
+        "id": "block-073",
+        "kind": "paragraph",
+        "order": 73,
+        "text": "三．数据采集：完成基站室内和室外信息采集。"
+      },
+      {
+        "id": "block-074",
+        "kind": "paragraph",
+        "order": 74,
+        "text": "（1）单击进入数据采集，选取工具后单击进入规划站点，如图3-1-11"
+      },
+      {
+        "id": "block-075",
+        "kind": "paragraph",
+        "order": 75,
+        "mediaRefs": [
+          "rId112"
+        ]
+      },
+      {
+        "id": "block-076",
+        "kind": "paragraph",
+        "order": 76,
+        "text": "图3-1-11 数据采集"
+      },
+      {
+        "id": "block-077",
+        "kind": "paragraph",
+        "order": 77,
+        "text": "（2）单击机房图标，进入室内，如图3-1-12"
+      },
+      {
+        "id": "block-078",
+        "kind": "paragraph",
+        "order": 78,
+        "mediaRefs": [
+          "rId113"
+        ]
+      },
+      {
+        "id": "block-079",
+        "kind": "paragraph",
+        "order": 79,
+        "text": "图3-1-12室内选取"
+      },
+      {
+        "id": "block-080",
+        "kind": "paragraph",
+        "order": 80,
+        "text": "（3）室内信息采集，如图3-1-13"
+      },
+      {
+        "id": "block-081",
+        "kind": "paragraph",
+        "order": 81,
+        "mediaRefs": [
+          "rId114"
+        ]
+      },
+      {
+        "id": "block-082",
+        "kind": "paragraph",
+        "order": 82,
+        "text": "图3-1-13室内信息采集"
+      },
+      {
+        "id": "block-083",
+        "kind": "paragraph",
+        "order": 83,
+        "text": "（4）单击铁塔图标，进入室外，如图3-1-14"
+      },
+      {
+        "id": "block-084",
+        "kind": "paragraph",
+        "order": 84,
+        "mediaRefs": [
+          "rId115"
+        ]
+      },
+      {
+        "id": "block-085",
+        "kind": "paragraph",
+        "order": 85,
+        "text": "图3-1-14室外选取"
+      },
+      {
+        "id": "block-086",
+        "kind": "paragraph",
+        "order": 86,
+        "text": "（5）室外信息采集，如图3-1-15"
+      },
+      {
+        "id": "block-087",
+        "kind": "paragraph",
+        "order": 87,
+        "mediaRefs": [
+          "rId116"
+        ]
+      },
+      {
+        "id": "block-088",
+        "kind": "paragraph",
+        "order": 88,
+        "text": "图3-1-15室外信息采集"
+      },
+      {
+        "id": "block-089",
+        "kind": "paragraph",
+        "order": 89,
+        "text": "四．网络测试准备：测试软件和测试工具准备（详细操作请参考项目二网络测试，任务1: DT/CQT测试准备和执行）如图3-1-16"
+      },
+      {
+        "id": "block-090",
+        "kind": "paragraph",
+        "order": 90,
+        "mediaRefs": [
+          "rId117"
+        ]
+      },
+      {
+        "id": "block-091",
+        "kind": "paragraph",
+        "order": 91,
+        "text": "图3-1-16 网络测试"
+      },
+      {
+        "id": "block-092",
+        "kind": "paragraph",
+        "order": 92,
+        "text": "五．信令分析：进行log测试数据分析，发现网络问题，提出解决方案，如图3-1-17，3-1-18."
+      },
+      {
+        "id": "block-093",
+        "kind": "paragraph",
+        "order": 93,
+        "mediaRefs": [
+          "rId118"
+        ]
+      },
+      {
+        "id": "block-094",
+        "kind": "paragraph",
+        "order": 94,
+        "text": "图3-1-17 信令分析"
+      },
+      {
+        "id": "block-095",
+        "kind": "paragraph",
+        "order": 95,
+        "mediaRefs": [
+          "rId119"
+        ]
+      },
+      {
+        "id": "block-096",
+        "kind": "paragraph",
+        "order": 96,
+        "text": "图3-1-18 问题分析"
+      },
+      {
+        "id": "block-097",
+        "kind": "paragraph",
+        "order": 97,
+        "text": "六．端到端优化：进行端到端数据配置，参数调整提升网络KPI。"
+      },
+      {
+        "id": "block-098",
+        "kind": "paragraph",
+        "order": 98,
+        "text": "（一）优化前性能指标提取"
+      },
+      {
+        "id": "block-099",
+        "kind": "paragraph",
+        "order": 99,
+        "text": "方法1："
+      },
+      {
+        "id": "block-100",
+        "kind": "paragraph",
+        "order": 100,
+        "text": "（1）在端到端优化任务，点击数据中心，如图3-1-19"
+      },
+      {
+        "id": "block-101",
+        "kind": "paragraph",
+        "order": 101,
+        "mediaRefs": [
+          "rId120"
+        ]
+      },
+      {
+        "id": "block-102",
+        "kind": "paragraph",
+        "order": 102,
+        "text": "图3-1-19 性能指标提取"
+      },
+      {
+        "id": "block-103",
+        "kind": "paragraph",
+        "order": 103,
+        "text": "（2）根据指标选取相应的模块（比如：无线侧）,如图3-1-20"
+      },
+      {
+        "id": "block-104",
+        "kind": "paragraph",
+        "order": 104,
+        "mediaRefs": [
+          "rId121"
+        ]
+      },
+      {
+        "id": "block-105",
+        "kind": "paragraph",
+        "order": 105,
+        "text": "图3-1-20 模块选取"
+      },
+      {
+        "id": "block-106",
+        "kind": "paragraph",
+        "order": 106,
+        "text": "（3）左侧导航栏选取性能，右侧界面选取查看的站点名称，指标名称以及时间段，如图3-1-21"
+      },
+      {
+        "id": "block-107",
+        "kind": "paragraph",
+        "order": 107,
+        "mediaRefs": [
+          "rId122"
+        ]
+      },
+      {
+        "id": "block-108",
+        "kind": "paragraph",
+        "order": 108,
+        "text": "图3-1-21 性能指标查询"
+      },
+      {
+        "id": "block-109",
+        "kind": "paragraph",
+        "order": 109,
+        "text": "方法2："
+      },
+      {
+        "id": "block-110",
+        "kind": "paragraph",
+        "order": 110,
+        "text": "（1）根据指定站点进入（比如：站点1），如图3-1-22"
+      },
+      {
+        "id": "block-111",
+        "kind": "paragraph",
+        "order": 111,
+        "mediaRefs": [
+          "rId123"
+        ]
+      },
+      {
+        "id": "block-112",
+        "kind": "paragraph",
+        "order": 112,
+        "text": "图3-1-22 指定站点"
+      },
+      {
+        "id": "block-113",
+        "kind": "paragraph",
+        "order": 113,
+        "text": "（2） 选择不同问题，显示相应的实时性能指标，如图3-1-23"
+      },
+      {
+        "id": "block-114",
+        "kind": "paragraph",
+        "order": 114,
+        "mediaRefs": [
+          "rId124"
+        ]
+      },
+      {
+        "id": "block-115",
+        "kind": "paragraph",
+        "order": 115,
+        "text": "图3-1-23 指定站点实时性能指标"
+      },
+      {
+        "id": "block-116",
+        "kind": "paragraph",
+        "order": 116,
+        "text": "（二）参数调整，包括配置参数和邻区参数调整，如图3-1-24"
+      },
+      {
+        "id": "block-117",
+        "kind": "paragraph",
+        "order": 117,
+        "mediaRefs": [
+          "rId125"
+        ]
+      },
+      {
+        "id": "block-118",
+        "kind": "paragraph",
+        "order": 118,
+        "text": "图3-1-24 参数调整"
+      },
+      {
+        "id": "block-119",
+        "kind": "paragraph",
+        "order": 119,
+        "text": "六．全网性能提升：通过全网配置参数的调整提升全网性能。"
+      },
+      {
+        "id": "block-120",
+        "kind": "paragraph",
+        "order": 120,
+        "text": "（一）优化前全网性能指标提取"
+      },
+      {
+        "id": "block-121",
+        "kind": "paragraph",
+        "order": 121,
+        "text": "1.选取“全网性能提升”然后单击进入“数据中心”，如图3-1-25"
+      },
+      {
+        "id": "block-122",
+        "kind": "paragraph",
+        "order": 122,
+        "mediaRefs": [
+          "rId126"
+        ]
+      },
+      {
+        "id": "block-123",
+        "kind": "paragraph",
+        "order": 123,
+        "text": "图3-1-25 全网性能指标提取"
+      },
+      {
+        "id": "block-124",
+        "kind": "paragraph",
+        "order": 124,
+        "text": "2.选取时间段和指标类型，如图3-1-26"
+      },
+      {
+        "id": "block-125",
+        "kind": "paragraph",
+        "order": 125,
+        "mediaRefs": [
+          "rId127"
+        ]
+      },
+      {
+        "id": "block-126",
+        "kind": "paragraph",
+        "order": 126,
+        "text": "图3-1-26 全网性能指标"
+      },
+      {
+        "id": "block-127",
+        "kind": "paragraph",
+        "order": 127,
+        "text": "（二）相关参数调整，如图3-1-27"
+      },
+      {
+        "id": "block-128",
+        "kind": "paragraph",
+        "order": 128,
+        "text": "在导航栏选取“配置”，选取相关站点，在右侧界面设置小区和邻区参数"
+      },
+      {
+        "id": "block-129",
+        "kind": "paragraph",
+        "order": 129,
+        "mediaRefs": [
+          "rId128"
+        ]
+      },
+      {
+        "id": "block-130",
+        "kind": "paragraph",
+        "order": 130,
+        "text": "图3-1-27 参数调整"
+      },
+      {
+        "id": "block-131",
+        "kind": "paragraph",
+        "order": 131,
+        "text": "随堂测试"
+      },
+      {
+        "id": "block-132",
+        "kind": "paragraph",
+        "order": 132,
+        "text": "通过仿真软件完成指定站点室内信息提取。"
+      },
+      {
+        "id": "block-133",
+        "kind": "paragraph",
+        "order": 133,
+        "text": "通过仿真软件完成指定站点室外信息提取。"
+      },
+      {
+        "id": "block-134",
+        "kind": "paragraph",
+        "order": 134,
+        "text": "请将答案截屏后，用手机拍照发给老师。"
+      },
+      {
+        "id": "block-135",
+        "kind": "paragraph",
+        "order": 135,
+        "text": "直击难点"
+      },
+      {
+        "id": "block-136",
+        "kind": "paragraph",
+        "order": 136,
+        "text": "本节重点：5G网管功能组件"
+      },
+      {
+        "id": "block-137",
+        "kind": "paragraph",
+        "order": 137,
+        "text": "本节难点：5G网管架构及软硬件组成。"
+      },
+      {
+        "id": "block-138",
+        "kind": "paragraph",
+        "order": 138,
+        "text": "二维码预留二维码预留"
+      },
+      {
+        "id": "block-139",
+        "kind": "paragraph",
+        "order": 139,
+        "text": "任务测评"
+      },
+      {
+        "id": "block-140",
+        "kind": "paragraph",
+        "order": 140,
+        "text": "5G网管常用功能有哪些？"
+      },
+      {
+        "id": "block-141",
+        "kind": "paragraph",
+        "order": 141,
+        "text": "5G网管系统组件包括哪些？"
+      }
+    ],
+    "storyboard": {
+      "schema": "lesson-storyboard/v1",
+      "learningGoal": "学完后能按对象层级筛告警、查性能、核配置，并明确查询、修改、派单和回退的权限边界。",
+      "summary": "本节把网管操作看成对象管理模型：从 ManagedElement、小区、告警、PM、CM 到权限审计，形成可追踪的运维闭环。",
+      "knowledgeUnits": [
+        {
+          "id": "P07-ku-01",
+          "title": "网管对象",
+          "kind": "concept",
+          "shortText": "先识别网元、对象层级、权限和拓扑。",
+          "narrationText": "网管入口不是菜单集合，而是网络对象管理模型，需理解 ManagedElement、小区、告警、PM 和 CM 的层级关系。"
+        },
+        {
+          "id": "P07-ku-02",
+          "title": "告警过滤",
+          "kind": "concept",
+          "shortText": "按级别、时间、对象和状态筛出有效告警。",
+          "narrationText": "告警监控要过滤严重级别、发生时间、清除状态、关联对象和影响范围，优先处理影响业务的事件。"
+        },
+        {
+          "id": "P07-ku-03",
+          "title": "性能查询",
+          "kind": "criteria",
+          "shortText": "PM 指标按趋势、对比和忙时短板判读。",
+          "narrationText": "性能查询关注趋势、忙时、同比和环比，不把瞬时值当作全局结论。"
+        },
+        {
+          "id": "P07-ku-04",
+          "title": "配置核查",
+          "kind": "evidence",
+          "shortText": "CM 数据对齐规划、版本和变更记录。",
+          "narrationText": "配置核查要确认当前值、规划值、版本来源和变更记录，识别参数漂移和误配置风险。"
+        },
+        {
+          "id": "P07-ku-05",
+          "title": "权限边界",
+          "kind": "practice",
+          "shortText": "角色权限、操作范围和审计记录必须清晰。",
+          "narrationText": "网管操作要明确角色权限和审计记录，查询、修改、派单和回退不能混用责任边界。"
+        },
+        {
+          "id": "P07-ku-06",
+          "title": "派单闭环",
+          "kind": "review",
+          "shortText": "监控发现转成可跟踪工单和复核结果。",
+          "narrationText": "网管价值在于把发现、定位、派单、处理和复核连成闭环，形成可追踪的运维记录。"
+        }
+      ],
+      "reviewSummary": "复盘时检查网元对象、告警状态、PM 趋势、CM 版本和审计记录是否一致，避免菜单操作脱离对象模型。"
+    }
+  },
+  "knowledge": {
+    "steps": [
+      {
+        "id": "P07-knowledge-01",
+        "label": "网管对象",
+        "description": "先识别网元、对象层级、权限和拓扑。"
+      },
+      {
+        "id": "P07-knowledge-02",
+        "label": "告警过滤",
+        "description": "按级别、时间、对象和状态筛出有效告警。"
+      },
+      {
+        "id": "P07-knowledge-03",
+        "label": "性能查询",
+        "description": "PM 指标按趋势、对比和忙时短板判读。"
+      },
+      {
+        "id": "P07-knowledge-04",
+        "label": "配置核查",
+        "description": "CM 数据对齐规划、版本和变更记录。"
+      },
+      {
+        "id": "P07-knowledge-05",
+        "label": "权限边界",
+        "description": "角色权限、操作范围和审计记录必须清晰。"
+      },
+      {
+        "id": "P07-knowledge-06",
+        "label": "派单闭环",
+        "description": "监控发现转成可跟踪工单和复核结果。"
+      }
+    ],
+    "metrics": [
+      {
+        "label": "M1",
+        "value": "Manag"
+      },
+      {
+        "label": "M2",
+        "value": "Alarm"
+      },
+      {
+        "label": "M3",
+        "value": "PM"
+      }
+    ]
+  },
+  "animation": {
+    "templateHint": "optimization-loop",
+    "durationMs": 610000,
+    "targets": [
+      {
+        "id": "P07-step-01",
+        "label": "网管对象",
+        "description": "先识别网元、对象层级、权限和拓扑。"
+      },
+      {
+        "id": "P07-step-02",
+        "label": "告警过滤",
+        "description": "按级别、时间、对象和状态筛出有效告警。"
+      },
+      {
+        "id": "P07-step-03",
+        "label": "性能查询",
+        "description": "PM 指标按趋势、对比和忙时短板判读。"
+      },
+      {
+        "id": "P07-step-04",
+        "label": "配置核查",
+        "description": "CM 数据对齐规划、版本和变更记录。"
+      },
+      {
+        "id": "P07-step-05",
+        "label": "权限边界",
+        "description": "角色权限、操作范围和审计记录必须清晰。"
+      },
+      {
+        "id": "P07-step-06",
+        "label": "派单闭环",
+        "description": "监控发现转成可跟踪工单和复核结果。"
+      }
+    ]
+  },
+  "playback": {
+    "mode": "one-way",
+    "widgetId": "P07-lesson-animation-001"
+  }
+}

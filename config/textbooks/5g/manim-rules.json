@@ -1,0 +1,20 @@
+{
+  "P01": { "template": "p01-site-survey-map", "stageTemplate": "site-survey", "startMs": 24000, "durationMs": 30000, "box": [168, 120, 664, 330] },
+  "P02": { "template": "p02-outdoor-site-survey", "stageTemplate": "outdoor-site-survey", "startMs": 25000, "durationMs": 30000, "box": [168, 120, 664, 330] },
+  "P03": { "template": "p03-complaint-evidence-loop", "stageTemplate": "optimization-loop", "startMs": 28000, "durationMs": 32000, "box": [186, 126, 628, 322] },
+  "P04": { "template": "p04-dt-cqt-concept", "stageTemplate": "dt-cqt-concept", "startMs": 30000, "durationMs": 26000, "box": [224, 138, 552, 294] },
+  "P05": { "template": "p05-test-trouble-process", "stageTemplate": "test-process", "startMs": 26000, "durationMs": 30000, "box": [188, 126, 624, 320] },
+  "P06": { "template": "p06-test-data-kpi-diagnosis", "stageTemplate": "kpi-diagnosis", "startMs": 26000, "durationMs": 30000, "box": [188, 126, 624, 320] },
+  "P07": { "template": "p07-nms-function-map", "stageTemplate": "test-process", "startMs": 26000, "durationMs": 30000, "box": [188, 126, 624, 320] },
+  "P08": { "template": "p08-realtime-kpi-curve", "stageTemplate": "kpi-diagnosis", "startMs": 26000, "durationMs": 30000, "box": [188, 126, 624, 320] },
+  "P09": { "template": "p09-parameter-decision-tree", "stageTemplate": "kpi-diagnosis", "startMs": 26000, "durationMs": 30000, "box": [188, 126, 624, 320] },
+  "P10": { "template": "p10-parameter-governance-loop", "stageTemplate": "parameter-governance-loop", "startMs": 28000, "durationMs": 32000, "box": [186, 126, 628, 322] },
+  "P11": { "template": "p11-optimization-implementation", "stageTemplate": "optimization-implementation", "startMs": 28000, "durationMs": 32000, "box": [186, 126, 628, 322] },
+  "P12": { "template": "p12-optimization-validation-loop", "stageTemplate": "optimization-loop", "startMs": 28000, "durationMs": 32000, "box": [186, 126, 628, 322] },
+  "P13": { "template": "p13-optimization-report-loop", "stageTemplate": "optimization-loop", "startMs": 28000, "durationMs": 32000, "box": [186, 126, 628, 322] },
+  "P14": { "template": "p14-kpi-source-pipeline", "stageTemplate": "kpi-source-pipeline", "startMs": 26000, "durationMs": 30000, "box": [188, 126, 624, 320] },
+  "P15": { "template": "p15-network-performance-rollout", "stageTemplate": "optimization-loop", "startMs": 28000, "durationMs": 32000, "box": [186, 126, 628, 322] },
+  "P16": { "template": "p16-validation-delta", "stageTemplate": "validation-delta", "startMs": 26000, "durationMs": 30000, "box": [188, 126, 624, 320] },
+  "P17": { "template": "p17-signaling-procedure-ladder", "stageTemplate": "signaling-ladder", "startMs": 33000, "durationMs": 36000, "box": [184, 136, 632, 330] },
+  "P18": { "template": "p18-signaling-fault-ladder", "stageTemplate": "signaling-fault-ladder", "startMs": 33000, "durationMs": 36000, "box": [184, 136, 632, 330] }
+}

@@ -1,0 +1,526 @@
+<svg id="course-map-svg" xmlns="http://www.w3.org/2000/svg" width="3600" height="1840" viewBox="0 0 3600 1840" role="img" aria-label="5G网络优化（高级）课程能力图谱UI对称优化版">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M 0 0 L 10 5 L 0 10 z" fill="#78909c"/>
+  </marker>
+  <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+    <feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="#000000" flood-opacity="0.10"/>
+  </filter>
+</defs>
+<style>
+  text { font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif; }
+  .card rect { filter: url(#softShadow); }
+</style>
+<rect x="0.0" y="0.0" width="3600.0" height="1840.0" rx="0" fill="#ffffff" stroke="#ffffff" stroke-width="0"/>
+<rect x="30.0" y="24.0" width="3540.0" height="86.0" rx="8" fill="#f6fbff" stroke="#3c8bd6" stroke-width="1.6"/>
+<text x="1800.0" y="61.0" text-anchor="middle" font-size="30" font-weight="800" fill="#123d66">5G网络优化（高级）课程能力图谱</text>
+<text x="1800.0" y="92.0" text-anchor="middle" font-size="14" font-weight="400" fill="#42627a">UI对称优化版：列高均衡、卡片均匀分布、底部闭环收近、短路径连线、内容证据不变</text>
+<rect x="35.0" y="190.0" width="330.0" height="1180.0" rx="9" fill="#ffffff" stroke="#f45b5b" stroke-width="1.2"/>
+<text x="200.0" y="218.0" text-anchor="middle" font-size="15.5" font-weight="700" fill="#243746">来源依据</text>
+<text x="200.0" y="152.0" text-anchor="middle" font-size="18" font-weight="700" fill="#274052">来源依据</text>
+<rect x="385.0" y="190.0" width="300.0" height="1180.0" rx="9" fill="#ffffff" stroke="#4f9ddb" stroke-width="1.2"/>
+<text x="535.0" y="218.0" text-anchor="middle" font-size="15.5" font-weight="700" fill="#243746">岗位/技术领域</text>
+<text x="535.0" y="152.0" text-anchor="middle" font-size="18" font-weight="700" fill="#274052">岗位/技术领域</text>
+<rect x="710.0" y="190.0" width="340.0" height="1180.0" rx="9" fill="#ffffff" stroke="#00a38a" stroke-width="1.2"/>
+<text x="880.0" y="218.0" text-anchor="middle" font-size="15.5" font-weight="700" fill="#243746">典型项目/任务</text>
+<text x="880.0" y="152.0" text-anchor="middle" font-size="18" font-weight="700" fill="#274052">典型项目/任务</text>
+<rect x="1085.0" y="190.0" width="350.0" height="1180.0" rx="9" fill="#ffffff" stroke="#009688" stroke-width="1.2"/>
+<text x="1260.0" y="218.0" text-anchor="middle" font-size="15.5" font-weight="700" fill="#243746">工作过程/场景</text>
+<text x="1260.0" y="152.0" text-anchor="middle" font-size="18" font-weight="700" fill="#274052">工作过程/场景</text>
+<rect x="1470.0" y="190.0" width="330.0" height="1180.0" rx="9" fill="#ffffff" stroke="#ff8a00" stroke-width="1.2"/>
+<text x="1635.0" y="218.0" text-anchor="middle" font-size="15.5" font-weight="700" fill="#243746">技能点</text>
+<text x="1635.0" y="152.0" text-anchor="middle" font-size="18" font-weight="700" fill="#274052">技能点</text>
+<rect x="1820.0" y="190.0" width="710.0" height="1180.0" rx="9" fill="#ffffff" stroke="#3c8bd6" stroke-width="1.2"/>
+<text x="2175.0" y="218.0" text-anchor="middle" font-size="15.5" font-weight="700" fill="#243746">课程定位 / 核心能力 / 成果评价</text>
+<text x="2175.0" y="152.0" text-anchor="middle" font-size="18" font-weight="700" fill="#274052">课程定位 / 核心能力 / 成果评价</text>
+<rect x="2555.0" y="190.0" width="380.0" height="1180.0" rx="9" fill="#ffffff" stroke="#e46a26" stroke-width="1.2"/>
+<text x="2745.0" y="218.0" text-anchor="middle" font-size="15.5" font-weight="700" fill="#243746">知识点/规范</text>
+<text x="2745.0" y="152.0" text-anchor="middle" font-size="18" font-weight="700" fill="#274052">知识点/规范</text>
+<rect x="2965.0" y="190.0" width="390.0" height="1180.0" rx="9" fill="#ffffff" stroke="#f45b5b" stroke-width="1.2"/>
+<text x="3160.0" y="218.0" text-anchor="middle" font-size="15.5" font-weight="700" fill="#243746">来源依据</text>
+<text x="3160.0" y="152.0" text-anchor="middle" font-size="18" font-weight="700" fill="#274052">来源依据</text>
+<g id="SRC-MOE-KEY-2026" class="card source">
+<rect x="50.0" y="250.0" width="300.0" height="94.0" rx="7" fill="#fffafa" stroke="#f45b5b" stroke-width="1.6"/>
+<text x="200.0" y="275.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#912323">政策文件</text>
+<text x="200.0" y="296.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#912323">关键要素改革、课程能力图谱、任务/技能/</text>
+<text x="200.0" y="314.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#912323">知识要求</text>
+<text x="60.0" y="334.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#912323">SRC-MOE-KEY-2026</text>
+</g>
+<g id="SRC-MOE-MCT-2025" class="card source">
+<rect x="50.0" y="499.0" width="300.0" height="94.0" rx="7" fill="#fffafa" stroke="#f45b5b" stroke-width="1.6"/>
+<text x="200.0" y="524.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#912323">专业教学标准</text>
+<text x="200.0" y="545.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#912323">现代通信技术510301，职业面向与培养规格</text>
+<text x="60.0" y="583.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#912323">SRC-MOE-MCT-2025</text>
+</g>
+<g id="SRC-MOHRSS-ICOM" class="card source">
+<rect x="50.0" y="749.0" width="300.0" height="94.0" rx="7" fill="#fffafa" stroke="#f45b5b" stroke-width="1.6"/>
+<text x="200.0" y="774.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#912323">职业技能标准</text>
+<text x="200.0" y="795.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#912323">信息通信网络运行、监控、维护与评价</text>
+<text x="60.0" y="833.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#912323">SRC-MOHRSS-ICOM</text>
+</g>
+<g id="SRC-TB-5G" class="card source_pending">
+<rect x="50.0" y="998.0" width="300.0" height="94.0" rx="7" fill="#fffafa" stroke="#f45b5b" stroke-width="1.6" stroke-dasharray="7 5"/>
+<text x="200.0" y="1023.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#912323">教材/课程资料</text>
+<text x="200.0" y="1044.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#912323">6个项目、18个任务、表图和任务测评证据</text>
+<text x="60.0" y="1082.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#912323">SRC-TB-5G</text>
+</g>
+<g id="SRC-SCHOOL-PENDING" class="card source_pending">
+<rect x="50.0" y="1248.0" width="300.0" height="94.0" rx="7" fill="#fffafa" stroke="#f45b5b" stroke-width="1.6" stroke-dasharray="7 5"/>
+<text x="200.0" y="1273.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#912323">企业任务/校本条件</text>
+<text x="200.0" y="1294.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#912323">设备、平台、学时、真实项目待专家确认</text>
+<text x="60.0" y="1332.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#912323">SRC-SCHOOL-PENDING</text>
+</g>
+<g id="POS-001" class="card position">
+<rect x="400.0" y="250.0" width="270.0" height="92.0" rx="7" fill="#eef7ff" stroke="#4f9ddb" stroke-width="1.6"/>
+<text x="535.0" y="275.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#174a73">无线网络优化工程技术领域</text>
+<text x="535.0" y="296.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#174a73">覆盖规划前信息采集、现场测试、问题分</text>
+<text x="535.0" y="314.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#174a73">析、优化调整与验证。</text>
+<text x="410.0" y="332.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#174a73">POS-001</text>
+</g>
+<g id="POS-002" class="card position">
+<rect x="400.0" y="583.0" width="270.0" height="92.0" rx="7" fill="#eef7ff" stroke="#4f9ddb" stroke-width="1.6"/>
+<text x="535.0" y="608.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#174a73">信息通信网络运行监控与维护</text>
+<text x="535.0" y="629.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#174a73">面向网管监控、告警处理、日志查询和参</text>
+<text x="535.0" y="647.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#174a73">数维护。</text>
+<text x="410.0" y="665.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#174a73">POS-002</text>
+</g>
+<g id="POS-003" class="card position">
+<rect x="400.0" y="916.0" width="270.0" height="92.0" rx="7" fill="#eef7ff" stroke="#4f9ddb" stroke-width="1.6"/>
+<text x="535.0" y="941.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#174a73">网络测试与性能分析</text>
+<text x="535.0" y="962.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#174a73">面向DT/CQT测试、KPI采集、性能分析和</text>
+<text x="535.0" y="980.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#174a73">质量验证。</text>
+<text x="410.0" y="998.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#174a73">POS-003</text>
+</g>
+<g id="POS-004" class="card position">
+<rect x="400.0" y="1250.0" width="270.0" height="92.0" rx="7" fill="#eef7ff" stroke="#4f9ddb" stroke-width="1.6"/>
+<text x="535.0" y="1275.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#174a73">信令分析与问题定位</text>
+<text x="535.0" y="1296.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#174a73">面向SA/NSA信令解析和覆盖、接入、切</text>
+<text x="535.0" y="1314.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#174a73">换、掉线问题定位。</text>
+<text x="410.0" y="1332.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#174a73">POS-004</text>
+</g>
+<g id="TGRP-001" class="card task">
+<rect x="725.0" y="250.0" width="310.0" height="128.0" rx="7" fill="#e8fff8" stroke="#00a38a" stroke-width="1.6"/>
+<text x="880.0" y="275.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#00665a">5G网络信息采集</text>
+<text x="880.0" y="296.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#00665a">站点室内/室外/投诉信息采集</text>
+<text x="735.0" y="368.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#00665a">TGRP-001</text>
+</g>
+<g id="TGRP-002" class="card task">
+<rect x="725.0" y="442.0" width="310.0" height="128.0" rx="7" fill="#e8fff8" stroke="#00a38a" stroke-width="1.6"/>
+<text x="880.0" y="467.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#00665a">5G网络测试</text>
+<text x="880.0" y="488.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#00665a">DT/CQT测试、问题处理、数据分析</text>
+<text x="735.0" y="560.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#00665a">TGRP-002</text>
+</g>
+<g id="TGRP-003" class="card task">
+<rect x="725.0" y="635.0" width="310.0" height="128.0" rx="7" fill="#e8fff8" stroke="#00a38a" stroke-width="1.6"/>
+<text x="880.0" y="660.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#00665a">5G网络信息管理</text>
+<text x="880.0" y="681.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#00665a">网管架构、运行监控、参数检查与设置</text>
+<text x="735.0" y="753.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#00665a">TGRP-003</text>
+</g>
+<g id="TGRP-004" class="card task">
+<rect x="725.0" y="828.0" width="310.0" height="128.0" rx="7" fill="#e8fff8" stroke="#00a38a" stroke-width="1.6"/>
+<text x="880.0" y="853.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#00665a">5G端到端网络优化</text>
+<text x="880.0" y="874.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#00665a">优化方案实施、结果验证、报告输出</text>
+<text x="735.0" y="946.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#00665a">TGRP-004</text>
+</g>
+<g id="TGRP-005" class="card task">
+<rect x="725.0" y="1021.0" width="310.0" height="128.0" rx="7" fill="#e8fff8" stroke="#00a38a" stroke-width="1.6"/>
+<text x="880.0" y="1046.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#00665a">5G全网性能提升</text>
+<text x="880.0" y="1067.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#00665a">KPI采集、提升实施、效果验证</text>
+<text x="735.0" y="1139.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#00665a">TGRP-005</text>
+</g>
+<g id="TGRP-006" class="card task">
+<rect x="725.0" y="1214.0" width="310.0" height="128.0" rx="7" fill="#e8fff8" stroke="#00a38a" stroke-width="1.6"/>
+<text x="880.0" y="1239.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#00665a">5G信令分析</text>
+<text x="880.0" y="1260.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#00665a">关键信令流程解析、信令问题优化</text>
+<text x="735.0" y="1332.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#00665a">TGRP-006</text>
+</g>
+<g id="VP-001" class="card process">
+<rect x="1100.0" y="250.0" width="320.0" height="100.0" rx="7" fill="#f2fffd" stroke="#009688" stroke-width="1.6"/>
+<text x="1260.0" y="275.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#004c48">准备/采集/核查</text>
+<text x="1260.0" y="296.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#004c48">工具资料准备、现场采集、表单照片归档</text>
+<text x="1110.0" y="340.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#004c48">P-001/P-002/P-003</text>
+</g>
+<g id="VP-002" class="card process">
+<rect x="1100.0" y="448.0" width="320.0" height="100.0" rx="7" fill="#f2fffd" stroke="#009688" stroke-width="1.6"/>
+<text x="1260.0" y="473.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#004c48">测试执行/数据分析</text>
+<text x="1260.0" y="494.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#004c48">DT/CQT规划执行、日志保存、异常分析</text>
+<text x="1110.0" y="538.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#004c48">P-004/P-005/P-006</text>
+</g>
+<g id="VP-003" class="card process">
+<rect x="1100.0" y="646.0" width="320.0" height="100.0" rx="7" fill="#f2fffd" stroke="#009688" stroke-width="1.6"/>
+<text x="1260.0" y="671.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#004c48">网管监控/参数配置</text>
+<text x="1260.0" y="692.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#004c48">权限、告警、KPI、日志、参数检查与设置</text>
+<text x="1110.0" y="736.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#004c48">P-007/P-008/P-009</text>
+</g>
+<g id="VP-004" class="card process">
+<rect x="1100.0" y="845.0" width="320.0" height="100.0" rx="7" fill="#f2fffd" stroke="#009688" stroke-width="1.6"/>
+<text x="1260.0" y="870.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#004c48">问题定位/优化实施</text>
+<text x="1260.0" y="891.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#004c48">多源证据判断、天线/无线/承载/核心调整</text>
+<text x="1110.0" y="935.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#004c48">P-010/P-011</text>
+</g>
+<g id="VP-005" class="card process">
+<rect x="1100.0" y="1043.0" width="320.0" height="100.0" rx="7" fill="#f2fffd" stroke="#009688" stroke-width="1.6"/>
+<text x="1260.0" y="1068.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#004c48">验证/性能提升</text>
+<text x="1260.0" y="1089.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#004c48">覆盖、切换、时延、速率、容量、KPI闭环</text>
+<text x="1110.0" y="1133.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#004c48">P-012/P-013/P-014/P-015</text>
+</g>
+<g id="VP-006" class="card process">
+<rect x="1100.0" y="1242.0" width="320.0" height="100.0" rx="7" fill="#f2fffd" stroke="#009688" stroke-width="1.6"/>
+<text x="1260.0" y="1267.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#004c48">信令解析/报告交付</text>
+<text x="1260.0" y="1288.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#004c48">SA/NSA流程、问题优化、工程报告沟通</text>
+<text x="1110.0" y="1332.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#004c48">P-016/P-017</text>
+</g>
+<g id="VSK-001" class="card skill">
+<rect x="1490.0" y="250.0" width="300.0" height="92.0" rx="7" fill="#fff7eb" stroke="#ff8a00" stroke-width="1.6"/>
+<text x="1640.0" y="275.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7c3c00">现场信息采集</text>
+<text x="1640.0" y="296.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c3c00">测量站址、天馈、机房、电源传输与投诉信息</text>
+<text x="1500.0" y="332.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7c3c00">SKL-001..003</text>
+</g>
+<g id="VSK-002" class="card skill">
+<rect x="1490.0" y="392.0" width="300.0" height="92.0" rx="7" fill="#fff7eb" stroke="#ff8a00" stroke-width="1.6"/>
+<text x="1640.0" y="417.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7c3c00">DT/CQT测试控制</text>
+<text x="1640.0" y="438.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c3c00">配置设备软件、执行测试、保存log与原始数</text>
+<text x="1640.0" y="456.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c3c00">据</text>
+<text x="1500.0" y="474.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7c3c00">SKL-004..006</text>
+</g>
+<g id="VSK-003" class="card skill">
+<rect x="1490.0" y="535.0" width="300.0" height="92.0" rx="7" fill="#fff7eb" stroke="#ff8a00" stroke-width="1.6"/>
+<text x="1640.0" y="560.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7c3c00">网管监控操作</text>
+<text x="1640.0" y="581.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c3c00">查询告警、KPI、日志并检查/配置参数</text>
+<text x="1500.0" y="617.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7c3c00">SKL-007..009</text>
+</g>
+<g id="VSK-004" class="card skill">
+<rect x="1490.0" y="678.0" width="300.0" height="92.0" rx="7" fill="#fff7eb" stroke="#ff8a00" stroke-width="1.6"/>
+<text x="1640.0" y="703.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7c3c00">问题综合定位</text>
+<text x="1640.0" y="724.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c3c00">综合测试、网管、告警、KPI、投诉判断场景</text>
+<text x="1500.0" y="760.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7c3c00">SKL-010</text>
+</g>
+<g id="VSK-005" class="card skill">
+<rect x="1490.0" y="821.0" width="300.0" height="92.0" rx="7" fill="#fff7eb" stroke="#ff8a00" stroke-width="1.6"/>
+<text x="1640.0" y="846.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7c3c00">优化调整实施</text>
+<text x="1640.0" y="867.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c3c00">执行天线、无线、承载、核心和邻区参数调整</text>
+<text x="1500.0" y="903.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7c3c00">SKL-011..012</text>
+</g>
+<g id="VSK-006" class="card skill">
+<rect x="1490.0" y="964.0" width="300.0" height="92.0" rx="7" fill="#fff7eb" stroke="#ff8a00" stroke-width="1.6"/>
+<text x="1640.0" y="989.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7c3c00">KPI提升验证</text>
+<text x="1640.0" y="1010.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c3c00">采集指标、制定提升策略并进行前后对比</text>
+<text x="1500.0" y="1046.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7c3c00">SKL-013..015</text>
+</g>
+<g id="VSK-007" class="card skill">
+<rect x="1490.0" y="1107.0" width="300.0" height="92.0" rx="7" fill="#fff7eb" stroke="#ff8a00" stroke-width="1.6"/>
+<text x="1640.0" y="1132.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7c3c00">信令分析优化</text>
+<text x="1640.0" y="1153.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c3c00">解析SA/NSA信令并定位覆盖/接入/切换/掉线</text>
+<text x="1640.0" y="1171.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c3c00">问题</text>
+<text x="1500.0" y="1189.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7c3c00">SKL-016..017</text>
+</g>
+<g id="VSK-008" class="card skill">
+<rect x="1490.0" y="1250.0" width="300.0" height="92.0" rx="7" fill="#fff7eb" stroke="#ff8a00" stroke-width="1.6"/>
+<text x="1640.0" y="1275.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7c3c00">报告交付沟通</text>
+<text x="1640.0" y="1296.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c3c00">输出优化、验证、问题报告并完成复盘沟通</text>
+<text x="1500.0" y="1332.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7c3c00">SKL-018</text>
+</g>
+<g id="COURSE" class="card course">
+<rect x="1840.0" y="250.0" width="300.0" height="104.0" rx="7" fill="#f6fbff" stroke="#3c8bd6" stroke-width="1.6"/>
+<text x="1990.0" y="275.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#123d66">课程定位</text>
+<text x="1990.0" y="296.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#123d66">5G网络优化（高级）；高职现代通信技术；</text>
+<text x="1990.0" y="314.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#123d66">项目化综合实训课；学时待确认</text>
+<text x="1850.0" y="344.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#123d66">CUR-001</text>
+</g>
+<g id="OUTCOME" class="card assessment">
+<rect x="1840.0" y="497.0" width="300.0" height="104.0" rx="7" fill="#ffffff" stroke="#3c8bd6" stroke-width="1.6"/>
+<text x="1990.0" y="522.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#17324d">典型成果</text>
+<text x="1990.0" y="543.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#17324d">采集包、测试数据包、网管记录、优化验证报</text>
+<text x="1990.0" y="561.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#17324d">告、信令分析报告</text>
+<text x="1850.0" y="591.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#17324d">OUT-001..005</text>
+</g>
+<g id="ASSESS" class="card assessment">
+<rect x="1840.0" y="744.0" width="300.0" height="104.0" rx="7" fill="#ffffff" stroke="#3c8bd6" stroke-width="1.6"/>
+<text x="1990.0" y="769.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#17324d">教学评价与支撑</text>
+<text x="1990.0" y="790.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#17324d">任务成果、操作日志、KPI对比、信令标注、</text>
+<text x="1990.0" y="808.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#17324d">报告答辩、量规评价</text>
+<text x="1850.0" y="838.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#17324d">ASS-001</text>
+</g>
+<g id="QUALITY" class="card quality">
+<rect x="1840.0" y="991.0" width="300.0" height="104.0" rx="7" fill="#f7fbff" stroke="#7c9cc8" stroke-width="1.6"/>
+<text x="1990.0" y="1016.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#17324d">职业素养/安全质量</text>
+<text x="1990.0" y="1037.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#17324d">现场安全、数据真实、变更留痕、客户沟通、</text>
+<text x="1990.0" y="1055.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#17324d">团队协作、复盘改进</text>
+<text x="1850.0" y="1085.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#17324d">QUA-001</text>
+</g>
+<g id="CHECK" class="card assessment">
+<rect x="1840.0" y="1238.0" width="300.0" height="104.0" rx="7" fill="#ffffff" stroke="#3c8bd6" stroke-width="1.6"/>
+<text x="1990.0" y="1263.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#17324d">来源校验与发布边界</text>
+<text x="1990.0" y="1284.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#17324d">来源映射表、评价量规、人工闭环项、版权与</text>
+<text x="1990.0" y="1302.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#17324d">设备核验</text>
+<text x="1850.0" y="1332.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#17324d">CHK-001</text>
+</g>
+<g id="CAP-001" class="card capability">
+<rect x="2160.0" y="250.0" width="350.0" height="94.0" rx="7" fill="#f8fffb" stroke="#2aa66a" stroke-width="1.6"/>
+<text x="2335.0" y="275.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#105d39">5G站点与用户场景信息采集能力</text>
+<text x="2335.0" y="296.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#105d39">面向网络规划/优化前置勘察，完成室内、室外、投</text>
+<text x="2335.0" y="314.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#105d39">诉信息采集、核验和记录。</text>
+<text x="2170.0" y="334.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#105d39">CAP-001</text>
+</g>
+<g id="CAP-002" class="card capability">
+<rect x="2160.0" y="392.0" width="350.0" height="94.0" rx="7" fill="#f8fffb" stroke="#2aa66a" stroke-width="1.6"/>
+<text x="2335.0" y="417.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#105d39">DT/CQT测试组织与数据质量控制能力</text>
+<text x="2335.0" y="438.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#105d39">面向道路/定点测试任务，完成测试准备、执行、日</text>
+<text x="2335.0" y="456.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#105d39">志保存和测试数据质量控制。</text>
+<text x="2170.0" y="476.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#105d39">CAP-002</text>
+</g>
+<g id="CAP-003" class="card capability">
+<rect x="2160.0" y="535.0" width="350.0" height="94.0" rx="7" fill="#f8fffb" stroke="#2aa66a" stroke-width="1.6"/>
+<text x="2335.0" y="560.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#105d39">5G网管监控与参数核查配置能力</text>
+<text x="2335.0" y="581.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#105d39">面向网管平台，完成用户、告警、指标、日志和参数</text>
+<text x="2335.0" y="599.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#105d39">检查配置。</text>
+<text x="2170.0" y="619.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#105d39">CAP-003</text>
+</g>
+<g id="CAP-004" class="card capability">
+<rect x="2160.0" y="677.0" width="350.0" height="94.0" rx="7" fill="#f8fffb" stroke="#2aa66a" stroke-width="1.6"/>
+<text x="2335.0" y="702.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#105d39">多源网络问题分析与定位能力</text>
+<text x="2335.0" y="723.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#105d39">综合测试、网管、告警、KPI、投诉和日志证据定位</text>
+<text x="2335.0" y="741.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#105d39">问题。</text>
+<text x="2170.0" y="761.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#105d39">CAP-004</text>
+</g>
+<g id="CAP-005" class="card capability">
+<rect x="2160.0" y="820.0" width="350.0" height="94.0" rx="7" fill="#f8fffb" stroke="#2aa66a" stroke-width="1.6"/>
+<text x="2335.0" y="845.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#105d39">端到端网络优化实施与结果验证能力</text>
+<text x="2335.0" y="866.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#105d39">实施天线、无线、承载、核心网等优化调整并完成覆</text>
+<text x="2335.0" y="884.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#105d39">盖/切换等结果验证。</text>
+<text x="2170.0" y="904.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#105d39">CAP-005</text>
+</g>
+<g id="CAP-006" class="card capability">
+<rect x="2160.0" y="962.0" width="350.0" height="94.0" rx="7" fill="#f8fffb" stroke="#2aa66a" stroke-width="1.6"/>
+<text x="2335.0" y="987.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#105d39">全网性能指标采集、提升与验证能力</text>
+<text x="2335.0" y="1008.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#105d39">采集和解释全网KPI，制定并验证性能提升方案。</text>
+<text x="2170.0" y="1046.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#105d39">CAP-006</text>
+</g>
+<g id="CAP-007" class="card capability">
+<rect x="2160.0" y="1105.0" width="350.0" height="94.0" rx="7" fill="#f8fffb" stroke="#2aa66a" stroke-width="1.6"/>
+<text x="2335.0" y="1130.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#105d39">5G SA/NSA信令解析与问题优化能力</text>
+<text x="2335.0" y="1151.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#105d39">解析关键信令流程，基于信令定位覆盖、接入、切换</text>
+<text x="2335.0" y="1169.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#105d39">、掉线等问题。</text>
+<text x="2170.0" y="1189.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#105d39">CAP-007</text>
+</g>
+<g id="CAP-008" class="card capability">
+<rect x="2160.0" y="1248.0" width="350.0" height="94.0" rx="7" fill="#f8fffb" stroke="#2aa66a" stroke-width="1.6"/>
+<text x="2335.0" y="1273.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#105d39">工程报告交付、安全质量与沟通复盘能力</text>
+<text x="2335.0" y="1294.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#105d39">形成优化报告、问题分析报告、验证结论和客户沟通</text>
+<text x="2335.0" y="1312.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#105d39">闭环。</text>
+<text x="2170.0" y="1332.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#105d39">CAP-008</text>
+</g>
+<g id="KNO-001" class="card knowledge">
+<rect x="2570.0" y="250.0" width="350.0" height="110.0" rx="7" fill="#fff5ef" stroke="#e46a26" stroke-width="1.6"/>
+<text x="2745.0" y="275.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7c2d12">5G组网架构与站点设备知识组</text>
+<text x="2745.0" y="296.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c2d12">SA/NSA组网、BBU/AAU/RRU、机房电源传输、站点</text>
+<text x="2745.0" y="314.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c2d12">安装与环境要求。</text>
+<text x="2580.0" y="350.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7c2d12">KNO-001</text>
+</g>
+<g id="KNO-002" class="card knowledge">
+<rect x="2570.0" y="446.0" width="350.0" height="110.0" rx="7" fill="#fff5ef" stroke="#e46a26" stroke-width="1.6"/>
+<text x="2745.0" y="471.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7c2d12">DT/CQT测试工具与数据规范知识组</text>
+<text x="2745.0" y="492.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c2d12">测试设备、路线规划、日志保存、测试异常和数据导</text>
+<text x="2745.0" y="510.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c2d12">入导出方法。</text>
+<text x="2580.0" y="546.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7c2d12">KNO-002</text>
+</g>
+<g id="KNO-003" class="card knowledge">
+<rect x="2570.0" y="642.0" width="350.0" height="110.0" rx="7" fill="#fff5ef" stroke="#e46a26" stroke-width="1.6"/>
+<text x="2745.0" y="667.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7c2d12">网管告警、日志、参数与KPI知识组</text>
+<text x="2745.0" y="688.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c2d12">网管架构、告警级别、性能指标模板、参数检查/配</text>
+<text x="2745.0" y="706.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c2d12">置和日志安全。</text>
+<text x="2580.0" y="742.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7c2d12">KNO-003</text>
+</g>
+<g id="KNO-004" class="card knowledge">
+<rect x="2570.0" y="839.0" width="350.0" height="110.0" rx="7" fill="#fff5ef" stroke="#e46a26" stroke-width="1.6"/>
+<text x="2745.0" y="864.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7c2d12">覆盖/接入/切换/保持/容量优化知识组</text>
+<text x="2745.0" y="885.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c2d12">RSRP、SINR、切换事件、接入保持、资源、容量、</text>
+<text x="2745.0" y="903.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c2d12">可用性和干扰分析。</text>
+<text x="2580.0" y="939.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7c2d12">KNO-004</text>
+</g>
+<g id="KNO-005" class="card knowledge">
+<rect x="2570.0" y="1035.0" width="350.0" height="110.0" rx="7" fill="#fff5ef" stroke="#e46a26" stroke-width="1.6"/>
+<text x="2745.0" y="1060.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7c2d12">NR RRC与SA/NSA信令流程知识组</text>
+<text x="2745.0" y="1081.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c2d12">注册、接入、切换、掉线等关键信令流程和4/5G差</text>
+<text x="2745.0" y="1099.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c2d12">异。</text>
+<text x="2580.0" y="1135.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7c2d12">KNO-005</text>
+</g>
+<g id="KNO-006" class="card knowledge">
+<rect x="2570.0" y="1232.0" width="350.0" height="110.0" rx="7" fill="#fff5ef" stroke="#e46a26" stroke-width="1.6"/>
+<text x="2745.0" y="1257.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7c2d12">工程交付、安全质量与公开发布规范知识组</text>
+<text x="2745.0" y="1278.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c2d12">报告模板、变更记录、客户沟通、安全质量、版权边</text>
+<text x="2745.0" y="1296.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7c2d12">界和专家复核要求。</text>
+<text x="2580.0" y="1332.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7c2d12">KNO-006</text>
+</g>
+<g id="RS-3GPP-38300" class="card source">
+<rect x="2985.0" y="250.0" width="350.0" height="104.0" rx="7" fill="#fffafa" stroke="#f45b5b" stroke-width="1.6"/>
+<text x="3160.0" y="275.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#912323">3GPP TS 38.300</text>
+<text x="3160.0" y="296.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#912323">NR/NG-RAN总体架构与组网描述</text>
+<text x="2995.0" y="344.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#912323">SRC-3GPP-38300</text>
+</g>
+<g id="RS-3GPP-38331" class="card source">
+<rect x="2985.0" y="447.0" width="350.0" height="104.0" rx="7" fill="#fffafa" stroke="#f45b5b" stroke-width="1.6"/>
+<text x="3160.0" y="472.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#912323">3GPP TS 38.331</text>
+<text x="3160.0" y="493.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#912323">NR RRC协议与信令流程</text>
+<text x="2995.0" y="541.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#912323">SRC-3GPP-38331</text>
+</g>
+<g id="RS-3GPP-28552" class="card source">
+<rect x="2985.0" y="645.0" width="350.0" height="104.0" rx="7" fill="#fffafa" stroke="#f45b5b" stroke-width="1.6"/>
+<text x="3160.0" y="670.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#912323">3GPP TS 28.552</text>
+<text x="3160.0" y="691.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#912323">5G性能测量与KPI口径</text>
+<text x="2995.0" y="739.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#912323">SRC-3GPP-28552</text>
+</g>
+<g id="RS-ENTERPRISE" class="card source_pending">
+<rect x="2985.0" y="842.0" width="350.0" height="104.0" rx="7" fill="#fffafa" stroke="#f45b5b" stroke-width="1.6" stroke-dasharray="7 5"/>
+<text x="3160.0" y="867.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#912323">厂商/企业规范</text>
+<text x="3160.0" y="888.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#912323">网管平台、参数模板、验收标准待校本核验</text>
+<text x="2995.0" y="936.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#912323">SRC-ENTERPRISE</text>
+</g>
+<g id="RS-MODULE" class="card source_pending">
+<rect x="2985.0" y="1040.0" width="350.0" height="104.0" rx="7" fill="#fffafa" stroke="#f45b5b" stroke-width="1.6" stroke-dasharray="7 5"/>
+<text x="3160.0" y="1065.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#912323">模块/设备资料</text>
+<text x="3160.0" y="1086.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#912323">终端、扫频仪、AAU/BBU、仿真平台版本待核验</text>
+<text x="2995.0" y="1134.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#912323">SRC-MODULE</text>
+</g>
+<g id="RS-QUALITY" class="card source">
+<rect x="2985.0" y="1238.0" width="350.0" height="104.0" rx="7" fill="#fffafa" stroke="#f45b5b" stroke-width="1.6"/>
+<text x="3160.0" y="1263.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#912323">公开发布边界</text>
+<text x="3160.0" y="1284.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#912323">报告模板、变更记录、安全质量、版权边界和专家复</text>
+<text x="3160.0" y="1302.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#912323">核</text>
+<text x="2995.0" y="1332.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#912323">SRC-QUALITY</text>
+</g>
+<rect x="35.0" y="1465.0" width="3490.0" height="285.0" rx="9" fill="#ffffff" stroke="#d8a12a" stroke-width="1.2"/>
+<text x="1780.0" y="1493.0" text-anchor="middle" font-size="15.5" font-weight="700" fill="#243746">底部：来源校验、评价闭环、五个附件、组件审核总清单</text>
+<g id="BPATH" class="card closure">
+<rect x="70.0" y="1565.0" width="340.0" height="86.0" rx="7" fill="#fffdf7" stroke="#d8a12a" stroke-width="1.6"/>
+<text x="240.0" y="1590.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7a4b00">课程能力形成路径</text>
+<text x="240.0" y="1611.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7a4b00">典型项目/任务 -&gt; 工作过程/场景 -&gt; 技能点 -</text>
+<text x="240.0" y="1629.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7a4b00">&gt; 核心能力项 -&gt; 知识点/规范 -&gt; 评价证据</text>
+<text x="80.0" y="1641.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7a4b00">BPATH</text>
+</g>
+<g id="BCHECK" class="card closure">
+<rect x="450.0" y="1565.0" width="340.0" height="86.0" rx="7" fill="#fffdf7" stroke="#d8a12a" stroke-width="1.6"/>
+<text x="620.0" y="1590.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7a4b00">来源校验</text>
+<text x="620.0" y="1611.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7a4b00">教材证据、外部标准、来源映射、低可信节点待复</text>
+<text x="620.0" y="1629.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7a4b00">核</text>
+<text x="460.0" y="1641.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7a4b00">BCHECK</text>
+</g>
+<g id="BEVAL" class="card closure">
+<rect x="830.0" y="1565.0" width="320.0" height="86.0" rx="7" fill="#fffdf7" stroke="#d8a12a" stroke-width="1.6"/>
+<text x="990.0" y="1590.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7a4b00">评价闭环</text>
+<text x="990.0" y="1611.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7a4b00">任务成果、操作过程、KPI/信令证据、报告答</text>
+<text x="990.0" y="1629.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7a4b00">辩、量规</text>
+<text x="840.0" y="1641.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7a4b00">BEVAL</text>
+</g>
+<g id="BA1" class="card closure">
+<rect x="1190.0" y="1565.0" width="270.0" height="86.0" rx="7" fill="#fffdf7" stroke="#d8a12a" stroke-width="1.6"/>
+<text x="1325.0" y="1590.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7a4b00">附件1</text>
+<text x="1325.0" y="1611.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7a4b00">企业专家复核表</text>
+<text x="1200.0" y="1641.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7a4b00">BA1</text>
+</g>
+<g id="BA2" class="card closure">
+<rect x="1500.0" y="1565.0" width="270.0" height="86.0" rx="7" fill="#fffdf7" stroke="#d8a12a" stroke-width="1.6"/>
+<text x="1635.0" y="1590.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7a4b00">附件2</text>
+<text x="1635.0" y="1611.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7a4b00">教材版权与公开展示授权确认表</text>
+<text x="1510.0" y="1641.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7a4b00">BA2</text>
+</g>
+<g id="BA3" class="card closure">
+<rect x="1810.0" y="1565.0" width="270.0" height="86.0" rx="7" fill="#fffdf7" stroke="#d8a12a" stroke-width="1.6"/>
+<text x="1945.0" y="1590.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7a4b00">附件3</text>
+<text x="1945.0" y="1611.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7a4b00">校本实训设备清单</text>
+<text x="1820.0" y="1641.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7a4b00">BA3</text>
+</g>
+<g id="BA4" class="card closure">
+<rect x="2120.0" y="1565.0" width="270.0" height="86.0" rx="7" fill="#fffdf7" stroke="#d8a12a" stroke-width="1.6"/>
+<text x="2255.0" y="1590.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7a4b00">附件4</text>
+<text x="2255.0" y="1611.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7a4b00">模块型号版本与技术资料核验表</text>
+<text x="2130.0" y="1641.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7a4b00">BA4</text>
+</g>
+<g id="BA5" class="card closure">
+<rect x="2430.0" y="1565.0" width="320.0" height="86.0" rx="7" fill="#fffdf7" stroke="#d8a12a" stroke-width="1.6"/>
+<text x="2590.0" y="1590.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7a4b00">附件5</text>
+<text x="2590.0" y="1611.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7a4b00">能力项_教材标准_评价证据矩阵</text>
+<text x="2440.0" y="1641.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7a4b00">BA5</text>
+</g>
+<g id="BAUDIT" class="card closure">
+<rect x="2800.0" y="1565.0" width="340.0" height="86.0" rx="7" fill="#fffdf7" stroke="#d8a12a" stroke-width="1.6"/>
+<text x="2970.0" y="1590.0" text-anchor="middle" font-size="14.5" font-weight="700" fill="#7a4b00">组件审核总清单</text>
+<text x="2970.0" y="1611.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#7a4b00">节点、关系、来源、图面、附件逐项审核</text>
+<text x="2810.0" y="1641.0" text-anchor="start" font-size="10.5" font-weight="400" fill="#7a4b00">BAUDIT</text>
+</g>
+<path d="M350.0,297.0 L537.5,297.0 L537.5,314.0 L725.0,314.0" fill="none" stroke="#e57373" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<text x="537.5" y="299.5" text-anchor="middle" font-size="10.5" font-weight="400" fill="#e57373">政策依据</text>
+<path d="M350.0,546.0 L375.0,546.0 L375.0,296.0 L400.0,296.0" fill="none" stroke="#e57373" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<text x="375.0" y="415.0" text-anchor="middle" font-size="10.5" font-weight="400" fill="#e57373">专业标准</text>
+<path d="M350.0,796.0 L375.0,796.0 L375.0,629.0 L400.0,629.0" fill="none" stroke="#e57373" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<text x="375.0" y="706.5" text-anchor="middle" font-size="10.5" font-weight="400" fill="#e57373">职业标准</text>
+<path d="M350.0,1045.0 L537.5,1045.0 L537.5,699.0 L725.0,699.0" fill="none" stroke="#e57373" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<text x="537.5" y="866.0" text-anchor="middle" font-size="10.5" font-weight="400" fill="#e57373">教材项目</text>
+<path d="M350.0,1295.0 L725.0,1295.0 L725.0,895.0 L1100.0,895.0" fill="none" stroke="#e57373" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<text x="725.0" y="1089.0" text-anchor="middle" font-size="10.5" font-weight="400" fill="#e57373">待校本复核</text>
+<path d="M670.0,296.0 C710.0,296.0 685.0,314.0 725.0,314.0" fill="none" stroke="#90a4ae" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M670.0,629.0 C710.0,629.0 685.0,699.0 725.0,699.0" fill="none" stroke="#90a4ae" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M670.0,962.0 C710.0,962.0 685.0,506.0 725.0,506.0" fill="none" stroke="#90a4ae" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M670.0,1296.0 C710.0,1296.0 685.0,1278.0 725.0,1278.0" fill="none" stroke="#90a4ae" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M670.0,1296.0 C710.0,1296.0 685.0,892.0 725.0,892.0" fill="none" stroke="#90a4ae" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M670.0,962.0 C710.0,962.0 685.0,1085.0 725.0,1085.0" fill="none" stroke="#90a4ae" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1035.0,314.0 C1075.0,314.0 1060.0,300.0 1100.0,300.0" fill="none" stroke="#80cbc4" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1035.0,506.0 C1075.0,506.0 1060.0,498.0 1100.0,498.0" fill="none" stroke="#80cbc4" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1035.0,699.0 C1075.0,699.0 1060.0,696.0 1100.0,696.0" fill="none" stroke="#80cbc4" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1035.0,892.0 C1075.0,892.0 1060.0,895.0 1100.0,895.0" fill="none" stroke="#80cbc4" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1035.0,1085.0 C1075.0,1085.0 1060.0,1093.0 1100.0,1093.0" fill="none" stroke="#80cbc4" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1035.0,1278.0 C1075.0,1278.0 1060.0,1292.0 1100.0,1292.0" fill="none" stroke="#80cbc4" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1420.0,300.0 C1460.0,300.0 1450.0,296.0 1490.0,296.0" fill="none" stroke="#ffb74d" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1420.0,498.0 C1460.0,498.0 1450.0,438.0 1490.0,438.0" fill="none" stroke="#ffb74d" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1420.0,696.0 C1460.0,696.0 1450.0,581.0 1490.0,581.0" fill="none" stroke="#ffb74d" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1420.0,895.0 C1460.0,895.0 1450.0,724.0 1490.0,724.0" fill="none" stroke="#ffb74d" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1420.0,1093.0 C1460.0,1093.0 1450.0,867.0 1490.0,867.0" fill="none" stroke="#ffb74d" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1420.0,1292.0 C1460.0,1292.0 1450.0,1010.0 1490.0,1010.0" fill="none" stroke="#ffb74d" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1420.0,1292.0 C1460.0,1292.0 1450.0,1153.0 1490.0,1153.0" fill="none" stroke="#ffb74d" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1420.0,1292.0 C1460.0,1292.0 1450.0,1296.0 1490.0,1296.0" fill="none" stroke="#ffb74d" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1790.0,296.0 C1893.6,296.0 2056.4,297.0 2160.0,297.0" fill="none" stroke="#66bb6a" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1790.0,438.0 C1893.6,438.0 2056.4,439.0 2160.0,439.0" fill="none" stroke="#66bb6a" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1790.0,581.0 C1893.6,581.0 2056.4,582.0 2160.0,582.0" fill="none" stroke="#66bb6a" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1790.0,724.0 C1893.6,724.0 2056.4,724.0 2160.0,724.0" fill="none" stroke="#66bb6a" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1790.0,867.0 C1893.6,867.0 2056.4,867.0 2160.0,867.0" fill="none" stroke="#66bb6a" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1790.0,1010.0 C1893.6,1010.0 2056.4,1009.0 2160.0,1009.0" fill="none" stroke="#66bb6a" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1790.0,1153.0 C1893.6,1153.0 2056.4,1152.0 2160.0,1152.0" fill="none" stroke="#66bb6a" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1790.0,1296.0 C1893.6,1296.0 2056.4,1295.0 2160.0,1295.0" fill="none" stroke="#66bb6a" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M2140.0,302.0 C2180.0,302.0 2120.0,297.0 2160.0,297.0" fill="none" stroke="#64b5f6" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M2140.0,302.0 C2180.0,302.0 2120.0,439.0 2160.0,439.0" fill="none" stroke="#64b5f6" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M2140.0,302.0 C2180.0,302.0 2120.0,582.0 2160.0,582.0" fill="none" stroke="#64b5f6" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M2140.0,549.0 C2180.0,549.0 2120.0,867.0 2160.0,867.0" fill="none" stroke="#64b5f6" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M2140.0,796.0 C2180.0,796.0 2120.0,1295.0 2160.0,1295.0" fill="none" stroke="#64b5f6" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M2140.0,1043.0 C2180.0,1043.0 2120.0,1295.0 2160.0,1295.0" fill="none" stroke="#64b5f6" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M2510.0,297.0 C2550.0,297.0 2530.0,305.0 2570.0,305.0" fill="none" stroke="#ef8a45" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M2510.0,439.0 C2550.0,439.0 2530.0,501.0 2570.0,501.0" fill="none" stroke="#ef8a45" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M2510.0,582.0 C2550.0,582.0 2530.0,697.0 2570.0,697.0" fill="none" stroke="#ef8a45" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M2510.0,724.0 C2550.0,724.0 2530.0,894.0 2570.0,894.0" fill="none" stroke="#ef8a45" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M2510.0,867.0 C2550.0,867.0 2530.0,894.0 2570.0,894.0" fill="none" stroke="#ef8a45" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M2510.0,1009.0 C2550.0,1009.0 2530.0,894.0 2570.0,894.0" fill="none" stroke="#ef8a45" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M2510.0,1152.0 C2550.0,1152.0 2530.0,1090.0 2570.0,1090.0" fill="none" stroke="#ef8a45" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M2510.0,1295.0 C2550.0,1295.0 2530.0,1287.0 2570.0,1287.0" fill="none" stroke="#ef8a45" stroke-width="1.25" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M2920.0,305.0 L2952.5,305.0 L2952.5,302.0 L2985.0,302.0" fill="none" stroke="#e57373" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<text x="2952.5" y="297.5" text-anchor="middle" font-size="10.5" font-weight="400" fill="#e57373">规范依据</text>
+<path d="M2920.0,1090.0 L2952.5,1090.0 L2952.5,499.0 L2985.0,499.0" fill="none" stroke="#e57373" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<text x="2952.5" y="788.5" text-anchor="middle" font-size="10.5" font-weight="400" fill="#e57373">规范依据</text>
+<path d="M2920.0,894.0 L2952.5,894.0 L2952.5,697.0 L2985.0,697.0" fill="none" stroke="#e57373" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<text x="2952.5" y="789.5" text-anchor="middle" font-size="10.5" font-weight="400" fill="#e57373">规范依据</text>
+<path d="M2920.0,697.0 L2952.5,697.0 L2952.5,894.0 L2985.0,894.0" fill="none" stroke="#e57373" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<text x="2952.5" y="789.5" text-anchor="middle" font-size="10.5" font-weight="400" fill="#e57373">规范依据</text>
+<path d="M2920.0,501.0 L2952.5,501.0 L2952.5,1092.0 L2985.0,1092.0" fill="none" stroke="#e57373" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<text x="2952.5" y="790.5" text-anchor="middle" font-size="10.5" font-weight="400" fill="#e57373">规范依据</text>
+<path d="M2920.0,1287.0 L2952.5,1287.0 L2952.5,1290.0 L2985.0,1290.0" fill="none" stroke="#e57373" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<text x="2952.5" y="1282.5" text-anchor="middle" font-size="10.5" font-weight="400" fill="#e57373">规范依据</text>
+<path d="M1840.0,1290.0 L1315.0,1290.0 L1315.0,1608.0 L790.0,1608.0" fill="none" stroke="#d8a12a" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1840.0,796.0 L1495.0,796.0 L1495.0,1608.0 L1150.0,1608.0" fill="none" stroke="#d8a12a" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M410.0,1608.0 C450.0,1608.0 410.0,1608.0 450.0,1608.0" fill="none" stroke="#d8a12a" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M790.0,1608.0 C830.0,1608.0 790.0,1608.0 830.0,1608.0" fill="none" stroke="#d8a12a" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1150.0,1608.0 C1190.0,1608.0 1150.0,1608.0 1190.0,1608.0" fill="none" stroke="#d8a12a" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1460.0,1608.0 C1500.0,1608.0 1460.0,1608.0 1500.0,1608.0" fill="none" stroke="#d8a12a" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M1770.0,1608.0 C1810.0,1608.0 1770.0,1608.0 1810.0,1608.0" fill="none" stroke="#d8a12a" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M2080.0,1608.0 C2120.0,1608.0 2080.0,1608.0 2120.0,1608.0" fill="none" stroke="#d8a12a" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M2390.0,1608.0 C2430.0,1608.0 2390.0,1608.0 2430.0,1608.0" fill="none" stroke="#d8a12a" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<path d="M2750.0,1608.0 C2790.0,1608.0 2760.0,1608.0 2800.0,1608.0" fill="none" stroke="#d8a12a" stroke-width="1.25" stroke-dasharray="7 6" marker-end="url(#arrow)" opacity="0.88"/>
+<text x="50.0" y="1802.0" text-anchor="start" font-size="12" font-weight="400" fill="#607d8b">版本：G3正式公开发布候选版（UI对称优化版）｜生成日期：2026-05-10｜说明：仅优化图面布局，节点内容与证据链不变。</text>
+</svg>

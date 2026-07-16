@@ -1,0 +1,769 @@
+{
+  "id": "P07-edugame-interactive-001",
+  "widget": "edugame-pixi",
+  "version": "0.1.0",
+  "props": {
+    "title": "网管功能定位",
+    "height": 720,
+    "gameConfig": {
+      "schema": "dgbook.edugame-pixi/v1",
+      "game_id": "nms-function-map-lab",
+      "game_type": "pipe-connect",
+      "lesson_id": "P07",
+      "duration": 82,
+      "difficulty": "normal",
+      "asset_pack": "dgbook-5g-v1",
+      "mistake_limit": 4,
+      "pass_score": 80,
+      "knowledge_points": [
+        {
+          "id": "t1",
+          "name": "告警模块",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t2",
+          "name": "性能模块",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t3",
+          "name": "配置模块",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t4",
+          "name": "拓扑模块",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t5",
+          "name": "任务模块",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t6",
+          "name": "安全模块",
+          "description": "证据门",
+          "weight": 1
+        }
+      ],
+      "levels": [
+        {
+          "level_id": "p07-level-01",
+          "type": "pipe-connect",
+          "goal": "把工程任务快速定位到网管入口，提高后台核查效率。",
+          "time_limit": 82,
+          "mistake_limit": 4,
+          "items": [
+            {
+              "id": "i1",
+              "label": "告警查询",
+              "text": "现场任务：后台工程师要在 3 分钟内给外场反馈核查入口。",
+              "prompt": "判断“告警查询”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "定位网元异常和退服风险",
+              "target_id": "t1",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 定位网元异常和退服风险",
+              "kp": "t1",
+              "order": 1,
+              "correct": true
+            },
+            {
+              "id": "i2",
+              "label": "性能趋势",
+              "text": "交付要求：把工程任务快速定位到网管入口，提高后台核查效率。",
+              "prompt": "判断“性能趋势”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "查看 KPI 曲线和忙闲差异",
+              "target_id": "t2",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 查看 KPI 曲线和忙闲差异",
+              "kp": "t2",
+              "order": 2,
+              "correct": true
+            },
+            {
+              "id": "i3",
+              "label": "参数核查",
+              "text": "挑战约束：多个入口名称相似，玩家要按任务对象选择最短路径。",
+              "prompt": "判断“参数核查”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "对比现网参数和基线",
+              "target_id": "t3",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 对比现网参数和基线",
+              "kp": "t3",
+              "order": 3,
+              "correct": true
+            },
+            {
+              "id": "i4",
+              "label": "拓扑关系",
+              "text": "后台工程师要在 3 分钟内给外场反馈核查入口。",
+              "prompt": "判断“拓扑关系”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "确认网元连接和邻接关系",
+              "target_id": "t4",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 确认网元连接和邻接关系",
+              "kp": "t4",
+              "order": 4,
+              "correct": true
+            },
+            {
+              "id": "i5",
+              "label": "工单流转",
+              "text": "后台工程师要在 3 分钟内给外场反馈核查入口。",
+              "prompt": "判断“工单流转”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "记录处理动作和责任人",
+              "target_id": "t5",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 记录处理动作和责任人",
+              "kp": "t5",
+              "order": 5,
+              "correct": true
+            },
+            {
+              "id": "i6",
+              "label": "权限核验",
+              "text": "后台工程师要在 3 分钟内给外场反馈核查入口。",
+              "prompt": "判断“权限核验”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "确认可操作范围",
+              "target_id": "t6",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 确认可操作范围",
+              "kp": "t6",
+              "order": 6,
+              "correct": true
+            },
+            {
+              "id": "d1",
+              "label": "只记录主观描述",
+              "text": "缺少可复核证据，无法支撑工程闭环。",
+              "prompt": "这是干扰信息，先判断它是否能直接支撑本关目标。",
+              "definition": "缺少可复核证据，无法支撑工程闭环。",
+              "target_id": "t1",
+              "explanation": "缺少可复核证据，无法支撑工程闭环。",
+              "kp": "t1",
+              "correct": false
+            },
+            {
+              "id": "d2",
+              "label": "跳过时间和对象边界",
+              "text": "查询窗口不清会放大排查范围。",
+              "prompt": "这是干扰信息，先判断它是否能直接支撑本关目标。",
+              "definition": "查询窗口不清会放大排查范围。",
+              "target_id": "t2",
+              "explanation": "查询窗口不清会放大排查范围。",
+              "kp": "t2",
+              "correct": false
+            },
+            {
+              "id": "d3",
+              "label": "直接给经验结论",
+              "text": "没有证据链的结论不能作为派单依据。",
+              "prompt": "这是干扰信息，先判断它是否能直接支撑本关目标。",
+              "definition": "没有证据链的结论不能作为派单依据。",
+              "target_id": "t3",
+              "explanation": "没有证据链的结论不能作为派单依据。",
+              "kp": "t3",
+              "correct": false
+            }
+          ]
+        }
+      ],
+      "score_rule": {
+        "base": 0,
+        "correct": 12,
+        "wrong_penalty": 6,
+        "combo_bonus": true,
+        "time_bonus": true
+      },
+      "reward_rule": {
+        "stars": [
+          60,
+          75,
+          90
+        ],
+        "badges": [
+          "连线闭合",
+          "接口准确",
+          "采集就绪",
+          "零误接"
+        ]
+      },
+      "ui": {
+        "arenaLabel": "5G 训练场",
+        "cardMark": "5G",
+        "scenario": "后台工程师要在 3 分钟内给外场反馈核查入口。",
+        "instruction": "把工程对象接入正确接口槽，形成可采集、可复核的数据链。",
+        "actionLabel": "开始挑战",
+        "feedbackHint": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+        "onboarding": [
+          "先选择设备卡，再选择对应接口槽。",
+          "接错接口会断开连击并扣除交付分。",
+          "链路未闭合会导致采集数据不可复核。",
+          "全部设备接入正确接口槽，且失误不超过上限。"
+        ]
+      },
+      "interaction": {
+        "actionLabel": "开始挑战",
+        "ruleChecks": [
+          "先选择设备卡，再选择对应接口槽。",
+          "接错接口会断开连击并扣除交付分。",
+          "全部接口闭合后形成可交付采集链路。"
+        ],
+        "errorFeedback": [
+          "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+          "先核对对象、证据门和干扰项边界，再重新选择。"
+        ],
+        "replayPrompts": [
+          "先识别 2 个高优先级证据卡。",
+          "在限定时间内完成全部证据链并达到交付分。"
+        ]
+      },
+      "ruleChecks": [
+        "先选择设备卡，再选择对应接口槽。",
+        "接错接口会断开连击并扣除交付分。",
+        "全部接口闭合后形成可交付采集链路。"
+      ],
+      "errorFeedback": [
+        "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+        "先核对对象、证据门和干扰项边界，再重新选择。"
+      ],
+      "replayPrompts": [
+        "先识别 2 个高优先级证据卡。",
+        "在限定时间内完成全部证据链并达到交付分。"
+      ],
+      "successCriteria": [
+        "全部设备接入正确接口槽，且失误不超过上限。",
+        "达到 80 分，且错误不超过 4 次。"
+      ],
+      "actionLabel": "开始挑战",
+      "template": "edugamekit.device-connect/v2",
+      "templateId": "device-connect",
+      "mechanicFamily": "drag-match",
+      "id": "nms-function-map-lab",
+      "projectId": "P07",
+      "title": "网管功能定位",
+      "gameType": "drag-match",
+      "objective": "把工程任务快速定位到网管入口，提高后台核查效率。",
+      "scenario": "后台工程师要在 3 分钟内给外场反馈核查入口。",
+      "challenge": "多个入口名称相似，玩家要按任务对象选择最短路径。",
+      "instruction": "把工程对象接入正确接口槽，形成可采集、可复核的数据链。",
+      "challengeMode": "connect",
+      "winCondition": "全部设备接入正确接口槽，且失误不超过上限。",
+      "pressureModel": {
+        "label": "链路未闭合会导致采集数据不可复核。",
+        "failureBudget": 4,
+        "timeBudgetSec": 82
+      },
+      "mechanicRules": [
+        "先选择设备卡，再选择对应接口槽。",
+        "接错接口会断开连击并扣除交付分。",
+        "全部接口闭合后形成可交付采集链路。"
+      ],
+      "timeLimitSec": 82,
+      "mistakeLimit": 4,
+      "passScore": 80,
+      "totalPoints": 100,
+      "caseFacts": [
+        "现场任务：后台工程师要在 3 分钟内给外场反馈核查入口。",
+        "交付要求：把工程任务快速定位到网管入口，提高后台核查效率。",
+        "挑战约束：多个入口名称相似，玩家要按任务对象选择最短路径。"
+      ],
+      "evidenceTokens": [
+        {
+          "id": "i1",
+          "label": "告警查询",
+          "role": "定位网元异常和退服风险",
+          "severity": "critical",
+          "expectedTargetId": "t1",
+          "hint": "关键点：定位网元异常和退服风险",
+          "caseFact": "现场任务：后台工程师要在 3 分钟内给外场反馈核查入口。",
+          "challenge": "判断“告警查询”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 定位网元异常和退服风险",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 定位网元异常和退服风险",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i2",
+          "label": "性能趋势",
+          "role": "查看 KPI 曲线和忙闲差异",
+          "severity": "critical",
+          "expectedTargetId": "t2",
+          "hint": "关键点：查看 KPI 曲线和忙闲差异",
+          "caseFact": "交付要求：把工程任务快速定位到网管入口，提高后台核查效率。",
+          "challenge": "判断“性能趋势”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 查看 KPI 曲线和忙闲差异",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 查看 KPI 曲线和忙闲差异",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i3",
+          "label": "参数核查",
+          "role": "对比现网参数和基线",
+          "severity": "high",
+          "expectedTargetId": "t3",
+          "hint": "关键点：对比现网参数和基线",
+          "caseFact": "挑战约束：多个入口名称相似，玩家要按任务对象选择最短路径。",
+          "challenge": "判断“参数核查”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 对比现网参数和基线",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 对比现网参数和基线",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i4",
+          "label": "拓扑关系",
+          "role": "确认网元连接和邻接关系",
+          "severity": "high",
+          "expectedTargetId": "t4",
+          "hint": "关键点：确认网元连接和邻接关系",
+          "caseFact": "后台工程师要在 3 分钟内给外场反馈核查入口。",
+          "challenge": "判断“拓扑关系”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 确认网元连接和邻接关系",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 确认网元连接和邻接关系",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i5",
+          "label": "工单流转",
+          "role": "记录处理动作和责任人",
+          "severity": "normal",
+          "expectedTargetId": "t5",
+          "hint": "关键点：记录处理动作和责任人",
+          "caseFact": "后台工程师要在 3 分钟内给外场反馈核查入口。",
+          "challenge": "判断“工单流转”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 记录处理动作和责任人",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 记录处理动作和责任人",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i6",
+          "label": "权限核验",
+          "role": "确认可操作范围",
+          "severity": "normal",
+          "expectedTargetId": "t6",
+          "hint": "关键点：确认可操作范围",
+          "caseFact": "后台工程师要在 3 分钟内给外场反馈核查入口。",
+          "challenge": "判断“权限核验”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 确认可操作范围",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 确认可操作范围",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        }
+      ],
+      "targetGates": [
+        {
+          "id": "t1",
+          "label": "告警模块",
+          "role": "证据门",
+          "accepts": "定位网元异常和退服风险"
+        },
+        {
+          "id": "t2",
+          "label": "性能模块",
+          "role": "证据门",
+          "accepts": "查看 KPI 曲线和忙闲差异"
+        },
+        {
+          "id": "t3",
+          "label": "配置模块",
+          "role": "证据门",
+          "accepts": "对比现网参数和基线"
+        },
+        {
+          "id": "t4",
+          "label": "拓扑模块",
+          "role": "证据门",
+          "accepts": "确认网元连接和邻接关系"
+        },
+        {
+          "id": "t5",
+          "label": "任务模块",
+          "role": "证据门",
+          "accepts": "记录处理动作和责任人"
+        },
+        {
+          "id": "t6",
+          "label": "安全模块",
+          "role": "证据门",
+          "accepts": "确认可操作范围"
+        }
+      ],
+      "distractors": [
+        {
+          "id": "d1",
+          "label": "只记录主观描述",
+          "whyWrong": "缺少可复核证据，无法支撑工程闭环。"
+        },
+        {
+          "id": "d2",
+          "label": "跳过时间和对象边界",
+          "whyWrong": "查询窗口不清会放大排查范围。"
+        },
+        {
+          "id": "d3",
+          "label": "直接给经验结论",
+          "whyWrong": "没有证据链的结论不能作为派单依据。"
+        }
+      ],
+      "levelGoals": [
+        "先识别 2 个高优先级证据卡。",
+        "连续完成 3 次正确归门，建立稳定判断。",
+        "在限定时间内完成全部证据链并达到交付分。"
+      ],
+      "failureConditions": [
+        "关键证据门缺失导致链路不可复核。",
+        "错把干扰项当作证据导致扣分超过上限。",
+        "超时仍未完成全部目标门匹配。"
+      ],
+      "feedback": {
+        "correct": "证据有效：这张证据卡能直接支撑当前工程判断。",
+        "wrong": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+        "nearMiss": "方向接近，但证据粒度还不够支撑交付结论。",
+        "complete": "证据链闭合，可以进入复盘或派单。"
+      },
+      "inputModel": {
+        "kind": "drag-match",
+        "group": "connection",
+        "template": "edugamekit.device-connect/v2",
+        "templateId": "device-connect",
+        "mechanicFamily": "drag-match",
+        "gameClass": "网管功能定位",
+        "mechanicLabel": "设备连线挑战",
+        "challengeMode": "connect",
+        "visualMetaphor": "设备端口连线",
+        "instruction": "把工程对象接入正确接口槽，形成可采集、可复核的数据链。",
+        "minActions": 6,
+        "caseFacts": [
+          "现场任务：后台工程师要在 3 分钟内给外场反馈核查入口。",
+          "交付要求：把工程任务快速定位到网管入口，提高后台核查效率。",
+          "挑战约束：多个入口名称相似，玩家要按任务对象选择最短路径。"
+        ],
+        "options": [
+          {
+            "id": "i1",
+            "label": "告警查询",
+            "role": "定位网元异常和退服风险",
+            "severity": "critical",
+            "expectedTargetId": "t1",
+            "hint": "关键点：定位网元异常和退服风险",
+            "caseFact": "现场任务：后台工程师要在 3 分钟内给外场反馈核查入口。",
+            "challenge": "判断“告警查询”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 定位网元异常和退服风险",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 定位网元异常和退服风险",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i2",
+            "label": "性能趋势",
+            "role": "查看 KPI 曲线和忙闲差异",
+            "severity": "critical",
+            "expectedTargetId": "t2",
+            "hint": "关键点：查看 KPI 曲线和忙闲差异",
+            "caseFact": "交付要求：把工程任务快速定位到网管入口，提高后台核查效率。",
+            "challenge": "判断“性能趋势”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 查看 KPI 曲线和忙闲差异",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 查看 KPI 曲线和忙闲差异",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i3",
+            "label": "参数核查",
+            "role": "对比现网参数和基线",
+            "severity": "high",
+            "expectedTargetId": "t3",
+            "hint": "关键点：对比现网参数和基线",
+            "caseFact": "挑战约束：多个入口名称相似，玩家要按任务对象选择最短路径。",
+            "challenge": "判断“参数核查”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 对比现网参数和基线",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 对比现网参数和基线",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i4",
+            "label": "拓扑关系",
+            "role": "确认网元连接和邻接关系",
+            "severity": "high",
+            "expectedTargetId": "t4",
+            "hint": "关键点：确认网元连接和邻接关系",
+            "caseFact": "后台工程师要在 3 分钟内给外场反馈核查入口。",
+            "challenge": "判断“拓扑关系”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 确认网元连接和邻接关系",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 确认网元连接和邻接关系",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i5",
+            "label": "工单流转",
+            "role": "记录处理动作和责任人",
+            "severity": "normal",
+            "expectedTargetId": "t5",
+            "hint": "关键点：记录处理动作和责任人",
+            "caseFact": "后台工程师要在 3 分钟内给外场反馈核查入口。",
+            "challenge": "判断“工单流转”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 记录处理动作和责任人",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 记录处理动作和责任人",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i6",
+            "label": "权限核验",
+            "role": "确认可操作范围",
+            "severity": "normal",
+            "expectedTargetId": "t6",
+            "hint": "关键点：确认可操作范围",
+            "caseFact": "后台工程师要在 3 分钟内给外场反馈核查入口。",
+            "challenge": "判断“权限核验”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 确认可操作范围",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 确认可操作范围",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          }
+        ],
+        "targets": [
+          {
+            "id": "t1",
+            "label": "告警模块",
+            "role": "证据门",
+            "accepts": "定位网元异常和退服风险"
+          },
+          {
+            "id": "t2",
+            "label": "性能模块",
+            "role": "证据门",
+            "accepts": "查看 KPI 曲线和忙闲差异"
+          },
+          {
+            "id": "t3",
+            "label": "配置模块",
+            "role": "证据门",
+            "accepts": "对比现网参数和基线"
+          },
+          {
+            "id": "t4",
+            "label": "拓扑模块",
+            "role": "证据门",
+            "accepts": "确认网元连接和邻接关系"
+          },
+          {
+            "id": "t5",
+            "label": "任务模块",
+            "role": "证据门",
+            "accepts": "记录处理动作和责任人"
+          },
+          {
+            "id": "t6",
+            "label": "安全模块",
+            "role": "证据门",
+            "accepts": "确认可操作范围"
+          }
+        ],
+        "distractors": [
+          {
+            "id": "d1",
+            "label": "只记录主观描述",
+            "whyWrong": "缺少可复核证据，无法支撑工程闭环。"
+          },
+          {
+            "id": "d2",
+            "label": "跳过时间和对象边界",
+            "whyWrong": "查询窗口不清会放大排查范围。"
+          },
+          {
+            "id": "d3",
+            "label": "直接给经验结论",
+            "whyWrong": "没有证据链的结论不能作为派单依据。"
+          }
+        ],
+        "onboardingPath": [
+          {
+            "title": "看目标",
+            "body": "先选择设备卡，再选择对应接口槽。"
+          },
+          {
+            "title": "做判断",
+            "body": "接错接口会断开连击并扣除交付分。"
+          },
+          {
+            "title": "控风险",
+            "body": "链路未闭合会导致采集数据不可复核。"
+          },
+          {
+            "title": "达成交付",
+            "body": "全部设备接入正确接口槽，且失误不超过上限。"
+          }
+        ],
+        "mechanicRules": [
+          "先选择设备卡，再选择对应接口槽。",
+          "接错接口会断开连击并扣除交付分。",
+          "全部接口闭合后形成可交付采集链路。"
+        ],
+        "winCondition": "全部设备接入正确接口槽，且失误不超过上限。",
+        "levelGoals": [
+          "先识别 2 个高优先级证据卡。",
+          "连续完成 3 次正确归门，建立稳定判断。",
+          "在限定时间内完成全部证据链并达到交付分。"
+        ],
+        "failureConditions": [
+          "关键证据门缺失导致链路不可复核。",
+          "错把干扰项当作证据导致扣分超过上限。",
+          "超时仍未完成全部目标门匹配。"
+        ]
+      },
+      "answerModel": {
+        "kind": "drag-match",
+        "group": "connection",
+        "pairs": {
+          "i1": "t1",
+          "i2": "t2",
+          "i3": "t3",
+          "i4": "t4",
+          "i5": "t5",
+          "i6": "t6"
+        },
+        "targetIds": [
+          "t1",
+          "t2",
+          "t3",
+          "t4",
+          "t5",
+          "t6"
+        ],
+        "requiredEvidenceCount": 6,
+        "distractorIds": [
+          "d1",
+          "d2",
+          "d3"
+        ],
+        "winCondition": "全部设备接入正确接口槽，且失误不超过上限。",
+        "rationale": "每个判断必须回到工程证据，不能只凭描述、情绪或经验结论。"
+      },
+      "challengeLevels": [
+        {
+          "id": "level-1",
+          "label": "识别",
+          "goal": "先识别 2 个高优先级证据卡。",
+          "constraint": "允许查看提示，但连续命中才加分。"
+        },
+        {
+          "id": "level-2",
+          "label": "抗干扰",
+          "goal": "连续完成 3 次正确归门，建立稳定判断。",
+          "constraint": "干扰项会扣分并清空连击。"
+        },
+        {
+          "id": "level-3",
+          "label": "交付",
+          "goal": "在限定时间内完成全部证据链并达到交付分。",
+          "constraint": "82 秒内达到 80 分，最多 4 次失误。"
+        }
+      ],
+      "gameExperience": {
+        "onboardingPath": [
+          {
+            "title": "看目标",
+            "body": "先选择设备卡，再选择对应接口槽。"
+          },
+          {
+            "title": "做判断",
+            "body": "接错接口会断开连击并扣除交付分。"
+          },
+          {
+            "title": "控风险",
+            "body": "链路未闭合会导致采集数据不可复核。"
+          },
+          {
+            "title": "达成交付",
+            "body": "全部设备接入正确接口槽，且失误不超过上限。"
+          }
+        ],
+        "mechanicRules": [
+          "先选择设备卡，再选择对应接口槽。",
+          "接错接口会断开连击并扣除交付分。",
+          "全部接口闭合后形成可交付采集链路。"
+        ],
+        "challengeMode": "connect",
+        "winCondition": "全部设备接入正确接口槽，且失误不超过上限。",
+        "levelGoals": [
+          "先识别 2 个高优先级证据卡。",
+          "连续完成 3 次正确归门，建立稳定判断。",
+          "在限定时间内完成全部证据链并达到交付分。"
+        ],
+        "failureConditions": [
+          "关键证据门缺失导致链路不可复核。",
+          "错把干扰项当作证据导致扣分超过上限。",
+          "超时仍未完成全部目标门匹配。"
+        ],
+        "rewardModel": {
+          "badges": [
+            "连线闭合",
+            "接口准确",
+            "采集就绪",
+            "零误接"
+          ]
+        },
+        "scoreMoments": [
+          {
+            "id": "first-critical",
+            "label": "首个关键证据归门",
+            "points": 10
+          },
+          {
+            "id": "streak-3",
+            "label": "三连击",
+            "points": 15
+          },
+          {
+            "id": "no-distractor",
+            "label": "避开干扰项",
+            "points": 15
+          },
+          {
+            "id": "chain-complete",
+            "label": "证据链闭合",
+            "points": 30
+          }
+        ]
+      },
+      "scoringRubric": {
+        "totalPoints": 100,
+        "passScore": 80,
+        "dimensions": [
+          {
+            "id": "accuracy",
+            "label": "接口匹配准确",
+            "points": 50
+          },
+          {
+            "id": "distractorControl",
+            "label": "干扰项识别",
+            "points": 20
+          },
+          {
+            "id": "speed",
+            "label": "限时完成",
+            "points": 15
+          },
+          {
+            "id": "streak",
+            "label": "连续命中",
+            "points": 15
+          }
+        ]
+      },
+      "feedbackHint": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+      "reviewSummary": {
+        "pass": "网管功能定位已达标：证据链完整，可以进入案例复盘或工程交付。",
+        "fail": "网管功能定位未达标：请回到缺失目标门，重新确认证据卡、证据门和干扰项边界。"
+      },
+      "legacyManifestId": "nms-function-map-lab"
+    }
+  },
+  "project": "P07",
+  "status": "published",
+  "history": [
+    {
+      "status": "published",
+      "at": "2026-05-22T00:00:00.000Z",
+      "by": "docx-importer",
+      "comment": "Published by the DGBook importer."
+    }
+  ]
+}

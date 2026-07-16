@@ -1,0 +1,1285 @@
+{
+  "schema": "dgbook.lesson-ast/v1",
+  "source": {
+    "kind": "docx",
+    "path": "content/5g/5g.docx",
+    "importer": "scripts/import-5g-docx.py"
+  },
+  "project": {
+    "id": "P10",
+    "title": "5G网络参数设置",
+    "sourceNo": "4",
+    "chapterTitle": "5G网络信息管理",
+    "taskIndex": 4
+  },
+  "lesson": {
+    "id": "P10",
+    "title": "5G网络参数设置",
+    "widgetId": "P10-lesson-animation-001",
+    "scenario": "parameter",
+    "scenarioLabel": "参数优化"
+  },
+  "content": {
+    "sections": [
+      {
+        "id": "sec-overview",
+        "title": "导学摘要",
+        "icon": "overview",
+        "texts": [
+          "本节讲参数设置：从投诉、DT/CQT、KPI 或规划变更进入目标取值，再做影响评估、审批备份、执行窗口、回退和监控设计。"
+        ]
+      },
+      {
+        "id": "P10-ku-01",
+        "title": "概念与对象",
+        "icon": "radar",
+        "texts": [
+          "参数设置必须有明确触发源，可能是投诉定位、DT/CQT 证据、KPI 劣化、规划调整或一致性核查。"
+        ]
+      },
+      {
+        "id": "P10-ku-02",
+        "title": "概念与对象",
+        "icon": "route",
+        "texts": [
+          "参数目标值应标注适用场景、频段、业务目标、边界条件和依据来源，避免把经验值泛化到全网。"
+        ]
+      },
+      {
+        "id": "P10-ku-03",
+        "title": "工程判读",
+        "icon": "chart",
+        "texts": [
+          "参数变更会影响小区、邻区、用户体验和业务策略，实施前要评估影响域、风险等级和回退影响。"
+        ]
+      },
+      {
+        "id": "P10-ku-04",
+        "title": "数据与现场佐证",
+        "icon": "tool",
+        "texts": [
+          "执行方案要包括审批记录、配置备份、变更窗口、回退点、监控指标和责任人，确保动作可控。"
+        ]
+      },
+      {
+        "id": "P10-ku-05",
+        "title": "操作校验",
+        "icon": "search",
+        "texts": [
+          "风险判定关注参数之间的耦合关系、互斥条件、邻区影响和观察指标，避免局部优化引入新问题。"
+        ]
+      },
+      {
+        "id": "P10-ku-06",
+        "title": "闭环复盘",
+        "icon": "check",
+        "texts": [
+          "变更后要固化配置版本，记录责任人、观察结果、异常处理和适用边界，为后续同类调整提供依据。"
+        ]
+      }
+    ],
+    "blocks": [
+      {
+        "id": "block-001",
+        "kind": "paragraph",
+        "order": 1,
+        "text": "任务导入"
+      },
+      {
+        "id": "block-002",
+        "kind": "paragraph",
+        "order": 2,
+        "text": "大家想一下，为什么我们的手机在移动过程中可以打电话，可以保持在线而不掉话呢？小区和小区间的邻区是怎样规划的？"
+      },
+      {
+        "id": "block-003",
+        "kind": "paragraph",
+        "order": 3,
+        "text": "任务要求"
+      },
+      {
+        "id": "block-004",
+        "kind": "paragraph",
+        "order": 4,
+        "text": "学习5G网管平台的参数配置/修改操作。"
+      },
+      {
+        "id": "block-005",
+        "kind": "paragraph",
+        "order": 5,
+        "text": "学习在网管上完成5G网络邻区的添加和删除操作。"
+      },
+      {
+        "id": "block-006",
+        "kind": "paragraph",
+        "order": 6,
+        "text": "学习NSA指定的5G网络的相关锚点参数的管理。"
+      },
+      {
+        "id": "block-007",
+        "kind": "paragraph",
+        "order": 7,
+        "text": "知识准备"
+      },
+      {
+        "id": "block-008",
+        "kind": "paragraph",
+        "order": 8,
+        "text": "一．Massive MIMO特点"
+      },
+      {
+        "id": "block-009",
+        "kind": "paragraph",
+        "order": 9,
+        "text": "（1）5G典型Massive MIMO天线为64通道，为8列×4行×2极化。"
+      },
+      {
+        "id": "block-010",
+        "kind": "paragraph",
+        "order": 10,
+        "text": "（2）2个极化方向的天线使用相同的权值，总共是32组权值数据生成一个波束；通过设置每个端口的权值，可以形成需要的子波束形态。"
+      },
+      {
+        "id": "block-011",
+        "kind": "paragraph",
+        "order": 11,
+        "text": "（3）和MM的区别：多个子波束，分别内置方位角和下倾角"
+      },
+      {
+        "id": "block-012",
+        "kind": "paragraph",
+        "order": 12,
+        "text": "（4）波束用4元组来刻画：波束 （方位角，倾角， 水平波束宽度，垂直波束宽度）"
+      },
+      {
+        "id": "block-013",
+        "kind": "paragraph",
+        "order": 13,
+        "text": "方位角：正北方向为0，顺时针旋转依次为0~360°。"
+      },
+      {
+        "id": "block-014",
+        "kind": "paragraph",
+        "order": 14,
+        "text": "倾角：天线法线（垂直于天线天面）与波束中线夹角，向下为正，向上为负。"
+      },
+      {
+        "id": "block-015",
+        "kind": "paragraph",
+        "order": 15,
+        "text": "波束宽度：波束两个半功率点（下降3dB）之间的夹角。分为水平波束宽度和垂直波束宽度。"
+      },
+      {
+        "id": "block-016",
+        "kind": "paragraph",
+        "order": 16,
+        "text": "水平波束宽度：在水平方向上，在最大辐射方向两侧，辐射功率下降3dB的两个方向的夹角。"
+      },
+      {
+        "id": "block-017",
+        "kind": "paragraph",
+        "order": 17,
+        "text": "垂直波束宽度：在垂直方向上，在最大辐射方向两侧，辐射功率下降3dB的两个方向的夹角。"
+      },
+      {
+        "id": "block-018",
+        "kind": "paragraph",
+        "order": 18,
+        "text": "（5）子波束网管配置，如表3-4-1"
+      },
+      {
+        "id": "block-019",
+        "kind": "paragraph",
+        "order": 19,
+        "text": "表3-4-1 子波束网管配置"
+      },
+      {
+        "id": "block-020",
+        "kind": "table",
+        "order": 20,
+        "rows": [
+          [
+            "参数",
+            "说明"
+          ],
+          [
+            "子波束索引",
+            "子波束编号，索引值与SSB对应"
+          ],
+          [
+            "方位角",
+            "分辨率1度，建议-20~+20度之间配置"
+          ],
+          [
+            "倾角",
+            "分辨率1度，建议-10~+10度之间配置"
+          ],
+          [
+            "水平波宽",
+            "用于调整子波束的水平半功率角，1-65度之间可配置"
+          ],
+          [
+            "垂直波宽",
+            "用于调整子波束的垂直半功率角，1-65度之间可配置"
+          ],
+          [
+            "子波束是否有效",
+            "控制子波束是否使能"
+          ]
+        ]
+      },
+      {
+        "id": "block-021",
+        "kind": "paragraph",
+        "order": 21,
+        "text": "二．邻区配置原则"
+      },
+      {
+        "id": "block-022",
+        "kind": "paragraph",
+        "order": 22,
+        "text": "邻区配置的目的在于保证在小区服务边界的手机能及时切换到信号最佳的邻小区，以保证业务质量和整网的性能。"
+      },
+      {
+        "id": "block-023",
+        "kind": "paragraph",
+        "order": 23,
+        "text": "1.SA组网场景需要配置的邻区包括："
+      },
+      {
+        "id": "block-024",
+        "kind": "paragraph",
+        "order": 24,
+        "text": "4G->5G的系统间邻区：用于UE从4G切换到5G系统服务。"
+      },
+      {
+        "id": "block-025",
+        "kind": "paragraph",
+        "order": 25,
+        "text": "5G->4G的系统间邻区：用于UE从5G弱覆盖或者没有5G覆盖的区域切换到4G系统服务。"
+      },
+      {
+        "id": "block-026",
+        "kind": "paragraph",
+        "order": 26,
+        "text": "5G->5G的系统内邻区：包括同频和异频，用于UE在5G系统内部的移动连续性。"
+      },
+      {
+        "id": "block-027",
+        "kind": "paragraph",
+        "order": 27,
+        "text": "上述邻区初始配置推荐正对2层背向1层，邻区个数各约20个（含本系统同频或异系统的每个频点）。"
+      },
+      {
+        "id": "block-028",
+        "kind": "paragraph",
+        "order": 28,
+        "text": "2.NSA组网场景需要配置的邻区包括："
+      },
+      {
+        "id": "block-029",
+        "kind": "paragraph",
+        "order": 29,
+        "text": "4G->5G的系统间邻区：只需规划锚点频点对应的NR邻区。"
+      },
+      {
+        "id": "block-030",
+        "kind": "paragraph",
+        "order": 30,
+        "text": "5G->5G的系统内邻区： 包括同频和异频，用于UE在5G系统内部小区间的移动。"
+      },
+      {
+        "id": "block-031",
+        "kind": "paragraph",
+        "order": 31,
+        "text": "上述邻区初始配置建议20个。"
+      },
+      {
+        "id": "block-032",
+        "kind": "paragraph",
+        "order": 32,
+        "text": "3.邻区参数配置，如下表3-4-2"
+      },
+      {
+        "id": "block-033",
+        "kind": "paragraph",
+        "order": 33,
+        "text": "表3-4-2 邻区参数"
+      },
+      {
+        "id": "block-034",
+        "kind": "table",
+        "order": 34,
+        "rows": [
+          [
+            "参数名称",
+            "英文名称",
+            "参数说明",
+            "参数取值"
+          ],
+          [
+            "天线方位角",
+            "Antenna Azimuth",
+            "基站小区的天线方位角",
+            "0~180"
+          ],
+          [
+            "天线机械角",
+            "Antenna mechanical inclination",
+            "基站小区的天线机械角",
+            "0~15"
+          ],
+          [
+            "天线挂高",
+            "antenna height",
+            "基站小区的天线挂高",
+            "1~50"
+          ],
+          [
+            "基站标识",
+            "gNBId",
+            "该参数用于指示基站标识",
+            "0~4294967295"
+          ],
+          [
+            "小区标识",
+            "cellLocalId",
+            "该参数用于指示小区标识",
+            "0~16383"
+          ],
+          [
+            "物理小区ID",
+            "pci",
+            "基站小区的物理小区标识",
+            "100~1000"
+          ],
+          [
+            "NR邻接关系 支持Xn切换",
+            "supportXnHo",
+            "该参数是邻区是否支持Xn切换开关，用于RRM做切换判决时选择切换类型，默认值为支持。该参数设置为支持时，RRM切换判决优先选择Xn切换，可提升切换性能。该参数设置为不支持时，RRM选择其他切换类型，比如N2切换。",
+            "1:支持/0:不支持"
+          ],
+          [
+            "外部NR邻接小区 公共陆地移动网络标识号",
+            "pLMNId",
+            "该参数是用于配置运营商信息，由运营商的移动国家码mcc，移动网络码mnc组成。",
+            "460-00/460-01/460-15/460-03"
+          ],
+          [
+            "外部NR邻接小区 小区类型",
+            "coverageType",
+            "该参数用于指示小区类型。",
+            "Macro/Micro"
+          ],
+          [
+            "外部NR邻接小区 上行载波的中心频点",
+            "frequencyUL",
+            "上行载波的中心频点",
+            ""
+          ],
+          [
+            "外部NR邻接小区 上行载波带宽",
+            "bandwidthUL",
+            "上行载波带宽。",
+            "5~100"
+          ],
+          [
+            "外部NR邻接小区 上行子载波间隔",
+            "subcarrierSpacingUL",
+            "该参数指示外部小区上行的子载波间隔，根据该参数可以计算小区带宽和测量频点",
+            "15/30/60/120"
+          ],
+          [
+            "外部NR邻接小区 下行载波的中心频点",
+            "frequencyDL",
+            "下行载波的中心频点",
+            ""
+          ],
+          [
+            "外部NR邻接小区 下行载波带宽",
+            "bandwidthDL",
+            "下行载波带宽",
+            "5~100"
+          ],
+          [
+            "外部NR邻接小区 下行子载波间隔",
+            "subcarrierSpacingDL",
+            "该参数指示外部小区下行的子载波间隔，根据该参数可以计算小区带宽和测量频点",
+            "15/30/60/120"
+          ],
+          [
+            "外部NR邻接小区 下行Point A频点",
+            "pointAFrequencyDL",
+            "该参数用于指示下行Point A频点",
+            ""
+          ],
+          [
+            "外部NR邻接小区 上行Point A频点",
+            "pointAFrequencyUL",
+            "该参数用于指示上行Point A频点",
+            ""
+          ],
+          [
+            "外部NR邻接小区 物理小区ID",
+            "nRPCI",
+            "标识小区的物理层小区标识号：NR系统共有1008个物理层小区ID，分成336组，每组3个，一个物理层小区ID只能归属于一个小区组。配置这个参数时，根据网络规划配置，保证不同小区的物理层小区ID是空间复用的。",
+            "0~1007"
+          ],
+          [
+            "外部NR邻接小区 双工方式",
+            "duplexMode",
+            "双工模式",
+            "TDD/FDD"
+          ],
+          [
+            "异频测量事件A2 A2事件RSRP门限",
+            "rsrpThreshold",
+            "测量时服务小区A2事件RSRP绝对门限，当测量到的服务小区RSRP低于门限时UE上报A2事件。",
+            "-156~-31"
+          ],
+          [
+            "EPS fallback切换 B1事件RSRP门限",
+            "rsrpThreshold",
+            "测量时B1事件RSRP绝对门限，当测量到的RSRP高于门限时UE上报B1事件。",
+            "-140~-43"
+          ],
+          [
+            "默认的基于覆盖的异系统测量 B1/B2事件邻区判决的RSRP绝对门限",
+            "rsrpThreshold",
+            "测量时B1/B2事件邻区判决的RSRP绝对门限",
+            "-140~-43"
+          ],
+          [
+            "NR邻接关系",
+            "LIJIE",
+            "与邻小区的站号、小区号、物理小区相关",
+            "11100~300000"
+          ],
+          [
+            "小区个体偏移",
+            "cellIndivOffset",
+            "该参数为下行SPS使用的HARQ进程数，该参数设置越大，可配置的下行SPS最大重传次数越大，数据传输的可靠性越高。但动态调度的HARQ进程数会变小，影响动态调度满调度。",
+            "-24~24"
+          ]
+        ]
+      },
+      {
+        "id": "block-035",
+        "kind": "paragraph",
+        "order": 35,
+        "text": "4.邻区参数配置窗口，如图3-4-1"
+      },
+      {
+        "id": "block-036",
+        "kind": "paragraph",
+        "order": 36,
+        "mediaRefs": [
+          "rId188"
+        ]
+      },
+      {
+        "id": "block-037",
+        "kind": "paragraph",
+        "order": 37,
+        "text": "图3-4-1 邻区参数配置窗口"
+      },
+      {
+        "id": "block-038",
+        "kind": "paragraph",
+        "order": 38,
+        "text": "三．NSA锚点概述"
+      },
+      {
+        "id": "block-039",
+        "kind": "paragraph",
+        "order": 39,
+        "text": "1.NSA终端锚点策略"
+      },
+      {
+        "id": "block-040",
+        "kind": "paragraph",
+        "order": 40,
+        "text": "当前5G NSA组网模式，NSA终端必须占用锚点小区后，才能使用5G业务提升用户感知。如何及时将NSA终端迁移到锚点小区并保证稳定占用，是当前面临的重要问题，是当前NSA终端移动性策略遇到的重要问题。"
+      },
+      {
+        "id": "block-041",
+        "kind": "paragraph",
+        "order": 41,
+        "text": "实现NSA终端优先占用锚点小区的目的，就是NSA终端从非锚点小区能迁移到锚点小区，当NSA终端迁移到锚点小区后，要能尽可能的多占用锚点小区，所以需要非锚点小区和锚点小区同时开启相关功能配合实现。"
+      },
+      {
+        "id": "block-042",
+        "kind": "paragraph",
+        "order": 42,
+        "text": "从非锚点小区的角度看，就是如何在空闲态和连接态分别把终端赶到锚点小区/频点"
+      },
+      {
+        "id": "block-043",
+        "kind": "paragraph",
+        "order": 43,
+        "text": "从锚点小区的角度看，就是如何在空闲态和连接态分别把终端留在锚点小区/频点"
+      },
+      {
+        "id": "block-044",
+        "kind": "paragraph",
+        "order": 44,
+        "text": "5G UE接入非锚点小区，如果它的邻区中存在锚点邻区，则在连接态下主动发起向锚点邻区的定向切换，或在RRC释放过程中携带IMMCI重选信息引导NSA终端迁移至锚点小区。"
+      },
+      {
+        "id": "block-045",
+        "kind": "paragraph",
+        "order": 45,
+        "text": "在锚点小区通过独立的移动性策略和RRC释放过程中携带IMMCI重选信息确保NSA终端在锚点小区/频点的稳定占用，多功能配合使用，达到优先占用锚点的目的。驻留策略如表3-4-3"
+      },
+      {
+        "id": "block-046",
+        "kind": "paragraph",
+        "order": 46,
+        "text": "表3-4-3 NSA终端小区驻留策略"
+      },
+      {
+        "id": "block-047",
+        "kind": "paragraph",
+        "order": 47,
+        "mediaRefs": [
+          "rId189"
+        ]
+      },
+      {
+        "id": "block-048",
+        "kind": "paragraph",
+        "order": 48,
+        "text": "2. 5G网络的相关锚点参数设置"
+      },
+      {
+        "id": "block-049",
+        "kind": "paragraph",
+        "order": 49,
+        "text": "（1）非锚点小区开启NSA定向切换锚点小区功能涉及参数，如表3-4-4"
+      },
+      {
+        "id": "block-050",
+        "kind": "paragraph",
+        "order": 50,
+        "text": "表3-4-4 NSA定向切换参数"
+      },
+      {
+        "id": "block-051",
+        "kind": "paragraph",
+        "order": 51,
+        "mediaRefs": [
+          "rId190"
+        ]
+      },
+      {
+        "id": "block-052",
+        "kind": "paragraph",
+        "order": 52,
+        "text": "（2）非锚点小区和锚点小区都配置NSA终端定向重选锚点的参数，如表3-4-5"
+      },
+      {
+        "id": "block-053",
+        "kind": "paragraph",
+        "order": 53,
+        "text": "表3-4-5 NSA终端定向重选锚点的参数"
+      },
+      {
+        "id": "block-054",
+        "kind": "paragraph",
+        "order": 54,
+        "mediaRefs": [
+          "rId191"
+        ]
+      },
+      {
+        "id": "block-055",
+        "kind": "paragraph",
+        "order": 55,
+        "text": "（3）锚点小区NSA独立移动性相关参数，如表3-4-6"
+      },
+      {
+        "id": "block-056",
+        "kind": "paragraph",
+        "order": 56,
+        "text": "表3-4-6 锚点小区NSA独立移动性相关参数"
+      },
+      {
+        "id": "block-057",
+        "kind": "paragraph",
+        "order": 57,
+        "mediaRefs": [
+          "rId192"
+        ]
+      },
+      {
+        "id": "block-058",
+        "kind": "paragraph",
+        "order": 58,
+        "text": "（4）非锚点小区NSA独立移动性相关参数，如表3-4-7"
+      },
+      {
+        "id": "block-059",
+        "kind": "paragraph",
+        "order": 59,
+        "text": "表3-4-7 非锚点小区NSA独立移动性相关参数"
+      },
+      {
+        "id": "block-060",
+        "kind": "paragraph",
+        "order": 60,
+        "mediaRefs": [
+          "rId193"
+        ]
+      },
+      {
+        "id": "block-061",
+        "kind": "paragraph",
+        "order": 61,
+        "text": "（5）开启NSA终端禁止负荷均衡功能"
+      },
+      {
+        "id": "block-062",
+        "kind": "paragraph",
+        "order": 62,
+        "text": "锚点小区进行负荷均衡的时候，为了防止在连接态和空闲态将NSA终端均衡切换到其他小区，需要配置NSA用户过滤功能，如配置为打开，则负荷均衡不会选中NSA终端。涉及1个参数，推荐配置如下表3-4-8所示。"
+      },
+      {
+        "id": "block-063",
+        "kind": "paragraph",
+        "order": 63,
+        "text": "表3-4-8 NSA终端禁止负荷均衡功能开关"
+      },
+      {
+        "id": "block-064",
+        "kind": "paragraph",
+        "order": 64,
+        "mediaRefs": [
+          "rId194"
+        ]
+      },
+      {
+        "id": "block-065",
+        "kind": "paragraph",
+        "order": 65,
+        "text": "任务实施"
+      },
+      {
+        "id": "block-066",
+        "kind": "paragraph",
+        "order": 66,
+        "text": "一．5G基站参数的修改"
+      },
+      {
+        "id": "block-067",
+        "kind": "paragraph",
+        "order": 67,
+        "text": "（一）5G 无线相关参数"
+      },
+      {
+        "id": "block-068",
+        "kind": "paragraph",
+        "order": 68,
+        "text": "（1）根据任务选取（比如：端到端优化，或全网性能提升），点击数据中心进入，如图3-4-2"
+      },
+      {
+        "id": "block-069",
+        "kind": "paragraph",
+        "order": 69,
+        "mediaRefs": [
+          "rId181"
+        ]
+      },
+      {
+        "id": "block-070",
+        "kind": "paragraph",
+        "order": 70,
+        "text": "图3-4-2 5G网络参数修改主界面"
+      },
+      {
+        "id": "block-071",
+        "kind": "paragraph",
+        "order": 71,
+        "text": "（2）点击无线侧图标进入，如图3-4-3"
+      },
+      {
+        "id": "block-072",
+        "kind": "paragraph",
+        "order": 72,
+        "mediaRefs": [
+          "rId182"
+        ]
+      },
+      {
+        "id": "block-073",
+        "kind": "paragraph",
+        "order": 73,
+        "text": "图3-4-3 5G无线侧参数修改主界面"
+      },
+      {
+        "id": "block-074",
+        "kind": "paragraph",
+        "order": 74,
+        "text": "（3）在配置中选取站点在右侧界面设置指定参数，并保存，如图3-4-4所示。"
+      },
+      {
+        "id": "block-075",
+        "kind": "paragraph",
+        "order": 75,
+        "mediaRefs": [
+          "rId195"
+        ]
+      },
+      {
+        "id": "block-076",
+        "kind": "paragraph",
+        "order": 76,
+        "text": "图3-4-4 5G无线网络参数修改窗口"
+      },
+      {
+        "id": "block-077",
+        "kind": "paragraph",
+        "order": 77,
+        "text": "（二） 5G网管邻区配置"
+      },
+      {
+        "id": "block-078",
+        "kind": "paragraph",
+        "order": 78,
+        "text": "（1）邻区添加，如图3-4-5"
+      },
+      {
+        "id": "block-079",
+        "kind": "paragraph",
+        "order": 79,
+        "text": "第一步：登录5G网管，在左侧导航栏选取“配置参数管理”"
+      },
+      {
+        "id": "block-080",
+        "kind": "paragraph",
+        "order": 80,
+        "text": "第二步：在右侧界面根据任务场景选取（比如：eMBB），单击“无线侧”"
+      },
+      {
+        "id": "block-081",
+        "kind": "paragraph",
+        "order": 81,
+        "text": "第三步：单击“添加”"
+      },
+      {
+        "id": "block-082",
+        "kind": "paragraph",
+        "order": 82,
+        "text": "第四步：填写“参数名称”和“显示排序”，保存设置"
+      },
+      {
+        "id": "block-083",
+        "kind": "paragraph",
+        "order": 83,
+        "mediaRefs": [
+          "rId196"
+        ]
+      },
+      {
+        "id": "block-084",
+        "kind": "paragraph",
+        "order": 84,
+        "text": "图3-4-5 5G基站邻区添加"
+      },
+      {
+        "id": "block-085",
+        "kind": "paragraph",
+        "order": 85,
+        "text": "（2）邻区删除，如图3-4-6"
+      },
+      {
+        "id": "block-086",
+        "kind": "paragraph",
+        "order": 86,
+        "text": "第一步：登录5G网管，在左侧导航栏选取“配置参数管理”"
+      },
+      {
+        "id": "block-087",
+        "kind": "paragraph",
+        "order": 87,
+        "text": "第二步：在右侧界面，根据任务场景（比如：eMBB），选取“无线侧”"
+      },
+      {
+        "id": "block-088",
+        "kind": "paragraph",
+        "order": 88,
+        "text": "第三步：选取需要删除邻区"
+      },
+      {
+        "id": "block-089",
+        "kind": "paragraph",
+        "order": 89,
+        "text": "第四步：单击“删除”"
+      },
+      {
+        "id": "block-090",
+        "kind": "paragraph",
+        "order": 90,
+        "text": "第五步：单击“确认”，完成邻区删除"
+      },
+      {
+        "id": "block-091",
+        "kind": "paragraph",
+        "order": 91,
+        "mediaRefs": [
+          "rId197"
+        ]
+      },
+      {
+        "id": "block-092",
+        "kind": "paragraph",
+        "order": 92,
+        "text": "图3-4-6 5G基站邻区删除"
+      },
+      {
+        "id": "block-093",
+        "kind": "paragraph",
+        "order": 93,
+        "text": "（3）邻区参数调整"
+      },
+      {
+        "id": "block-094",
+        "kind": "paragraph",
+        "order": 94,
+        "text": "根据任务选取（比如：端到端优化，或全网性能提升），点击数据中心进入，如图3-4-7"
+      },
+      {
+        "id": "block-095",
+        "kind": "paragraph",
+        "order": 95,
+        "mediaRefs": [
+          "rId181"
+        ]
+      },
+      {
+        "id": "block-096",
+        "kind": "paragraph",
+        "order": 96,
+        "text": "图3-4-7 5G网管邻区参数修改主界面"
+      },
+      {
+        "id": "block-097",
+        "kind": "paragraph",
+        "order": 97,
+        "text": "点击无线侧图标进入，如图3-4-8"
+      },
+      {
+        "id": "block-098",
+        "kind": "paragraph",
+        "order": 98,
+        "mediaRefs": [
+          "rId182"
+        ]
+      },
+      {
+        "id": "block-099",
+        "kind": "paragraph",
+        "order": 99,
+        "text": "图3-4-8 5G无线侧参数修改主界面"
+      },
+      {
+        "id": "block-100",
+        "kind": "paragraph",
+        "order": 100,
+        "text": "在配置中选取站点->邻区配置，在右侧界面中修改相关参数并保存，如图3-4-9"
+      },
+      {
+        "id": "block-101",
+        "kind": "paragraph",
+        "order": 101,
+        "mediaRefs": [
+          "rId198"
+        ]
+      },
+      {
+        "id": "block-102",
+        "kind": "paragraph",
+        "order": 102,
+        "text": "图3-4-9 5G基站邻区参数修改窗口"
+      },
+      {
+        "id": "block-103",
+        "kind": "paragraph",
+        "order": 103,
+        "text": "随堂测试"
+      },
+      {
+        "id": "block-104",
+        "kind": "paragraph",
+        "order": 104,
+        "text": "1.通过5G仿真实训系统，根据基站1现有邻区，添加为三个扇区各添加一个合理邻区。"
+      },
+      {
+        "id": "block-105",
+        "kind": "paragraph",
+        "order": 105,
+        "text": "2.通过5G仿真实训系统，修改站点2的波束赋形权值，调整后使其满足SS-RSRP≥-93dBm且SS-SINR≥-3。"
+      },
+      {
+        "id": "block-106",
+        "kind": "paragraph",
+        "order": 106,
+        "text": "请将答案截屏后，用手机拍照然后发给老师。"
+      },
+      {
+        "id": "block-107",
+        "kind": "paragraph",
+        "order": 107,
+        "text": "经典案例"
+      },
+      {
+        "id": "block-108",
+        "kind": "paragraph",
+        "order": 108,
+        "text": "1.【问题名称】：5G A2门限设置过低导致5G基站到4G基站切换不及时"
+      },
+      {
+        "id": "block-109",
+        "kind": "paragraph",
+        "order": 109,
+        "text": "【现象描述】：现场配合核心网测试SA站点的5G基站到4G基站基于覆盖的切换功能是否正常，发现占用小区5G基站到4G基站无法发起切换，释放上下文。"
+      },
+      {
+        "id": "block-110",
+        "kind": "paragraph",
+        "order": 110,
+        "mediaRefs": [
+          "rId199"
+        ]
+      },
+      {
+        "id": "block-111",
+        "kind": "paragraph",
+        "order": 111,
+        "text": "【解决方案】："
+      },
+      {
+        "id": "block-112",
+        "kind": "paragraph",
+        "order": 112,
+        "text": "优先核查基站无告警、无干扰，核查5G基站到4G基站邻区、频点均已配置，切换和重定向功能均已开启；"
+      },
+      {
+        "id": "block-113",
+        "kind": "paragraph",
+        "order": 113,
+        "mediaRefs": [
+          "rId200",
+          "rId201"
+        ]
+      },
+      {
+        "id": "block-114",
+        "kind": "paragraph",
+        "order": 114,
+        "text": "现场做视频观看业务，该业务承载在QCI=8。"
+      },
+      {
+        "id": "block-115",
+        "kind": "paragraph",
+        "order": 115,
+        "mediaRefs": [
+          "rId202"
+        ]
+      },
+      {
+        "id": "block-116",
+        "kind": "paragraph",
+        "order": 116,
+        "text": "查询QCI=8参数配置，QCI=8业务异系统切换组为组0；"
+      },
+      {
+        "id": "block-117",
+        "kind": "paragraph",
+        "order": 117,
+        "mediaRefs": [
+          "rId203"
+        ]
+      },
+      {
+        "id": "block-118",
+        "kind": "paragraph",
+        "order": 118,
+        "text": "异系统切换测量参数组标识0，对应的异系统切换A2 RSRP门限设置为-115dBm，现场默认认为数据业务承载在QCI=9组上，未修改QCI=8对应的异系统切换测量门限， A2门限过低现场测试电平不满足条件未发起测量，导致无法切换。"
+      },
+      {
+        "id": "block-119",
+        "kind": "paragraph",
+        "order": 119,
+        "mediaRefs": [
+          "rId204"
+        ]
+      },
+      {
+        "id": "block-120",
+        "kind": "paragraph",
+        "order": 120,
+        "text": "【解决措施】：将QCI=8业务异系统切换组0改为10；信令流程切换正常。"
+      },
+      {
+        "id": "block-121",
+        "kind": "paragraph",
+        "order": 121,
+        "mediaRefs": [
+          "rId205"
+        ]
+      },
+      {
+        "id": "block-122",
+        "kind": "paragraph",
+        "order": 122,
+        "text": "直击难点"
+      },
+      {
+        "id": "block-123",
+        "kind": "paragraph",
+        "order": 123,
+        "text": "重点：1.基站邻区添加和删除原则。"
+      },
+      {
+        "id": "block-124",
+        "kind": "paragraph",
+        "order": 124,
+        "text": "2.对于NSA架构，对锚点小区参数设置。"
+      },
+      {
+        "id": "block-125",
+        "kind": "paragraph",
+        "order": 125,
+        "text": "难点：邻区参数配置"
+      },
+      {
+        "id": "block-126",
+        "kind": "paragraph",
+        "order": 126,
+        "text": "二维码预留二维码预留"
+      },
+      {
+        "id": "block-127",
+        "kind": "paragraph",
+        "order": 127,
+        "text": "任务测评"
+      },
+      {
+        "id": "block-128",
+        "kind": "paragraph",
+        "order": 128,
+        "text": "1.写出NSA组网下，NSA终端移动性策略。"
+      },
+      {
+        "id": "block-129",
+        "kind": "paragraph",
+        "order": 129,
+        "text": "2.例举出5个邻区配置相关参数。"
+      },
+      {
+        "id": "block-130",
+        "kind": "paragraph",
+        "order": 130,
+        "text": "网优趣味课堂"
+      },
+      {
+        "id": "block-131",
+        "kind": "paragraph",
+        "order": 131,
+        "text": "将全班学生分成A组和B组，通过网管教师端给A组学生开设账号：学生1,学生2,学生3，给B组学生开设账号：学生4,学生5,学生6，另外教师开设4个非法账号分别是：学生7,学生8,学生9，学生10."
+      },
+      {
+        "id": "block-132",
+        "kind": "paragraph",
+        "order": 132,
+        "text": "要求："
+      },
+      {
+        "id": "block-133",
+        "kind": "paragraph",
+        "order": 133,
+        "text": "A组学生和B组学生找出登录网管的所有用户，并标出非法用户，然后手机拍照上传老师。"
+      },
+      {
+        "id": "block-134",
+        "kind": "paragraph",
+        "order": 134,
+        "text": "A组学生导出基站1,2,3的当前激活的严重和重要告警，B组学生导出基站4,5,6的过去一周的严重告警并标出已处理告警。"
+      },
+      {
+        "id": "block-135",
+        "kind": "paragraph",
+        "order": 135,
+        "text": "结果验证：A组学生和B组学生交叉检查答案，并给老师提交检查结果。"
+      },
+      {
+        "id": "block-136",
+        "kind": "paragraph",
+        "order": 136,
+        "text": "A组学生提取基站4,5,6过去一周的KPI指标（包括：接入性、保持性、移动性，提取粒度：30分钟），B组学生提取基站1,2,3的当天的KPI指标（包括：完整性、可用性、利用率，提取粒度：15分钟），并找出每种指标TOP3最坏小区。"
+      },
+      {
+        "id": "block-137",
+        "kind": "paragraph",
+        "order": 137,
+        "text": "结果验证：A组学生和B组学生交叉检查答案，并给老师提交检查结果。"
+      },
+      {
+        "id": "block-138",
+        "kind": "paragraph",
+        "order": 138,
+        "text": "根据老师下发任务，A组学生完成容量计算，B组学生完成覆盖计算截屏后将结果发给老师"
+      },
+      {
+        "id": "block-139",
+        "kind": "paragraph",
+        "order": 139,
+        "text": "A组学生完成基站1,和基站2之间邻区添加，并删除基站2和基站3之间邻区，B组学生删除基站4和基站5之间邻区并添加基站5和基站6之间邻区。"
+      },
+      {
+        "id": "block-140",
+        "kind": "paragraph",
+        "order": 140,
+        "text": "结果验证：A组学生和B组学生交叉检查答案，并给老师提交检查结果。"
+      }
+    ],
+    "storyboard": {
+      "schema": "lesson-storyboard/v1",
+      "learningGoal": "学完后能把参数变更写成可执行方案，说明触发源、目标值、影响域、互斥关系、观察指标和回退点。",
+      "summary": "本节讲参数设置：从投诉、DT/CQT、KPI 或规划变更进入目标取值，再做影响评估、审批备份、执行窗口、回退和监控设计。",
+      "knowledgeUnits": [
+        {
+          "id": "P10-ku-01",
+          "title": "变更触发",
+          "kind": "concept",
+          "shortText": "参数设置来自投诉、测试、KPI 或规划变更。",
+          "narrationText": "参数设置必须有明确触发源，可能是投诉定位、DT/CQT 证据、KPI 劣化、规划调整或一致性核查。"
+        },
+        {
+          "id": "P10-ku-02",
+          "title": "目标取值",
+          "kind": "concept",
+          "shortText": "目标值要说明场景、边界、依据和适用范围。",
+          "narrationText": "参数目标值应标注适用场景、频段、业务目标、边界条件和依据来源，避免把经验值泛化到全网。"
+        },
+        {
+          "id": "P10-ku-03",
+          "title": "影响评估",
+          "kind": "criteria",
+          "shortText": "覆盖、切换、容量、接入和业务策略联动评估。",
+          "narrationText": "参数变更会影响小区、邻区、用户体验和业务策略，实施前要评估影响域、风险等级和回退影响。"
+        },
+        {
+          "id": "P10-ku-04",
+          "title": "执行窗口",
+          "kind": "evidence",
+          "shortText": "备份、审批、窗口、回退和监控同步设计。",
+          "narrationText": "执行方案要包括审批记录、配置备份、变更窗口、回退点、监控指标和责任人，确保动作可控。"
+        },
+        {
+          "id": "P10-ku-05",
+          "title": "风险判定",
+          "kind": "practice",
+          "shortText": "变更前确认副作用、互斥参数和观察指标。",
+          "narrationText": "风险判定关注参数之间的耦合关系、互斥条件、邻区影响和观察指标，避免局部优化引入新问题。"
+        },
+        {
+          "id": "P10-ku-06",
+          "title": "版本固化",
+          "kind": "review",
+          "shortText": "保存版本、责任、观察结果和经验边界。",
+          "narrationText": "变更后要固化配置版本，记录责任人、观察结果、异常处理和适用边界，为后续同类调整提供依据。"
+        }
+      ],
+      "reviewSummary": "复盘时看触发源、目标值、审批记录、配置备份、执行窗口、监控结果和版本固化是否完整。"
+    }
+  },
+  "knowledge": {
+    "steps": [
+      {
+        "id": "P10-knowledge-01",
+        "label": "变更触发",
+        "description": "参数设置来自投诉、测试、KPI 或规划变更。"
+      },
+      {
+        "id": "P10-knowledge-02",
+        "label": "目标取值",
+        "description": "目标值要说明场景、边界、依据和适用范围。"
+      },
+      {
+        "id": "P10-knowledge-03",
+        "label": "影响评估",
+        "description": "覆盖、切换、容量、接入和业务策略联动评估。"
+      },
+      {
+        "id": "P10-knowledge-04",
+        "label": "执行窗口",
+        "description": "备份、审批、窗口、回退和监控同步设计。"
+      },
+      {
+        "id": "P10-knowledge-05",
+        "label": "风险判定",
+        "description": "变更前确认副作用、互斥参数和观察指标。"
+      },
+      {
+        "id": "P10-knowledge-06",
+        "label": "版本固化",
+        "description": "保存版本、责任、观察结果和经验边界。"
+      }
+    ],
+    "metrics": [
+      {
+        "label": "M1",
+        "value": "CM"
+      },
+      {
+        "label": "M2",
+        "value": "一致性"
+      },
+      {
+        "label": "M3",
+        "value": "风险"
+      }
+    ]
+  },
+  "animation": {
+    "templateHint": "optimization-loop",
+    "durationMs": 610000,
+    "targets": [
+      {
+        "id": "P10-step-01",
+        "label": "变更触发",
+        "description": "参数设置来自投诉、测试、KPI 或规划变更。"
+      },
+      {
+        "id": "P10-step-02",
+        "label": "目标取值",
+        "description": "目标值要说明场景、边界、依据和适用范围。"
+      },
+      {
+        "id": "P10-step-03",
+        "label": "影响评估",
+        "description": "覆盖、切换、容量、接入和业务策略联动评估。"
+      },
+      {
+        "id": "P10-step-04",
+        "label": "执行窗口",
+        "description": "备份、审批、窗口、回退和监控同步设计。"
+      },
+      {
+        "id": "P10-step-05",
+        "label": "风险判定",
+        "description": "变更前确认副作用、互斥参数和观察指标。"
+      },
+      {
+        "id": "P10-step-06",
+        "label": "版本固化",
+        "description": "保存版本、责任、观察结果和经验边界。"
+      }
+    ]
+  },
+  "playback": {
+    "mode": "one-way",
+    "widgetId": "P10-lesson-animation-001"
+  }
+}

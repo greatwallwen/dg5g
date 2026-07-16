@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dgbook.asset.manim-animation.v1",
+  "title": "DGBook Manim Animation Asset",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "sceneName", "source", "outputs", "constraints"],
+  "properties": {
+    "schema": { "const": "dgbook.asset.manim-animation/v1" },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "sceneName": { "type": "string", "minLength": 1 },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "templateId"],
+      "properties": {
+        "path": { "type": "string" },
+        "templateId": { "type": "string" },
+        "projectId": { "type": "string" },
+        "beatIds": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manifest"],
+      "properties": {
+        "manifest": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "posterUrl": { "type": "string" },
+        "durationMs": { "type": "number", "minimum": 1 },
+        "format": { "enum": ["webm", "mp4", "gif", "placeholder"] }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maxVisibleTextChars", "safeArea"],
+      "properties": {
+        "maxVisibleTextChars": { "type": "integer", "minimum": 20, "maximum": 160 },
+        "safeArea": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["left", "top", "right", "bottom"],
+          "properties": {
+            "left": { "type": "number", "minimum": 0 },
+            "top": { "type": "number", "minimum": 0 },
+            "right": { "type": "number", "minimum": 0 },
+            "bottom": { "type": "number", "minimum": 0 }
+          }
+        }
+      }
+    }
+  }
+}

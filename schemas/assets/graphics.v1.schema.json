@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dgbook.asset.graphics.v1",
+  "title": "DGBook Graphics Asset",
+  "type": "object",
+  "required": ["schema", "id", "coordinate", "objects"],
+  "properties": {
+    "schema": { "const": "dgbook.asset.graphics/v1" },
+    "id": { "type": "string" },
+    "coordinate": {
+      "type": "object",
+      "required": ["width", "height", "unit"],
+      "properties": {
+        "width": { "type": "number", "minimum": 1 },
+        "height": { "type": "number", "minimum": 1 },
+        "unit": { "const": "px" }
+      }
+    },
+    "styles": { "type": "object" },
+    "objects": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "box"],
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "enum": ["path", "rect", "circle", "icon", "image", "group"] },
+          "box": {
+            "type": "object",
+            "required": ["x", "y", "w", "h"],
+            "properties": {
+              "x": { "type": "number" },
+              "y": { "type": "number" },
+              "w": { "type": "number", "minimum": 1 },
+              "h": { "type": "number", "minimum": 1 }
+            }
+          },
+          "style": { "type": "object" },
+          "data": { "type": "object" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,769 @@
+{
+  "id": "P13-edugame-interactive-001",
+  "widget": "edugame-pixi",
+  "version": "0.1.0",
+  "props": {
+    "title": "报告交付审校",
+    "height": 720,
+    "gameConfig": {
+      "schema": "dgbook.edugame-pixi/v1",
+      "game_id": "optimization-report-lab",
+      "game_type": "memory-card",
+      "lesson_id": "P13",
+      "duration": 90,
+      "difficulty": "normal",
+      "asset_pack": "dgbook-5g-v1",
+      "mistake_limit": 4,
+      "pass_score": 80,
+      "knowledge_points": [
+        {
+          "id": "t1",
+          "name": "背景",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t2",
+          "name": "支撑",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t3",
+          "name": "过程",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t4",
+          "name": "结果",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t5",
+          "name": "边界",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t6",
+          "name": "沉淀",
+          "description": "证据门",
+          "weight": 1
+        }
+      ],
+      "levels": [
+        {
+          "level_id": "p13-level-01",
+          "type": "memory-card",
+          "goal": "把报告章节和证据材料配齐，形成可追溯交付物。",
+          "time_limit": 90,
+          "mistake_limit": 4,
+          "items": [
+            {
+              "id": "i1",
+              "label": "问题摘要",
+              "text": "现场任务：优化动作完成后，需要把证据、动作和结果整理成可审计报告。",
+              "prompt": "判断“问题摘要”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "说明优化对象和影响范围",
+              "target_id": "t1",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 说明优化对象和影响范围",
+              "kp": "t1",
+              "order": 1,
+              "correct": true
+            },
+            {
+              "id": "i2",
+              "label": "证据截图",
+              "text": "交付要求：把报告章节和证据材料配齐，形成可追溯交付物。",
+              "prompt": "判断“证据截图”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "证明问题存在",
+              "target_id": "t2",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 证明问题存在",
+              "kp": "t2",
+              "order": 2,
+              "correct": true
+            },
+            {
+              "id": "i3",
+              "label": "动作清单",
+              "text": "挑战约束：需要补齐可追溯材料，避免只有结论、缺少证据链。",
+              "prompt": "判断“动作清单”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "记录实施内容和时间",
+              "target_id": "t3",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 记录实施内容和时间",
+              "kp": "t3",
+              "order": 3,
+              "correct": true
+            },
+            {
+              "id": "i4",
+              "label": "对比曲线",
+              "text": "优化动作完成后，需要把证据、动作和结果整理成可审计报告。",
+              "prompt": "判断“对比曲线”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "展示效果变化",
+              "target_id": "t4",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 展示效果变化",
+              "kp": "t4",
+              "order": 4,
+              "correct": true
+            },
+            {
+              "id": "i5",
+              "label": "风险说明",
+              "text": "优化动作完成后，需要把证据、动作和结果整理成可审计报告。",
+              "prompt": "判断“风险说明”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "说明未解决项和观察窗口",
+              "target_id": "t5",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 说明未解决项和观察窗口",
+              "kp": "t5",
+              "order": 5,
+              "correct": true
+            },
+            {
+              "id": "i6",
+              "label": "复盘建议",
+              "text": "优化动作完成后，需要把证据、动作和结果整理成可审计报告。",
+              "prompt": "判断“复盘建议”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "指导后续优化",
+              "target_id": "t6",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 指导后续优化",
+              "kp": "t6",
+              "order": 6,
+              "correct": true
+            },
+            {
+              "id": "d1",
+              "label": "只记录主观描述",
+              "text": "缺少可复核证据，无法支撑工程闭环。",
+              "prompt": "这是干扰信息，先判断它是否能直接支撑本关目标。",
+              "definition": "缺少可复核证据，无法支撑工程闭环。",
+              "target_id": "t1",
+              "explanation": "缺少可复核证据，无法支撑工程闭环。",
+              "kp": "t1",
+              "correct": false
+            },
+            {
+              "id": "d2",
+              "label": "跳过时间和对象边界",
+              "text": "查询窗口不清会放大排查范围。",
+              "prompt": "这是干扰信息，先判断它是否能直接支撑本关目标。",
+              "definition": "查询窗口不清会放大排查范围。",
+              "target_id": "t2",
+              "explanation": "查询窗口不清会放大排查范围。",
+              "kp": "t2",
+              "correct": false
+            },
+            {
+              "id": "d3",
+              "label": "直接给经验结论",
+              "text": "没有证据链的结论不能作为派单依据。",
+              "prompt": "这是干扰信息，先判断它是否能直接支撑本关目标。",
+              "definition": "没有证据链的结论不能作为派单依据。",
+              "target_id": "t3",
+              "explanation": "没有证据链的结论不能作为派单依据。",
+              "kp": "t3",
+              "correct": false
+            }
+          ]
+        }
+      ],
+      "score_rule": {
+        "base": 0,
+        "correct": 12,
+        "wrong_penalty": 6,
+        "combo_bonus": true,
+        "time_bonus": true
+      },
+      "reward_rule": {
+        "stars": [
+          60,
+          75,
+          90
+        ],
+        "badges": [
+          "流程成链",
+          "动作有序",
+          "复测闭环",
+          "归档完整"
+        ]
+      },
+      "ui": {
+        "arenaLabel": "5G 训练场",
+        "cardMark": "5G",
+        "scenario": "优化动作完成后，需要把证据、动作和结果整理成可审计报告。",
+        "instruction": "按现象、证据、动作和复测顺序拼出工程闭环，跳步会导致返工。",
+        "actionLabel": "开始挑战",
+        "feedbackHint": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+        "onboarding": [
+          "先放现象和证据，再放动作。",
+          "任何优化动作都必须能回到复测指标。",
+          "跳过证据或复测会造成返工。",
+          "按现象、证据、动作、复测顺序完成闭环。"
+        ]
+      },
+      "interaction": {
+        "actionLabel": "开始挑战",
+        "ruleChecks": [
+          "先放现象和证据，再放动作。",
+          "任何优化动作都必须能回到复测指标。",
+          "流程位全部归位才算闭环。"
+        ],
+        "errorFeedback": [
+          "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+          "先核对对象、证据门和干扰项边界，再重新选择。"
+        ],
+        "replayPrompts": [
+          "先识别 2 个高优先级证据卡。",
+          "在限定时间内完成全部证据链并达到交付分。"
+        ]
+      },
+      "ruleChecks": [
+        "先放现象和证据，再放动作。",
+        "任何优化动作都必须能回到复测指标。",
+        "流程位全部归位才算闭环。"
+      ],
+      "errorFeedback": [
+        "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+        "先核对对象、证据门和干扰项边界，再重新选择。"
+      ],
+      "replayPrompts": [
+        "先识别 2 个高优先级证据卡。",
+        "在限定时间内完成全部证据链并达到交付分。"
+      ],
+      "successCriteria": [
+        "按现象、证据、动作、复测顺序完成闭环。",
+        "达到 80 分，且错误不超过 4 次。"
+      ],
+      "actionLabel": "开始挑战",
+      "template": "edugamekit.card-flow/v2",
+      "templateId": "card-flow",
+      "mechanicFamily": "memory-card",
+      "id": "optimization-report-lab",
+      "projectId": "P13",
+      "title": "报告交付审校",
+      "gameType": "card-flow",
+      "objective": "把报告章节和证据材料配齐，形成可追溯交付物。",
+      "scenario": "优化动作完成后，需要把证据、动作和结果整理成可审计报告。",
+      "challenge": "需要补齐可追溯材料，避免只有结论、缺少证据链。",
+      "instruction": "按现象、证据、动作和复测顺序拼出工程闭环，跳步会导致返工。",
+      "challengeMode": "sequence",
+      "winCondition": "按现象、证据、动作、复测顺序完成闭环。",
+      "pressureModel": {
+        "label": "跳过证据或复测会造成返工。",
+        "failureBudget": 4,
+        "timeBudgetSec": 90
+      },
+      "mechanicRules": [
+        "先放现象和证据，再放动作。",
+        "任何优化动作都必须能回到复测指标。",
+        "流程位全部归位才算闭环。"
+      ],
+      "timeLimitSec": 90,
+      "mistakeLimit": 4,
+      "passScore": 80,
+      "totalPoints": 100,
+      "caseFacts": [
+        "现场任务：优化动作完成后，需要把证据、动作和结果整理成可审计报告。",
+        "交付要求：把报告章节和证据材料配齐，形成可追溯交付物。",
+        "挑战约束：需要补齐可追溯材料，避免只有结论、缺少证据链。"
+      ],
+      "evidenceTokens": [
+        {
+          "id": "i1",
+          "label": "问题摘要",
+          "role": "说明优化对象和影响范围",
+          "severity": "critical",
+          "expectedTargetId": "t1",
+          "hint": "关键点：说明优化对象和影响范围",
+          "caseFact": "现场任务：优化动作完成后，需要把证据、动作和结果整理成可审计报告。",
+          "challenge": "判断“问题摘要”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 说明优化对象和影响范围",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 说明优化对象和影响范围",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i2",
+          "label": "证据截图",
+          "role": "证明问题存在",
+          "severity": "critical",
+          "expectedTargetId": "t2",
+          "hint": "关键点：证明问题存在",
+          "caseFact": "交付要求：把报告章节和证据材料配齐，形成可追溯交付物。",
+          "challenge": "判断“证据截图”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 证明问题存在",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 证明问题存在",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i3",
+          "label": "动作清单",
+          "role": "记录实施内容和时间",
+          "severity": "high",
+          "expectedTargetId": "t3",
+          "hint": "关键点：记录实施内容和时间",
+          "caseFact": "挑战约束：需要补齐可追溯材料，避免只有结论、缺少证据链。",
+          "challenge": "判断“动作清单”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 记录实施内容和时间",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 记录实施内容和时间",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i4",
+          "label": "对比曲线",
+          "role": "展示效果变化",
+          "severity": "high",
+          "expectedTargetId": "t4",
+          "hint": "关键点：展示效果变化",
+          "caseFact": "优化动作完成后，需要把证据、动作和结果整理成可审计报告。",
+          "challenge": "判断“对比曲线”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 展示效果变化",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 展示效果变化",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i5",
+          "label": "风险说明",
+          "role": "说明未解决项和观察窗口",
+          "severity": "normal",
+          "expectedTargetId": "t5",
+          "hint": "关键点：说明未解决项和观察窗口",
+          "caseFact": "优化动作完成后，需要把证据、动作和结果整理成可审计报告。",
+          "challenge": "判断“风险说明”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 说明未解决项和观察窗口",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 说明未解决项和观察窗口",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i6",
+          "label": "复盘建议",
+          "role": "指导后续优化",
+          "severity": "normal",
+          "expectedTargetId": "t6",
+          "hint": "关键点：指导后续优化",
+          "caseFact": "优化动作完成后，需要把证据、动作和结果整理成可审计报告。",
+          "challenge": "判断“复盘建议”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 指导后续优化",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 指导后续优化",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        }
+      ],
+      "targetGates": [
+        {
+          "id": "t1",
+          "label": "背景",
+          "role": "证据门",
+          "accepts": "说明优化对象和影响范围"
+        },
+        {
+          "id": "t2",
+          "label": "支撑",
+          "role": "证据门",
+          "accepts": "证明问题存在"
+        },
+        {
+          "id": "t3",
+          "label": "过程",
+          "role": "证据门",
+          "accepts": "记录实施内容和时间"
+        },
+        {
+          "id": "t4",
+          "label": "结果",
+          "role": "证据门",
+          "accepts": "展示效果变化"
+        },
+        {
+          "id": "t5",
+          "label": "边界",
+          "role": "证据门",
+          "accepts": "说明未解决项和观察窗口"
+        },
+        {
+          "id": "t6",
+          "label": "沉淀",
+          "role": "证据门",
+          "accepts": "指导后续优化"
+        }
+      ],
+      "distractors": [
+        {
+          "id": "d1",
+          "label": "只记录主观描述",
+          "whyWrong": "缺少可复核证据，无法支撑工程闭环。"
+        },
+        {
+          "id": "d2",
+          "label": "跳过时间和对象边界",
+          "whyWrong": "查询窗口不清会放大排查范围。"
+        },
+        {
+          "id": "d3",
+          "label": "直接给经验结论",
+          "whyWrong": "没有证据链的结论不能作为派单依据。"
+        }
+      ],
+      "levelGoals": [
+        "先识别 2 个高优先级证据卡。",
+        "连续完成 3 次正确归门，建立稳定判断。",
+        "在限定时间内完成全部证据链并达到交付分。"
+      ],
+      "failureConditions": [
+        "关键证据门缺失导致链路不可复核。",
+        "错把干扰项当作证据导致扣分超过上限。",
+        "超时仍未完成全部目标门匹配。"
+      ],
+      "feedback": {
+        "correct": "证据有效：这张证据卡能直接支撑当前工程判断。",
+        "wrong": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+        "nearMiss": "方向接近，但证据粒度还不够支撑交付结论。",
+        "complete": "证据链闭合，可以进入复盘或派单。"
+      },
+      "inputModel": {
+        "kind": "card-flow",
+        "group": "sequence",
+        "template": "edugamekit.card-flow/v2",
+        "templateId": "card-flow",
+        "mechanicFamily": "memory-card",
+        "gameClass": "报告交付审校",
+        "mechanicLabel": "闭环卡牌挑战",
+        "challengeMode": "sequence",
+        "visualMetaphor": "闭环卡牌流程",
+        "instruction": "按现象、证据、动作和复测顺序拼出工程闭环，跳步会导致返工。",
+        "minActions": 6,
+        "caseFacts": [
+          "现场任务：优化动作完成后，需要把证据、动作和结果整理成可审计报告。",
+          "交付要求：把报告章节和证据材料配齐，形成可追溯交付物。",
+          "挑战约束：需要补齐可追溯材料，避免只有结论、缺少证据链。"
+        ],
+        "options": [
+          {
+            "id": "i1",
+            "label": "问题摘要",
+            "role": "说明优化对象和影响范围",
+            "severity": "critical",
+            "expectedTargetId": "t1",
+            "hint": "关键点：说明优化对象和影响范围",
+            "caseFact": "现场任务：优化动作完成后，需要把证据、动作和结果整理成可审计报告。",
+            "challenge": "判断“问题摘要”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 说明优化对象和影响范围",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 说明优化对象和影响范围",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i2",
+            "label": "证据截图",
+            "role": "证明问题存在",
+            "severity": "critical",
+            "expectedTargetId": "t2",
+            "hint": "关键点：证明问题存在",
+            "caseFact": "交付要求：把报告章节和证据材料配齐，形成可追溯交付物。",
+            "challenge": "判断“证据截图”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 证明问题存在",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 证明问题存在",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i3",
+            "label": "动作清单",
+            "role": "记录实施内容和时间",
+            "severity": "high",
+            "expectedTargetId": "t3",
+            "hint": "关键点：记录实施内容和时间",
+            "caseFact": "挑战约束：需要补齐可追溯材料，避免只有结论、缺少证据链。",
+            "challenge": "判断“动作清单”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 记录实施内容和时间",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 记录实施内容和时间",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i4",
+            "label": "对比曲线",
+            "role": "展示效果变化",
+            "severity": "high",
+            "expectedTargetId": "t4",
+            "hint": "关键点：展示效果变化",
+            "caseFact": "优化动作完成后，需要把证据、动作和结果整理成可审计报告。",
+            "challenge": "判断“对比曲线”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 展示效果变化",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 展示效果变化",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i5",
+            "label": "风险说明",
+            "role": "说明未解决项和观察窗口",
+            "severity": "normal",
+            "expectedTargetId": "t5",
+            "hint": "关键点：说明未解决项和观察窗口",
+            "caseFact": "优化动作完成后，需要把证据、动作和结果整理成可审计报告。",
+            "challenge": "判断“风险说明”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 说明未解决项和观察窗口",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 说明未解决项和观察窗口",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i6",
+            "label": "复盘建议",
+            "role": "指导后续优化",
+            "severity": "normal",
+            "expectedTargetId": "t6",
+            "hint": "关键点：指导后续优化",
+            "caseFact": "优化动作完成后，需要把证据、动作和结果整理成可审计报告。",
+            "challenge": "判断“复盘建议”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 指导后续优化",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 指导后续优化",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          }
+        ],
+        "targets": [
+          {
+            "id": "t1",
+            "label": "背景",
+            "role": "证据门",
+            "accepts": "说明优化对象和影响范围"
+          },
+          {
+            "id": "t2",
+            "label": "支撑",
+            "role": "证据门",
+            "accepts": "证明问题存在"
+          },
+          {
+            "id": "t3",
+            "label": "过程",
+            "role": "证据门",
+            "accepts": "记录实施内容和时间"
+          },
+          {
+            "id": "t4",
+            "label": "结果",
+            "role": "证据门",
+            "accepts": "展示效果变化"
+          },
+          {
+            "id": "t5",
+            "label": "边界",
+            "role": "证据门",
+            "accepts": "说明未解决项和观察窗口"
+          },
+          {
+            "id": "t6",
+            "label": "沉淀",
+            "role": "证据门",
+            "accepts": "指导后续优化"
+          }
+        ],
+        "distractors": [
+          {
+            "id": "d1",
+            "label": "只记录主观描述",
+            "whyWrong": "缺少可复核证据，无法支撑工程闭环。"
+          },
+          {
+            "id": "d2",
+            "label": "跳过时间和对象边界",
+            "whyWrong": "查询窗口不清会放大排查范围。"
+          },
+          {
+            "id": "d3",
+            "label": "直接给经验结论",
+            "whyWrong": "没有证据链的结论不能作为派单依据。"
+          }
+        ],
+        "onboardingPath": [
+          {
+            "title": "看目标",
+            "body": "先放现象和证据，再放动作。"
+          },
+          {
+            "title": "做判断",
+            "body": "任何优化动作都必须能回到复测指标。"
+          },
+          {
+            "title": "控风险",
+            "body": "跳过证据或复测会造成返工。"
+          },
+          {
+            "title": "达成交付",
+            "body": "按现象、证据、动作、复测顺序完成闭环。"
+          }
+        ],
+        "mechanicRules": [
+          "先放现象和证据，再放动作。",
+          "任何优化动作都必须能回到复测指标。",
+          "流程位全部归位才算闭环。"
+        ],
+        "winCondition": "按现象、证据、动作、复测顺序完成闭环。",
+        "levelGoals": [
+          "先识别 2 个高优先级证据卡。",
+          "连续完成 3 次正确归门，建立稳定判断。",
+          "在限定时间内完成全部证据链并达到交付分。"
+        ],
+        "failureConditions": [
+          "关键证据门缺失导致链路不可复核。",
+          "错把干扰项当作证据导致扣分超过上限。",
+          "超时仍未完成全部目标门匹配。"
+        ]
+      },
+      "answerModel": {
+        "kind": "card-flow",
+        "group": "sequence",
+        "pairs": {
+          "i1": "t1",
+          "i2": "t2",
+          "i3": "t3",
+          "i4": "t4",
+          "i5": "t5",
+          "i6": "t6"
+        },
+        "targetIds": [
+          "t1",
+          "t2",
+          "t3",
+          "t4",
+          "t5",
+          "t6"
+        ],
+        "requiredEvidenceCount": 6,
+        "distractorIds": [
+          "d1",
+          "d2",
+          "d3"
+        ],
+        "winCondition": "按现象、证据、动作、复测顺序完成闭环。",
+        "rationale": "每个判断必须回到工程证据，不能只凭描述、情绪或经验结论。"
+      },
+      "challengeLevels": [
+        {
+          "id": "level-1",
+          "label": "识别",
+          "goal": "先识别 2 个高优先级证据卡。",
+          "constraint": "允许查看提示，但连续命中才加分。"
+        },
+        {
+          "id": "level-2",
+          "label": "抗干扰",
+          "goal": "连续完成 3 次正确归门，建立稳定判断。",
+          "constraint": "干扰项会扣分并清空连击。"
+        },
+        {
+          "id": "level-3",
+          "label": "交付",
+          "goal": "在限定时间内完成全部证据链并达到交付分。",
+          "constraint": "90 秒内达到 80 分，最多 4 次失误。"
+        }
+      ],
+      "gameExperience": {
+        "onboardingPath": [
+          {
+            "title": "看目标",
+            "body": "先放现象和证据，再放动作。"
+          },
+          {
+            "title": "做判断",
+            "body": "任何优化动作都必须能回到复测指标。"
+          },
+          {
+            "title": "控风险",
+            "body": "跳过证据或复测会造成返工。"
+          },
+          {
+            "title": "达成交付",
+            "body": "按现象、证据、动作、复测顺序完成闭环。"
+          }
+        ],
+        "mechanicRules": [
+          "先放现象和证据，再放动作。",
+          "任何优化动作都必须能回到复测指标。",
+          "流程位全部归位才算闭环。"
+        ],
+        "challengeMode": "sequence",
+        "winCondition": "按现象、证据、动作、复测顺序完成闭环。",
+        "levelGoals": [
+          "先识别 2 个高优先级证据卡。",
+          "连续完成 3 次正确归门，建立稳定判断。",
+          "在限定时间内完成全部证据链并达到交付分。"
+        ],
+        "failureConditions": [
+          "关键证据门缺失导致链路不可复核。",
+          "错把干扰项当作证据导致扣分超过上限。",
+          "超时仍未完成全部目标门匹配。"
+        ],
+        "rewardModel": {
+          "badges": [
+            "流程成链",
+            "动作有序",
+            "复测闭环",
+            "归档完整"
+          ]
+        },
+        "scoreMoments": [
+          {
+            "id": "first-critical",
+            "label": "首个关键证据归门",
+            "points": 10
+          },
+          {
+            "id": "streak-3",
+            "label": "三连击",
+            "points": 15
+          },
+          {
+            "id": "no-distractor",
+            "label": "避开干扰项",
+            "points": 15
+          },
+          {
+            "id": "chain-complete",
+            "label": "证据链闭合",
+            "points": 30
+          }
+        ]
+      },
+      "scoringRubric": {
+        "totalPoints": 100,
+        "passScore": 80,
+        "dimensions": [
+          {
+            "id": "accuracy",
+            "label": "流程顺序准确",
+            "points": 50
+          },
+          {
+            "id": "distractorControl",
+            "label": "干扰项识别",
+            "points": 20
+          },
+          {
+            "id": "speed",
+            "label": "限时完成",
+            "points": 15
+          },
+          {
+            "id": "streak",
+            "label": "连续命中",
+            "points": 15
+          }
+        ]
+      },
+      "feedbackHint": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+      "reviewSummary": {
+        "pass": "报告交付审校已达标：证据链完整，可以进入案例复盘或工程交付。",
+        "fail": "报告交付审校未达标：请回到缺失目标门，重新确认证据卡、证据门和干扰项边界。"
+      },
+      "legacyManifestId": "optimization-report-lab"
+    }
+  },
+  "project": "P13",
+  "status": "published",
+  "history": [
+    {
+      "status": "published",
+      "at": "2026-05-22T00:00:00.000Z",
+      "by": "docx-importer",
+      "comment": "Published by the DGBook importer."
+    }
+  ]
+}

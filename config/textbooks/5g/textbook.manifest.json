@@ -1,0 +1,48 @@
+{
+  "bookId": "5g",
+  "title": "5G 网络优化（高级）",
+  "version": "0.1.0",
+  "status": "production-candidate",
+  "language": "zh-CN",
+  "source": {
+    "type": "docx",
+    "path": "content/5g/5g.docx",
+    "preferredPath": "content/5g/5g.docx",
+    "migrationStatus": "content-root-source"
+  },
+  "configRoot": "config/textbooks/5g",
+  "importer": "scripts/import-5g-docx.py",
+  "rulePackage": "scripts/import_5g",
+  "outputs": {
+    "outline": "textbook/5g/outline.json",
+    "projects": "textbook/5g/projects",
+    "widgets": "textbook/5g/widgets",
+    "generatedAst": "textbook/5g/generated",
+    "animations": "textbook/5g/animations",
+    "media": "site/public/media/5g",
+    "manim": "site/public/media/manim",
+    "tts": "site/public/media/tts"
+  },
+  "capabilities": [
+    "lesson-animation",
+    "openmaic-style-playback",
+    "qwen-tts",
+    "manim",
+    "edugame-pixi",
+    "capability-map"
+  ],
+  "qualityGates": [
+    "audit:textbook-boundaries",
+    "audit:textbook-manifests",
+    "audit:product-closure",
+    "audit:product-maturity",
+    "audit:edugame-runtime"
+  ],
+  "futureMigration": {
+    "preferredContentRoot": "content/5g",
+    "preferredTextbookRoot": "textbook/5g",
+    "preferredMediaRoot": "site/public/media/5g",
+    "preferredImporter": "scripts/import_5g",
+    "notes": "当前 5G 源文件位于 content/5g/5g.docx；后续新教材沿用 content/<book-id>/ 入口。"
+  }
+}

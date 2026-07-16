@@ -1,0 +1,238 @@
+---
+project_id: "P01"
+title: "室内环境信息采集"
+chapter: "ch1"
+unit: "u1"
+icon: "map-pinned"
+chip: "5G网优"
+threads: ["5g-network-optimization"]
+estimatedPages: 6
+widgets: ["P01-lesson-animation-001", "P01-edugame-interactive-001"]
+status: "draft"
+playbackScenes: [{"id": "P01-storyboard", "title": "教材讲授", "type": "content", "order": 1, "stageId": "P01", "description": "围绕室内环境信息采集建立对象、证据、判据和复测结论。", "actions": [{"id": "P01-story-action-001", "type": "spotlight", "title": "导学摘要", "elementId": "sec-overview-summary", "content": "本节把室内站点采集讲成一条资源链：从机房和机柜定位，到设备拓扑、配套条件和影像索引，最终支撑规划、排障和优化复核。"}, {"id": "P01-story-action-002", "type": "speech", "title": "导学摘要", "text": "本节把室内站点采集讲成一条资源链：从机房和机柜定位，到设备拓扑、配套条件和影像索引，最终支撑规划、排障和优化复核。", "elementId": "sec-overview-summary", "spokenText": "本节把室内站点采集讲成一条资源链：从机房和机柜定位，到设备拓扑、配套条件和影像索引，最终支撑规划、排障和优化复核。", "audioId": "P01-story-speech-002", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "本节把室内站点采集讲成一条资源链：从机房和机柜定位，到设备拓扑、配套条件和影像索引...", "displayText": "本节把室内站点采集讲成一条资源链：从机房和机柜定位，到设备拓扑、配套条件和影像索引...", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-002.wav"}, {"id": "P01-story-action-003", "type": "spotlight", "title": "学习目标", "elementId": "sec-learning-goal", "content": "学完后能用统一台账描述机房、BBU/AAU-RRU、端口、传输、电源、接地和温控关系，并判断资料是否可追溯。"}, {"id": "P01-story-action-004", "type": "speech", "title": "学习目标", "text": "学完后能用统一台账描述机房、BBU/AAU-RRU、端口、传输、电源、接地和温控关系，并判断资料是否可追溯。", "elementId": "sec-learning-goal", "spokenText": "学完后能用统一台账描述机房、BBU/AAU-RRU、端口、传输、电源、接地和温控关系，并判断资料是否可追溯。", "audioId": "P01-story-speech-004", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "学完后能用统一台账描述机房、BBU/AAU-RRU、端口、传输、电源、接地和温控关...", "displayText": "学完后能用统一台账描述机房、BBU/AAU-RRU、端口、传输、电源、接地和温控关...", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-004.wav"}, {"id": "P01-story-action-005", "type": "spotlight", "title": "概念与对象：室内资源边界", "elementId": "P01-ku-01-body", "content": "机房、机柜、主设备和配套资源先建台账。"}, {"id": "P01-story-action-006", "type": "speech", "title": "室内资源边界：讲解", "text": "室内信息采集要先锁定资源边界：机房位置、机柜编号、BBU、AAU/RRU、电源、传输、接地和温控共同决定站点可用性。", "elementId": "P01-ku-01-body", "spokenText": "室内信息采集要先锁定资源边界：机房位置、机柜编号、BBU、AAU/RRU、电源、传输、接地和温控共同决定站点可用性。", "audioId": "P01-story-speech-006", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "室内信息采集要先锁定资源边界：机房位置、机柜编号、BBU、AAU/RRU、电源、传...", "displayText": "室内信息采集要先锁定资源边界：机房位置、机柜编号、BBU、AAU/RRU、电源、传...", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-006.wav"}, {"id": "P01-story-focus-action-story-action-007", "type": "spotlight", "title": "室内资源边界：工程语境", "elementId": "P01-ku-01-body", "target": "P01-ku-01-body", "content": "室内资源边界先界定观察对象；机房、机柜、BBU、AAU/RRU用于确定本段的范围...", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P01-story-action-007", "type": "speech", "title": "室内资源边界：工程语境", "text": "室内资源边界先界定观察对象；机房、机柜、BBU、AAU/RRU用于确定本段的范围、入口和主要证据。", "elementId": "P01-ku-01-body", "spokenText": "室内资源边界先界定观察对象；机房、机柜、BBU、AAU/RRU用于确定本段的范围、入口和主要证据。", "audioId": "P01-story-speech-007", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "室内资源边界先界定观察对象；机房、机柜、BBU、AAU/RRU用于确定本段的范围...", "displayText": "室内资源边界先界定观察对象；机房、机柜、BBU、AAU/RRU用于确定本段的范围...", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-007.wav"}, {"id": "P01-story-focus-action-story-action-008", "type": "spotlight", "title": "室内资源边界：判断依据", "elementId": "P01-ku-01-body", "target": "P01-ku-01-body", "content": "先核对室内资源边界的对象范围，再看机房、机柜、BBU、AAU/RRU是否和现场记录...", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P01-story-action-008", "type": "speech", "title": "室内资源边界：判断依据", "text": "先核对室内资源边界的对象范围，再看机房、机柜、BBU、AAU/RRU是否和现场记录、指标口径保持一致。", "elementId": "P01-ku-01-body", "spokenText": "先核对室内资源边界的对象范围，再看机房、机柜、BBU、AAU/RRU是否和现场记录、指标口径保持一致。", "audioId": "P01-story-speech-008", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "先核对室内资源边界的对象范围，再看机房、机柜、BBU、AAU/RRU是否和现场记录...", "displayText": "先核对室内资源边界的对象范围，再看机房、机柜、BBU、AAU/RRU是否和现场记录...", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-008.wav"}, {"id": "P01-story-focus-action-story-action-009", "type": "spotlight", "title": "室内资源边界：常见误区", "elementId": "P01-ku-01-body", "target": "P01-ku-01-body", "content": "不要在室内资源边界阶段过早下结论；对象范围不清时，后续数据再多也难以复核。", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P01-story-action-009", "type": "speech", "title": "室内资源边界：常见误区", "text": "不要在室内资源边界阶段过早下结论；对象范围不清时，后续数据再多也难以复核。", "elementId": "P01-ku-01-body", "spokenText": "不要在室内资源边界阶段过早下结论；对象范围不清时，后续数据再多也难以复核。", "audioId": "P01-story-speech-009", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "不要在室内资源边界阶段过早下结论；对象范围不清时，后续数据再多也难以复核。", "displayText": "不要在室内资源边界阶段过早下结论；对象范围不清时，后续数据再多也难以复核。", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-009.wav"}, {"id": "P01-story-action-010", "type": "spotlight", "title": "概念与对象：设备拓扑", "elementId": "P01-ku-02-body", "content": "主设备、承载和走线关系要可追溯。"}, {"id": "P01-story-action-011", "type": "speech", "title": "设备拓扑：讲解", "text": "设备记录不止列型号，还要说明端口、光纤、电源线和传输承载的连接关系，后续定位才知道从哪一段查起。", "elementId": "P01-ku-02-body", "spokenText": "设备记录不止列型号，还要说明端口、光纤、电源线和传输承载的连接关系，后续定位才知道从哪一段查起。", "audioId": "P01-story-speech-011", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "设备记录不止列型号，还要说明端口、光纤、电源线和传输承载的连接关系，后续定位才知道...", "displayText": "设备记录不止列型号，还要说明端口、光纤、电源线和传输承载的连接关系，后续定位才知道...", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-011.wav"}, {"id": "P01-story-focus-action-story-action-012", "type": "spotlight", "title": "设备拓扑：工程语境", "elementId": "P01-ku-02-body", "target": "P01-ku-02-body", "content": "设备拓扑说明链路走到哪一步；端口、光纤、电源线、传输分别对应角色、接口、状态和约束。", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P01-story-action-012", "type": "speech", "title": "设备拓扑：工程语境", "text": "设备拓扑说明链路走到哪一步；端口、光纤、电源线、传输分别对应角色、接口、状态和约束。", "elementId": "P01-ku-02-body", "spokenText": "设备拓扑说明链路走到哪一步；端口、光纤、电源线、传输分别对应角色、接口、状态和约束。", "audioId": "P01-story-speech-012", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "设备拓扑说明链路走到哪一步；端口、光纤、电源线、传输分别对应角色、接口、状态和约束。", "displayText": "设备拓扑说明链路走到哪一步；端口、光纤、电源线、传输分别对应角色、接口、状态和约束。", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-012.wav"}, {"id": "P01-story-focus-action-story-action-013", "type": "spotlight", "title": "设备拓扑：判断依据", "elementId": "P01-ku-02-body", "target": "P01-ku-02-body", "content": "沿时间顺序检查端口、光纤、电源线、传输的先后关系，确认缺失、超时或状态跳变发生在哪...", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P01-story-action-013", "type": "speech", "title": "设备拓扑：判断依据", "text": "沿时间顺序检查端口、光纤、电源线、传输的先后关系，确认缺失、超时或状态跳变发生在哪一段。", "elementId": "P01-ku-02-body", "spokenText": "沿时间顺序检查端口、光纤、电源线、传输的先后关系，确认缺失、超时或状态跳变发生在哪一段。", "audioId": "P01-story-speech-013", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "沿时间顺序检查端口、光纤、电源线、传输的先后关系，确认缺失、超时或状态跳变发生在哪...", "displayText": "沿时间顺序检查端口、光纤、电源线、传输的先后关系，确认缺失、超时或状态跳变发生在哪...", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-013.wav"}, {"id": "P01-story-focus-action-story-action-014", "type": "spotlight", "title": "设备拓扑：常见误区", "elementId": "P01-ku-02-body", "target": "P01-ku-02-body", "content": "不要把端口、光纤、电源线、传输中的单个事件当作完整流程；缺少前后文会误判断点。", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P01-story-action-014", "type": "speech", "title": "设备拓扑：常见误区", "text": "不要把端口、光纤、电源线、传输中的单个事件当作完整流程；缺少前后文会误判断点。", "elementId": "P01-ku-02-body", "spokenText": "不要把端口、光纤、电源线、传输中的单个事件当作完整流程；缺少前后文会误判断点。", "audioId": "P01-story-speech-014", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "不要把端口、光纤、电源线、传输中的单个事件当作完整流程；缺少前后文会误判断点。", "displayText": "不要把端口、光纤、电源线、传输中的单个事件当作完整流程；缺少前后文会误判断点。", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-014.wav"}, {"id": "P01-story-action-015", "type": "spotlight", "title": "工程判读：运行条件", "elementId": "P01-ku-03-body", "content": "供电、接地、温控和传输共同影响站点稳定性。"}, {"id": "P01-story-action-016", "type": "speech", "title": "运行条件：讲解", "text": "运行条件要和主设备一起记录：供电容量、接地状态、空调能力和传输可用性会直接影响告警、业务稳定和后续排障。", "elementId": "P01-ku-03-body", "spokenText": "运行条件要和主设备一起记录：供电容量、接地状态、空调能力和传输可用性会直接影响告警、业务稳定和后续排障。", "audioId": "P01-story-speech-016", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "运行条件要和主设备一起记录：供电容量、接地状态、空调能力和传输可用性会直接影响告警...", "displayText": "运行条件要和主设备一起记录：供电容量、接地状态、空调能力和传输可用性会直接影响告警...", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-016.wav"}, {"id": "P01-story-focus-action-story-action-017", "type": "spotlight", "title": "运行条件：工程语境", "elementId": "P01-ku-03-body", "target": "P01-ku-03-body", "content": "运行条件用于建立判据；供电、接地、温控、承载要放进同一时间窗和同一对象范围比较。", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P01-story-action-017", "type": "speech", "title": "运行条件：工程语境", "text": "运行条件用于建立判据；供电、接地、温控、承载要放进同一时间窗和同一对象范围比较。", "elementId": "P01-ku-03-body", "spokenText": "运行条件用于建立判据；供电、接地、温控、承载要放进同一时间窗和同一对象范围比较。", "audioId": "P01-story-speech-017", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "运行条件用于建立判据；供电、接地、温控、承载要放进同一时间窗和同一对象范围比较。", "displayText": "运行条件用于建立判据；供电、接地、温控、承载要放进同一时间窗和同一对象范围比较。", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-017.wav"}, {"id": "P01-story-focus-action-story-action-018", "type": "spotlight", "title": "运行条件：判断依据", "elementId": "P01-ku-03-body", "target": "P01-ku-03-body", "content": "把供电、接地、温控、承载与阈值、趋势、样本量和对照对象一起比较，避免只看单点结果。", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P01-story-action-018", "type": "speech", "title": "运行条件：判断依据", "text": "把供电、接地、温控、承载与阈值、趋势、样本量和对照对象一起比较，避免只看单点结果。", "elementId": "P01-ku-03-body", "spokenText": "把供电、接地、温控、承载与阈值、趋势、样本量和对照对象一起比较，避免只看单点结果。", "audioId": "P01-story-speech-018", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "把供电、接地、温控、承载与阈值、趋势、样本量和对照对象一起比较，避免只看单点结果。", "displayText": "把供电、接地、温控、承载与阈值、趋势、样本量和对照对象一起比较，避免只看单点结果。", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-018.wav"}, {"id": "P01-story-focus-action-story-action-019", "type": "spotlight", "title": "运行条件：常见误区", "elementId": "P01-ku-03-body", "target": "P01-ku-03-body", "content": "不要只看平均值或单次采样；运行条件需要趋势、样本和对照条件共同支撑。", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P01-story-action-019", "type": "speech", "title": "运行条件：常见误区", "text": "不要只看平均值或单次采样；运行条件需要趋势、样本和对照条件共同支撑。", "elementId": "P01-ku-03-body", "spokenText": "不要只看平均值或单次采样；运行条件需要趋势、样本和对照条件共同支撑。", "audioId": "P01-story-speech-019", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "不要只看平均值或单次采样；运行条件需要趋势、样本和对照条件共同支撑。", "displayText": "不要只看平均值或单次采样；运行条件需要趋势、样本和对照条件共同支撑。", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-019.wav"}, {"id": "P01-story-action-020", "type": "spotlight", "title": "数据与现场佐证：现场证据", "elementId": "P01-ku-04-body", "content": "机柜、端口和走线路径应对应同一设备。"}, {"id": "P01-story-action-021", "type": "speech", "title": "现场证据：讲解", "text": "现场证据要能对应机柜、端口和走线路径，表单字段要能追溯到实体对象，避免后续复核时只剩孤立图片。", "elementId": "P01-ku-04-body", "spokenText": "现场证据要能对应机柜、端口和走线路径，表单字段要能追溯到实体对象，避免后续复核时只剩孤立图片。", "audioId": "P01-story-speech-021", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "现场证据要能对应机柜、端口和走线路径，表单字段要能追溯到实体对象，避免后续复核时只...", "displayText": "现场证据要能对应机柜、端口和走线路径，表单字段要能追溯到实体对象，避免后续复核时只...", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-021.wav"}, {"id": "P01-story-focus-action-story-action-022", "type": "spotlight", "title": "现场证据：工程语境", "elementId": "P01-ku-04-body", "target": "P01-ku-04-body", "content": "现场证据强调证据来源；机柜、端口、走线、证据必须能互相印证，不能只作为孤立标签出现。", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P01-story-action-022", "type": "speech", "title": "现场证据：工程语境", "text": "现场证据强调证据来源；机柜、端口、走线、证据必须能互相印证，不能只作为孤立标签出现。", "elementId": "P01-ku-04-body", "spokenText": "现场证据强调证据来源；机柜、端口、走线、证据必须能互相印证，不能只作为孤立标签出现。", "audioId": "P01-story-speech-022", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "现场证据强调证据来源；机柜、端口、走线、证据必须能互相印证，不能只作为孤立标签出现。", "displayText": "现场证据强调证据来源；机柜、端口、走线、证据必须能互相印证，不能只作为孤立标签出现。", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-022.wav"}, {"id": "P01-story-focus-action-story-action-023", "type": "spotlight", "title": "现场证据：判断依据", "elementId": "P01-ku-04-body", "target": "P01-ku-04-body", "content": "把机柜、端口、走线、证据回连到照片、日志、表单或网管记录，确认每个结论都有来源。", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P01-story-action-023", "type": "speech", "title": "现场证据：判断依据", "text": "把机柜、端口、走线、证据回连到照片、日志、表单或网管记录，确认每个结论都有来源。", "elementId": "P01-ku-04-body", "spokenText": "把机柜、端口、走线、证据回连到照片、日志、表单或网管记录，确认每个结论都有来源。", "audioId": "P01-story-speech-023", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "把机柜、端口、走线、证据回连到照片、日志、表单或网管记录，确认每个结论都有来源。", "displayText": "把机柜、端口、走线、证据回连到照片、日志、表单或网管记录，确认每个结论都有来源。", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-023.wav"}, {"id": "P01-story-focus-action-story-action-024", "type": "spotlight", "title": "现场证据：常见误区", "elementId": "P01-ku-04-body", "target": "P01-ku-04-body", "content": "不要把证据图、口述或孤立日志直接写成结论；机柜、端口、走线、证据必须落到证据链。", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P01-story-action-024", "type": "speech", "title": "现场证据：常见误区", "text": "不要把证据图、口述或孤立日志直接写成结论；机柜、端口、走线、证据必须落到证据链。", "elementId": "P01-ku-04-body", "spokenText": "不要把证据图、口述或孤立日志直接写成结论；机柜、端口、走线、证据必须落到证据链。", "audioId": "P01-story-speech-024", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "不要把证据图、口述或孤立日志直接写成结论；机柜、端口、走线、证据必须落到证据链。", "displayText": "不要把证据图、口述或孤立日志直接写成结论；机柜、端口、走线、证据必须落到证据链。", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-024.wav"}, {"id": "P01-story-action-025", "type": "spotlight", "title": "操作校验：关系校验", "elementId": "P01-ku-05-body", "content": "用设备到配套的链路校验采集完整性。"}, {"id": "P01-story-action-026", "type": "speech", "title": "关系校验：讲解", "text": "完整性校验关注主设备、传输、电源、接地和温控是否形成闭合关系，缺一段都会影响后续规划、测试或故障定位。", "elementId": "P01-ku-05-body", "spokenText": "完整性校验关注主设备、传输、电源、接地和温控是否形成闭合关系，缺一段都会影响后续规划、测试或故障定位。", "audioId": "P01-story-speech-026", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "完整性校验关注主设备、传输、电源、接地和温控是否形成闭合关系，缺一段都会影响后续规...", "displayText": "完整性校验关注主设备、传输、电源、接地和温控是否形成闭合关系，缺一段都会影响后续规...", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-026.wav"}, {"id": "P01-story-focus-action-story-action-027", "type": "spotlight", "title": "关系校验：工程语境", "elementId": "P01-ku-05-body", "target": "P01-ku-05-body", "content": "关系校验进入处置决策；主设备、运行保障、链路、完整性决定动作顺序、影响面和回退边界。", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P01-story-action-027", "type": "speech", "title": "关系校验：工程语境", "text": "关系校验进入处置决策；主设备、运行保障、链路、完整性决定动作顺序、影响面和回退边界。", "elementId": "P01-ku-05-body", "spokenText": "关系校验进入处置决策；主设备、运行保障、链路、完整性决定动作顺序、影响面和回退边界。", "audioId": "P01-story-speech-027", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "关系校验进入处置决策；主设备、运行保障、链路、完整性决定动作顺序、影响面和回退边界。", "displayText": "关系校验进入处置决策；主设备、运行保障、链路、完整性决定动作顺序、影响面和回退边界。", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-027.wav"}, {"id": "P01-story-focus-action-story-action-028", "type": "spotlight", "title": "关系校验：判断依据", "elementId": "P01-ku-05-body", "target": "P01-ku-05-body", "content": "根据主设备、运行保障、链路、完整性拆分可执行动作，并标出责任对象、观察窗口和回退条...", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P01-story-action-028", "type": "speech", "title": "关系校验：判断依据", "text": "根据主设备、运行保障、链路、完整性拆分可执行动作，并标出责任对象、观察窗口和回退条件。", "elementId": "P01-ku-05-body", "spokenText": "根据主设备、运行保障、链路、完整性拆分可执行动作，并标出责任对象、观察窗口和回退条件。", "audioId": "P01-story-speech-028", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "根据主设备、运行保障、链路、完整性拆分可执行动作，并标出责任对象、观察窗口和回退条...", "displayText": "根据主设备、运行保障、链路、完整性拆分可执行动作，并标出责任对象、观察窗口和回退条...", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-028.wav"}, {"id": "P01-story-focus-action-story-action-029", "type": "spotlight", "title": "关系校验：常见误区", "elementId": "P01-ku-05-body", "target": "P01-ku-05-body", "content": "不要把多个动作混在一起验证；否则无法判断关系校验到底由哪项动作改善。", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P01-story-action-029", "type": "speech", "title": "关系校验：常见误区", "text": "不要把多个动作混在一起验证；否则无法判断关系校验到底由哪项动作改善。", "elementId": "P01-ku-05-body", "spokenText": "不要把多个动作混在一起验证；否则无法判断关系校验到底由哪项动作改善。", "audioId": "P01-story-speech-029", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "不要把多个动作混在一起验证；否则无法判断关系校验到底由哪项动作改善。", "displayText": "不要把多个动作混在一起验证；否则无法判断关系校验到底由哪项动作改善。", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-029.wav"}, {"id": "P01-story-action-030", "type": "spotlight", "title": "闭环复盘：资料归档", "elementId": "P01-ku-06-body", "content": "形成可复核的室内站点基础资料。"}, {"id": "P01-story-action-031", "type": "speech", "title": "资料归档：讲解", "text": "室内资料归档要保留对象、位置、连接、运行条件和证据索引，为路测、参数核查和优化判断提供共同底座。", "elementId": "P01-ku-06-body", "spokenText": "室内资料归档要保留对象、位置、连接、运行条件和证据索引，为路测、参数核查和优化判断提供共同底座。", "audioId": "P01-story-speech-031", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "室内资料归档要保留对象、位置、连接、运行条件和证据索引，为路测、参数核查和优化判断...", "displayText": "室内资料归档要保留对象、位置、连接、运行条件和证据索引，为路测、参数核查和优化判断...", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-031.wav"}, {"id": "P01-story-focus-action-story-action-032", "type": "spotlight", "title": "资料归档：工程语境", "elementId": "P01-ku-06-body", "target": "P01-ku-06-body", "content": "资料归档服务复盘归档；台账、索引、归档、复核要支撑结论、遗留项和下一次复测入口。", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P01-story-action-032", "type": "speech", "title": "资料归档：工程语境", "text": "资料归档服务复盘归档；台账、索引、归档、复核要支撑结论、遗留项和下一次复测入口。", "elementId": "P01-ku-06-body", "spokenText": "资料归档服务复盘归档；台账、索引、归档、复核要支撑结论、遗留项和下一次复测入口。", "audioId": "P01-story-speech-032", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "资料归档服务复盘归档；台账、索引、归档、复核要支撑结论、遗留项和下一次复测入口。", "displayText": "资料归档服务复盘归档；台账、索引、归档、复核要支撑结论、遗留项和下一次复测入口。", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-032.wav"}, {"id": "P01-story-focus-action-story-action-033", "type": "spotlight", "title": "资料归档：判断依据", "elementId": "P01-ku-06-body", "target": "P01-ku-06-body", "content": "复盘台账、索引、归档、复核是否闭合：现象、证据、判断、动作和验证结果必须能互相追溯。", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P01-story-action-033", "type": "speech", "title": "资料归档：判断依据", "text": "复盘台账、索引、归档、复核是否闭合：现象、证据、判断、动作和验证结果必须能互相追溯。", "elementId": "P01-ku-06-body", "spokenText": "复盘台账、索引、归档、复核是否闭合：现象、证据、判断、动作和验证结果必须能互相追溯。", "audioId": "P01-story-speech-033", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "复盘台账、索引、归档、复核是否闭合：现象、证据、判断、动作和验证结果必须能互相追溯。", "displayText": "复盘台账、索引、归档、复核是否闭合：现象、证据、判断、动作和验证结果必须能互相追溯。", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-033.wav"}, {"id": "P01-story-focus-action-story-action-034", "type": "spotlight", "title": "资料归档：常见误区", "elementId": "P01-ku-06-body", "target": "P01-ku-06-body", "content": "不要只写通过或失败；资料归档还要说明遗留风险、适用边界和后续观察。", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P01-story-action-034", "type": "speech", "title": "资料归档：常见误区", "text": "不要只写通过或失败；资料归档还要说明遗留风险、适用边界和后续观察。", "elementId": "P01-ku-06-body", "spokenText": "不要只写通过或失败；资料归档还要说明遗留风险、适用边界和后续观察。", "audioId": "P01-story-speech-034", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "不要只写通过或失败；资料归档还要说明遗留风险、适用边界和后续观察。", "displayText": "不要只写通过或失败；资料归档还要说明遗留风险、适用边界和后续观察。", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-034.wav"}, {"id": "P01-story-action-035", "type": "spotlight", "title": "复盘", "elementId": "sec-review", "content": "复盘时检查资源对象、连接关系、运行条件和照片索引是否指向同一站点实体，缺口要回填到台账，而不是留在证据图说明里。"}, {"id": "P01-story-action-036", "type": "speech", "title": "复盘", "text": "复盘时检查资源对象、连接关系、运行条件和照片索引是否指向同一站点实体，缺口要回填到台账，而不是留在证据图说明里。", "elementId": "sec-review", "spokenText": "复盘时检查资源对象、连接关系、运行条件和照片索引是否指向同一站点实体，缺口要回填到台账，而不是留在证据图说明里。", "audioId": "P01-story-speech-036", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "复盘时检查资源对象、连接关系、运行条件和照片索引是否指向同一站点实体，缺口要回填到...", "displayText": "复盘时检查资源对象、连接关系、运行条件和照片索引是否指向同一站点实体，缺口要回填到...", "audioUrl": "/media/tts/qwen-cherry/p01-story-speech-036.wav"}]}, {"id": "P01-concept-figure", "title": "核心机理图", "type": "animation", "order": 2, "stageId": "P01", "description": "把室内环境信息采集的关键对象、指标关系和处置边界画成可读模型。", "actions": [{"id": "P01-animation-action-001", "type": "widget_highlight", "title": "查看核心图", "widgetId": "P01-lesson-animation-001", "target": "P01-lesson-animation-001"}, {"id": "P01-animation-action-002", "type": "widget_setState", "title": "回到起点", "widgetId": "P01-lesson-animation-001", "state": {"activeStep": 0, "currentTimeMs": 0}}, {"id": "P01-animation-action-003", "type": "spotlight", "title": "站址", "content": "站址阶段关注机房、走线与设备位置，先看对象，再看证据，最后形成可复核的工程判断。", "caption": "站址阶段关注机房、走线与设备位置，先看对象，再看证据，最后形成可复核的工程判断。", "displayText": "站址", "widgetId": "P01-lesson-animation-001", "elementId": "P01-site-panel", "target": "P01-site-panel", "dimOpacity": 0.006, "focusPolicy": "hold", "currentTimeMs": 1300, "durationMs": 99846}, {"id": "P01-animation-action-004", "type": "speech", "title": "站址讲解", "text": "站址阶段关注机房、走线与设备位置，先看对象，再看证据，最后形成可复核的工程判断。", "spokenText": "站址阶段关注机房、走线与设备位置，先看对象，再看证据，最后形成可复核的工程判断。 这里聚焦“站址”这个判断点。重点看先后顺序，以及这一步输出给下一步的对象。学习时把它落成三件事：看哪个对象，用哪条证据，得到什么工程结论。", "caption": "站址阶段关注机房、走线与设备位置，先看对象，再看证据，最后形成可复核的工程判断。", "widgetId": "P01-lesson-animation-001", "elementId": "P01-site-panel", "target": "P01-site-panel", "dimOpacity": 0.006, "focusPolicy": "hold", "currentTimeMs": 1460, "durationMs": 3600, "audioId": "P01-animation-speech-004", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "displayText": "站址阶段关注机房、走线与设备位置，先看对象，再看证据，最后形成可复核的工程判断。", "audioUrl": "/media/tts/qwen-cherry/p01-animation-speech-004.wav"}, {"id": "P01-animation-action-005", "type": "widget_timelineCue", "title": "站址关系", "widgetId": "P01-lesson-animation-001", "target": "P01-line-1", "content": "flow", "state": {"targets": ["P01-line-1"], "phase": 1, "caption": "站址", "speechId": "P01-animation-action-004", "currentTimeMs": 2600, "holdMs": 350, "semantic": "process", "relationType": "process"}, "currentTimeMs": 2600, "durationMs": 1000, "holdMs": 350}, {"id": "P01-animation-action-006", "type": "widget_timelineCue", "title": "站址要点", "widgetId": "P01-lesson-animation-001", "target": "P01-caption-text", "content": "captionUpdate", "state": {"targets": ["P01-caption-text"], "phase": 1, "caption": "站址阶段关注机房、走线与设备位置，先看对象，再看证据，最后形成可复核的工程判断。", "phaseLabel": "站址", "currentTimeMs": 3500, "holdMs": 96796}, "currentTimeMs": 3500, "durationMs": 850, "holdMs": 96796}, {"id": "P01-animation-action-007", "type": "widget_setState", "title": "准备环境", "widgetId": "P01-lesson-animation-001", "state": {"activeStep": 0, "currentTimeMs": 101146}}, {"id": "P01-animation-action-008", "type": "widget_timelineCue", "title": "环境切换", "widgetId": "P01-lesson-animation-001", "target": "P01-top-band", "content": "sceneTransition", "state": {"targets": ["P01-top-band"], "phase": 2, "phaseLabel": "环境", "currentTimeMs": 101146}, "currentTimeMs": 101146, "durationMs": 1080}, {"id": "P01-animation-action-009", "type": "widget_setState", "title": "进入环境", "widgetId": "P01-lesson-animation-001", "state": {"activeStep": 1, "currentTimeMs": 101666}}, {"id": "P01-animation-action-010", "type": "laser", "title": "环境", "content": "环境阶段关注供电、传输与接地约束，先看对象，再看证据，最后形成可复核的工程判断。", "caption": "环境阶段关注供电、传输与接地约束，先看对象，再看证据，最后形成可复核的工程判断。", "displayText": "环境", "widgetId": "P01-lesson-animation-001", "elementId": "P01-site-panel", "target": "P01-site-panel", "dimOpacity": 0.006, "focusPolicy": "hold", "currentTimeMs": 102966, "durationMs": 99846}, {"id": "P01-animation-action-011", "type": "speech", "title": "环境讲解", "text": "环境阶段关注供电、传输与接地约束，先看对象，再看证据，最后形成可复核的工程判断。", "spokenText": "环境阶段关注供电、传输与接地约束，先看对象，再看证据，最后形成可复核的工程判断。 这里聚焦“环境”这个判断点。重点看前置条件，少一个条件就不能进入下一步。学习时把它落成三件事：看哪个对象，用哪条证据，得到什么工程结论。", "caption": "环境阶段关注供电、传输与接地约束，先看对象，再看证据，最后形成可复核的工程判断。", "widgetId": "P01-lesson-animation-001", "elementId": "P01-site-panel", "target": "P01-site-panel", "dimOpacity": 0.006, "focusPolicy": "hold", "currentTimeMs": 103126, "durationMs": 3600, "audioId": "P01-animation-speech-011", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "displayText": "环境阶段关注供电、传输与接地约束，先看对象，再看证据，最后形成可复核的工程判断。", "audioUrl": "/media/tts/qwen-cherry/p01-animation-speech-011.wav"}, {"id": "P01-animation-action-012", "type": "widget_timelineCue", "title": "环境关系", "widgetId": "P01-lesson-animation-001", "target": "P01-line-2", "content": "draw", "state": {"targets": ["P01-line-2"], "phase": 2, "caption": "环境", "speechId": "P01-animation-action-011", "currentTimeMs": 104266, "holdMs": 350, "semantic": "dependency", "relationType": "dependency"}, "currentTimeMs": 104266, "durationMs": 1000, "holdMs": 350}, {"id": "P01-animation-action-013", "type": "widget_timelineCue", "title": "环境要点", "widgetId": "P01-lesson-animation-001", "target": "P01-caption-text", "content": "captionUpdate", "state": {"targets": ["P01-caption-text"], "phase": 2, "caption": "环境阶段关注供电、传输与接地约束，先看对象，再看证据，最后形成可复核的工程判断。", "phaseLabel": "环境", "currentTimeMs": 105166, "holdMs": 96796}, "currentTimeMs": 105166, "durationMs": 850, "holdMs": 96796}, {"id": "P01-animation-action-014", "type": "widget_setState", "title": "准备设备", "widgetId": "P01-lesson-animation-001", "state": {"activeStep": 1, "currentTimeMs": 202812}}, {"id": "P01-animation-action-015", "type": "widget_timelineCue", "title": "设备切换", "widgetId": "P01-lesson-animation-001", "target": "P01-top-band", "content": "sceneTransition", "state": {"targets": ["P01-top-band"], "phase": 3, "phaseLabel": "设备", "currentTimeMs": 202812}, "currentTimeMs": 202812, "durationMs": 1080}, {"id": "P01-animation-action-016", "type": "widget_setState", "title": "进入设备", "widgetId": "P01-lesson-animation-001", "state": {"activeStep": 2, "currentTimeMs": 203332}}, {"id": "P01-animation-action-017", "type": "spotlight", "title": "设备", "content": "设备阶段关注AAU、BBU、RRU 与机柜，先看对象，再看证据，最后形成可复核的工程判断。", "caption": "设备阶段关注AAU、BBU、RRU 与机柜，先看对象，再看证据，最后形成可复核的工程判断。", "displayText": "设备", "widgetId": "P01-lesson-animation-001", "elementId": "P01-rack-panel", "target": "P01-rack-panel", "dimOpacity": 0.006, "focusPolicy": "hold", "currentTimeMs": 204632, "durationMs": 99846}, {"id": "P01-animation-action-018", "type": "speech", "title": "设备讲解", "text": "设备阶段关注AAU、BBU、RRU 与机柜，先看对象，再看证据，最后形成可复核的工程判断。", "spokenText": "设备阶段关注AAU、BBU、RRU 与机柜，先看对象，再看证据，最后形成可复核的工程判断。 这里聚焦“设备”这个判断点。重点看数据从哪里来、经过哪里、沉淀成哪类证据。学习时把它落成三件事：看哪个对象，用哪条证据，得到什么工程结论。", "caption": "设备阶段关注AAU、BBU、RRU 与机柜，先看对象，再看证据，最后形成可复核的工程判断。", "widgetId": "P01-lesson-animation-001", "elementId": "P01-rack-panel", "target": "P01-rack-panel", "dimOpacity": 0.006, "focusPolicy": "hold", "currentTimeMs": 204792, "durationMs": 3600, "audioId": "P01-animation-speech-018", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "displayText": "设备阶段关注AAU、BBU、RRU 与机柜，先看对象，再看证据，最后形成可复核的工程判断。", "audioUrl": "/media/tts/qwen-cherry/p01-animation-speech-018.wav"}, {"id": "P01-animation-action-019", "type": "widget_timelineCue", "title": "设备关系", "widgetId": "P01-lesson-animation-001", "target": "P01-line-3", "content": "packetMove", "state": {"targets": ["P01-line-3"], "phase": 3, "caption": "设备", "speechId": "P01-animation-action-018", "currentTimeMs": 205932, "holdMs": 350, "semantic": "data-flow", "relationType": "data-flow"}, "currentTimeMs": 205932, "durationMs": 1000, "holdMs": 350}, {"id": "P01-animation-action-020", "type": "widget_timelineCue", "title": "设备要点", "widgetId": "P01-lesson-animation-001", "target": "P01-caption-text", "content": "captionUpdate", "state": {"targets": ["P01-caption-text"], "phase": 3, "caption": "设备阶段关注AAU、BBU、RRU 与机柜，先看对象，再看证据，最后形成可复核的工程判断。", "phaseLabel": "设备", "currentTimeMs": 206832, "holdMs": 96796}, "currentTimeMs": 206832, "durationMs": 850, "holdMs": 96796}, {"id": "P01-animation-action-021", "type": "widget_setState", "title": "准备配套", "widgetId": "P01-lesson-animation-001", "state": {"activeStep": 2, "currentTimeMs": 304478}}, {"id": "P01-animation-action-022", "type": "widget_timelineCue", "title": "配套切换", "widgetId": "P01-lesson-animation-001", "target": "P01-top-band", "content": "sceneTransition", "state": {"targets": ["P01-top-band"], "phase": 4, "phaseLabel": "配套", "currentTimeMs": 304478}, "currentTimeMs": 304478, "durationMs": 1080}, {"id": "P01-animation-action-023", "type": "widget_setState", "title": "进入配套", "widgetId": "P01-lesson-animation-001", "state": {"activeStep": 3, "currentTimeMs": 304998}}, {"id": "P01-animation-action-024", "type": "laser", "title": "配套", "content": "配套阶段关注电源、传输、温控、接地，先看对象，再看证据，最后形成可复核的工程判断。", "caption": "配套阶段关注电源、传输、温控、接地，先看对象，再看证据，最后形成可复核的工程判断。", "displayText": "配套", "widgetId": "P01-lesson-animation-001", "elementId": "P01-rack-panel", "target": "P01-rack-panel", "dimOpacity": 0.006, "focusPolicy": "hold", "currentTimeMs": 306298, "durationMs": 99846}, {"id": "P01-animation-action-025", "type": "speech", "title": "配套讲解", "text": "配套阶段关注电源、传输、温控、接地，先看对象，再看证据，最后形成可复核的工程判断。", "spokenText": "配套阶段关注电源、传输、温控、接地，先看对象，再看证据，最后形成可复核的工程判断。 这里聚焦“配套”这个判断点。重点看现象、证据和原因之间是否能互相印证。学习时把它落成三件事：看哪个对象，用哪条证据，得到什么工程结论。", "caption": "配套阶段关注电源、传输、温控、接地，先看对象，再看证据，最后形成可复核的工程判断。", "widgetId": "P01-lesson-animation-001", "elementId": "P01-rack-panel", "target": "P01-rack-panel", "dimOpacity": 0.006, "focusPolicy": "hold", "currentTimeMs": 306458, "durationMs": 3600, "audioId": "P01-animation-speech-025", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "displayText": "配套阶段关注电源、传输、温控、接地，先看对象，再看证据，最后形成可复核的工程判断。", "audioUrl": "/media/tts/qwen-cherry/p01-animation-speech-025.wav"}, {"id": "P01-animation-action-026", "type": "widget_timelineCue", "title": "配套关系", "widgetId": "P01-lesson-animation-001", "target": "P01-line-4", "content": "draw", "state": {"targets": ["P01-line-4"], "phase": 4, "caption": "配套", "speechId": "P01-animation-action-025", "currentTimeMs": 307598, "holdMs": 350, "semantic": "cause", "relationType": "cause"}, "currentTimeMs": 307598, "durationMs": 1000, "holdMs": 350}, {"id": "P01-animation-action-027", "type": "widget_timelineCue", "title": "配套要点", "widgetId": "P01-lesson-animation-001", "target": "P01-caption-text", "content": "captionUpdate", "state": {"targets": ["P01-caption-text"], "phase": 4, "caption": "配套阶段关注电源、传输、温控、接地，先看对象，再看证据，最后形成可复核的工程判断。", "phaseLabel": "配套", "currentTimeMs": 308498, "holdMs": 96796}, "currentTimeMs": 308498, "durationMs": 850, "holdMs": 96796}, {"id": "P01-animation-action-028", "type": "widget_setState", "title": "准备拍照", "widgetId": "P01-lesson-animation-001", "state": {"activeStep": 3, "currentTimeMs": 406144}}, {"id": "P01-animation-action-029", "type": "widget_timelineCue", "title": "拍照切换", "widgetId": "P01-lesson-animation-001", "target": "P01-top-band", "content": "sceneTransition", "state": {"targets": ["P01-top-band"], "phase": 5, "phaseLabel": "拍照", "currentTimeMs": 406144}, "currentTimeMs": 406144, "durationMs": 1080}, {"id": "P01-animation-action-030", "type": "widget_setState", "title": "进入拍照", "widgetId": "P01-lesson-animation-001", "state": {"activeStep": 4, "currentTimeMs": 406664}}, {"id": "P01-animation-action-031", "type": "spotlight", "title": "拍照", "content": "拍照阶段关注现场照片与表单字段，先看对象，再看证据，最后形成可复核的工程判断。", "caption": "拍照阶段关注现场照片与表单字段，先看对象，再看证据，最后形成可复核的工程判断。", "displayText": "拍照", "widgetId": "P01-lesson-animation-001", "elementId": "P01-form-panel", "target": "P01-form-panel", "dimOpacity": 0.006, "focusPolicy": "hold", "currentTimeMs": 407964, "durationMs": 99846}, {"id": "P01-animation-action-032", "type": "speech", "title": "拍照讲解", "text": "拍照阶段关注现场照片与表单字段，先看对象，再看证据，最后形成可复核的工程判断。", "spokenText": "拍照阶段关注现场照片与表单字段，先看对象，再看证据，最后形成可复核的工程判断。 这里聚焦“拍照”这个判断点。重点看先后顺序，以及这一步输出给下一步的对象。学习时把它落成三件事：看哪个对象，用哪条证据，得到什么工程结论。", "caption": "拍照阶段关注现场照片与表单字段，先看对象，再看证据，最后形成可复核的工程判断。", "widgetId": "P01-lesson-animation-001", "elementId": "P01-form-panel", "target": "P01-form-panel", "dimOpacity": 0.006, "focusPolicy": "hold", "currentTimeMs": 408124, "durationMs": 3600, "audioId": "P01-animation-speech-032", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "displayText": "拍照阶段关注现场照片与表单字段，先看对象，再看证据，最后形成可复核的工程判断。", "audioUrl": "/media/tts/qwen-cherry/p01-animation-speech-032.wav"}, {"id": "P01-animation-action-033", "type": "widget_timelineCue", "title": "拍照关系", "widgetId": "P01-lesson-animation-001", "target": "P01-line-5", "content": "flow", "state": {"targets": ["P01-line-5"], "phase": 5, "caption": "拍照", "speechId": "P01-animation-action-032", "currentTimeMs": 409264, "holdMs": 350, "semantic": "process", "relationType": "process"}, "currentTimeMs": 409264, "durationMs": 1000, "holdMs": 350}, {"id": "P01-animation-action-034", "type": "widget_timelineCue", "title": "拍照要点", "widgetId": "P01-lesson-animation-001", "target": "P01-caption-text", "content": "captionUpdate", "state": {"targets": ["P01-caption-text"], "phase": 5, "caption": "拍照阶段关注现场照片与表单字段，先看对象，再看证据，最后形成可复核的工程判断。", "phaseLabel": "拍照", "currentTimeMs": 410164, "holdMs": 96796}, "currentTimeMs": 410164, "durationMs": 850, "holdMs": 96796}, {"id": "P01-animation-action-035", "type": "widget_setState", "title": "准备归档", "widgetId": "P01-lesson-animation-001", "state": {"activeStep": 4, "currentTimeMs": 507810}}, {"id": "P01-animation-action-036", "type": "widget_timelineCue", "title": "归档切换", "widgetId": "P01-lesson-animation-001", "target": "P01-top-band", "content": "sceneTransition", "state": {"targets": ["P01-top-band"], "phase": 6, "phaseLabel": "归档", "currentTimeMs": 507810}, "currentTimeMs": 507810, "durationMs": 1080}, {"id": "P01-animation-action-037", "type": "widget_setState", "title": "进入归档", "widgetId": "P01-lesson-animation-001", "state": {"activeStep": 5, "currentTimeMs": 508330}}, {"id": "P01-animation-action-038", "type": "laser", "title": "归档", "content": "归档阶段关注信息表闭环，先看对象，再看证据，最后形成可复核的工程判断。", "caption": "归档阶段关注信息表闭环，先看对象，再看证据，最后形成可复核的工程判断。", "displayText": "归档", "widgetId": "P01-lesson-animation-001", "elementId": "P01-evidence-table", "target": "P01-evidence-table", "dimOpacity": 0.006, "focusPolicy": "hold", "currentTimeMs": 509630, "durationMs": 99850}, {"id": "P01-animation-action-039", "type": "speech", "title": "归档讲解", "text": "归档阶段关注信息表闭环，先看对象，再看证据，最后形成可复核的工程判断。", "spokenText": "归档阶段关注信息表闭环，先看对象，再看证据，最后形成可复核的工程判断。 这里聚焦“归档”这个判断点。重点看处理动作是否回到复测结果，形成闭环。学习时把它落成三件事：看哪个对象，用哪条证据，得到什么工程结论。", "caption": "归档阶段关注信息表闭环，先看对象，再看证据，最后形成可复核的工程判断。", "widgetId": "P01-lesson-animation-001", "elementId": "P01-evidence-table", "target": "P01-evidence-table", "dimOpacity": 0.006, "focusPolicy": "hold", "currentTimeMs": 509790, "durationMs": 3600, "audioId": "P01-animation-speech-039", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "displayText": "归档阶段关注信息表闭环，先看对象，再看证据，最后形成可复核的工程判断。", "audioUrl": "/media/tts/qwen-cherry/p01-animation-speech-039.wav"}, {"id": "P01-animation-action-040", "type": "widget_timelineCue", "title": "归档关系", "widgetId": "P01-lesson-animation-001", "target": "P01-line-6", "content": "flow", "state": {"targets": ["P01-line-6"], "phase": 6, "caption": "归档", "speechId": "P01-animation-action-039", "currentTimeMs": 510930, "holdMs": 350, "semantic": "feedback", "relationType": "feedback"}, "currentTimeMs": 510930, "durationMs": 1000, "holdMs": 350}, {"id": "P01-animation-action-041", "type": "widget_timelineCue", "title": "归档要点", "widgetId": "P01-lesson-animation-001", "target": "P01-caption-text", "content": "captionUpdate", "state": {"targets": ["P01-caption-text"], "phase": 6, "caption": "归档阶段关注信息表闭环，先看对象，再看证据，最后形成可复核的工程判断。", "phaseLabel": "归档", "currentTimeMs": 511830, "holdMs": 97120}, "currentTimeMs": 511830, "durationMs": 850, "holdMs": 97120}]}]
+---
+
+<HeroBanner
+  projectId={"专题 01"}
+  title={"室内环境信息采集"}
+  subtitle={"本节把室内站点采集讲成一条资源链：从机房和机柜定位，到设备拓扑、配套条件和影像索引，最终支撑规划、排障和优化复核。"}
+  stats={[{"label": "要点", "value": 6}, {"label": "证据", "value": 9}, {"label": "示意", "value": 2}, {"label": "校验", "value": 1}]}
+/>
+
+<ObjectivesAndBrief
+  objectives={[{"icon": "signal", "label": "知识目标", "text": "识别室内环境信息采集的对象、指标与判据。"}, {"icon": "test", "label": "技能目标", "text": "能把概念、指标、证据和判断结论对齐。"}, {"icon": "compass", "label": "素养目标", "text": "形成数据留痕、前后核验的工程习惯。"}]}
+  brief={[{"label": "所属项目", "content": "5G网络信息采集"}, {"label": "本节目标", "content": "学完后能用统一台账描述机房、BBU/AAU-RRU、端口、传输、电源、接地和温控关系，并判断资料是否可追溯。"}, {"label": "研读线索", "content": "概念说明 + 判断方法 + 证据核验"}, {"label": "判断要求", "content": "能说清对象、证据、判据和复测结果之间的关系"}]}
+/>
+
+<NetworkVisual
+  id="sec-network-visual"
+  title={"室内环境信息采集 · 概念框架"}
+  scenario={"site-survey"}
+  nodes={[{"label": "室内资源边界", "detail": "机房、机柜、主设备和配套资源先建台账。", "id": "sec-core-model-node-1"}, {"label": "设备拓扑", "detail": "主设备、承载和走线关系要可追溯。", "id": "sec-core-model-node-2"}, {"label": "运行条件", "detail": "供电、接地、温控和传输共同影响站点稳定性。", "id": "sec-core-model-node-3"}, {"label": "现场证据", "detail": "机柜、端口和走线路径应对应同一设备。", "id": "sec-core-model-node-4"}, {"label": "关系校验", "detail": "用设备到配套的链路校验采集完整性。", "id": "sec-core-model-node-5"}]}
+  metrics={["站址台账", "设备拓扑", "运行条件", "影像证据"]}
+  refs={[{"label": "3GPP TS 38.300", "href": "https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=3191"}, {"label": "3GPP TS 38.215", "href": "https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=3217"}]}
+/>
+
+<section id="sec-overview" class="dg-story-overview" data-playback-region="overview">
+  <div id="sec-overview-summary" data-playback-target="sec-overview-summary guide-summary">
+    <span>导学摘要</span>
+    <p>本节把室内站点采集讲成一条资源链：从机房和机柜定位，到设备拓扑、配套条件和影像索引，最终支撑规划、排障和优化复核。</p>
+  </div>
+  <strong id="sec-learning-goal" data-playback-target="sec-learning-goal guide-learning-goal">学完后能用统一台账描述机房、BBU/AAU-RRU、端口、传输、电源、接地和温控关系，并判断资料是否可追溯。</strong>
+</section>
+
+<section id="sec-core-model" class="dg-core-model">
+  <header>
+    <span>概念解释</span>
+    <h2>室内环境信息采集 · 概念框架</h2>
+  </header>
+  <div class="dg-core-model-grid">
+    <article id="sec-core-model-node-1" class="dg-core-node">
+      <b>1</b>
+      <strong>室内资源边界</strong>
+      <p>机房、机柜、主设备和配套资源先建台账。</p>
+    </article>
+    <article id="sec-core-model-node-2" class="dg-core-node">
+      <b>2</b>
+      <strong>设备拓扑</strong>
+      <p>主设备、承载和走线关系要可追溯。</p>
+    </article>
+    <article id="sec-core-model-node-3" class="dg-core-node">
+      <b>3</b>
+      <strong>运行条件</strong>
+      <p>供电、接地、温控和传输共同影响站点稳定性。</p>
+    </article>
+    <article id="sec-core-model-node-4" class="dg-core-node">
+      <b>4</b>
+      <strong>现场证据</strong>
+      <p>机柜、端口和走线路径应对应同一设备。</p>
+    </article>
+    <article id="sec-core-model-node-5" class="dg-core-node">
+      <b>5</b>
+      <strong>关系校验</strong>
+      <p>用设备到配套的链路校验采集完整性。</p>
+    </article>
+  </div>
+  <div class="dg-core-metrics" aria-label="关键术语">
+    <span>站址台账</span>
+    <span>设备拓扑</span>
+    <span>运行条件</span>
+    <span>影像证据</span>
+  </div>
+</section>
+
+<SectionStep icon="radar" num="一" title="概念与对象：室内资源边界" id="P01-ku-01" />
+
+<section id="P01-ku-01-section" class="dg-knowledge-unit dg-knowledge-unit-concept" data-playback-region="P01-ku-01">
+  <div id="P01-ku-01-body" class="dg-ku-main" data-playback-target="P01-ku-01-body P01-ku-01-content">
+    <span class="dg-ku-section-label">概念与对象</span>
+    <p>机房、机柜、主设备和配套资源先建台账。</p>
+    <blockquote>室内信息采集要先锁定资源边界：机房位置、机柜编号、BBU、AAU/RRU、电源、传输、接地和温控共同决定站点可用性。</blockquote>
+  </div>
+  <div id="P01-ku-01-visual" class="dg-ku-visual dg-ku-card dg-ku-concept" aria-label="室内资源边界模型">
+    <strong class="dg-ku-visual-title">室内资源边界</strong>
+    <div class="dg-ku-token-grid">
+      <span class="dg-ku-token">机房</span>
+      <span class="dg-ku-token">机柜</span>
+      <span class="dg-ku-token">BBU</span>
+      <span class="dg-ku-token">AAU/RRU</span>
+    </div>
+  </div>
+</section>
+
+<SectionStep icon="route" num="二" title="概念与对象：设备拓扑" id="P01-ku-02" />
+
+<section id="P01-ku-02-section" class="dg-knowledge-unit dg-knowledge-unit-concept" data-playback-region="P01-ku-02">
+  <div id="P01-ku-02-body" class="dg-ku-main" data-playback-target="P01-ku-02-body P01-ku-02-content">
+    <span class="dg-ku-section-label">概念与对象</span>
+    <p>主设备、承载和走线关系要可追溯。</p>
+    <blockquote>设备记录不止列型号，还要说明端口、光纤、电源线和传输承载的连接关系，后续定位才知道从哪一段查起。</blockquote>
+  </div>
+  <div id="P01-ku-02-visual" class="dg-ku-visual dg-ku-card dg-ku-concept" aria-label="设备拓扑模型">
+    <strong class="dg-ku-visual-title">设备拓扑</strong>
+    <div class="dg-ku-token-grid">
+      <span class="dg-ku-token">端口</span>
+      <span class="dg-ku-token">光纤</span>
+      <span class="dg-ku-token">电源线</span>
+      <span class="dg-ku-token">传输</span>
+    </div>
+  </div>
+</section>
+
+<SectionStep icon="chart" num="三" title="工程判读：运行条件" id="P01-ku-03" />
+
+<section id="P01-ku-03-section" class="dg-knowledge-unit dg-knowledge-unit-criteria" data-playback-region="P01-ku-03">
+  <div id="P01-ku-03-body" class="dg-ku-main" data-playback-target="P01-ku-03-body P01-ku-03-content">
+    <span class="dg-ku-section-label">工程判读</span>
+    <p>供电、接地、温控和传输共同影响站点稳定性。</p>
+    <blockquote>运行条件要和主设备一起记录：供电容量、接地状态、空调能力和传输可用性会直接影响告警、业务稳定和后续排障。</blockquote>
+  </div>
+  <div id="P01-ku-03-visual" class="dg-ku-visual dg-ku-flow" aria-label="运行条件图解">
+    <span class="dg-ku-flow-step">供电</span>
+    <i aria-hidden="true"></i>
+    <span class="dg-ku-flow-step">接地</span>
+    <i aria-hidden="true"></i>
+    <span class="dg-ku-flow-step">温控</span>
+    <i aria-hidden="true"></i>
+    <span class="dg-ku-flow-step">承载</span>
+  </div>
+  <figure class="dg-concept-motion">
+    <figcaption>
+      <span>机理讲解</span>
+      <strong>运行条件</strong>
+    </figcaption>
+    <video src="/media/manim/p01/p01-site-survey-map/p01-p01-site-survey-map.webm" poster="/media/manim/p01/p01-site-survey-map/poster.png" controls preload="metadata" playsinline></video>
+  </figure>
+</section>
+
+<SectionStep icon="tool" num="四" title="数据与现场佐证：现场证据" id="P01-ku-04" />
+
+<section id="P01-ku-04-section" class="dg-knowledge-unit dg-knowledge-unit-evidence" data-playback-region="P01-ku-04">
+  <div id="P01-ku-04-body" class="dg-ku-main" data-playback-target="P01-ku-04-body P01-ku-04-content">
+    <span class="dg-ku-section-label">数据与现场佐证</span>
+    <p>机柜、端口和走线路径应对应同一设备。</p>
+    <blockquote>现场证据要能对应机柜、端口和走线路径，表单字段要能追溯到实体对象，避免后续复核时只剩孤立图片。</blockquote>
+  </div>
+  <div id="P01-ku-04-visual" class="dg-ku-visual dg-ku-evidence-chain" aria-label="现场证据图解">
+    <strong class="dg-ku-visual-title">现场证据</strong>
+    <div class="dg-ku-token-grid">
+      <span class="dg-ku-token">机柜</span>
+      <span class="dg-ku-token">端口</span>
+      <span class="dg-ku-token">走线</span>
+      <span class="dg-ku-token">证据</span>
+    </div>
+  </div>
+  <div class="dg-evidence-board">
+    <div class="dg-evidence-photos">
+      <figure>
+        <img src="/media/5g/image29.png" alt="点击需要采集信息的位置，采集室内机房位置时，点击机房图标进..." loading="lazy" />
+        <figcaption>点击需要采集信息的位置，采集室内机房位置时，点击机房图标进...</figcaption>
+      </figure>
+      <figure>
+        <img src="/media/5g/image30.png" alt="坡度仪：多功能坡度测量仪通常用于测量设机柜安装水平情况和天..." loading="lazy" />
+        <figcaption>坡度仪：多功能坡度测量仪通常用于测量设机柜安装水平情况和天...</figcaption>
+      </figure>
+      <figure>
+        <img src="/media/5g/image31.png" alt="坡度仪：多功能坡度测量仪通常用于测量设机柜安装水平情况和天..." loading="lazy" />
+        <figcaption>坡度仪：多功能坡度测量仪通常用于测量设机柜安装水平情况和天...</figcaption>
+      </figure>
+    </div>
+    <article class="dg-evidence-table-summary">
+      <strong>现场记录样表</strong>
+      <p>单板名称 / 功能</p>
+    </article>
+    <article class="dg-evidence-table-summary">
+      <strong>现场记录样表</strong>
+      <p>光端机 / DDF / ODF / PTN</p>
+    </article>
+  </div>
+</section>
+
+<SectionStep icon="search" num="五" title="操作校验：关系校验" id="P01-ku-05" />
+
+<section id="P01-ku-05-section" class="dg-knowledge-unit dg-knowledge-unit-practice" data-playback-region="P01-ku-05">
+  <div id="P01-ku-05-body" class="dg-ku-main" data-playback-target="P01-ku-05-body P01-ku-05-content">
+    <span class="dg-ku-section-label">操作校验</span>
+    <p>用设备到配套的链路校验采集完整性。</p>
+    <blockquote>完整性校验关注主设备、传输、电源、接地和温控是否形成闭合关系，缺一段都会影响后续规划、测试或故障定位。</blockquote>
+  </div>
+  <div id="P01-ku-05-visual" class="dg-ku-visual dg-ku-practice" aria-label="关系校验校验">
+    <strong class="dg-ku-visual-title">关系校验</strong>
+    <div class="dg-ku-practice-steps">
+      <span><b>判断对象</b>主设备</span>
+      <span><b>可用证据</b>运行保障</span>
+      <span><b>采用判据</b>链路</span>
+      <span><b>复测结论</b>完整性</span>
+    </div>
+  </div>
+  <aside class="dg-practice-brief">
+    <span>专项练习</span>
+    <p>围绕“关系校验”完成一次判断：先列对象和证据，再写出采用的工程判据与复测口径。</p>
+    <a href="#sec-review" data-practice-widget="P01-practice-001">完成后复盘</a>
+  </aside>
+</section>
+
+<SectionStep icon="check" num="六" title="闭环复盘：资料归档" id="P01-ku-06" />
+
+<section id="P01-ku-06-section" class="dg-knowledge-unit dg-knowledge-unit-review" data-playback-region="P01-ku-06">
+  <div id="P01-ku-06-body" class="dg-ku-main" data-playback-target="P01-ku-06-body P01-ku-06-content">
+    <span class="dg-ku-section-label">闭环复盘</span>
+    <p>形成可复核的室内站点基础资料。</p>
+    <blockquote>室内资料归档要保留对象、位置、连接、运行条件和证据索引，为路测、参数核查和优化判断提供共同底座。</blockquote>
+  </div>
+  <div id="P01-ku-06-visual" class="dg-ku-visual dg-ku-review" aria-label="资料归档图解">
+    <strong class="dg-ku-visual-title">资料归档</strong>
+    <div class="dg-ku-token-grid">
+      <span class="dg-ku-token">台账</span>
+      <span class="dg-ku-token">索引</span>
+      <span class="dg-ku-token">归档</span>
+      <span class="dg-ku-token">复核</span>
+    </div>
+  </div>
+</section>
+
+<section id="sec-review" class="dg-story-review">
+  <span>复盘</span>
+  <p>本节复盘的关键线索包括：室内资源边界、设备拓扑、运行条件、现场证据、关系校验、资料归档。</p>
+  <p>复盘时重点核对对象、证据、判据、处置动作和复测结果是否形成闭合关系。</p>
+</section>

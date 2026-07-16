@@ -1,0 +1,210 @@
+.annotated-engineering-figure {
+  margin: 22px 0;
+  overflow: hidden;
+  border: 1px solid #2d5269;
+  border-radius: 8px;
+  color: #e6f1f6;
+  background: #071d31;
+  box-shadow: 0 14px 32px rgba(0, 10, 22, .22);
+}
+
+.annotated-engineering-figure > header {
+  display: grid;
+  gap: 7px;
+  border-bottom: 1px solid #294b61;
+  padding: 18px 20px 16px;
+  background: #092239;
+}
+
+.annotated-engineering-figure > header span {
+  color: #48ddd6;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.annotated-engineering-figure > header h3 {
+  margin: 0;
+  color: #f1f8fb;
+  font-size: clamp(18px, 2vw, 24px);
+  line-height: 1.3;
+}
+
+.annotated-engineering-figure > header p,
+.annotated-engineering-figure figcaption p {
+  margin: 0;
+  color: #a9c0cd;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.engineering-figure-canvas {
+  position: relative;
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  background: #06192b;
+}
+
+.engineering-figure-stage-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.annotated-engineering-figure.is-topology .engineering-figure-canvas svg {
+  position: absolute;
+  inset: 0;
+  min-width: 0;
+  height: 100%;
+}
+
+.annotated-engineering-figure.is-topology .engineering-grid {
+  fill: transparent;
+}
+
+.annotated-engineering-figure.is-topology .engineering-object-layer {
+  display: none;
+}
+
+.engineering-figure-canvas svg {
+  width: 100%;
+  min-width: 720px;
+  height: auto;
+  display: block;
+}
+
+.engineering-grid { fill: #06192b; }
+.engineering-grid + * path,
+.engineering-grid ~ defs path { stroke: #17394d; stroke-width: 1; }
+
+.engineering-leader-layer path {
+  fill: none;
+  stroke: #50758a;
+  stroke-width: 1.25;
+  stroke-dasharray: 4 4;
+  vector-effect: non-scaling-stroke;
+}
+
+.engineering-connector-layer line {
+  stroke: #45dcd4;
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.annotated-engineering-figure marker path { fill: #45dcd4; }
+
+.engineering-object > rect {
+  fill: #0b2b44;
+  stroke: #447089;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.engineering-object.is-cyan > rect { fill: #0a3442; stroke: #36d7d0; }
+.engineering-object.is-green > rect { fill: #0d372f; stroke: #4dcf8f; }
+.engineering-object.is-amber > rect { fill: #382f1d; stroke: #d5a94d; }
+.engineering-object-icon { color: #70e6df; }
+.engineering-object.is-green .engineering-object-icon { color: #77dda8; }
+.engineering-object.is-amber .engineering-object-icon { color: #f2c765; }
+
+.engineering-object-title {
+  fill: #edf7fa;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.engineering-object-detail {
+  fill: #a5bdca;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.engineering-label-layer rect {
+  fill: #0a263d;
+  stroke: #41677d;
+  stroke-width: 1.25;
+  vector-effect: non-scaling-stroke;
+}
+
+.engineering-label-title {
+  fill: #54e2da;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.engineering-label-detail {
+  fill: #c6d8e1;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.annotated-engineering-figure figcaption {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid #294b61;
+  padding: 15px 20px 18px;
+  background: #092239;
+}
+
+.annotated-engineering-figure figcaption > strong {
+  color: #e9f4f7;
+  font-size: 13px;
+}
+
+.annotated-engineering-figure figcaption ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 3px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.annotated-engineering-figure figcaption li {
+  border: 1px solid #386377;
+  border-radius: 5px;
+  padding: 6px 9px;
+  color: #bde9e5;
+  background: #0a3146;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.engineering-mobile-evidence {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .annotated-engineering-figure { display: flex; flex-direction: column; }
+  .annotated-engineering-figure > header { order: 1; }
+  .annotated-engineering-figure > header,
+  .annotated-engineering-figure figcaption { padding-inline: 14px; }
+  .engineering-figure-canvas svg { display: none; }
+  .engineering-figure-canvas { order: 3; overflow: hidden; }
+  .engineering-mobile-evidence {
+    order: 2;
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 12px 14px;
+    list-style: none;
+  }
+  .engineering-mobile-evidence li {
+    display: grid;
+    gap: 4px;
+    border: 1px solid #386377;
+    border-left: 3px solid #45dcd4;
+    border-radius: 6px;
+    padding: 10px 11px;
+    background: #0a3146;
+  }
+  .engineering-mobile-evidence span { color: #54e2da; font-size: 12px; font-weight: 900; }
+  .engineering-mobile-evidence strong { color: #dceaf0; font-size: 13px; line-height: 1.55; }
+  .annotated-engineering-figure figcaption { order: 4; }
+  .annotated-engineering-figure figcaption ul { display: grid; grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .engineering-figure-canvas { scroll-behavior: auto; }
+}

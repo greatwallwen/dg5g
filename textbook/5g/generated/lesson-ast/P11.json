@@ -1,0 +1,1753 @@
+{
+  "schema": "dgbook.lesson-ast/v1",
+  "source": {
+    "kind": "docx",
+    "path": "content/5g/5g.docx",
+    "importer": "scripts/import-5g-docx.py"
+  },
+  "project": {
+    "id": "P11",
+    "title": "5G网络优化方案实施",
+    "sourceNo": "1",
+    "chapterTitle": "5G端到端网络优化",
+    "taskIndex": 1
+  },
+  "lesson": {
+    "id": "P11",
+    "title": "5G网络优化方案实施",
+    "widgetId": "P11-lesson-animation-001",
+    "scenario": "optimization",
+    "scenarioLabel": "端到端优化"
+  },
+  "content": {
+    "sections": [
+      {
+        "id": "sec-overview",
+        "title": "导学摘要",
+        "icon": "overview",
+        "texts": [
+          "本节讲优化方案实施：把根因假设拆成工程、参数、资源、邻区和协同动作，并按窗口、影响面、回退点和监控指标执行。"
+        ]
+      },
+      {
+        "id": "P11-ku-01",
+        "title": "概念与对象",
+        "icon": "radar",
+        "texts": [
+          "优化实施前要把现象压缩到责任场景，明确是覆盖、干扰、容量、参数、传输承载还是核心网协同问题。"
+        ]
+      },
+      {
+        "id": "P11-ku-02",
+        "title": "概念与对象",
+        "icon": "route",
+        "texts": [
+          "优化方案要拆成可执行动作，区分工程整改、参数调整、资源扩容、邻区优化、投诉回访和跨专业协同。"
+        ]
+      },
+      {
+        "id": "P11-ku-03",
+        "title": "工程判读",
+        "icon": "chart",
+        "texts": [
+          "排程设计要考虑低峰窗口、影响小区、业务风险、配置备份、回退步骤和责任人，确保执行可控。"
+        ]
+      },
+      {
+        "id": "P11-ku-04",
+        "title": "数据与现场佐证",
+        "icon": "tool",
+        "texts": [
+          "执行过程要持续观察关键 KPI、活动告警、容量负荷和用户体验，及时识别副作用。"
+        ]
+      },
+      {
+        "id": "P11-ku-05",
+        "title": "操作校验",
+        "icon": "search",
+        "texts": [
+          "实施顺序要与根因假设匹配，先处理基础约束，再做参数和资源动作，最后以同口径复测确认效果。"
+        ]
+      },
+      {
+        "id": "P11-ku-06",
+        "title": "闭环复盘",
+        "icon": "check",
+        "texts": [
+          "优化经验要沉淀场景特征、动作组合、效果指标、限制条件和适用边界，避免下次机械套用。"
+        ]
+      }
+    ],
+    "blocks": [
+      {
+        "id": "block-001",
+        "kind": "paragraph",
+        "order": 1,
+        "text": "项目概述"
+      },
+      {
+        "id": "block-002",
+        "kind": "paragraph",
+        "order": 2,
+        "text": "本项目介绍5G端到端网络优化的工作内容，学习内容包括了端到端优化方案实施，端到端优化结果验证，端到端优化报告输出。通过本项目的学习，能够掌握5G端到端网络优化的基本技能。"
+      },
+      {
+        "id": "block-003",
+        "kind": "paragraph",
+        "order": 3,
+        "text": "项目导学"
+      },
+      {
+        "id": "block-004",
+        "kind": "paragraph",
+        "order": 4,
+        "mediaRefs": [
+          "rId206"
+        ]
+      },
+      {
+        "id": "block-005",
+        "kind": "paragraph",
+        "order": 5,
+        "text": "任务导入"
+      },
+      {
+        "id": "block-006",
+        "kind": "paragraph",
+        "order": 6,
+        "text": "各位同学，我们在日常的生活和学习中，是不是会遇到通信不畅的问题。有的时候，网络差影响的是你一个人；有的时候，网络差影响的是一群人，他们有什么区别呢？如何去调整呢？各位同学放开脑洞思考一下。"
+      },
+      {
+        "id": "block-007",
+        "kind": "paragraph",
+        "order": 7,
+        "text": "任务要求"
+      },
+      {
+        "id": "block-008",
+        "kind": "paragraph",
+        "order": 8,
+        "text": "通过本节内容，能够了解5G网络优化方案的具体方向，并且能够针对不同的问题发生的场景和现象，通过分析，判断出是天线问题，还是无线、承载或者核心网的问题。本次任务具体内容包括："
+      },
+      {
+        "id": "block-009",
+        "kind": "paragraph",
+        "order": 9,
+        "text": "天线参数查看调整；"
+      },
+      {
+        "id": "block-010",
+        "kind": "paragraph",
+        "order": 10,
+        "text": "无线参数查看调整；"
+      },
+      {
+        "id": "block-011",
+        "kind": "paragraph",
+        "order": 11,
+        "text": "承载网参数查看调整；"
+      },
+      {
+        "id": "block-012",
+        "kind": "paragraph",
+        "order": 12,
+        "text": "核心网全局参数查看调整。"
+      },
+      {
+        "id": "block-013",
+        "kind": "paragraph",
+        "order": 13,
+        "text": "知识准备"
+      },
+      {
+        "id": "block-014",
+        "kind": "paragraph",
+        "order": 14,
+        "text": "一、天线基础知识"
+      },
+      {
+        "id": "block-015",
+        "kind": "paragraph",
+        "order": 15,
+        "text": "在无线通信系统中，与外界传播媒介接口是天线系统。天线发射和接收无线电波：发射时把高频电流转换为电磁波；接收时把电磁波转换为高频电流。天线的型号、增益、方向图、驱动天线功率、简单或者复杂的天线配置和天线极化等都会影响系统的性能。"
+      },
+      {
+        "id": "block-016",
+        "kind": "paragraph",
+        "order": 16,
+        "text": "（一）天线辐射原理"
+      },
+      {
+        "id": "block-017",
+        "kind": "paragraph",
+        "order": 17,
+        "text": "当导体上通以高频电流时，在其周围空间会产生电场与磁场。按电磁场在空间的分布特性，可分为近区，中间区， 远区。设R为空间一点距导体的距离，在R≤λ/2π时的区域称近区，在该区内的电磁场与导体中的电流,电压有紧密的联系；在R≥λ/2π的区域称为远区，在该区域内电磁场能离开导体向空间传播，它的变化相对于导体上的电流电压就要滞后一段时间，此时传播出去的电磁波不与导线上的电流、电压有直接的联系，这个区域的电磁场称为辐射场。发射天线正是利用辐射场的这种性质，使传送的信号经过发射天线后能够充分地向空间辐射。"
+      },
+      {
+        "id": "block-018",
+        "kind": "paragraph",
+        "order": 18,
+        "text": "半波对称振子天线是其中最简单，最基本的形式。"
+      },
+      {
+        "id": "block-019",
+        "kind": "paragraph",
+        "order": 19,
+        "text": "电磁波从发射天线辐射出来以后，向四面传播出去，若电磁波传播的方向上放一对称振子，则在电磁波的作用下，天线振子上就会产生感应电动势。如此时天线与接收设备相连，则在接收设备输入端就会产生高频电流。这样天线就起着接收作用并将电磁波转化为高频电流，也就是说此时天线起着接收天线的作用，接收效果的好坏除了电波的强弱外还取决于天线的方向性、半波对称振子与接收设备的匹配程度等因素。"
+      },
+      {
+        "id": "block-020",
+        "kind": "paragraph",
+        "order": 20,
+        "mediaRefs": [
+          "rId207"
+        ]
+      },
+      {
+        "id": "block-021",
+        "kind": "paragraph",
+        "order": 21,
+        "text": "图4-1-1电偶极子"
+      },
+      {
+        "id": "block-022",
+        "kind": "paragraph",
+        "order": 22,
+        "text": "辐射强度的决定因素："
+      },
+      {
+        "id": "block-023",
+        "kind": "paragraph",
+        "order": 23,
+        "text": "导线形状：两导线的距离很近，电场被束缚在两导线之间，辐射微弱；将两导线张开，电场就散播在周围空间，辐射增强。"
+      },
+      {
+        "id": "block-024",
+        "kind": "paragraph",
+        "order": 24,
+        "text": "导线长度：当导线的长度 L 远小于波长 R≤λ 时，辐射微弱；导线的长度 L 增大到可与波长相比拟时，导线上的电流将大大增加，辐射增强。"
+      },
+      {
+        "id": "block-025",
+        "kind": "paragraph",
+        "order": 25,
+        "mediaRefs": [
+          "rId208"
+        ]
+      },
+      {
+        "id": "block-026",
+        "kind": "paragraph",
+        "order": 26,
+        "text": "图4-1-2半波对称振子"
+      },
+      {
+        "id": "block-027",
+        "kind": "paragraph",
+        "order": 27,
+        "text": "两臂长度相等的振子叫做对称振子。每臂长度为四分之一波长、全长为二分之一波长的振子，称为半波对称振子。"
+      },
+      {
+        "id": "block-028",
+        "kind": "paragraph",
+        "order": 28,
+        "text": "对称振子是一种经典的、迄今为止使用最广泛的天线，单个半波对称振子可简单地独立使用或用作为抛物面天线的馈源，也可采用多个半波对称振子组成天线阵。"
+      },
+      {
+        "id": "block-029",
+        "kind": "paragraph",
+        "order": 29,
+        "text": "（二）天线增益（GAIN）"
+      },
+      {
+        "id": "block-030",
+        "kind": "paragraph",
+        "order": 30,
+        "text": "增益是天线系统的最重要参数之一，天线增益的定义与全向天线半波振子天线有关。全向辐射器是假设在所有方向上都辐射等功率的辐射器，在某一方向的天线增益是该方向上的场强。定向辐射器在该方向产生辐射强度之比，如下图所示："
+      },
+      {
+        "id": "block-031",
+        "kind": "paragraph",
+        "order": 31,
+        "mediaRefs": [
+          "rId209"
+        ]
+      },
+      {
+        "id": "block-032",
+        "kind": "paragraph",
+        "order": 32,
+        "text": "图4-1-3增益比较"
+      },
+      {
+        "id": "block-033",
+        "kind": "paragraph",
+        "order": 33,
+        "text": "dBi表示天线增益是定向天线相对于全向辐射器的参考值，dBd是相对于半波振子天线参考值，两者之间的关系是dBi=dBd+2.15 。"
+      },
+      {
+        "id": "block-034",
+        "kind": "paragraph",
+        "order": 34,
+        "text": "（三）天线方向图"
+      },
+      {
+        "id": "block-035",
+        "kind": "paragraph",
+        "order": 35,
+        "text": "天线的辐射电磁场在固定距离上随角坐标分布的图形，称为方向图，用辐射场强表示的称为场强方向图，用功率密度表示的称之功率方向图，用相位表示的称为相位方向图。"
+      },
+      {
+        "id": "block-036",
+        "kind": "paragraph",
+        "order": 36,
+        "text": "天线方向图是空间立体图形，但是通常应用的是两个互相垂直的主平面内的方向图，称为平面方向图。在线性天线中，由于地面影响较大，都采用垂直面和水平面作为主平面。"
+      },
+      {
+        "id": "block-037",
+        "kind": "paragraph",
+        "order": 37,
+        "text": "在方向图中，包含所需最大辐射方向的辐射波瓣叫天线主波瓣，也称天线波束。主瓣之外的波瓣叫副瓣或旁瓣或边瓣，与主瓣相反方向上的旁瓣叫后瓣。全向天线其天线水平波瓣为圆柱型，定向天线其天线水平波瓣为板状，如下图所示："
+      },
+      {
+        "id": "block-038",
+        "kind": "paragraph",
+        "order": 38,
+        "mediaRefs": [
+          "rId210"
+        ]
+      },
+      {
+        "id": "block-039",
+        "kind": "paragraph",
+        "order": 39,
+        "text": "图4-1-4全向天线水平波瓣和垂直波瓣情况"
+      },
+      {
+        "id": "block-040",
+        "kind": "paragraph",
+        "order": 40,
+        "mediaRefs": [
+          "rId211"
+        ]
+      },
+      {
+        "id": "block-041",
+        "kind": "paragraph",
+        "order": 41,
+        "text": "图4-1-5定向天线水平波瓣和垂直波瓣情况"
+      },
+      {
+        "id": "block-042",
+        "kind": "paragraph",
+        "order": 42,
+        "text": "一般天线方向图有以下一些参数："
+      },
+      {
+        "id": "block-043",
+        "kind": "paragraph",
+        "order": 43,
+        "text": "前后比：前波瓣与后波瓣最大值之比"
+      },
+      {
+        "id": "block-044",
+        "kind": "paragraph",
+        "order": 44,
+        "text": "半功率点波瓣宽度：天线最大值下降3dB点的夹角"
+      },
+      {
+        "id": "block-045",
+        "kind": "paragraph",
+        "order": 45,
+        "text": "零功率波瓣宽度：指主瓣最大值两边两个零辐射方向之间的夹角"
+      },
+      {
+        "id": "block-046",
+        "kind": "paragraph",
+        "order": 46,
+        "text": "副瓣电平：副瓣与主瓣最大值之比"
+      },
+      {
+        "id": "block-047",
+        "kind": "paragraph",
+        "order": 47,
+        "text": "（四）天线倾角"
+      },
+      {
+        "id": "block-048",
+        "kind": "paragraph",
+        "order": 48,
+        "text": "天线倾角必须考虑的因素有:天线的高度、方位角、增益、垂直半功率角，以及期望小区覆盖范围。"
+      },
+      {
+        "id": "block-049",
+        "kind": "paragraph",
+        "order": 49,
+        "text": "在天线增益一定的情况下，天线的水平半功率角与垂直半功率角成反比，当天线增益较小时，天线的垂直半功率角和水平半功率角通常较大，而当天线增益较高时，天线的垂直半功率角和水平半功率角通常较小。"
+      },
+      {
+        "id": "block-050",
+        "kind": "paragraph",
+        "order": 50,
+        "text": "对于分布在市区的基站，当天线无倾角或倾角很小时，各小区的服务范围取决于天线高度、方位角、增益、发射功率，以及地形地物等，此时覆盖半径可以采用 Okumura-Hata或COST231公式计算。当天线倾角较大时，无法计算出的覆盖半径（如有比较准确的传播模型和数字地图）。此时可以根据天线垂直半功率角和倾角大小按三角几何公式直接估算，方法如下。"
+      },
+      {
+        "id": "block-051",
+        "kind": "paragraph",
+        "order": 51,
+        "text": "假设所需覆盖半径为D(m)，天线高度为H(m)，倾角为，垂直半功率角为，则天线主瓣波束与地平面的关系如下图4-1-6所示："
+      },
+      {
+        "id": "block-052",
+        "kind": "paragraph",
+        "order": 52,
+        "mediaRefs": [
+          "rId216"
+        ]
+      },
+      {
+        "id": "block-053",
+        "kind": "paragraph",
+        "order": 53,
+        "text": "图4-1-6 下倾角与覆盖范围"
+      },
+      {
+        "id": "block-054",
+        "kind": "paragraph",
+        "order": 54,
+        "text": "（五）多天线技术Massive MIMO"
+      },
+      {
+        "id": "block-055",
+        "kind": "paragraph",
+        "order": 55,
+        "text": "MIMO，即多输入多输出（Multiple Input Multiple Output），是一种利用发射与接收端的多天线获取分集增益、实现多个空间数据流的传输、提升频谱利用率的技术。基于大规模MIMO的无线传输技术能够深度利用空间维度的无线资源，进而显著提升系统频谱效率和功率效率，也具有提高信道容量和改善系统性能等优点。同时基于MIMO信道提供的空间复用增益，可以利用多天线来抑制信道衰落。多天线系统的应用，使得并行数据流可以同时传送，可以显著克服信道的衰落，降低误码率。"
+      },
+      {
+        "id": "block-056",
+        "kind": "paragraph",
+        "order": 56,
+        "text": "大规模天线的优势可以归结为以下几点："
+      },
+      {
+        "id": "block-057",
+        "kind": "paragraph",
+        "order": 57,
+        "text": "（1）提升网络容量。波束赋形的定向功能可极大提升频谱效率，从而大幅度提高网络容量。"
+      },
+      {
+        "id": "block-058",
+        "kind": "paragraph",
+        "order": 58,
+        "text": "（2）减少单位硬件成本。波束赋形的信号叠加增益功能使得每根天线只需以小功率发射信号，从而避免使用昂贵的大动态范围功率放大器，减少了硬件成本。"
+      },
+      {
+        "id": "block-059",
+        "kind": "paragraph",
+        "order": 59,
+        "text": "（3）与毫米波技术形成互补。毫米波拥有丰富的带宽，但是衰减强烈，而波束赋形则正好可以解决这一问题。"
+      },
+      {
+        "id": "block-060",
+        "kind": "paragraph",
+        "order": 60,
+        "text": "3个阵子形成一个通道3个阵子形成一个通道",
+        "mediaRefs": [
+          "rId217"
+        ]
+      },
+      {
+        "id": "block-061",
+        "kind": "paragraph",
+        "order": 61,
+        "text": "图4-1-7 massMIMO天线振子"
+      },
+      {
+        "id": "block-062",
+        "kind": "paragraph",
+        "order": 62,
+        "text": "5G典型Massive MIMO天线为64通道，为8列×4行×2极化。"
+      },
+      {
+        "id": "block-063",
+        "kind": "paragraph",
+        "order": 63,
+        "text": "2个极化方向的天线使用相同的权值，总共是32组权值数据生成一个波束；通过设置每个端口的权值，可以形成需要的子波束形态。"
+      },
+      {
+        "id": "block-064",
+        "kind": "paragraph",
+        "order": 64,
+        "text": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+      },
+      {
+        "id": "block-065",
+        "kind": "paragraph",
+        "order": 65,
+        "text": "图4-1-8传统天线 图4-1-9 massive MIMO天线"
+      },
+      {
+        "id": "block-066",
+        "kind": "paragraph",
+        "order": 66,
+        "text": "传统4G只能通过权值在水平方向上调整，有限的改变水平波瓣角；而Massive MIMO可以支持在水平和垂直维度均可以进行调整。"
+      },
+      {
+        "id": "block-067",
+        "kind": "paragraph",
+        "order": 67,
+        "text": "（六）天线其他技术指标"
+      },
+      {
+        "id": "block-068",
+        "kind": "paragraph",
+        "order": 68,
+        "text": "1.电压驻波比VSWR"
+      },
+      {
+        "id": "block-069",
+        "kind": "paragraph",
+        "order": 69,
+        "text": "电压驻波比在移动通信蜂窝系统的基站天线中，其最大值应小于或等于1.5。"
+      },
+      {
+        "id": "block-070",
+        "kind": "paragraph",
+        "order": 70,
+        "text": "天线输入阻抗和馈线的特性阻抗不一致时，产生的反射波和入射波在馈线上叠加形成的磁波，其相邻电压的最大值和最小值之比是电压驻波比，它是检验馈线传输效率的依据。电压驻波比过大，将缩短通距离。而且反射功率将返回发射机功放部分，容易烧坏功放管，影响通信系统正常工作。"
+      },
+      {
+        "id": "block-071",
+        "kind": "paragraph",
+        "order": 71,
+        "text": "2.前后比"
+      },
+      {
+        "id": "block-072",
+        "kind": "paragraph",
+        "order": 72,
+        "text": "定向天线的前后比是指主瓣的最大辐射方向（规定为0°）的功率通量密度与相反方向附近（规定为180°±20°范围内）的最大功率通量密度之比值。一般天线的前后比在18-45dB之间。对于密集市区要积极采用前后比大的天线，如40dB。"
+      },
+      {
+        "id": "block-073",
+        "kind": "paragraph",
+        "order": 73,
+        "text": "网管对应天线相关参数的说明如下："
+      },
+      {
+        "id": "block-074",
+        "kind": "paragraph",
+        "order": 74,
+        "text": "表4-1-1 天线参数表"
+      },
+      {
+        "id": "block-075",
+        "kind": "paragraph",
+        "order": 75,
+        "mediaRefs": [
+          "rId218"
+        ]
+      },
+      {
+        "id": "block-076",
+        "kind": "paragraph",
+        "order": 76,
+        "text": "二、 5G无线参数基础知识"
+      },
+      {
+        "id": "block-077",
+        "kind": "paragraph",
+        "order": 77,
+        "text": "(一) 无线通信网络基础"
+      },
+      {
+        "id": "block-078",
+        "kind": "paragraph",
+        "order": 78,
+        "mediaRefs": [
+          "rId219"
+        ]
+      },
+      {
+        "id": "block-079",
+        "kind": "paragraph",
+        "order": 79,
+        "text": "图4-1-10 网络组网图"
+      },
+      {
+        "id": "block-080",
+        "kind": "paragraph",
+        "order": 80,
+        "text": "无线接入网是无线通信网络的基础。5G时代，接入网又发生了很大的变化。5G需要满足业务面向多样化需求，支持超高速率、超低时延和超多连接，因此对基站和接入网架构都提出新的需求："
+      },
+      {
+        "id": "block-081",
+        "kind": "paragraph",
+        "order": 81,
+        "text": "5G基站前传带宽高达数百G至Tbps，传统BBU与RRU之间的CPRI光线接口压力太大，需将部分功能分离，以减少前传带宽。5G面向多业务，低时延应用需更加靠近用户，超大规模物联网应用需高效的处理能力，5G基站应具备灵活的扩展功能，还有时延低，支持海量连接，支持高速移动等特性。"
+      },
+      {
+        "id": "block-082",
+        "kind": "paragraph",
+        "order": 82,
+        "text": "不同场景下，对于网络的特性要求（网速、时延、连接数、能耗），是不同的。"
+      },
+      {
+        "id": "block-083",
+        "kind": "paragraph",
+        "order": 83,
+        "text": "5G网络部署结构，如下图4-1-11："
+      },
+      {
+        "id": "block-084",
+        "kind": "paragraph",
+        "order": 84,
+        "text": "图4-1-11 网络结构图"
+      },
+      {
+        "id": "block-085",
+        "kind": "paragraph",
+        "order": 85,
+        "text": "(二)无线参数概念"
+      },
+      {
+        "id": "block-086",
+        "kind": "paragraph",
+        "order": 86,
+        "text": "在无线通信系统中，无线参数就是影响网络性能指标的各种参数指标，无线参数的变化，会对网络性能指标有直接影响。在无线网络中涉及到的无线参数非常多，可分为随机接入类，移动性管理类，寻呼，功率控制，45G互操作类，定时器类等类型。参数详情请参见项目三/任务三:5G网络参数检查。"
+      },
+      {
+        "id": "block-087",
+        "kind": "paragraph",
+        "order": 87,
+        "text": "三、5G承载网参数基础知识"
+      },
+      {
+        "id": "block-088",
+        "kind": "paragraph",
+        "order": 88,
+        "text": "什么是承载网？顾名思义，承载网就是专门负责承载数据传输的网络。如果说核心网是人的大脑，接入网是四肢，那么承载网就是连接大脑和四肢的神经网络，负责传递信息和指令。"
+      },
+      {
+        "id": "block-089",
+        "kind": "paragraph",
+        "order": 89,
+        "text": "图4-1-12 网络图图4-1-12 网络图",
+        "mediaRefs": [
+          "rId222"
+        ]
+      },
+      {
+        "id": "block-090",
+        "kind": "paragraph",
+        "order": 90,
+        "text": "5G基站被重构为三部分：CU、DU和AAU。AAU与DU之间的网络称为前传，CU和DU之间称为中传，而CU到核心网之间称为回传。"
+      },
+      {
+        "id": "block-091",
+        "kind": "paragraph",
+        "order": 91,
+        "mediaRefs": [
+          "rId223",
+          "rId224"
+        ]
+      },
+      {
+        "id": "block-092",
+        "kind": "paragraph",
+        "order": 92,
+        "text": "图4-1-13 接入网组成"
+      },
+      {
+        "id": "block-093",
+        "kind": "paragraph",
+        "order": 93,
+        "text": "（一）前传组网"
+      },
+      {
+        "id": "block-094",
+        "kind": "paragraph",
+        "order": 94,
+        "text": "光纤直连方式：①成本最高；②结构很简单；③性能最佳；④光纤资源占用最多"
+      },
+      {
+        "id": "block-095",
+        "kind": "paragraph",
+        "order": 95,
+        "mediaRefs": [
+          "rId225"
+        ]
+      },
+      {
+        "id": "block-096",
+        "kind": "paragraph",
+        "order": 96,
+        "text": "图4-1-14 光纤直连"
+      },
+      {
+        "id": "block-097",
+        "kind": "paragraph",
+        "order": 97,
+        "text": "无源WDM方式"
+      },
+      {
+        "id": "block-098",
+        "kind": "paragraph",
+        "order": 98,
+        "text": "将彩光模块安装到AAU和DU上，通过无源设备完成WDM (波分复用)功能，利用一对或者一根光纤提供名个AAU到DU的连接。优点：1.节约了光纤资源；2.运维困难不易管理；3.故障定位较难。"
+      },
+      {
+        "id": "block-099",
+        "kind": "paragraph",
+        "order": 99,
+        "mediaRefs": [
+          "rId226"
+        ]
+      },
+      {
+        "id": "block-100",
+        "kind": "paragraph",
+        "order": 100,
+        "text": "图4-1-15 无源WDM组网"
+      },
+      {
+        "id": "block-101",
+        "kind": "paragraph",
+        "order": 101,
+        "text": "有源WDM/OTN方式"
+      },
+      {
+        "id": "block-102",
+        "kind": "paragraph",
+        "order": 102,
+        "text": "在AAU站点和DU机房间配置相应的WDM\\OTN设备，多个前传信号通过WDM技术共享光纤资源。"
+      },
+      {
+        "id": "block-103",
+        "kind": "paragraph",
+        "order": 103,
+        "text": "这种方案相比无源WDM方案，组网更加灵活（支持点对点和组环网），同时光纤资源消耗并没有增加。"
+      },
+      {
+        "id": "block-104",
+        "kind": "paragraph",
+        "order": 104,
+        "mediaRefs": [
+          "rId227"
+        ]
+      },
+      {
+        "id": "block-105",
+        "kind": "paragraph",
+        "order": 105,
+        "text": "图4-1-16 有源WDM组网"
+      },
+      {
+        "id": "block-106",
+        "kind": "paragraph",
+        "order": 106,
+        "text": "（二）中传（DU↔CU）和回传（CU以上）："
+      },
+      {
+        "id": "block-107",
+        "kind": "paragraph",
+        "order": 107,
+        "text": "第一种，分组增强型OTN+IPRAN"
+      },
+      {
+        "id": "block-108",
+        "kind": "paragraph",
+        "order": 108,
+        "text": "利用分组增强型OTN设备组建中传网络，回传部分继续使用现有IPRAN架构。"
+      },
+      {
+        "id": "block-109",
+        "kind": "paragraph",
+        "order": 109,
+        "mediaRefs": [
+          "rId228"
+        ]
+      },
+      {
+        "id": "block-110",
+        "kind": "paragraph",
+        "order": 110,
+        "text": "图4-1-17 分组增强型OTN+IPRAN"
+      },
+      {
+        "id": "block-111",
+        "kind": "paragraph",
+        "order": 111,
+        "text": "第二种，端到端分组增强型OTN"
+      },
+      {
+        "id": "block-112",
+        "kind": "paragraph",
+        "order": 112,
+        "text": "中传与回传网络全部使用分组增强型OTN设备进行组网。"
+      },
+      {
+        "id": "block-113",
+        "kind": "paragraph",
+        "order": 113,
+        "mediaRefs": [
+          "rId229"
+        ]
+      },
+      {
+        "id": "block-114",
+        "kind": "paragraph",
+        "order": 114,
+        "text": "图4-1-18 端到端分组增强型OTN"
+      },
+      {
+        "id": "block-115",
+        "kind": "paragraph",
+        "order": 115,
+        "text": "SPN切片分组网络"
+      },
+      {
+        "id": "block-116",
+        "kind": "paragraph",
+        "order": 116,
+        "text": "SPN ( Silicing Packet Network)是中国移动面向5G承载的自主创新的技术体系。SPN将分为切片分组层(SPL)，切片通道层(SCL)，切片传送层(STL)三层，结合时间/时钟同步功能模块和管理/控制功能模块，实现大带宽、低时延、高效率的综合业务承载，是打造下一代的以5G承载为核心，兼顾家客、集客业务的统一高效综合 业务传输网络的优选方案。切片，简单来说，就是把一张物理上的网络，按应用场景划分为N张逻辑网络。不同的逻辑网络，服务于不同场景。"
+      },
+      {
+        "id": "block-117",
+        "kind": "paragraph",
+        "order": 117,
+        "mediaRefs": [
+          "rId230"
+        ]
+      },
+      {
+        "id": "block-118",
+        "kind": "paragraph",
+        "order": 118,
+        "text": "不同传输承载方式对比，如下表4-1-8"
+      },
+      {
+        "id": "block-119",
+        "kind": "paragraph",
+        "order": 119,
+        "text": "表4-1-8 传输承载对比"
+      },
+      {
+        "id": "block-120",
+        "kind": "paragraph",
+        "order": 120,
+        "mediaRefs": [
+          "rId231"
+        ]
+      },
+      {
+        "id": "block-121",
+        "kind": "paragraph",
+        "order": 121,
+        "text": "承载网参数详情请参见项目三/任务三:5G网络参数检查。"
+      },
+      {
+        "id": "block-122",
+        "kind": "paragraph",
+        "order": 122,
+        "text": "四、5G核心网参数基础知识"
+      },
+      {
+        "id": "block-123",
+        "kind": "paragraph",
+        "order": 123,
+        "text": "（一）5G核心网概述"
+      },
+      {
+        "id": "block-124",
+        "kind": "paragraph",
+        "order": 124,
+        "text": "5G核心网，采用的是SBA架构（Service Based Architecture，即基于服务的架构)。SBA架构，基于云原生构架设计，借鉴了IT领域的“微服务”理念。把原来具有多个功能的整体，分拆为多个具有独自功能的个体。每个个体，实现自己的微服务。5G核心网就是模块化、软件化。"
+      },
+      {
+        "id": "block-125",
+        "kind": "paragraph",
+        "order": 125,
+        "text": "服务化架构（SBA：Service-based Architecture）是第五代移动通信系统（5G）的重要特征，结合移动核心网的网络的特点和技术发展趋势，将网络功能划分为可重用的若干个“服务”。“服务”之间使用轻量化接口通信。其目标是实现5G系统的高效化、软件化、开放化。"
+      },
+      {
+        "id": "block-126",
+        "kind": "paragraph",
+        "order": 126,
+        "mediaRefs": [
+          "rId232"
+        ]
+      },
+      {
+        "id": "block-127",
+        "kind": "paragraph",
+        "order": 127,
+        "text": "图4-1-20 核心网结构图"
+      },
+      {
+        "id": "block-128",
+        "kind": "paragraph",
+        "order": 128,
+        "text": "AMF 接入和移动性管理功能"
+      },
+      {
+        "id": "block-129",
+        "kind": "paragraph",
+        "order": 129,
+        "text": "SMF 会话管理功能"
+      },
+      {
+        "id": "block-130",
+        "kind": "paragraph",
+        "order": 130,
+        "text": "UDM 统一数据管理"
+      },
+      {
+        "id": "block-131",
+        "kind": "paragraph",
+        "order": 131,
+        "text": "PCF 策略控制功能"
+      },
+      {
+        "id": "block-132",
+        "kind": "paragraph",
+        "order": 132,
+        "text": "NRF 网络存储功能"
+      },
+      {
+        "id": "block-133",
+        "kind": "paragraph",
+        "order": 133,
+        "text": "NSSF 网络切片选择功能"
+      },
+      {
+        "id": "block-134",
+        "kind": "paragraph",
+        "order": 134,
+        "text": "AUSF 鉴权服务器功能"
+      },
+      {
+        "id": "block-135",
+        "kind": "paragraph",
+        "order": 135,
+        "text": "UPF 用户面功能"
+      },
+      {
+        "id": "block-136",
+        "kind": "paragraph",
+        "order": 136,
+        "text": "NEF 网络业务呈现功能"
+      },
+      {
+        "id": "block-137",
+        "kind": "paragraph",
+        "order": 137,
+        "text": "表4-1-9 5G核心网网元功能"
+      },
+      {
+        "id": "block-138",
+        "kind": "table",
+        "order": 138,
+        "rows": [
+          [
+            "5G网络功能",
+            "功能简介"
+          ],
+          [
+            "AMF",
+            "接入管理功能，注册管理/连接管理/可达性管理/移动管理/访问身份验证,授权，短消息等。终端和无线的核心网控制面接入点"
+          ],
+          [
+            "AUSF",
+            "认证服务器功能，实现3GPP和非3GPP的接入认证"
+          ],
+          [
+            "UDM",
+            "统一数据管理功能，3GPP AKA认证/用户识别/访问授权/注册/移动/订阅/短信管理等"
+          ],
+          [
+            "PCF",
+            "策略控制功能，统一的政策框架，提供控制平面功能的策略规则"
+          ],
+          [
+            "SMF",
+            "会话管理功能，隧道维护，IP地址分配和管理，UP功能选择，策略实施和QoS中的控制部分，计费数据采集，漫游功能等"
+          ],
+          [
+            "UPF",
+            "用户面功能，分组路由转发，策略实施，流量报告，QoS处理"
+          ],
+          [
+            "NRF",
+            "NF库功能，服务发现，维护可用的NF实例的信息以及支持的服务"
+          ],
+          [
+            "NEF",
+            "网络开放功能，开放各网络功能的能力，内外部信息的转换"
+          ],
+          [
+            "NSSF",
+            "网络切片选择功能，选择为UE服务的一组网络切片实例"
+          ]
+        ]
+      },
+      {
+        "id": "block-139",
+        "kind": "paragraph",
+        "order": 139,
+        "text": "（二）5G核心网参数"
+      },
+      {
+        "id": "block-140",
+        "kind": "paragraph",
+        "order": 140,
+        "text": "QoS的目的是在资源有限的情况下，“按需定制”，为业务提供差异化服务质量的网络服务。QoS通常有两种含义，一是服务质量怎么样，即表征QoS的具体指标（参数）；二是如何保证这些指标，即实现QoS的机制。"
+      },
+      {
+        "id": "block-141",
+        "kind": "paragraph",
+        "order": 141,
+        "text": "如果把5G数据通信看做交通运输，那么用户面就是道路，业务数据就是道路上运输的乘客或物资。不同的运输需求可以使用不同的道路来实现，如一般车辆运输使用普通公路、一般公交车可以使用公交车专用车道、BRT使用BRT专用行车道等。根据运输业务的需求，铺设/分配道路的过程就是数据通信中的信令过程。相应地，QoS就是运输得怎么样，能不能把必要的物资在必要的时间内运送到目的地，也就是满不满足客户的需求。"
+      },
+      {
+        "id": "block-142",
+        "kind": "paragraph",
+        "order": 142,
+        "mediaRefs": [
+          "rId233"
+        ]
+      },
+      {
+        "id": "block-143",
+        "kind": "paragraph",
+        "order": 143,
+        "text": "图4-1-21 车道图"
+      },
+      {
+        "id": "block-144",
+        "kind": "paragraph",
+        "order": 144,
+        "text": "在物流中，要把物资运送到目的地，首先需要有路可走。类似地在移动网络中，要传输业务数据，首先要有“数据通路”，即4G中的EPS Bearer和5G中的QoS Flow。后文用“数据通路”统称EPS Bearer和QoS Flow。“数据通路”是端到端QoS控制的最小粒度，即相同通路上的所有数据流将获得相同的QoS保障（如调度策略、缓冲队列管理等），不同的QoS保障需要不同的通路来提供。"
+      },
+      {
+        "id": "block-145",
+        "kind": "paragraph",
+        "order": 145,
+        "mediaRefs": [
+          "rId234"
+        ]
+      },
+      {
+        "id": "block-146",
+        "kind": "paragraph",
+        "order": 146,
+        "text": "图4-1-22 4、5G承载对比1"
+      },
+      {
+        "id": "block-147",
+        "kind": "paragraph",
+        "order": 147,
+        "text": "4G QoS参数可以从有没有路（ARP）、车跑的好不好（QCI）、路够不够宽（xBR）三个维度评价。5G QoS参数继承了4G QoS的基本架构，在其基础上修改了部分参数的名称及含义，并增加了RQA（Reflective QoS Attribute）等3个可选参数，如下图黄色方框所示："
+      },
+      {
+        "id": "block-148",
+        "kind": "paragraph",
+        "order": 148,
+        "mediaRefs": [
+          "rId235"
+        ]
+      },
+      {
+        "id": "block-149",
+        "kind": "paragraph",
+        "order": 149,
+        "text": "图4-1-23 4、5G承载对比2"
+      },
+      {
+        "id": "block-150",
+        "kind": "paragraph",
+        "order": 150,
+        "text": "ARP：有没有路"
+      },
+      {
+        "id": "block-151",
+        "kind": "paragraph",
+        "order": 151,
+        "text": "在4G和5G中，都是使用ARP（Allocation and Retention Priority，分配保留优先级）来标识业务获取通路（主要是空口）的能力，也就是用ARP来控制EPS Bearer/QoS Flow建立、修改的优先级。ARP包括三个参数：优先级、抢占能力和被抢占属性，分别标识创建通路的优先级、创建或修改通路时能否抢占其他通路的资源、是否能被其他通路抢占资源。"
+      },
+      {
+        "id": "block-152",
+        "kind": "paragraph",
+        "order": 152,
+        "text": "5QI：怎样算“好”"
+      },
+      {
+        "id": "block-153",
+        "kind": "paragraph",
+        "order": 153,
+        "text": "5QI对应4G的QCI，是业务质量的索引，代表了资源类型、优先级、可靠性、丢包率等一组参数的取值集合，应用于所有的通路。定义了索引之后，核心网不需要传递全部参数，只传递索引值就可以将一组QoS信息通知无线侧，减少了网元间的参数传递。为了支持车联网、远程控制等新业务，5QI在QCI的基础上进行了完善和增强，如增加了新的标准索引值69，79~85，细化了资源类型的分类等。除新增标准5QI外，5QI与QCI的其他差异如下表4-1-10所示："
+      },
+      {
+        "id": "block-154",
+        "kind": "paragraph",
+        "order": 154,
+        "text": "表4-1-10 5QI与QCI对比"
+      },
+      {
+        "id": "block-155",
+        "kind": "paragraph",
+        "order": 155,
+        "mediaRefs": [
+          "rId236"
+        ]
+      },
+      {
+        "id": "block-156",
+        "kind": "paragraph",
+        "order": 156,
+        "text": "xBR：路有多宽"
+      },
+      {
+        "id": "block-157",
+        "kind": "paragraph",
+        "order": 157,
+        "text": "在业务质量中，带宽一直是终端用户最关心，也是最容易被用户观察到的质量参数。带宽分为上行带宽和下行带宽。4/5G的通路都可以分为两种资源类型，保证带宽的GBR（Guaranteed Bit Rate）通路和非保证带宽的Non-GBR通路。两种通路的带宽保障不同。"
+      },
+      {
+        "id": "block-158",
+        "kind": "paragraph",
+        "order": 158,
+        "text": "对GBR通路，每条通路都有自己的带宽参数，定义该通路“保证（Guaranteed）的带宽”和 “可能的最大（Maxium）带宽”。"
+      },
+      {
+        "id": "block-159",
+        "kind": "paragraph",
+        "order": 159,
+        "text": "对Non-GBR通路，都不保证带宽了，就不能奢望每条通路都有自己的带宽参数了，从而引出聚合最大比特率（AMBR，Aggregate Maximum Bit Rate）的概念，即一组Non-GBR通路一共可以使用的最大带宽。AMBR参数限制了共享这一AMBR的所有通路能所能提供的总速率。不同聚合粒度使用不同的AMBR。"
+      },
+      {
+        "id": "block-160",
+        "kind": "paragraph",
+        "order": 160,
+        "text": "4/5G的带宽参数示意图如下："
+      },
+      {
+        "id": "block-161",
+        "kind": "paragraph",
+        "order": 161,
+        "mediaRefs": [
+          "rId237"
+        ]
+      },
+      {
+        "id": "block-162",
+        "kind": "paragraph",
+        "order": 162,
+        "text": "图4-1-24 Qos参数对比"
+      },
+      {
+        "id": "block-163",
+        "kind": "paragraph",
+        "order": 163,
+        "text": "UE-AMBR名称及含义未变。"
+      },
+      {
+        "id": "block-164",
+        "kind": "paragraph",
+        "order": 164,
+        "text": "APN-AMBR变为Session-AMBR，即聚合粒度从4G的PDN细化为5G的PDU会话。"
+      },
+      {
+        "id": "block-165",
+        "kind": "paragraph",
+        "order": 165,
+        "text": "除了上述对4G已有QoS参数的完善和增强外，为了更灵活地控制QoS，以及更好地保障业务质量，5G还新增了如下表4-1-11可选参数："
+      },
+      {
+        "id": "block-166",
+        "kind": "paragraph",
+        "order": 166,
+        "text": "表4-1-11 Qos参数对比表"
+      },
+      {
+        "id": "block-167",
+        "kind": "paragraph",
+        "order": 167,
+        "mediaRefs": [
+          "rId238"
+        ]
+      },
+      {
+        "id": "block-168",
+        "kind": "paragraph",
+        "order": 168,
+        "text": "表4-1-12 Qos规则调整表"
+      },
+      {
+        "id": "block-169",
+        "kind": "table",
+        "order": 169,
+        "rows": [
+          [
+            "标识",
+            "名称",
+            "范围",
+            "说明"
+          ],
+          [
+            "name",
+            "QoS策略名称",
+            "1-31",
+            "该参数用于设置QoS策略名称，字符长度范围1-31。该参数为唯一索引，不能为空。该参数被命令ADD RULE或SET RULE的“QoS策略”字段引用。"
+          ],
+          [
+            "gate",
+            "门控",
+            "0-3",
+            "该参数用于设置门控，取值：ENABLE_UPLINK: 上行通过。ENABLE_DOWNLINK: 下行通过。ENABLE: 通过。DISABLE: 不通过。该参数可以为空，为空时使用默认值ENABLE（通过）。"
+          ],
+          [
+            "ulDscpSwitch",
+            "上行DSCP开关",
+            "0-1",
+            "该参数用于设置上行是否支持DSCP，取值：DISABLE: 否。ENABLE: 是。该参数可以为空，为空时使用默认值DISABLE（否）。"
+          ],
+          [
+            "ulDSCP",
+            "上行DSCP",
+            "0-63",
+            "该参数用于设置上行DSCP值，范围0-63。该参数可以为空。"
+          ],
+          [
+            "dlDscpSwitch",
+            "下行DSCP开关",
+            "0-1",
+            "该参数用于设置下行是否支持DSCP，取值：DISABLE: 否。ENABLE: 是。该参数可以为空，为空时使用默认值DISABLE（否）。"
+          ],
+          [
+            "dlDSCP",
+            "下行DSCP",
+            "0-63",
+            "该参数用于设置下行DSCP值，范围0-63。该参数可以为空。"
+          ],
+          [
+            "ulMbrSwitch",
+            "上行MBR开关",
+            "0-1",
+            "该参数用于设置上行是否支持MBR，取值：DISABLE: 否。ENABLE: 是。该参数可以为空，为空时使用默认值DISABLE（否）。"
+          ],
+          [
+            "ulMbr",
+            "上行MBR",
+            "0-4294967295",
+            "该参数用于设置上行MBR值，范围0-4294967295。该参数可以为空。"
+          ],
+          [
+            "dlMbrSwitch",
+            "下行MBR开关",
+            "0-1",
+            "该参数用于设置下行是否支持MBR，取值：DISABLE: 否。ENABLE: 是。该参数可以为空，为空时使用默认值DISABLE（否）。"
+          ],
+          [
+            "dlMbr",
+            "下行MBR",
+            "0-4294967295",
+            "该参数用于设置下行MBR值，范围0-4294967295。该参数可以为空。"
+          ],
+          [
+            "ulGbrSwitch",
+            "上行GBR开关",
+            "0-1",
+            "该参数用于设置上行是否支持GBR，取值：DISABLE: 否。ENABLE: 是。该参数可以为空，为空时使用默认值DISABLE（否）。"
+          ],
+          [
+            "ulGbr",
+            "上行GBR",
+            "0-4294967295",
+            "该参数用于设置上行GBR值，范围0-4294967295。该参数可以为空。"
+          ],
+          [
+            "dlGbrSwitch",
+            "下行GBR开关",
+            "0-1",
+            "该参数用于设置下行是否支持GBR，取值：DISABLE: 否。ENABLE: 是。该参数可以为空，为空时使用默认值DISABLE（否）。"
+          ],
+          [
+            "dlGbr",
+            "下行GBR",
+            "0-4294967295",
+            "该参数用于设置下行GBR值，范围0-4294967295。该参数可以为空。"
+          ],
+          [
+            "ulShareKey",
+            "上行ShareKey",
+            "1-31",
+            "多业务可以共享带宽，上下行也可以共享带宽。引用相同的带宽信息，即可实现共享。该参数用于设置上行引用的带宽信息，可从(SHOW CAR)命令中获取。该参数可以为空。"
+          ],
+          [
+            "dlShareKey",
+            "下行ShareKey",
+            "1-31",
+            "多业务可以共享带宽，上下行也可以共享带宽。引用相同的带宽信息，即可实现共享。该参数用于设置下行引用的带宽信息，可从(SHOW CAR)命令中获取。该参数可以为空。"
+          ]
+        ]
+      },
+      {
+        "id": "block-170",
+        "kind": "paragraph",
+        "order": 170,
+        "text": "任务实施"
+      },
+      {
+        "id": "block-171",
+        "kind": "paragraph",
+        "order": 171,
+        "text": "用网络优化仿真软件查看调整天线，无线，传输承载，核心网数据，具体操作如下："
+      },
+      {
+        "id": "block-172",
+        "kind": "paragraph",
+        "order": 172,
+        "text": "（1）登录仿真软件后，在前边三步完成后，点击进入step4端到端优化，进入系统后，点击左下角，数据中心，如下图4-1-25"
+      },
+      {
+        "id": "block-173",
+        "kind": "paragraph",
+        "order": 173,
+        "mediaRefs": [
+          "rId239"
+        ]
+      },
+      {
+        "id": "block-174",
+        "kind": "paragraph",
+        "order": 174,
+        "text": "图4-1-25 站点图"
+      },
+      {
+        "id": "block-175",
+        "kind": "paragraph",
+        "order": 175,
+        "text": "（2）进入到如下图4-1-26面，"
+      },
+      {
+        "id": "block-176",
+        "kind": "paragraph",
+        "order": 176,
+        "mediaRefs": [
+          "rId240"
+        ]
+      },
+      {
+        "id": "block-177",
+        "kind": "paragraph",
+        "order": 177,
+        "text": "图4-1-26 数据选择图"
+      },
+      {
+        "id": "block-178",
+        "kind": "paragraph",
+        "order": 178,
+        "text": "（3）可以分别查询无线侧，核心侧，传输侧配置数据。"
+      },
+      {
+        "id": "block-179",
+        "kind": "paragraph",
+        "order": 179,
+        "text": "查询天线参数，如下图4-1-27（与无线侧数据查询在一起）"
+      },
+      {
+        "id": "block-180",
+        "kind": "paragraph",
+        "order": 180,
+        "mediaRefs": [
+          "rId241"
+        ]
+      },
+      {
+        "id": "block-181",
+        "kind": "paragraph",
+        "order": 181,
+        "text": "图4-1-27 参数图1"
+      },
+      {
+        "id": "block-182",
+        "kind": "paragraph",
+        "order": 182,
+        "text": "查询无线参数，如下图4-1-28"
+      },
+      {
+        "id": "block-183",
+        "kind": "paragraph",
+        "order": 183,
+        "mediaRefs": [
+          "rId242"
+        ]
+      },
+      {
+        "id": "block-184",
+        "kind": "paragraph",
+        "order": 184,
+        "text": "图4-1-28 参数图2"
+      },
+      {
+        "id": "block-185",
+        "kind": "paragraph",
+        "order": 185,
+        "text": "查询传输承载网参数，如下图4-1-29"
+      },
+      {
+        "id": "block-186",
+        "kind": "paragraph",
+        "order": 186,
+        "mediaRefs": [
+          "rId173"
+        ]
+      },
+      {
+        "id": "block-187",
+        "kind": "paragraph",
+        "order": 187,
+        "text": "图4-1-29 参数图3"
+      },
+      {
+        "id": "block-188",
+        "kind": "paragraph",
+        "order": 188,
+        "text": "查询核心网参数，如下图4-1-30"
+      },
+      {
+        "id": "block-189",
+        "kind": "paragraph",
+        "order": 189,
+        "mediaRefs": [
+          "rId243"
+        ]
+      },
+      {
+        "id": "block-190",
+        "kind": "paragraph",
+        "order": 190,
+        "text": "图4-1-30 参数图4"
+      },
+      {
+        "id": "block-191",
+        "kind": "paragraph",
+        "order": 191,
+        "text": "随堂测试"
+      },
+      {
+        "id": "block-192",
+        "kind": "paragraph",
+        "order": 192,
+        "text": "简述天线工作原理和常用特征系统参数。"
+      },
+      {
+        "id": "block-193",
+        "kind": "paragraph",
+        "order": 193,
+        "text": "简述承载网传输方式。"
+      },
+      {
+        "id": "block-194",
+        "kind": "paragraph",
+        "order": 194,
+        "text": "3、简述核心网基本网元组成。"
+      },
+      {
+        "id": "block-195",
+        "kind": "paragraph",
+        "order": 195,
+        "text": "重点难点"
+      },
+      {
+        "id": "block-196",
+        "kind": "paragraph",
+        "order": 196,
+        "text": "本节重点：无线网、承载网，基本功能和组成。"
+      },
+      {
+        "id": "block-197",
+        "kind": "paragraph",
+        "order": 197,
+        "text": "本节难点：核心网基本网元概念和功能。"
+      },
+      {
+        "id": "block-198",
+        "kind": "paragraph",
+        "order": 198,
+        "text": "预留二维码位置预留二维码位置"
+      },
+      {
+        "id": "block-199",
+        "kind": "paragraph",
+        "order": 199,
+        "text": "任务测评"
+      },
+      {
+        "id": "block-200",
+        "kind": "paragraph",
+        "order": 200,
+        "text": "1、请简述天线的参数及其含义。"
+      },
+      {
+        "id": "block-201",
+        "kind": "paragraph",
+        "order": 201,
+        "text": "2、请简述5G承载网组网方式。"
+      },
+      {
+        "id": "block-202",
+        "kind": "paragraph",
+        "order": 202,
+        "text": "3、请简述核心网中各个网元的功能。"
+      },
+      {
+        "id": "block-203",
+        "kind": "paragraph",
+        "order": 203,
+        "text": "经典案例"
+      },
+      {
+        "id": "block-204",
+        "kind": "paragraph",
+        "order": 204,
+        "text": "CSI-RS配置问题导致速率下降"
+      },
+      {
+        "id": "block-205",
+        "kind": "paragraph",
+        "order": 205,
+        "text": "【问题描述】"
+      },
+      {
+        "id": "block-206",
+        "kind": "paragraph",
+        "order": 206,
+        "text": "拉网测试过程中发现在某些覆盖很好（SSB_SS_RSRP>-80dBm，SSB_SS_SINR>20dB）的路段，下行业务速率较低。针对这些覆盖很好但业务速率较低的路段进行单点测试，发现部分路段存在如下两个问题："
+      },
+      {
+        "id": "block-207",
+        "kind": "paragraph",
+        "order": 207,
+        "text": "问题1：个别路段驻留测试小区上使用的MCS很低，与SINR不匹配；"
+      },
+      {
+        "id": "block-208",
+        "kind": "paragraph",
+        "order": 208,
+        "text": "问题2：个别路段驻留测试小区上终端上报RI为2，下行只能使用2流，导致下行业务速率受到限制。"
+      },
+      {
+        "id": "block-209",
+        "kind": "paragraph",
+        "order": 209,
+        "text": "【问题原因分析】问题1排查："
+      },
+      {
+        "id": "block-210",
+        "kind": "paragraph",
+        "order": 210,
+        "text": "检查重配（RRC Reconfiguration）信令，发现终端驻留测试小区和周围邻区均采用8P2B配置，CRI 40和41的CSI-RS资源用于PMI测量。但终端驻留测试小区的CSI-RS周期配置为10ms，时隙偏移分别为6和16；周围邻区的CSI-RS周期配置均为20ms，时隙偏移分别为10和30。两者配置不一致，会导致周围邻区CSI-RS对终端驻留小区的固定时隙造成干扰。"
+      },
+      {
+        "id": "block-211",
+        "kind": "paragraph",
+        "order": 211,
+        "text": "按时隙统计终端CRC Fail误块，发现时隙10上误块率在85%左右，如下例图所示。显然终端在时隙10上受到了固定干扰。"
+      },
+      {
+        "id": "block-212",
+        "kind": "paragraph",
+        "order": 212,
+        "mediaRefs": [
+          "rId244"
+        ]
+      },
+      {
+        "id": "block-213",
+        "kind": "paragraph",
+        "order": 213,
+        "text": "【问题原因分析】问题1排查："
+      },
+      {
+        "id": "block-214",
+        "kind": "paragraph",
+        "order": 214,
+        "text": "将驻留测试小区CSI-RS周期和时隙偏移改到与周围邻区一致后（周期20ms，时隙偏移分别为10和30），在该路段重新进行测试，下行平均MCS从12提升到 20，下行MAC层速率则从138Mbps提升到270Mbps，相关指标统计如下表所示。"
+      },
+      {
+        "id": "block-215",
+        "kind": "paragraph",
+        "order": 215,
+        "mediaRefs": [
+          "rId245"
+        ]
+      },
+      {
+        "id": "block-216",
+        "kind": "paragraph",
+        "order": 216,
+        "text": "【问题原因分析】问题2排查："
+      },
+      {
+        "id": "block-217",
+        "kind": "paragraph",
+        "order": 217,
+        "text": "检查重配（RRC Reconfiguration）信令，发现终端驻留测试小区的CSI-RS周期配置为20ms，时隙偏移分别为6和16；CSI-IM周期配置为20ms，时隙偏移16，如下图所示。"
+      },
+      {
+        "id": "block-218",
+        "kind": "paragraph",
+        "order": 218,
+        "mediaRefs": [
+          "rId246"
+        ]
+      },
+      {
+        "id": "block-219",
+        "kind": "paragraph",
+        "order": 219,
+        "text": "由配置可见，CSI-IM配置与CSI-RS配置冲突，终端进行干扰检测的位置上存在CSI-RS参考信号的发送，从而导致终端上报RI 降低，CQI上报不准，速率降低的问题。"
+      }
+    ],
+    "storyboard": {
+      "schema": "lesson-storyboard/v1",
+      "learningGoal": "学完后能把优化方案转成批次化执行清单，保证动作、责任人、监控指标和同口径复测互相对应。",
+      "summary": "本节讲优化方案实施：把根因假设拆成工程、参数、资源、邻区和协同动作，并按窗口、影响面、回退点和监控指标执行。",
+      "knowledgeUnits": [
+        {
+          "id": "P11-ku-01",
+          "title": "责任场景",
+          "kind": "concept",
+          "shortText": "问题先归入覆盖、干扰、容量、参数或承载场景。",
+          "narrationText": "优化实施前要把现象压缩到责任场景，明确是覆盖、干扰、容量、参数、传输承载还是核心网协同问题。"
+        },
+        {
+          "id": "P11-ku-02",
+          "title": "动作拆解",
+          "kind": "concept",
+          "shortText": "工程、参数、资源、邻区和协同动作分开管理。",
+          "narrationText": "优化方案要拆成可执行动作，区分工程整改、参数调整、资源扩容、邻区优化、投诉回访和跨专业协同。"
+        },
+        {
+          "id": "P11-ku-03",
+          "title": "排程回退",
+          "kind": "criteria",
+          "shortText": "实施窗口、影响面、回退点和责任人必须明确。",
+          "narrationText": "排程设计要考虑低峰窗口、影响小区、业务风险、配置备份、回退步骤和责任人，确保执行可控。"
+        },
+        {
+          "id": "P11-ku-04",
+          "title": "执行监控",
+          "kind": "evidence",
+          "shortText": "实施中同步观察 KPI、告警、容量和用户体验。",
+          "narrationText": "执行过程要持续观察关键 KPI、活动告警、容量负荷和用户体验，及时识别副作用。"
+        },
+        {
+          "id": "P11-ku-05",
+          "title": "顺序校验",
+          "kind": "practice",
+          "shortText": "从根因到动作再到复测保持因果顺序。",
+          "narrationText": "实施顺序要与根因假设匹配，先处理基础约束，再做参数和资源动作，最后以同口径复测确认效果。"
+        },
+        {
+          "id": "P11-ku-06",
+          "title": "经验沉淀",
+          "kind": "review",
+          "shortText": "记录场景、动作、结果、限制和适用边界。",
+          "narrationText": "优化经验要沉淀场景特征、动作组合、效果指标、限制条件和适用边界，避免下次机械套用。"
+        }
+      ],
+      "reviewSummary": "复盘时看每个动作是否回扣到根因假设，实施中 KPI、告警、容量和体验是否被持续观察，效果是否能同场景复测。"
+    }
+  },
+  "knowledge": {
+    "steps": [
+      {
+        "id": "P11-knowledge-01",
+        "label": "责任场景",
+        "description": "问题先归入覆盖、干扰、容量、参数或承载场景。"
+      },
+      {
+        "id": "P11-knowledge-02",
+        "label": "动作拆解",
+        "description": "工程、参数、资源、邻区和协同动作分开管理。"
+      },
+      {
+        "id": "P11-knowledge-03",
+        "label": "排程回退",
+        "description": "实施窗口、影响面、回退点和责任人必须明确。"
+      },
+      {
+        "id": "P11-knowledge-04",
+        "label": "执行监控",
+        "description": "实施中同步观察 KPI、告警、容量和用户体验。"
+      },
+      {
+        "id": "P11-knowledge-05",
+        "label": "顺序校验",
+        "description": "从根因到动作再到复测保持因果顺序。"
+      },
+      {
+        "id": "P11-knowledge-06",
+        "label": "经验沉淀",
+        "description": "记录场景、动作、结果、限制和适用边界。"
+      }
+    ],
+    "metrics": [
+      {
+        "label": "M1",
+        "value": "N2/N3"
+      },
+      {
+        "label": "M2",
+        "value": "复测"
+      },
+      {
+        "label": "M3",
+        "value": "闭环"
+      }
+    ]
+  },
+  "animation": {
+    "templateHint": "optimization-loop",
+    "durationMs": 610000,
+    "targets": [
+      {
+        "id": "P11-step-01",
+        "label": "责任场景",
+        "description": "问题先归入覆盖、干扰、容量、参数或承载场景。"
+      },
+      {
+        "id": "P11-step-02",
+        "label": "动作拆解",
+        "description": "工程、参数、资源、邻区和协同动作分开管理。"
+      },
+      {
+        "id": "P11-step-03",
+        "label": "排程回退",
+        "description": "实施窗口、影响面、回退点和责任人必须明确。"
+      },
+      {
+        "id": "P11-step-04",
+        "label": "执行监控",
+        "description": "实施中同步观察 KPI、告警、容量和用户体验。"
+      },
+      {
+        "id": "P11-step-05",
+        "label": "顺序校验",
+        "description": "从根因到动作再到复测保持因果顺序。"
+      },
+      {
+        "id": "P11-step-06",
+        "label": "经验沉淀",
+        "description": "记录场景、动作、结果、限制和适用边界。"
+      }
+    ]
+  },
+  "playback": {
+    "mode": "one-way",
+    "widgetId": "P11-lesson-animation-001"
+  }
+}

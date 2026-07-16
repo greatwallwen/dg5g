@@ -1,0 +1,51 @@
+schema: dgbook.template.knowledge-animation/v1
+id: 5g-knowledge-animation
+title: 5G knowledge animation template
+domain: 5g-network-optimization
+stage:
+  width: 1000
+  height: 562
+  pageCount: 6
+  transition: sweep
+constraints:
+  maxVisibleTextChars: 100
+  minVisualChangeMs: 3500
+  linePolicy:
+    mustConnectNodes: true
+    avoidCrossing: true
+    labelLength: 8
+  forbiddenCopy:
+    - task requirements
+    - generated output
+    - experiment note
+beats:
+  - id: concept
+    intent: explain the core concept with a small visual model
+    visual:
+      template: concept-map
+      focus: what changes and why
+      elements:
+        - short label
+        - relation line
+        - evidence icon
+    narration:
+      caption: Concept first, detail in narration.
+      spokenText: Explain the concept with concrete field evidence and avoid putting long paragraphs on screen.
+  - id: process
+    intent: show how the field workflow moves step by step
+    visual:
+      template: process-walkthrough
+      focus: ordered flow
+      elements:
+        - actor
+        - action
+        - output
+    narration:
+      caption: The flow must match the real teaching sequence.
+      spokenText: Walk through the process in order, keeping every arrow connected to the correct node.
+outputs:
+  stageArtifact: animation-slide
+  optionalMedia:
+    - manim-webm
+    - pixi-edugame
+    - poster-svg

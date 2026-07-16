@@ -1,0 +1,2827 @@
+{
+  "schema": "dgbook.lesson-ast/v1",
+  "source": {
+    "kind": "docx",
+    "path": "content/5g/5g.docx",
+    "importer": "scripts/import-5g-docx.py"
+  },
+  "project": {
+    "id": "P09",
+    "title": "5G网络参数检查",
+    "sourceNo": "3",
+    "chapterTitle": "5G网络信息管理",
+    "taskIndex": 3
+  },
+  "lesson": {
+    "id": "P09",
+    "title": "5G网络参数检查",
+    "widgetId": "P09-lesson-animation-001",
+    "scenario": "parameter",
+    "scenarioLabel": "参数优化"
+  },
+  "content": {
+    "sections": [
+      {
+        "id": "sec-overview",
+        "title": "导学摘要",
+        "icon": "overview",
+        "texts": [
+          "本节讲参数核查：先锁定网元、小区、邻区、切片和 QoS 等对象范围，再把现网快照与规划基线转成风险治理清单。"
+        ]
+      },
+      {
+        "id": "P09-ku-01",
+        "title": "概念与对象",
+        "icon": "radar",
+        "texts": [
+          "参数核查先定义对象范围：网元、小区、邻区、切片、QoS 或策略对象不同，影响域和回退范围也不同。"
+        ]
+      },
+      {
+        "id": "P09-ku-02",
+        "title": "概念与对象",
+        "icon": "route",
+        "texts": [
+          "现网值需要保存导出时间、网管版本、对象范围和数据来源，避免把过期或局部数据当作全量事实。"
+        ]
+      },
+      {
+        "id": "P09-ku-03",
+        "title": "工程判读",
+        "icon": "chart",
+        "texts": [
+          "规划基线不是孤立表格，要结合覆盖场景、频段层、邻区关系、容量目标和业务策略确定期望取值。"
+        ]
+      },
+      {
+        "id": "P09-ku-04",
+        "title": "数据与现场佐证",
+        "icon": "tool",
+        "texts": [
+          "参数差异先进入风险树：覆盖类看功率和倾角，切换类看邻区与门限，容量类看负荷策略，业务类看 QoS 与切片策略。"
+        ]
+      },
+      {
+        "id": "P09-ku-05",
+        "title": "操作校验",
+        "icon": "search",
+        "texts": [
+          "不是所有差异都立即修改，处置准入要同时满足风险等级、影响范围、回退条件、变更窗口和监控观察要求。"
+        ]
+      },
+      {
+        "id": "P09-ku-06",
+        "title": "闭环复盘",
+        "icon": "check",
+        "texts": [
+          "参数核查最终形成治理清单，包含差异类型、影响域、风险等级、建议动作、审批状态和回退条件。"
+        ]
+      }
+    ],
+    "blocks": [
+      {
+        "id": "block-001",
+        "kind": "paragraph",
+        "order": 1,
+        "text": "任务导入"
+      },
+      {
+        "id": "block-002",
+        "kind": "paragraph",
+        "order": 2,
+        "text": "在网络规划过程中，需要考虑哪些因素？如果网络性能指标出现下降，比如说，掉话率升高了，除了检查基站设备告警信息和天馈系统工作状态还有哪些方面需要检查？对于掉话问题，无线网络参数检查大家能想到哪些呢？传输网和核心网需要配合检查哪些参数？"
+      },
+      {
+        "id": "block-003",
+        "kind": "paragraph",
+        "order": 3,
+        "text": "任务要求"
+      },
+      {
+        "id": "block-004",
+        "kind": "paragraph",
+        "order": 4,
+        "text": "掌握5G网络规划计算。"
+      },
+      {
+        "id": "block-005",
+        "kind": "paragraph",
+        "order": 5,
+        "text": "完成5G网优相关的无线参数检查操作。"
+      },
+      {
+        "id": "block-006",
+        "kind": "paragraph",
+        "order": 6,
+        "text": "完成5G网优相关的传输网络参数检查操作。"
+      },
+      {
+        "id": "block-007",
+        "kind": "paragraph",
+        "order": 7,
+        "text": "完成5G网优相关的核心网络参数检查操作。"
+      },
+      {
+        "id": "block-008",
+        "kind": "paragraph",
+        "order": 8,
+        "text": "了解无线网络参数导入/导出功能，以及参数比较。"
+      },
+      {
+        "id": "block-009",
+        "kind": "paragraph",
+        "order": 9,
+        "text": "知识准备"
+      },
+      {
+        "id": "block-010",
+        "kind": "paragraph",
+        "order": 10,
+        "text": "一． 5G无线网管配置管理概述"
+      },
+      {
+        "id": "block-011",
+        "kind": "paragraph",
+        "order": 11,
+        "mediaRefs": [
+          "rId153"
+        ]
+      },
+      {
+        "id": "block-012",
+        "kind": "paragraph",
+        "order": 12,
+        "text": "图3-3-1 无线网管配置"
+      },
+      {
+        "id": "block-013",
+        "kind": "paragraph",
+        "order": 13,
+        "text": "网管提供多种场景下的配置数据检查功能，帮助排除参数类故障。主要包括数据比较和网元变更查看两个子功能。 数据比较，提供现网区数据与网元实际数据、两个网元的现网区数据的对比。 网元变更查看，查询指定时间段内网元数据变化情况。"
+      },
+      {
+        "id": "block-014",
+        "kind": "paragraph",
+        "order": 14,
+        "text": "运维人员可以通过对现网区保存的网元数据与网元实际数据、两个网元在现网区保存的数据的比较结果确认数据的正确性。"
+      },
+      {
+        "id": "block-015",
+        "kind": "paragraph",
+        "order": 15,
+        "text": "（一）5G无线网管参数查询窗口介绍，如图3-3-2"
+      },
+      {
+        "id": "block-016",
+        "kind": "paragraph",
+        "order": 16,
+        "mediaRefs": [
+          "rId154"
+        ]
+      },
+      {
+        "id": "block-017",
+        "kind": "paragraph",
+        "order": 17,
+        "text": "图3-3-2 5G无线网管参数查询窗口"
+      },
+      {
+        "id": "block-018",
+        "kind": "paragraph",
+        "order": 18,
+        "text": "（二）配置数据导入"
+      },
+      {
+        "id": "block-019",
+        "kind": "paragraph",
+        "order": 19,
+        "text": "通过数据批量导入配置参数。如下图3-3-3"
+      },
+      {
+        "id": "block-020",
+        "kind": "paragraph",
+        "order": 20,
+        "text": "登录5G网管后，从左侧导航栏选取“配置参数管理”，然后在右侧界面点击导入，将本地excel格式配置文件批量导入网管。"
+      },
+      {
+        "id": "block-021",
+        "kind": "paragraph",
+        "order": 21,
+        "mediaRefs": [
+          "rId155"
+        ]
+      },
+      {
+        "id": "block-022",
+        "kind": "paragraph",
+        "order": 22,
+        "text": "图3-3-3 配置数据模板"
+      },
+      {
+        "id": "block-023",
+        "kind": "paragraph",
+        "order": 23,
+        "text": "配置数据导出"
+      },
+      {
+        "id": "block-024",
+        "kind": "paragraph",
+        "order": 24,
+        "text": "通过数据导出功能可以将站点配置参数导出后离线检查参数设置。如下图3-3-4"
+      },
+      {
+        "id": "block-025",
+        "kind": "paragraph",
+        "order": 25,
+        "text": "以学生账号登录5G网管后，从左侧导航栏选取“配置”，选取“站点”，“小区参数”，然后在右侧界面点击“全部数据导出”，将该小区所有配置数据以excel格式导出到网管。"
+      },
+      {
+        "id": "block-026",
+        "kind": "paragraph",
+        "order": 26,
+        "mediaRefs": [
+          "rId156"
+        ]
+      },
+      {
+        "id": "block-027",
+        "kind": "paragraph",
+        "order": 27,
+        "text": "图3-3-4 配置数据导出窗口"
+      },
+      {
+        "id": "block-028",
+        "kind": "paragraph",
+        "order": 28,
+        "text": "二．5G网络规划参数"
+      },
+      {
+        "id": "block-029",
+        "kind": "paragraph",
+        "order": 29,
+        "text": "（一）容量计算"
+      },
+      {
+        "id": "block-030",
+        "kind": "paragraph",
+        "order": 30,
+        "text": "（1）不同帧结构下的上下行资源占比"
+      },
+      {
+        "id": "block-031",
+        "kind": "paragraph",
+        "order": 31,
+        "text": "2.5ms双周期时隙配比： DDDSU DDSUU 特殊S配比：D:Gap:U=10:2:2"
+      },
+      {
+        "id": "block-032",
+        "kind": "paragraph",
+        "order": 32,
+        "text": "5ms单周期时隙配比： DDDDD DDSUU 特殊S配比：D:Gap:U=6:4:4"
+      },
+      {
+        "id": "block-033",
+        "kind": "paragraph",
+        "order": 33,
+        "text": "上行资源占比（符号级)=(帧周期内特殊时隙个数*特殊时隙内上行符号个数+帧周期内上行时隙个数*14)/(14*10)"
+      },
+      {
+        "id": "block-034",
+        "kind": "paragraph",
+        "order": 34,
+        "text": "下行资源占比（符号级)=(帧周期内特殊时隙个数*特殊时隙内下行符号个数+帧周期内下行时隙个数*14)/(14*10)"
+      },
+      {
+        "id": "block-035",
+        "kind": "paragraph",
+        "order": 35,
+        "text": "（2）上下行等效TBS的计算"
+      },
+      {
+        "id": "block-036",
+        "kind": "paragraph",
+        "order": 36,
+        "text": "上行等效TBS=上行速率/上行资源占比/2"
+      },
+      {
+        "id": "block-037",
+        "kind": "paragraph",
+        "order": 37,
+        "text": "下行等效TBS=下行速率/下行资源占比/2"
+      },
+      {
+        "id": "block-038",
+        "kind": "paragraph",
+        "order": 38,
+        "text": "（3）基于容量的基站规划"
+      },
+      {
+        "id": "block-039",
+        "kind": "paragraph",
+        "order": 39,
+        "text": "根据业务模型计算区域上行、下行总吞吐量"
+      },
+      {
+        "id": "block-040",
+        "kind": "paragraph",
+        "order": 40,
+        "text": "区域总下行吞吐量=区域总移动用户数*运营商市场比例*5G终端渗透率*区域用户平均下行吞吐量"
+      },
+      {
+        "id": "block-041",
+        "kind": "paragraph",
+        "order": 41,
+        "text": "区域总上行吞吐量=区域总移动用户数*运营商市场比例*5G终端渗透率*区域用户平均上行吞吐量"
+      },
+      {
+        "id": "block-042",
+        "kind": "paragraph",
+        "order": 42,
+        "text": "计算单扇区最大吞吐量"
+      },
+      {
+        "id": "block-043",
+        "kind": "paragraph",
+        "order": 43,
+        "text": "单扇区小区下行最大吞吐量=［载波聚合等级*MIMO的层数(流数）*调制方式对应的比特数*RB数量*每RB子载波数*编码效率*比例因子*（1-控制信令开销）］/下行符号时长"
+      },
+      {
+        "id": "block-044",
+        "kind": "paragraph",
+        "order": 44,
+        "text": "单扇区小区上行最大吞吐量=［载波聚合等级*MIMO的层数(流数）*调制方式对应的比特数*RB数量*每RB子载波数*编码效率*比例因子*（1-控制信令开销）］/上行符号时长"
+      },
+      {
+        "id": "block-045",
+        "kind": "paragraph",
+        "order": 45,
+        "text": "计算所需基站数量"
+      },
+      {
+        "id": "block-046",
+        "kind": "paragraph",
+        "order": 46,
+        "text": "下行需要基站数量=区域总下行吞吐量/单扇区小区下行最大吞吐量/3"
+      },
+      {
+        "id": "block-047",
+        "kind": "paragraph",
+        "order": 47,
+        "text": "上行需要基站数量=区域总上行吞吐量/单扇区小区上行最大吞吐量/3"
+      },
+      {
+        "id": "block-048",
+        "kind": "paragraph",
+        "order": 48,
+        "text": "（二）覆盖计算"
+      },
+      {
+        "id": "block-049",
+        "kind": "paragraph",
+        "order": 49,
+        "text": "（1） 下行单天线发射功率（单位：W）"
+      },
+      {
+        "id": "block-050",
+        "kind": "paragraph",
+        "order": 50,
+        "text": "上行单天线发射功率（单位：W）"
+      },
+      {
+        "id": "block-051",
+        "kind": "paragraph",
+        "order": 51,
+        "text": "将dBm换成W: W=power(10,dBm/10)"
+      },
+      {
+        "id": "block-052",
+        "kind": "paragraph",
+        "order": 52,
+        "text": "（2）计算总发射功率"
+      },
+      {
+        "id": "block-053",
+        "kind": "paragraph",
+        "order": 53,
+        "text": "下行总发射功率=单天线发射功率*发射天线数量"
+      },
+      {
+        "id": "block-054",
+        "kind": "paragraph",
+        "order": 54,
+        "text": "上行发射总功率=单天线发射功率*发射天线数量"
+      },
+      {
+        "id": "block-055",
+        "kind": "paragraph",
+        "order": 55,
+        "text": "（3）发射天线增益：基站侧8T为16.5dBi，16T为15dBi，32T为13dBi，64T为11dBi，终端侧为0dBi"
+      },
+      {
+        "id": "block-056",
+        "kind": "paragraph",
+        "order": 56,
+        "text": "（4）发射天线阵列增益=10*log(发射天线数量)dB"
+      },
+      {
+        "id": "block-057",
+        "kind": "paragraph",
+        "order": 57,
+        "text": "下行发射天线阵列增益"
+      },
+      {
+        "id": "block-058",
+        "kind": "paragraph",
+        "order": 58,
+        "text": "上行发射天线阵列增益"
+      },
+      {
+        "id": "block-059",
+        "kind": "paragraph",
+        "order": 59,
+        "text": "数据信道功率损失，默认0dB"
+      },
+      {
+        "id": "block-060",
+        "kind": "paragraph",
+        "order": 60,
+        "text": "线缆损耗，包括馈线、接头、合路器和身体损耗，上下行均默认0dB"
+      },
+      {
+        "id": "block-061",
+        "kind": "paragraph",
+        "order": 61,
+        "text": "数据信道等效发射功率=总发射功率+发射天线增益+天线阵列增益-数据信道功率损失-线缆损耗"
+      },
+      {
+        "id": "block-062",
+        "kind": "paragraph",
+        "order": 62,
+        "text": "接收天线增益：基站作为上行接收8R为16.5dBi，16R为15dBi，64R为11dBi，终端作为下行接收增益为0dBi"
+      },
+      {
+        "id": "block-063",
+        "kind": "paragraph",
+        "order": 63,
+        "text": "接收天线阵列增益："
+      },
+      {
+        "id": "block-064",
+        "kind": "paragraph",
+        "order": 64,
+        "text": "下行终端侧接收天线阵列增益=10*log(终端天线数量)dB"
+      },
+      {
+        "id": "block-065",
+        "kind": "paragraph",
+        "order": 65,
+        "text": "上行基站侧接收天线阵列增益=10*log(基站天线数量)dB"
+      },
+      {
+        "id": "block-066",
+        "kind": "paragraph",
+        "order": 66,
+        "text": "接收机噪声"
+      },
+      {
+        "id": "block-067",
+        "kind": "paragraph",
+        "order": 67,
+        "text": "热噪声系数：公式为10Log（K*T）=10log(1.38*e-23*290)=-174dBm/Hz"
+      },
+      {
+        "id": "block-068",
+        "kind": "paragraph",
+        "order": 68,
+        "text": "K：波尔兹曼常数，= 1.38×10-23 J/K；"
+      },
+      {
+        "id": "block-069",
+        "kind": "paragraph",
+        "order": 69,
+        "text": "T：开氏温度，常温为 290 K；"
+      },
+      {
+        "id": "block-070",
+        "kind": "paragraph",
+        "order": 70,
+        "text": "热噪声的频谱密度,理解为1Hz带宽内的底噪,则为10lg(KTW)=10(1.38×10-23 J/K*290 K*1Hz)= -203.9772292dBW =-173.9772292dBm≈-174dBm，即热噪声的频谱密度约为-174dBm/Hz"
+      },
+      {
+        "id": "block-071",
+        "kind": "paragraph",
+        "order": 71,
+        "text": "接收机干扰密度"
+      },
+      {
+        "id": "block-072",
+        "kind": "paragraph",
+        "order": 72,
+        "text": "数据信道的总噪声和干扰密度=10 log (10^(((接收机噪声) + (热噪声系数))/10) + 10^((接收机干扰密度)/10)) dBm/Hz"
+      },
+      {
+        "id": "block-073",
+        "kind": "paragraph",
+        "order": 73,
+        "text": "下行数据信道的总噪声和干扰密度（终端）"
+      },
+      {
+        "id": "block-074",
+        "kind": "paragraph",
+        "order": 74,
+        "text": "上行数据信道的总噪声和干扰密度（基站）"
+      },
+      {
+        "id": "block-075",
+        "kind": "paragraph",
+        "order": 75,
+        "text": "（14）数据信道占用信道带宽（Hz),数据信道占用带宽=分配RB*12*子载波间隔"
+      },
+      {
+        "id": "block-076",
+        "kind": "paragraph",
+        "order": 76,
+        "text": "（15）数据信道有效噪声功率=数据信道总噪声和干扰密度+10*log(数据信道占用带宽) dBm"
+      },
+      {
+        "id": "block-077",
+        "kind": "paragraph",
+        "order": 77,
+        "text": "下行数据信道有效噪声功率(终端）"
+      },
+      {
+        "id": "block-078",
+        "kind": "paragraph",
+        "order": 78,
+        "text": "上行数据信道有效噪声功率(基站）"
+      },
+      {
+        "id": "block-079",
+        "kind": "paragraph",
+        "order": 79,
+        "text": "（16)信噪比：数据信道所需的信噪比，下行根据发射天线数量和调制方式有关，上行默认0；请参考下表3-3-1内容。"
+      },
+      {
+        "id": "block-080",
+        "kind": "paragraph",
+        "order": 80,
+        "text": "表3-3-1 数据信道信噪比和天线通道及调制方式关系"
+      },
+      {
+        "id": "block-081",
+        "kind": "table",
+        "order": 81,
+        "rows": [
+          [
+            "调制方式",
+            "天线通道"
+          ],
+          [
+            "",
+            "8T",
+            "16T",
+            "32T",
+            "64T"
+          ],
+          [
+            "QPSK",
+            "-14",
+            "-17",
+            "-20",
+            "-23"
+          ],
+          [
+            "16QAM",
+            "-5",
+            "-7",
+            "-11",
+            "-13"
+          ],
+          [
+            "64QAM",
+            "6",
+            "3",
+            "-1",
+            "-3"
+          ],
+          [
+            "256QAM",
+            "16",
+            "13",
+            "9",
+            "7"
+          ]
+        ]
+      },
+      {
+        "id": "block-082",
+        "kind": "paragraph",
+        "order": 82,
+        "text": "(17)接收机余量"
+      },
+      {
+        "id": "block-083",
+        "kind": "paragraph",
+        "order": 83,
+        "text": "(18)数据信道的H-ARQ增益"
+      },
+      {
+        "id": "block-084",
+        "kind": "paragraph",
+        "order": 84,
+        "text": "(19)接收器灵敏度=数据信道有效噪声功率+信噪比+接收机余量-数据信道的H-ARQ增益（单位dBm）"
+      },
+      {
+        "id": "block-085",
+        "kind": "paragraph",
+        "order": 85,
+        "text": "下行接收机灵敏度（终端），上行接收机灵敏度（基站）"
+      },
+      {
+        "id": "block-086",
+        "kind": "paragraph",
+        "order": 86,
+        "text": "(20)数据信道链路预算=数据信道等效发射功率+接收天线增益+接收天线阵列增益-接收器灵敏度"
+      },
+      {
+        "id": "block-087",
+        "kind": "paragraph",
+        "order": 87,
+        "text": "下行数据信道链路预算=下行数据信道等效发射功率+下行接收天线曾益+下行接收天线阵列增益 -下行接收器灵敏度"
+      },
+      {
+        "id": "block-088",
+        "kind": "paragraph",
+        "order": 88,
+        "text": "上行数据信道链路预算=上行数据信道等效发射功率+上行接收天线曾益+上行接收天线阵列增益-上行接收器灵敏度"
+      },
+      {
+        "id": "block-089",
+        "kind": "paragraph",
+        "order": 89,
+        "text": "(21)阴影衰减标准偏差"
+      },
+      {
+        "id": "block-090",
+        "kind": "paragraph",
+        "order": 90,
+        "text": "(22)阴影衰落，默认15dB，覆盖率为0.95为15dB，0.9为11dB，数据信道的阴影衰落取11dB"
+      },
+      {
+        "id": "block-091",
+        "kind": "paragraph",
+        "order": 91,
+        "text": "(23)基站分集增益"
+      },
+      {
+        "id": "block-092",
+        "kind": "paragraph",
+        "order": 92,
+        "text": "(24)穿透损耗，2.6G为23dB，3.5G为26dB，4.9G为30dB"
+      },
+      {
+        "id": "block-093",
+        "kind": "paragraph",
+        "order": 93,
+        "text": "(25)其他增益，默认设定为干扰余量"
+      },
+      {
+        "id": "block-094",
+        "kind": "paragraph",
+        "order": 94,
+        "text": "(26)数据信道的可用路损值dB=数据信道链路预算-阴影衰落+基站分集增益-穿透损耗+其他增益-线缆损耗（接受侧）"
+      },
+      {
+        "id": "block-095",
+        "kind": "paragraph",
+        "order": 95,
+        "text": "下行数据信道的可用路损dB=最终路损=下行数据信道链路预算-阴影衰落+基站分集增益-穿透损耗+其它增益-线缆损耗"
+      },
+      {
+        "id": "block-096",
+        "kind": "paragraph",
+        "order": 96,
+        "text": "上行数据信道的可用路损dB=最终路损=上行数据信道链路预算-阴影衰落+基站分集增益-穿透损耗+其它增益-线缆损耗"
+      },
+      {
+        "id": "block-097",
+        "kind": "paragraph",
+        "order": 97,
+        "text": "(27)根据数据信道的可用路损值计算数据信道覆盖距离（），即手机到基站天面的直线距离，通过Uma-NLOS模型计算，距离单位为m，频率单位为GHz"
+      },
+      {
+        "id": "block-098",
+        "kind": "paragraph",
+        "order": 98,
+        "text": "在一般城区场景，原始模型各参数按典型环境取值后，即为38.901中简化的UMa模型："
+      },
+      {
+        "id": "block-099",
+        "kind": "paragraph",
+        "order": 99,
+        "text": ": 终端高度",
+        "mediaRefs": [
+          "rId159"
+        ]
+      },
+      {
+        "id": "block-100",
+        "kind": "paragraph",
+        "order": 100,
+        "text": "(28)通过如下三角函数，计算出,即基站的覆盖半径（上、下行），如图3-3-5"
+      },
+      {
+        "id": "block-101",
+        "kind": "paragraph",
+        "order": 101,
+        "mediaRefs": [
+          "rId160"
+        ]
+      },
+      {
+        "id": "block-102",
+        "kind": "paragraph",
+        "order": 102,
+        "text": "图3-3-5 与关系"
+      },
+      {
+        "id": "block-103",
+        "kind": "paragraph",
+        "order": 103,
+        "text": "(29)计算单个基站上、下行覆盖面积=π*（）²"
+      },
+      {
+        "id": "block-104",
+        "kind": "paragraph",
+        "order": 104,
+        "text": "(30)计算下行基站数量=总的覆盖面积/单个下行基站覆盖面积"
+      },
+      {
+        "id": "block-105",
+        "kind": "paragraph",
+        "order": 105,
+        "text": "(32)计算上行基站数量=总的覆盖面积/单个上行基站覆盖面积"
+      },
+      {
+        "id": "block-106",
+        "kind": "paragraph",
+        "order": 106,
+        "text": "（三）功率计算"
+      },
+      {
+        "id": "block-107",
+        "kind": "paragraph",
+        "order": 107,
+        "text": "（1）NR小区总发射功率dBm：10*LOG10(AAU/RRU功率*1000)"
+      },
+      {
+        "id": "block-108",
+        "kind": "paragraph",
+        "order": 108,
+        "text": "（2）小区网管可配置最大发射功率值(dBm）：(10*LOG10(（min{AAU/RRU功率，小区功率license配置数量*20}-(4G小区功率*4G小区配置数）)/NR小区配置数*1000）-10*LOG10(RB*12))）*10，5G小区发射功率均分到整个带宽内的每个RE的功率"
+      },
+      {
+        "id": "block-109",
+        "kind": "paragraph",
+        "order": 109,
+        "text": "（3）小区RE功率的基准值(dBm）"
+      },
+      {
+        "id": "block-110",
+        "kind": "paragraph",
+        "order": 110,
+        "text": "（4）SSS的RE功率，相对基准RE偏置，小区RE参考功率+SSS功率偏移"
+      },
+      {
+        "id": "block-111",
+        "kind": "paragraph",
+        "order": 111,
+        "text": "（5）PSS的RE功率，相对SSS偏置，小区RE参考功率+SSS功率偏移+PSS功率偏移"
+      },
+      {
+        "id": "block-112",
+        "kind": "paragraph",
+        "order": 112,
+        "text": "（6）PBCH的RE功率，相对SSS偏置， 小区RE参考功率+SSS功率偏移+PBCH功率偏移"
+      },
+      {
+        "id": "block-113",
+        "kind": "paragraph",
+        "order": 113,
+        "text": "（7）公共PDCCH的RE功率，相对基准RE偏置，小区RE参考功率+公共PDCCH功率偏移"
+      },
+      {
+        "id": "block-114",
+        "kind": "paragraph",
+        "order": 114,
+        "text": "（8）专用PDCCH的RE功率，相对基准RE偏置，小区RE参考功率+专用PDCCH功率偏移"
+      },
+      {
+        "id": "block-115",
+        "kind": "paragraph",
+        "order": 115,
+        "text": "（9）宽带CQI测量CSI-RS发射功率，相对SSS偏置，辅同步信号SSS的RE功率-CSI功率偏移"
+      },
+      {
+        "id": "block-116",
+        "kind": "paragraph",
+        "order": 116,
+        "text": "（10）PDSCH的RE功率，相对基准RE偏置，小区RE参考功率+PDSCH功率偏移"
+      },
+      {
+        "id": "block-117",
+        "kind": "paragraph",
+        "order": 117,
+        "text": "（11）PDSCH DMRS发射功率，相对PDSCH的RE功率偏置，PDSCH的RE功率-PDSCH DMRS偏置"
+      },
+      {
+        "id": "block-118",
+        "kind": "paragraph",
+        "order": 118,
+        "text": "（12）PRACH的目标功率，基站期望的前导码接收功率+不同前导码格式的功率偏移（查表）+（前导码最大发送次数-1）*PRACH功率攀升步长"
+      },
+      {
+        "id": "block-119",
+        "kind": "paragraph",
+        "order": 119,
+        "text": "表3-3-2 不同前导码格式的功率偏移"
+      },
+      {
+        "id": "block-120",
+        "kind": "paragraph",
+        "order": 120,
+        "mediaRefs": [
+          "rId161",
+          "rId162"
+        ]
+      },
+      {
+        "id": "block-121",
+        "kind": "paragraph",
+        "order": 121,
+        "text": "（13）路径损耗（db）,SSS的RE功率–最小接入电平"
+      },
+      {
+        "id": "block-122",
+        "kind": "paragraph",
+        "order": 122,
+        "text": "（14）UE在PRACH信道上的发射功率=min{UE最大发射功率，PRACH的目标功率+路径损耗（db）}"
+      },
+      {
+        "id": "block-123",
+        "kind": "paragraph",
+        "order": 123,
+        "text": "（四）5G网优相关的无线网络参数"
+      },
+      {
+        "id": "block-124",
+        "kind": "paragraph",
+        "order": 124,
+        "text": "表3-3-3 5G网优相关的无线网络参数"
+      },
+      {
+        "id": "block-125",
+        "kind": "table",
+        "order": 125,
+        "rows": [
+          [
+            "参数名称",
+            "英文名称",
+            "参数说明",
+            "参数范围"
+          ],
+          [
+            "子波束索引",
+            "subBeamIndex",
+            "SSB子波束索引",
+            "0~63"
+          ],
+          [
+            "波束方位角",
+            "azimuth",
+            "子波束方位角，用来指示波束水平指向",
+            "-85~85"
+          ],
+          [
+            "波束倾角",
+            "tilt",
+            "子波束倾角，用来指示波束垂直指向",
+            "-85~85"
+          ],
+          [
+            "水平波宽",
+            "beamWidthH",
+            "子波束水平波宽。用来指示子波束水平覆盖3dB宽度",
+            "1~65"
+          ],
+          [
+            "垂直波宽",
+            "beamWidthV",
+            "子波束垂直波宽。用来指示子波束垂直覆盖3dB宽度",
+            "1~65"
+          ],
+          [
+            "NRPhysicalCellDU 小区RE参考功率",
+            "powerPerRERef",
+            "小区最大发射功率平均到每个RE的功率值",
+            "-600~500"
+          ],
+          [
+            "最小接入电平",
+            "RxLevMin",
+            "最小接入电平",
+            "-47~-159"
+          ],
+          [
+            "波束信息 倾角",
+            "tilt",
+            "子波束倾角",
+            "-85~85"
+          ],
+          [
+            "子波束是否有效",
+            "subBeamValid",
+            "子波束是否有效",
+            "1打开/2关闭/3空置"
+          ],
+          [
+            "打开用于切换的异频测量事件A2 A2事件RSRP门限",
+            "rsrpThreshold",
+            "测量时服务小区A2事件RSRP绝对门限，当测量到的服务小区RSRP低于门限时UE上报A2事件。",
+            "-156~-31"
+          ],
+          [
+            "打开用于切换的异频测量事件A2 A2事件SINR门限",
+            "sinrThreshold",
+            "测量时服务小区A2事件SINR绝对门限，当测量到的服务小区SINR低于门限时UE上报A2事件",
+            "-23~40.5"
+          ],
+          [
+            "打开用于切换的异系统测量事件A2 A2事件判决的RSRQ绝对门限",
+            "rsrqThreshold",
+            "测量时服务小区A2事件RSRQ绝对门限，当测量到的服务小区RSRQ低于门限时UE上报A2事件",
+            "-43~20"
+          ],
+          [
+            "同频小区重选起测RSRP门限",
+            "sIntraSearchP",
+            "该参数指示了小区重选的同频测量触发门限，UE用来进行是否执行频内测量的判决",
+            "0~31"
+          ],
+          [
+            "基于覆盖的同频测量 A3事件偏移",
+            "eventOffset",
+            "事件触发RSRP上报的触发条件，满足该条件的含义是，邻区与本区的RSRP差值比该值实际dB值大时，触发RSRP上报",
+            "-15~15"
+          ],
+          [
+            "EPS fallback切换 B1事件RSRP门限",
+            "rsrpThreshold",
+            "测量时B1事件RSRP绝对门限，当测量到的RSRP高于门限时UE上报B1事件",
+            "-140~-43"
+          ],
+          [
+            "无线测试的测量配置 A3、A6事件偏移",
+            "eventOffset",
+            "事件触发RSRP/RSRQ/SINR上报的触发条件",
+            "-15~15"
+          ],
+          [
+            "默认的基于覆盖的异系统测量 B1/B2事件邻区判决的RSRP绝对门限",
+            "rsrpThreshold",
+            "测量时B1/B2事件邻区判决的RSRP绝对门限",
+            "-140~-43"
+          ],
+          [
+            "DRX配置开关",
+            "drxSwitch",
+            "该参数指示非连续接收配置开关",
+            "0关闭/1打开/2空置"
+          ],
+          [
+            "CQI的报告发送周期",
+            "cqiReportPeriod",
+            "该参数表示RSRP报告的的发送周期修改后会自动触发小区删建，小区用户短暂退服。",
+            "8/20/40/160/360"
+          ],
+          [
+            "PRACH功率攀升步长dB",
+            "powerRampingStep",
+            "发送prach后，没有收到MSG2后，重新发送PRACH的功率攀升值",
+            "0/2/4/6"
+          ],
+          [
+            "前导最大发送次数",
+            "preambleTransMax",
+            "当UE发送随机接入前缀后，未收到响应，则会把发射功率加上功率攀升步长进行再次尝试，直到前缀发送次数达到最大传输次数。",
+            "3/4/8/10/20/50/100"
+          ],
+          [
+            "移动性功能 EPS回落开关",
+            "epsfbSwitch",
+            "该参数用于控制EPS fallback时的互操作方式",
+            "0关闭/1基于盲的方式/2基于测量的方式"
+          ],
+          [
+            "PDSCH MCS最大值",
+            "maxMCSDl",
+            "该参数用于限制小区PDSCH链路所能达到的最大MCS值",
+            "0~28"
+          ],
+          [
+            "PDSCH MCS最小值",
+            "minMCSDl",
+            "该参数用于限制小区PDSCH链路所能达到的最小MCS值",
+            "0~28"
+          ],
+          [
+            "PDSCH内环AMC使能开关",
+            "dlIlAMCEnable",
+            "下行PDSCH内环AMC使能开关。置TRUE，打开下行内环AMC，小区根据UE的CQI和SRS上报值预估PDSCH链路的信道环境，从而调整pdsch的调制和编码方式；置FALSE，关闭下行内环AMC，小区不会根据UE的CQI和SRS上报來估计PDSCH链路的信道环境。正常业务流程建议打开，在故障排查等特殊场景可以按需要修改。",
+            "ture/false/null"
+          ],
+          [
+            "PDSCHh外环AMC使能开关",
+            "dlOlAMCEnable",
+            "下行PDSCH外环AMC使能开关。置TRUE，打开下行外环AMC，小区根据UE上报的PDSCH的ACK/NACK反馈來调整PDSCH的调制和编码方式;置FALSE，关闭下行外环AMC，小区不会根据UE上报的PDSCH的ACK/NACK反馈來调整PDSCH的调制和编码方式。正常业务流程建议打开，在故障排查等特殊场景可以按需要修改。",
+            "ture/false/null"
+          ],
+          [
+            "帧结构配置参数 帧结构第一个周期S slot上的下行符号数",
+            "nrofDownlinkSymbols1",
+            "该参数用于指示帧结构第一个周期S slot上的下行符号的个数。",
+            "0~13"
+          ],
+          [
+            "NRPhysicalCellDU 用户体验开关",
+            "userExpSwitch",
+            "该参数为用户延时体验服务模式的控制开关，通过对用户的预调度和基于SR的带宽分配等功能进行控制，影响用户体验效果。对于不同场景，可以选用不同的体验服务模式。",
+            "0~9"
+          ],
+          [
+            "PUSCH 256QAM使能开关",
+            "qam256EnableUl",
+            "上行256QAM使能开关，信道条件较好时使能，采用高阶调度。",
+            "false/true"
+          ],
+          [
+            "PDSCH 256QAM使能开关",
+            "dlPowerControlSwitch",
+            "该参数用于降低近点用户下行256QAM的功率，以减少对远点用户的干扰，是小区级参数。当该参置为1时，表示需要降低近点用户下行256QAM的功率，支持EVM功率均衡；当置为0时，表示不降低近点用户下行256QAM的功率，不进行EVM功率均衡优化。",
+            "false/true"
+          ],
+          [
+            "上行 256QAM功率调整优化开关",
+            "qam256EnableDl",
+            "上行256QAM使能开关，信道条件较好时使能，采用高阶调度。",
+            "false/true"
+          ],
+          [
+            "下行HARQ最大传输次数",
+            "dlHarqMaxTxNum",
+            "HARQ具有重传机制，该参数给出了下行HARQ最大传输次数, 为新传次数和重传次数总和",
+            "1/2/3/4/5"
+          ],
+          [
+            "上行HARQ最大传输次数",
+            "ulHarqMaxTxNum",
+            "HARQ具有重传机制，该参数给出了上行HARQ最大传输次数, 为新传次数和重传次数总和",
+            "1/2/3/4/5"
+          ],
+          [
+            "业务承载类型(IMS signaling qci=5)",
+            "srvBearerType",
+            "该参数表示业务承载类型,包括GBR和Non-GBR。Non-GBR（Non-GuaranteedBitRate，非保证速率），是指该承载只提供“尽力而为”（不保证质量）的传输。GBR（Guaranteed BitRate，保证速率）指该承载提供保证速率的传输。",
+            "GBR/Non-GBR"
+          ],
+          [
+            "上行MCS最大值",
+            "maxMCSUl",
+            "该参数指示了高层为小区上行链路配置的最大MCS值",
+            "0~28"
+          ],
+          [
+            "上行MCS最小值",
+            "minMCSUl",
+            "该参数指示了高层为小区上行链路配置的最小MCS值",
+            "0~28"
+          ],
+          [
+            "SA QoS承载业务类型 业务数据包QoS延迟参数",
+            "srvPacketDelay",
+            "该参数用于设置业务数据包的延迟参数，由相关23系列的3GPP协议定义，此参数在网管里不可修改，仅仅做为参考信息。",
+            "1~10000"
+          ],
+          [
+            "SA QoS承载业务类型 误包率",
+            "srvPacketError",
+            "该参数表示业务数据包QoS误包率。",
+            "1E-7~0.1"
+          ],
+          [
+            "SA QoS承载业务类型 业务优先级",
+            "srvPrior",
+            "该优先级参数关联5G QoS相关特性，指示在所有DRB中该DRB的优先级。",
+            "1~255"
+          ],
+          [
+            "以太网接口 接收带宽",
+            "bandwidth",
+            "以太网口接收带宽，新增网口或修改网口速率时配置，标识以太网口端口速率，具体值参考网口硬件参数。",
+            "1~40000"
+          ],
+          [
+            "以太网接口 发送带宽",
+            "transmitBandwidth",
+            "以太网口发送带宽，新增网口或修改网口速率时配置，标识以太网口端口发送速率，具体值参考网口硬件参数。",
+            "1~40000"
+          ],
+          [
+            "以太网接口 应用场景",
+            "appscene",
+            "表示以太网口的应用场景。",
+            "0无差别类型/1增强移动宽带类型/2超高可靠超低时延通信类型"
+          ],
+          [
+            "CarrierDL carrier带宽",
+            "bandwidth",
+            "carrier带宽。",
+            "1~273"
+          ],
+          [
+            "负载均衡的一种测量 事件标识",
+            "eventId",
+            "该参数指示了测量触发的事件标识。",
+            "A1/A2/A3/A4/A5"
+          ],
+          [
+            "负载均衡的一种测量 A4 A5事件判决的RSRP绝对门限",
+            "rsrpThreshold",
+            "测量时服务小区A4事件判决的RSRP绝对门限，当测量到的服务小区RSRP高于门限时UE上报A4事件。",
+            "-156~-31"
+          ],
+          [
+            "负载均衡的一种测量 A5事件RSRP门限2",
+            "A5Thrd2Rsrp",
+            "测量时邻区A5事件RSRP绝对门限。",
+            "-156~-31"
+          ],
+          [
+            "负载均衡的一种测量 判决迟滞范围",
+            "hysteresis",
+            "进行判决时迟滞范围，用于事件的判决。",
+            "0~30"
+          ],
+          [
+            "天线信息 下行发射天线数",
+            "dlAntNum",
+            "该参数用于适配不同的下行发射天线数。根据RRU/AAU支持的下行发射天线数确定。例如不同RRU/AAU机型支持的天线数不一样，比如2天线，4天线，8天线等等。",
+            "1天线/2天线/4天线/8天线/16天线/32天线/64天线"
+          ],
+          [
+            "天线信息 上行接收天线数",
+            "ulAntNum",
+            "该参数用于适配不同的上行接收天线数。根据RRU/AAU支持的上行接收天线数确定。例如不同RRU/AAU机型支持的天线数不一样，比如2天线，4天线，8天线等等。",
+            "1天线/2天线/4天线/8天线/16天线/32天线/64天线"
+          ],
+          [
+            "UE定时器配置 UE等待RRC重建响应的定时器长度(T301)",
+            "t301",
+            "该参数用于指示UE等待RRC重建响应的定时器长度。当UE发送RRC连接重建请求消息时，打开T301定时器。当UE收到RRC连接重建消息或RRC连接重建拒绝消息后，停止T301定时器；当定时器超时，UE进入IDLE态。",
+            "100~2000"
+          ],
+          [
+            "UE定时器配置 UE接收下行失步指示的最大个数(N310)",
+            "n310",
+            "该参数用于指示UE检测下行失步时，连续接收失步指示的最大个数。",
+            "1~20"
+          ],
+          [
+            "移动性功能 NR语音开关指示",
+            "voNrSwitch",
+            "开关打开时，表示基站支持VONR业务。开关关闭时，表示基站不支持VONR的业务",
+            "false/ture"
+          ],
+          [
+            "UE定时器配置UE监测到无线链路失败后转入idle状态的定时器长度(T311)",
+            "t311",
+            "该参数用于指示UE检测下行失步时，连续接收失步指示的最大个数。",
+            "1000~30000"
+          ],
+          [
+            "接纳控制 UE 类型",
+            "ueType",
+            "该参数用于设置小区所接入的UE类型，例如中兴终端（CPE）、高通终端（IOT）。当该参数设置为某类UE时，小区采用适合于该类终端接入的一组默认参数配置。",
+            "0CPE/1高通终端"
+          ],
+          [
+            "UE定时器配置 UE等待RRC连接响应的定时器长度(T300)",
+            "t300",
+            "该参数用于指示UE等待RRC连接响应的定时器长度，当UE发送RRC连接请求消息后将启动定时器T300。",
+            "100~2000"
+          ],
+          [
+            "Rach 非竞争的随机接入前导码",
+            "macNonContenPreamble",
+            "该参数表示基于非竞争的随机接入前导码，由基站直接分配给UE，用于切换，定位或者有下行数据到达但上行失步等情况下的随机接入过程",
+            "0~64"
+          ],
+          [
+            "小区重选 高速移动状态判决的小区重选次数",
+            "nCrH",
+            "该参数用于指示高速移动状态判决的小区重选次数门限。如果在TCrmax时间内小区重选次数超过NCR_H则标记为高速移动状态",
+            "1~16"
+          ],
+          [
+            "Rach 随机接入前导码总数量",
+            "totalNumberOfRAPreambles",
+            "该参数指示PRACH前导码的个数",
+            "1~63"
+          ],
+          [
+            "rachConfigGeneric 频域RACH Occasion的起始RB",
+            "msg1FrequencyStart",
+            "msg1的频域起始位置，不能超过系统RB数与RACH RB数之差",
+            "0~274"
+          ],
+          [
+            "rachConfigGeneric PRACH功率攀升步长",
+            "powerRampingStep",
+            "发送prach后，没有收到MSG2后，重新发送PRACH的功率攀升值",
+            "2/0/4/6"
+          ],
+          [
+            "Inactive参数 inactive 定时器",
+            "inactiveTimer",
+            "该参数为UE不活动定时器",
+            "1~50"
+          ],
+          [
+            "基于覆盖的同频测量 事件触发量",
+            "triggerQuantity",
+            "事件触发的测量量,当UE测到该触发量的值满足事件触发门限值时，会触发小区测量事件",
+            "0参考信号接收功率/1参考信号接收质量/2参考信号信噪比"
+          ],
+          [
+            "基于覆盖的同频测量 最大上报小区数目",
+            "maxRptCellNum",
+            "该参数指示了测量上报的最大小区数目,不包括服务小区",
+            "1~8"
+          ],
+          [
+            "默认的基于覆盖的异系统测量 B2事件服务小区判决的RSRP绝对门限1",
+            "b2Thrd1Rsrp",
+            "该参数为测量时B2事件服务小区判决的RSRP绝对门限1，当测量到服务小区的信号强度低于RSRP绝对门限1时上报该事件",
+            "-156~-31"
+          ],
+          [
+            "同频测量对象 评估小区级质量的CSI-RS最大个数",
+            "csiRsMaxToAverage",
+            "该参数用于指示用于评估小区级质量的最大CSI-RS个数",
+            "2~16"
+          ],
+          [
+            "UE定时器配置 UE监测无线链路失败的定时器长度(T310)",
+            "t310",
+            "该参数用于指示UE监测无线链路失败的定时器长度。当UE监测主服务小区物理层出现问题，即连续收到N310个out-of-sync指示时，启动T310定时器；在接收到N311个in-sync指示,或者收到该小区组带reconfigurationWithSync信元的RRC重配，或者发起RRC连接重建流程时，停止定时器",
+            "0~6000"
+          ],
+          [
+            "SCTP 出入流个数",
+            "inOutStreamNum",
+            "表示SCTP偶联的出入流数量",
+            "2~6"
+          ],
+          [
+            "小区个体偏移",
+            "cellIndivOffset",
+            "该参数为下行SPS使用的HARQ进程数，该参数设置越大，可配置的下行SPS最大重传次数越大，数据传输的可靠性越高。但动态调度的HARQ进程数会变小，影响动态调度满调度",
+            "-24~24"
+          ],
+          [
+            "负载均衡策略配置 负荷均衡PRB利用率触发门限",
+            "lbServPrbUsageThrd",
+            "该参数表示执行小区PRB负荷均衡功能，当服务小区在统计窗长时间内上行或下行PRB利用率大于或等于该门限时，本小区执行上行或下行PRB负荷均衡",
+            "0~100"
+          ]
+        ]
+      },
+      {
+        "id": "block-126",
+        "kind": "paragraph",
+        "order": 126,
+        "text": "三．传输网络概述"
+      },
+      {
+        "id": "block-127",
+        "kind": "paragraph",
+        "order": 127,
+        "text": "（一）5G传输网络三种解决方案-OTN,PTN,SPN"
+      },
+      {
+        "id": "block-128",
+        "kind": "paragraph",
+        "order": 128,
+        "text": "OTN是光传送网（Optical Transport Network）"
+      },
+      {
+        "id": "block-129",
+        "kind": "paragraph",
+        "order": 129,
+        "text": "OTN是从传统的波分技术演进而来，主要加入了智能光交换功能，可以通过数据配置实现光交叉而不用人为跳纤。大大提升了波分设备的可维护性和组网的灵活性。同时，新的OTN网络也在逐渐向更大带宽，更大颗粒，更强的保护演进。基于OTN演进的5G承载方案，如图3-3-6所示。"
+      },
+      {
+        "id": "block-130",
+        "kind": "paragraph",
+        "order": 130,
+        "mediaRefs": [
+          "rId163"
+        ]
+      },
+      {
+        "id": "block-131",
+        "kind": "paragraph",
+        "order": 131,
+        "text": "图3-3-6 基于OTN演进的5G承载方案"
+      },
+      {
+        "id": "block-132",
+        "kind": "paragraph",
+        "order": 132,
+        "text": "PTN是分组传送网(Packet Transport Network）"
+      },
+      {
+        "id": "block-133",
+        "kind": "paragraph",
+        "order": 133,
+        "text": "PTN是传送网与数据网融合的产物。主要协议是TMPLS，较网络设备少IP层而多了开销报文。可实现环状组网和保护。是电信级的数据网络（传统的数据网是无法达到电信级要求的）。PTN的传送带宽较OTN要小。一般PTN最大群路带宽为10G，OTN单波10G，群路可达400G-1600G，最新的技术可达单波40G。是传送网的骨干。PTN组网如下图3-3-7所示。"
+      },
+      {
+        "id": "block-134",
+        "kind": "paragraph",
+        "order": 134,
+        "mediaRefs": [
+          "rId164",
+          "rId165"
+        ]
+      },
+      {
+        "id": "block-135",
+        "kind": "paragraph",
+        "order": 135,
+        "text": "图3-3-7 PTN组网"
+      },
+      {
+        "id": "block-136",
+        "kind": "paragraph",
+        "order": 136,
+        "text": "SPN是切片分组网（Slicing Packet Network）"
+      },
+      {
+        "id": "block-137",
+        "kind": "paragraph",
+        "order": 137,
+        "text": "SPN采用ITU-T层网络模型，以以太网技术为基础，引入新的基于66B码块的TDM交叉技术，实现了分组和TDM的有效融合，将L0~L3多层网络功能融为一体，能够满足5G大带宽、低时延、网络切片、超高精度时间同步等新需求，同时能支持多业务的综合承载。SPN技术架构包括切片分组层（SPL）、切片通道层（SCL）、切片传送层（STL），以及时钟/时间同步功能模块和SDN控制功能模块。是中国移动在承载3G/4G回传的分组传送网络（PTN）技术基础上，面向5G和政企专线等业务承载需求，创新提出的新一代传送网技术体系。SPN技术架构，如图3-3-8所示。"
+      },
+      {
+        "id": "block-138",
+        "kind": "paragraph",
+        "order": 138,
+        "mediaRefs": [
+          "rId166",
+          "rId167"
+        ]
+      },
+      {
+        "id": "block-139",
+        "kind": "paragraph",
+        "order": 139,
+        "text": "图3-3-8 SPN技术架构"
+      },
+      {
+        "id": "block-140",
+        "kind": "paragraph",
+        "order": 140,
+        "text": "例如：下图3-3-9是某地现场SPN组网方案。"
+      },
+      {
+        "id": "block-141",
+        "kind": "paragraph",
+        "order": 141,
+        "mediaRefs": [
+          "rId168"
+        ]
+      },
+      {
+        "id": "block-142",
+        "kind": "paragraph",
+        "order": 142,
+        "text": "图3-3-9 SPN组网方案"
+      },
+      {
+        "id": "block-143",
+        "kind": "paragraph",
+        "order": 143,
+        "text": "（1）核心落地层："
+      },
+      {
+        "id": "block-144",
+        "kind": "paragraph",
+        "order": 144,
+        "text": "一共规划10个核心机房共20端设备，初期开通马连道和望京两个核心机房。"
+      },
+      {
+        "id": "block-145",
+        "kind": "paragraph",
+        "order": 145,
+        "text": "核心落地与sGW采用100GE接口互通；"
+      },
+      {
+        "id": "block-146",
+        "kind": "paragraph",
+        "order": 146,
+        "text": "MME大区集中，与核心落地设备按需采用10GE接口互通。"
+      },
+      {
+        "id": "block-147",
+        "kind": "paragraph",
+        "order": 147,
+        "text": "（2）核心调度层："
+      },
+      {
+        "id": "block-148",
+        "kind": "paragraph",
+        "order": 148,
+        "text": "一共4端设备，部署在4个核心机房。对上全连接所有的核心落地，对下全连接所有的骨干上联或骨干汇聚。"
+      },
+      {
+        "id": "block-149",
+        "kind": "paragraph",
+        "order": 149,
+        "text": "每一对核心调度带5个骨干汇聚环，横向链路使用3*200GE闭合。"
+      },
+      {
+        "id": "block-150",
+        "kind": "paragraph",
+        "order": 150,
+        "text": "（3）骨干上联："
+      },
+      {
+        "id": "block-151",
+        "kind": "paragraph",
+        "order": 151,
+        "text": "一共8端设备，作为郊区骨干汇聚节点的二次汇聚，采用200GE链路组网。"
+      },
+      {
+        "id": "block-152",
+        "kind": "paragraph",
+        "order": 152,
+        "text": "除了昌平的骨干汇聚点直连核心调度外，其他地区的骨干汇聚都需要经过骨干上联再到核心调度。"
+      },
+      {
+        "id": "block-153",
+        "kind": "paragraph",
+        "order": 153,
+        "text": "（4）汇聚层："
+      },
+      {
+        "id": "block-154",
+        "kind": "paragraph",
+        "order": 154,
+        "text": "环形结构，100GE链路组网。"
+      },
+      {
+        "id": "block-155",
+        "kind": "paragraph",
+        "order": 155,
+        "text": "每对骨干汇聚下挂多个汇聚环,每汇聚环4~8个节点。"
+      },
+      {
+        "id": "block-156",
+        "kind": "paragraph",
+        "order": 156,
+        "text": "每一个汇聚环都用一个单独的100GE链路闭合。"
+      },
+      {
+        "id": "block-157",
+        "kind": "paragraph",
+        "order": 157,
+        "text": "（5）接入层："
+      },
+      {
+        "id": "block-158",
+        "kind": "paragraph",
+        "order": 158,
+        "text": "环形结构，10GE或者50GE组网。"
+      },
+      {
+        "id": "block-159",
+        "kind": "paragraph",
+        "order": 159,
+        "text": "DRAN接入环采用10GE，平均4~6个节点。"
+      },
+      {
+        "id": "block-160",
+        "kind": "paragraph",
+        "order": 160,
+        "text": "CRAN接入环采用50GE，平均3-4个节点。"
+      },
+      {
+        "id": "block-161",
+        "kind": "paragraph",
+        "order": 161,
+        "text": "（二）5G站点传输带宽需求，对于不同组网方式，传输带宽需求如下图3-3-10所示。"
+      },
+      {
+        "id": "block-162",
+        "kind": "paragraph",
+        "order": 162,
+        "mediaRefs": [
+          "rId169"
+        ]
+      },
+      {
+        "id": "block-163",
+        "kind": "paragraph",
+        "order": 163,
+        "text": "图3-3-10 5G 基站带宽需求"
+      },
+      {
+        "id": "block-164",
+        "kind": "paragraph",
+        "order": 164,
+        "text": "5G站点相比4G，带宽需求更大，现网的传输需要改造。"
+      },
+      {
+        "id": "block-165",
+        "kind": "paragraph",
+        "order": 165,
+        "text": "D-RAN场景下主要改造回传，C-RAN场景前传和回传都要考虑。"
+      },
+      {
+        "id": "block-166",
+        "kind": "paragraph",
+        "order": 166,
+        "text": "中移定义5G回传单小区峰值5.1G，均值1G，带宽计算公式：单站峰值=( 单小区峰值 x 1 + 单小区均值 x 2 ) x 1.1，单站均值=单小区均值 x 3 x 1.1，按此计算，单站带宽7.8Gbps，2站11.1Gbps，3站14.4Gbps，如表中所示，由于是理论值，实际值略小，可得出单站或2站回传可以用10G光模块，3站以上用25G光模块。5G前传均采用25G光模块。"
+      },
+      {
+        "id": "block-167",
+        "kind": "paragraph",
+        "order": 167,
+        "text": "（三）C-RAN场景下前传方案"
+      },
+      {
+        "id": "block-168",
+        "kind": "paragraph",
+        "order": 168,
+        "text": "C-RAN场景下前传网主推三种方案：裸纤方案，BIDI方案和彩光方案。如下图3-3-11。"
+      },
+      {
+        "id": "block-169",
+        "kind": "paragraph",
+        "order": 169,
+        "text": "裸纤方案采用常规的双纤双向光模块，耗费光纤资源较多；"
+      },
+      {
+        "id": "block-170",
+        "kind": "paragraph",
+        "order": 170,
+        "text": "BIDI方案采用单纤双向光模块，可以使光纤需求减半；"
+      },
+      {
+        "id": "block-171",
+        "kind": "paragraph",
+        "order": 171,
+        "text": "彩光方案是在AAU侧和BBU侧部署彩光模块，通过彩光模块的合分波功能，可以使光纤需求减少3/4。以S111站型 D频4/5G C-RAN为例，单站采用裸纤方案需要24芯光纤，采用BIDI方案需要12芯光纤，采用彩光方案则只需6芯光纤，但彩光方案也带来了成本的提升。建议光纤资源充足的情况下，建议用裸纤或单纤双向（BIDI）方案，光纤资源不足的情况下，建议用彩光方案。"
+      },
+      {
+        "id": "block-172",
+        "kind": "paragraph",
+        "order": 172,
+        "mediaRefs": [
+          "rId170"
+        ]
+      },
+      {
+        "id": "block-173",
+        "kind": "paragraph",
+        "order": 173,
+        "text": "图3-3-11 C-RAN场景下前传方案"
+      },
+      {
+        "id": "block-174",
+        "kind": "paragraph",
+        "order": 174,
+        "text": "（四）回传网传输方案"
+      },
+      {
+        "id": "block-175",
+        "kind": "paragraph",
+        "order": 175,
+        "text": "在5G网络建设初期，如果在已有传输网增加少量D-RAN站点，可以利旧原传输网，升级扩容到10G/25G即可；"
+      },
+      {
+        "id": "block-176",
+        "kind": "paragraph",
+        "order": 176,
+        "text": "如果直接建设C-RAN站点，建议升级到50G/100G的传输网；没有升级条件的区域建议新建50G/100G的传输网，如下图3-3-12 所示。"
+      },
+      {
+        "id": "block-177",
+        "kind": "paragraph",
+        "order": 177,
+        "mediaRefs": [
+          "rId171",
+          "rId172"
+        ]
+      },
+      {
+        "id": "block-178",
+        "kind": "paragraph",
+        "order": 178,
+        "text": "图3-3-12 5G网络回传网传输方案"
+      },
+      {
+        "id": "block-179",
+        "kind": "paragraph",
+        "order": 179,
+        "text": "（五） 5G传输网管配置管理概述"
+      },
+      {
+        "id": "block-180",
+        "kind": "paragraph",
+        "order": 180,
+        "text": "承载网网管是基于分布式、多进程、模块化设计的网元级网管系统，统一管理各种系列的光通信设备，支持多种业务类型。"
+      },
+      {
+        "id": "block-181",
+        "kind": "paragraph",
+        "order": 181,
+        "text": "承载网网管提供完善的管理功能：配置管理、告警管理、性能管理、用户管理、日志管理、报表管理。"
+      },
+      {
+        "id": "block-182",
+        "kind": "paragraph",
+        "order": 182,
+        "text": "5G传输网管参数查询窗口介绍，如图3-3-13"
+      },
+      {
+        "id": "block-183",
+        "kind": "paragraph",
+        "order": 183,
+        "mediaRefs": [
+          "rId173"
+        ]
+      },
+      {
+        "id": "block-184",
+        "kind": "paragraph",
+        "order": 184,
+        "text": "图3-3-13 5G传输网管参数查询窗口"
+      },
+      {
+        "id": "block-185",
+        "kind": "paragraph",
+        "order": 185,
+        "text": "四．传输网络参数，如表3-3-4"
+      },
+      {
+        "id": "block-186",
+        "kind": "paragraph",
+        "order": 186,
+        "text": "表3-3-4 传输网络参数"
+      },
+      {
+        "id": "block-187",
+        "kind": "table",
+        "order": 187,
+        "rows": [
+          [
+            "参数类别",
+            "参数名称",
+            "参数位置",
+            "参数功能",
+            "参数默认值"
+          ],
+          [
+            "新建L3VPN业务",
+            "CIR",
+            "核心层",
+            "通过此参数，可设置业务的承诺信息速率 （CIR），即正常业务流量时的保证带宽值。",
+            "-"
+          ],
+          [
+            "",
+            "PIR",
+            "核心层",
+            "通过此参数，可设置业务的峰值信息速率 （PIR）。",
+            "-"
+          ],
+          [
+            "",
+            "本地优先级",
+            "核心层",
+            "表示该路由在本地网元上的优先级。",
+            "3"
+          ],
+          [
+            "",
+            "发布优先级",
+            "核心层",
+            "表示该路由向其它网元发布网络侧路由的 优先级。",
+            "3"
+          ],
+          [
+            "",
+            "告警门限（%）",
+            "核心层",
+            "当路由数达到限定数目的设置值的此百分 比时，上报告警，提示后续路由将准备进 行丢弃处理。",
+            "80"
+          ],
+          [
+            "",
+            "流量统计",
+            "核心层",
+            "通过此参数，设置是否启用对承载的L3VPN 业务流量进行统计。",
+            "勾选"
+          ],
+          [
+            "",
+            "避免成环",
+            "核心层",
+            "通过此参数设置使能避免成环。路由微环会引发网络延迟和丢包，无法满足实时业务对高水平服务质量的需求。",
+            "勾选"
+          ],
+          [
+            "",
+            "静态路由WTR",
+            "核心层",
+            "当工作路由从故障中恢复正常时，业务信号不会立即从保护路由倒换到工作路由上，经过等待恢复时间，才倒换到工作路由上传送。 通过此参数，设置静态路由恢复时间。",
+            "5分钟"
+          ],
+          [
+            "路由策略",
+            "目标网段",
+            "核心层",
+            "根据选择的地址族模式，设置目标网段。",
+            "核心网与无线侧的地址"
+          ],
+          [
+            "",
+            "主节点",
+            "核心层",
+            "通过此参数，选择路由策略的主节点。",
+            "具体情况而定"
+          ],
+          [
+            "",
+            "备节点",
+            "核心层",
+            "通过此参数，选择路由策略的备节点。",
+            "具体情况而定"
+          ]
+        ]
+      },
+      {
+        "id": "block-188",
+        "kind": "paragraph",
+        "order": 188,
+        "text": "五．核心网概述"
+      },
+      {
+        "id": "block-189",
+        "kind": "paragraph",
+        "order": 189,
+        "text": "5GC的设计理念是“Cloud Native”。它利用网络功能虚拟化（NFV）和软件定义网络（SDN）技术，并在控制面功能间基于服务进行交互。"
+      },
+      {
+        "id": "block-190",
+        "kind": "paragraph",
+        "order": 190,
+        "text": "这些服务部署在一个共享的、编排好的云基础设施上，然后再进行相应地设计最终完成不同业务诉求。5GC网络架构关键特征如下图3-3-14所示。"
+      },
+      {
+        "id": "block-191",
+        "kind": "paragraph",
+        "order": 191,
+        "mediaRefs": [
+          "rId174"
+        ]
+      },
+      {
+        "id": "block-192",
+        "kind": "paragraph",
+        "order": 192,
+        "text": "图3-3-14 5G核心网架构"
+      },
+      {
+        "id": "block-193",
+        "kind": "paragraph",
+        "order": 193,
+        "text": "为了适配未来不同服务的需求，5G网络架构被寄予了非常高的期望。业界专家们也意识到了这个问题，并结合IT的Cloud Native的理念，将5G网络架构进行了两个方面变革："
+      },
+      {
+        "id": "block-194",
+        "kind": "paragraph",
+        "order": 194,
+        "text": "一是将控制面功能抽象成为多个独立的网络服务，希望以软件化、模块化、服务化的方式来构建网络。二是控制面和用户面的分离，让用户面功能摆脱“中心化”的束缚，使其既可以灵活部署于核心网，也可以部署于更靠近用户的接入网。"
+      },
+      {
+        "id": "block-195",
+        "kind": "paragraph",
+        "order": 195,
+        "text": "每个网络服务和其他服务在业务功能上解耦，并且对外提供服务化接口，可以通过相同的接口向其它调用者提供服务，将多个耦合接口转变为单一服务接口，从而减少了接口数量。这种架构即是SBA（Service Based Architecture），基于服务的架构。"
+      },
+      {
+        "id": "block-196",
+        "kind": "paragraph",
+        "order": 196,
+        "text": "（一）面向“Cloud Native”定义服务是SBA架构的优势："
+      },
+      {
+        "id": "block-197",
+        "kind": "paragraph",
+        "order": 197,
+        "text": "模块化便于定制：每个5G软件功能由细粒度的“服务”来定义，便于网络按照业务场景以“服务”为粒度定制及编排"
+      },
+      {
+        "id": "block-198",
+        "kind": "paragraph",
+        "order": 198,
+        "text": "轻量化易于扩展：接口基于互联网协议，采用可灵活调用的API（Application Programming Interface）交互。对内降低网络配置及信令开销，对外提供能力开放的统一接口"
+      },
+      {
+        "id": "block-199",
+        "kind": "paragraph",
+        "order": 199,
+        "text": "独立化利于升级：服务可独立部署、灰度发布，使得网络功能可以快速升级引入新功能。服务可基于虚拟化平台快速部署和弹性扩缩容"
+      },
+      {
+        "id": "block-200",
+        "kind": "paragraph",
+        "order": 200,
+        "text": "（二）5GC与LTE EPC 功能对比，如表3-3-5"
+      },
+      {
+        "id": "block-201",
+        "kind": "paragraph",
+        "order": 201,
+        "text": "表3-3-5 5GC与LTE EPC 功能"
+      },
+      {
+        "id": "block-202",
+        "kind": "table",
+        "order": 202,
+        "rows": [
+          [
+            "NF",
+            "功能简介",
+            "类比EPC网元"
+          ],
+          [
+            "AMF（Access and Mobility Management Function）",
+            "接入和移动性管理功能，执行注册、连接、可达性、移动性管理。为UE和SMF提供会话管理消息传输通道，为用户接入时提供认证、鉴权功能，终端和无线的核心网控制面接入点。",
+            "MME中移动性管理"
+          ],
+          [
+            "SMF（Session Management Function）",
+            "会话管理功能，负责隧道维护、IP地址分配和管理、UP功能选择、策略实施和QoS中的控制、计费数据采集、漫游等",
+            "MME+SGW+PGW中会话管理等控制面功能"
+          ],
+          [
+            "AUSF （Authentication Server Function）",
+            "认证服务器功能，实现3GPP和非3GPP的接入认证",
+            "MME中鉴权功能+HSS鉴权数据管理"
+          ],
+          [
+            "UPF（The User plane Function）",
+            "用户面功能，分组路由转发，策略实施，流量报告，Qos处理。",
+            "S-GW-U/P-GW-U"
+          ],
+          [
+            "PCF（Policy Control Function）",
+            "策略控制功能，统一的政策框架，提供控制平面功能的策略规则",
+            "PCRF"
+          ],
+          [
+            "UDM（The Unified Data Management）",
+            "统一数据管理功能，3GPP AKA认证、用户识别、访问授权、注册、移动、订阅、短信管理等",
+            "HSS+"
+          ],
+          [
+            "NRF（NF Repository Function）",
+            "该功能是一个提供注册和发现功能的新功能，可以使网络功能（NF）相互发现并通过API接口进行通信。",
+            "无"
+          ],
+          [
+            "NSSF（The Network Slice Selection Function）",
+            "网络切片选择，根据UE的切片选择辅助信息、签约信息等确定UE允许接入的网络切片实例。",
+            "无"
+          ],
+          [
+            "NEF (Network Exposure Function)",
+            "网络开放功能，开放各NF的能力，转换内外部信息。",
+            "无"
+          ]
+        ]
+      },
+      {
+        "id": "block-203",
+        "kind": "paragraph",
+        "order": 203,
+        "text": "（三）5GC互操作业务流程中基本概念"
+      },
+      {
+        "id": "block-204",
+        "kind": "paragraph",
+        "order": 204,
+        "text": "为了更好的理解互操作业务流程，先简要介绍一下互操作用到的常用概念。"
+      },
+      {
+        "id": "block-205",
+        "kind": "paragraph",
+        "order": 205,
+        "text": "（三）5GC互操作业务流程中基本概念"
+      },
+      {
+        "id": "block-206",
+        "kind": "paragraph",
+        "order": 206,
+        "text": "为了更好的理解互操作业务流程，先简要介绍一下互操作用到的常用概念。"
+      },
+      {
+        "id": "block-207",
+        "kind": "paragraph",
+        "order": 207,
+        "text": "（1）CM-IDLE与CM-CONNECTED"
+      },
+      {
+        "id": "block-208",
+        "kind": "paragraph",
+        "order": 208,
+        "text": "CM-IDLE state：处于CM-IDLE的UE没有通过N1接口与AMF建立NAS信令连接。"
+      },
+      {
+        "id": "block-209",
+        "kind": "paragraph",
+        "order": 209,
+        "text": "CM-CONNECTED state：处于CM-CONNECTED state的UE通过N1接口与AMF建立了NAS信令连接。"
+      },
+      {
+        "id": "block-210",
+        "kind": "paragraph",
+        "order": 210,
+        "text": "（2）单注册与双注册"
+      },
+      {
+        "id": "block-211",
+        "kind": "paragraph",
+        "order": 211,
+        "text": "单注册：UE只能在一个网络中注册，注册在EPC网络中或者注册在5GC网络中。在单注册模式下，UE只有一个主用MM状态（5GC中的RM状态或EPC中的EMM状态）。UE为5GC和EPC维护一个单独的协同注册，因此UE在EPC和5GC之间移动时，UE将EPS GUTI映射到5G的GUTI，反之亦然。UE在返回5GC时，可以重新使用之前建立的5G安全上下文，所以UE从5GC移动到EPC时，需要保留了5G-GUTI和5G的安全上下文。单注册能力是UE必选的能力项。"
+      },
+      {
+        "id": "block-212",
+        "kind": "paragraph",
+        "order": 212,
+        "text": "双注册：UE能同时在两个网络中留存注册信息。在双注册模式下，UE通过独立的RRC连接来处理5GC和EPC的独立注册。在这种模式下，UE独立维护5G-GUTI和EPS-GUTI。在这种模式下，则向5GC注册时，UE在提供之前5GC分配的本地5G-GUTI，Attach/TAU to EPC时，UE提供之前EPC分配EPS-GUTI。UE可以只注册到5GC，只注册到EPC，或者同时注册到5GC和EPC。"
+      },
+      {
+        "id": "block-213",
+        "kind": "paragraph",
+        "order": 213,
+        "text": "（3）GUTI"
+      },
+      {
+        "id": "block-214",
+        "kind": "paragraph",
+        "order": 214,
+        "text": "5G网络因为网络切片的引入，UE临时身份标识的格式发生了变化，当UE在5GS和E-UTRAN之间移动时，需要按照下图的映射关系将5G-GUTI映射成EPS GUTI，或者将EPS GUTI映射成5G GUTI，在相应的消息中带给AMF或MME。"
+      },
+      {
+        "id": "block-215",
+        "kind": "paragraph",
+        "order": 215,
+        "text": "（4）5G-GUTI和EPS GUTI对比，如下图3-3-15所示。"
+      },
+      {
+        "id": "block-216",
+        "kind": "paragraph",
+        "order": 216,
+        "mediaRefs": [
+          "rId179"
+        ]
+      },
+      {
+        "id": "block-217",
+        "kind": "paragraph",
+        "order": 217,
+        "text": "图3-3-15 5G-GUTI和EPS GUTI对比"
+      },
+      {
+        "id": "block-218",
+        "kind": "paragraph",
+        "order": 218,
+        "text": "5G UE临时身份标识中引入了AMF Set（集合）的概念，一个AMF集合由一些为给定区域和网络切片服务的AMF组成。每个AMF Region由一个或多个AMF集合构成。5G引入网络切片的概念后，将一个Region下的AMF按照对网络切片的支持能力划分为不同的集合，一个集合内的AMF对网络切片的支持能力完全相同（相当于4G的一个MME Pool）。"
+      },
+      {
+        "id": "block-219",
+        "kind": "paragraph",
+        "order": 219,
+        "text": "（四）5G核心网网管简介"
+      },
+      {
+        "id": "block-220",
+        "kind": "paragraph",
+        "order": 220,
+        "text": "5G核心网参数查询窗口介绍，图3-3-16所示"
+      },
+      {
+        "id": "block-221",
+        "kind": "paragraph",
+        "order": 221,
+        "mediaRefs": [
+          "rId180"
+        ]
+      },
+      {
+        "id": "block-222",
+        "kind": "paragraph",
+        "order": 222,
+        "text": "图3-3-16 5G核心网参数查询窗口"
+      },
+      {
+        "id": "block-223",
+        "kind": "paragraph",
+        "order": 223,
+        "text": "六．5G核心网参数"
+      },
+      {
+        "id": "block-224",
+        "kind": "paragraph",
+        "order": 224,
+        "text": "（一）5G核心网控制类参数"
+      },
+      {
+        "id": "block-225",
+        "kind": "paragraph",
+        "order": 225,
+        "text": "如表3-3-6"
+      },
+      {
+        "id": "block-226",
+        "kind": "paragraph",
+        "order": 226,
+        "text": "表3-3-6 5G核心网控制类参数"
+      },
+      {
+        "id": "block-227",
+        "kind": "table",
+        "order": 227,
+        "rows": [
+          [
+            "参数名称",
+            "参数类别",
+            "参数位置(网元)",
+            "参数功能",
+            "默认值或者推荐值"
+          ],
+          [
+            "TAU流程中初始上下文建立失败是否开启会话上下文保留",
+            "系统控制参数",
+            "AMF",
+            "该软件参数用于控制TAU流程中收到eNodeB发送的Initial Context Setup Failure消息或者超时无响应时，MME是否保留用户的会话和承载。",
+            "1"
+          ],
+          [
+            "当前TA在TA List时是否认为SGW不变",
+            "系统控制参数",
+            "AMF",
+            "该软参用于控制局内非切换TAU流程中，在MME发送Create Session Request消息给SGW前，如果当前接入的TA在MME分配的TA List范围内时，是否需要重选SGW以及怎样选择SGW。",
+            "0"
+          ],
+          [
+            "全局寻呼的最大RNC个数(65611)",
+            "系统控制参数",
+            "AMF",
+            "该软参用于设置全局寻呼的最大RNC个数的场景。",
+            "128"
+          ],
+          [
+            "全局寻呼的最大eNodeB个数(65613)",
+            "系统控制参数",
+            "AMF",
+            "该软参用于设置全局寻呼的最大eNodeB个数。",
+            "2048"
+          ],
+          [
+            "寻呼消息信令跟踪上报方式(262260)",
+            "移动管理参数",
+            "AMF",
+            "该软件参数用于控制OMM网管的信令跟踪功能中Paging（寻呼）消息的上报方式。 同一个eNodeB发送给MME的所有Paging消息，同一类型的只上报一条。 同一个eNodeB发送给MME的Paging消息，全报上报。",
+            "0"
+          ],
+          [
+            "TAU过程中PLMN改变是否延迟鉴权(327815)",
+            "分组域管理参数",
+            "AMF",
+            "该软件参数用于控制TAU过程中PLMN改变后是否延迟鉴权，针对用户处于ECM-CONNECTED状态的情况。",
+            "0"
+          ],
+          [
+            "S1建立或配置更新失败时eNB等待时长(262316)",
+            "移动管理参数",
+            "AMF",
+            "该软件参数用于控制MME在S1消息中是否携带\"time to wait\"，并设置其取值",
+            "0"
+          ],
+          [
+            "支持基于IMSI和TAI映射LAI(262366)",
+            "移动管理参数",
+            "AMF",
+            "该软件参数用于控制当MME需要发送Location Update Request（位置更新请求）消息到VLR时，为了通过LAI获取VLR局向ID，是否使用用户的IMSI号码+TAI映射得到LAI。 在通常情况下，MME根据UE上报的TAI（建网时该TAI的取值参考对应的LAI）推导出VLR局向ID，从而选择VLR。 使用该软参可以让运营商基于用户接入的IMSI号段灵活选择VLR，使不同IMSI号段的用户接入到不同的VLR。 应用场景",
+            "0"
+          ],
+          [
+            "普通寻呼时的eNodeB个数保持最多7个(262550)",
+            "移动管理参数",
+            "AMF",
+            "该软件参数用于控制非寻呼增强的情况下，MME/SGSN基于“最近的eNodeB列表”策略对用户进行寻呼，下发的最大eNodeB个数是否和V4.17.10版本之前的版本一致（个数为7）。",
+            "1"
+          ],
+          [
+            "是否携带eNB默认DRX(262303)",
+            "移动管理参数",
+            "AMF",
+            "如果用户附着时未携带自身的DRX参数，该软件参数用于控制MME对此用户进行寻呼时是否携带DRX参数。 DRX（Discontinuous reception，非连续接收）是在LTE中引入的一种新的省电工作机制，使UE在没有数据传输时不需要进入空闲模式，仍保持与基站的同步状态。 如果用户附着时携带了自身DRX参数，MME对此用户寻呼时会使用DRX参数。 应用场景",
+            "0"
+          ],
+          [
+            "是否基于签约STN-SR通知eNB SRVCC能力(262334)",
+            "移动管理参数",
+            "AMF",
+            "在UE及MME均支持SRVCC能力的前提下，MME发给UE的Initial Context Setup Request和Handover Request消息中是否携带“SRVCC支持”指示，需要通过本软件参数控制是否根据用户签约的STN-SR （Session Transfer Number Single-Radio）信息来进行判断。",
+            "0"
+          ],
+          [
+            "非全局寻呼时，每次寻呼eNB的个数(262218)",
+            "移动管理参数",
+            "AMF",
+            "该软件参数用于控制MME发起非全局的寻呼流程时，每次寻呼eNodeB的个数。",
+            "1"
+          ],
+          [
+            "SGSN是否降低协商Qos版本(786448)",
+            "分组域管理参数",
+            "AMF",
+            "SGSN通过该软件参数控制是否降低与外部接口消息的QoS版本。",
+            "0"
+          ]
+        ]
+      },
+      {
+        "id": "block-228",
+        "kind": "paragraph",
+        "order": 228,
+        "text": "（二）5GC QoS必选参数"
+      },
+      {
+        "id": "block-229",
+        "kind": "paragraph",
+        "order": 229,
+        "text": "随着5G的到来，移动网络的架构及承载的业务都发生了很大的变化，产生了车联网、云AR/VR、高清直播、工业控制等新的应用场景，对5G提出了更高的端到端QoS（Quality of Service，服务质量）要求："
+      },
+      {
+        "id": "block-230",
+        "kind": "paragraph",
+        "order": 230,
+        "text": "eMBB（增强移动宽带）：要求大容量、高速、动态带宽分配，可以高速上传下载GB量级的视频内容，可以为超高清视频、VR/AR等业务动态分配带宽。"
+      },
+      {
+        "id": "block-231",
+        "kind": "paragraph",
+        "order": 231,
+        "text": "uRLLC（超可靠低时延通信）：要求高可靠、高可用、低时延，可以支持自动化工厂、远程手术等mission-critical业务可靠运行，可以满足自动驾驶，远程控制无人机等delay-critical业务的低时延需求。"
+      },
+      {
+        "id": "block-232",
+        "kind": "paragraph",
+        "order": 232,
+        "text": "mMTC（海量机器类通信）：要求大容量、高速、动态带宽分配，可以为智慧城市等IoT业务提供十亿级设备的连接，密度可以达到百万设备/平方千米。"
+      },
+      {
+        "id": "block-233",
+        "kind": "paragraph",
+        "order": 233,
+        "text": "5G要求更大的带宽，更短的时延，和更灵活可靠的控制，这些都是通过5G QoS来实现，"
+      },
+      {
+        "id": "block-234",
+        "kind": "paragraph",
+        "order": 234,
+        "text": "QoS的目的是在资源有限的情况下，“按需定制”，为业务提供差异化服务质量的网络服务。QoS通常有两种含义，一是服务质量怎么样，即表征QoS的具体指标（参数）；一是如何保证这些指标，即实现QoS的机制。"
+      },
+      {
+        "id": "block-235",
+        "kind": "paragraph",
+        "order": 235,
+        "text": "如果把5G数据通信看做交通运输，那么用户面就是道路，业务数据就是道路上运输的乘客或物资。不同的运输需求可以使用不同的道路来实现，如一般车辆运输使用普通公路、一般公交车可以使用公交车专用车道、BRT使用BRT专用行车道等。根据运输业务的需求铺设、分配道路的过程就是数据通信中的信令过程。相应地，QoS就是运输得怎么样，能不能把必要的物资在必要的时间内运送到目的地，也就是满不满足客户的需求。我们知道，如果类比交通运输，4G QoS参数可以从有没有路（ARP）、车跑的好不好（QCI）、路够不够宽（xBR）三个维度评价。5GC与4G EPC QoS参数对比如表3-3-7"
+      },
+      {
+        "id": "block-236",
+        "kind": "paragraph",
+        "order": 236,
+        "text": "表3-3-7 5GC与4G EPC QoS参数"
+      },
+      {
+        "id": "block-237",
+        "kind": "table",
+        "order": 237,
+        "rows": [
+          [
+            "对比项",
+            "4G",
+            "5G"
+          ],
+          [
+            "Resource Type",
+            "取值范围：GBR Non-GBR",
+            "取值范围：GBR Non-GBR delay critical GBR：用于uRLLC类型业务。"
+          ],
+          [
+            "Averaging Window",
+            "NA",
+            "5G新增，应用于GBR QoS Flow，定义了计算GFBR/MFBR的时间窗口，使GFBR/MFBR定义更严谨。"
+          ],
+          [
+            "Maximum Data Burst Volume",
+            "NA",
+            "5G新增，应用于uRLLC业务（Delay-critical类型的GBR QoS Flow），定义了要求空口在时延预算内传输的最大数据包长度，用于空口准入控制，也避免在N3 Tunnel上进行IP分片。"
+          ]
+        ]
+      },
+      {
+        "id": "block-238",
+        "kind": "paragraph",
+        "order": 238,
+        "text": "（三）5GC QOS可选参数"
+      },
+      {
+        "id": "block-239",
+        "kind": "paragraph",
+        "order": 239,
+        "text": "除了上述对4G已有QoS参数的完善和增强外，为了更灵活地控制QoS，以及更好地保障业务质量，5G还新增了可选参数，如表3-3-8所示。"
+      },
+      {
+        "id": "block-240",
+        "kind": "paragraph",
+        "order": 240,
+        "text": "表3-3-8 5GC QOS可选参数"
+      },
+      {
+        "id": "block-241",
+        "kind": "table",
+        "order": 241,
+        "rows": [
+          [
+            "新增参数",
+            "适用对象",
+            "作用",
+            "应用场景",
+            "协议参考"
+          ],
+          [
+            "RQA",
+            "Non-GBR QoS Flow",
+            "指示该QoS Flow支持Reflective QoS机制，详见后文。",
+            "不需保证带宽的业务，如网页浏览等。",
+            "23501 5.7.2.3"
+          ],
+          [
+            "Notification Control",
+            "GBR QoS Flow",
+            "当RAN侧不能满足GFBR时通知SMF，5GC发起N2信令流程来修改或移除QoS flow；当条件改善能够再次执行GFBR。",
+            "可以根据QoS变化改变速率的业务，如视频直播等。",
+            "23501 5.7.2.4"
+          ],
+          [
+            "Maximum Packet Loss Rate",
+            "GBR QoS Flow",
+            "指示空口侧QoS Flow能接受的最大丢包率。",
+            "只应用于语音业务。",
+            "23501 5.7.2.8"
+          ]
+        ]
+      },
+      {
+        "id": "block-242",
+        "kind": "paragraph",
+        "order": 242,
+        "text": "任务实施"
+      },
+      {
+        "id": "block-243",
+        "kind": "paragraph",
+        "order": 243,
+        "text": "一．5G无线网管网络参数检查"
+      },
+      {
+        "id": "block-244",
+        "kind": "paragraph",
+        "order": 244,
+        "text": "（一）通过网管，线上查询"
+      },
+      {
+        "id": "block-245",
+        "kind": "paragraph",
+        "order": 245,
+        "text": "（1）学生账号登录，根据任务选取（比如：端到端优化，或全网性能提升），点击数据中心进入，如图3-3-17所示"
+      },
+      {
+        "id": "block-246",
+        "kind": "paragraph",
+        "order": 246,
+        "mediaRefs": [
+          "rId181"
+        ]
+      },
+      {
+        "id": "block-247",
+        "kind": "paragraph",
+        "order": 247,
+        "text": "图3-3-17 5G网管参数检查主界面"
+      },
+      {
+        "id": "block-248",
+        "kind": "paragraph",
+        "order": 248,
+        "text": "(2）点击无线侧图标进入，如图3-3-18所示。"
+      },
+      {
+        "id": "block-249",
+        "kind": "paragraph",
+        "order": 249,
+        "mediaRefs": [
+          "rId182"
+        ]
+      },
+      {
+        "id": "block-250",
+        "kind": "paragraph",
+        "order": 250,
+        "text": "图3-3-18 5G网管无线网络参数检查主界面"
+      },
+      {
+        "id": "block-251",
+        "kind": "paragraph",
+        "order": 251,
+        "text": "（3）在配置中选取站点在右侧界面显示所有配置参数，如图3-3-19所示。"
+      },
+      {
+        "id": "block-252",
+        "kind": "paragraph",
+        "order": 252,
+        "mediaRefs": [
+          "rId183"
+        ]
+      },
+      {
+        "id": "block-253",
+        "kind": "paragraph",
+        "order": 253,
+        "text": "图3-3-19 无线侧参数检查窗口"
+      },
+      {
+        "id": "block-254",
+        "kind": "paragraph",
+        "order": 254,
+        "text": "（二）5G无线配置数据离线查询及比较"
+      },
+      {
+        "id": "block-255",
+        "kind": "paragraph",
+        "order": 255,
+        "text": "利用该功能可以将整网配置数据导出，用于查看和比较现网所有参数。如图3-3-20"
+      },
+      {
+        "id": "block-256",
+        "kind": "paragraph",
+        "order": 256,
+        "mediaRefs": [
+          "rId184"
+        ]
+      },
+      {
+        "id": "block-257",
+        "kind": "paragraph",
+        "order": 257,
+        "text": "图3-3-20 配置数据导出窗口"
+      },
+      {
+        "id": "block-258",
+        "kind": "paragraph",
+        "order": 258,
+        "text": "二． 5G传输网网络参数检查"
+      },
+      {
+        "id": "block-259",
+        "kind": "paragraph",
+        "order": 259,
+        "text": "（1）学生账号登录，根据任务选取（比如：端到端优化，或全网性能提升），点击数据中心进入，如图3-3-21所示。"
+      },
+      {
+        "id": "block-260",
+        "kind": "paragraph",
+        "order": 260,
+        "mediaRefs": [
+          "rId181"
+        ]
+      },
+      {
+        "id": "block-261",
+        "kind": "paragraph",
+        "order": 261,
+        "text": "图3-3-21 5G网管参数检查主界面"
+      },
+      {
+        "id": "block-262",
+        "kind": "paragraph",
+        "order": 262,
+        "text": "（2）点击传输网图标进入，如图3-3-22所示。"
+      },
+      {
+        "id": "block-263",
+        "kind": "paragraph",
+        "order": 263,
+        "mediaRefs": [
+          "rId182"
+        ]
+      },
+      {
+        "id": "block-264",
+        "kind": "paragraph",
+        "order": 264,
+        "text": "图3-3-22 5G网管传输网络参数检查主界面"
+      },
+      {
+        "id": "block-265",
+        "kind": "paragraph",
+        "order": 265,
+        "text": "（3）查询传输网相关配置参数，如图3-3-23所示。"
+      },
+      {
+        "id": "block-266",
+        "kind": "paragraph",
+        "order": 266,
+        "mediaRefs": [
+          "rId173"
+        ]
+      },
+      {
+        "id": "block-267",
+        "kind": "paragraph",
+        "order": 267,
+        "text": "图3-3-23传输侧参数检查窗口"
+      },
+      {
+        "id": "block-268",
+        "kind": "paragraph",
+        "order": 268,
+        "text": "三． 5G核心网网络参数检查"
+      },
+      {
+        "id": "block-269",
+        "kind": "paragraph",
+        "order": 269,
+        "text": "(1)学生账号登录，根据任务选取（比如：端到端优化，或全网性能提升），点击数据中心进入，如图图3-3-24所示。"
+      },
+      {
+        "id": "block-270",
+        "kind": "paragraph",
+        "order": 270,
+        "mediaRefs": [
+          "rId185"
+        ]
+      },
+      {
+        "id": "block-271",
+        "kind": "paragraph",
+        "order": 271,
+        "text": "图3-3-24 5G网管参数检查主界面"
+      },
+      {
+        "id": "block-272",
+        "kind": "paragraph",
+        "order": 272,
+        "text": "(2)点击核心网图标进入，如图3-3-25所示。"
+      },
+      {
+        "id": "block-273",
+        "kind": "paragraph",
+        "order": 273,
+        "mediaRefs": [
+          "rId182"
+        ]
+      },
+      {
+        "id": "block-274",
+        "kind": "paragraph",
+        "order": 274,
+        "text": "图3-3-25 5G网管传输网络参数检查主界面"
+      },
+      {
+        "id": "block-275",
+        "kind": "paragraph",
+        "order": 275,
+        "text": "(3）查询核心网相关配置参数，如图3-3-26所示。"
+      },
+      {
+        "id": "block-276",
+        "kind": "paragraph",
+        "order": 276,
+        "mediaRefs": [
+          "rId180"
+        ]
+      },
+      {
+        "id": "block-277",
+        "kind": "paragraph",
+        "order": 277,
+        "text": "图3-3-26 核心侧参数检查窗口"
+      },
+      {
+        "id": "block-278",
+        "kind": "paragraph",
+        "order": 278,
+        "text": "随堂测试"
+      },
+      {
+        "id": "block-279",
+        "kind": "paragraph",
+        "order": 279,
+        "text": "1.写出和容量计算相关公式：上行资源占比（符号级）、区域总下行吞吐量、单扇区下行峰值速率计算公式。"
+      },
+      {
+        "id": "block-280",
+        "kind": "paragraph",
+        "order": 280,
+        "text": "2.通过5G仿真实训系统，查询核心网中QoS类参数配置值。"
+      },
+      {
+        "id": "block-281",
+        "kind": "paragraph",
+        "order": 281,
+        "text": "3.通过5G仿真实训系统，导出基站1，小区1和小区2的配置数据并进行比较，标出不同配置。"
+      },
+      {
+        "id": "block-282",
+        "kind": "paragraph",
+        "order": 282,
+        "text": "请将结果截屏后，用手机拍照发给老师。"
+      },
+      {
+        "id": "block-283",
+        "kind": "paragraph",
+        "order": 283,
+        "text": "经典案例"
+      },
+      {
+        "id": "block-284",
+        "kind": "paragraph",
+        "order": 284,
+        "text": "1.【问题描述】网格拉网测试过程中，主占用小区RSRP为-105dBm，邻区RSRP-85dBm左右，下发A3事件，但一直未发起切换。"
+      },
+      {
+        "id": "block-285",
+        "kind": "paragraph",
+        "order": 285,
+        "text": "【问题分析】首先对PCI为490与PCI：61两个小区的邻区关系进行核查，邻区已配置，同时外部邻区信息配置无异常；"
+      },
+      {
+        "id": "block-286",
+        "kind": "paragraph",
+        "order": 286,
+        "mediaRefs": [
+          "rId186"
+        ]
+      },
+      {
+        "id": "block-287",
+        "kind": "paragraph",
+        "order": 287,
+        "text": "对目标PCI：61小区状态核查，该小区无告警；进一步核查XN链路，发现与切换目标站点XN链路故障；"
+      },
+      {
+        "id": "block-288",
+        "kind": "paragraph",
+        "order": 288,
+        "mediaRefs": [
+          "rId187"
+        ]
+      },
+      {
+        "id": "block-289",
+        "kind": "paragraph",
+        "order": 289,
+        "text": "【解决方案】对XN口告警进行处理后复测切换正常。"
+      },
+      {
+        "id": "block-290",
+        "kind": "paragraph",
+        "order": 290,
+        "text": "直击难点"
+      },
+      {
+        "id": "block-291",
+        "kind": "paragraph",
+        "order": 291,
+        "text": "重点：1.掌握和容量计算、覆盖计算相关参数和公式。"
+      },
+      {
+        "id": "block-292",
+        "kind": "paragraph",
+        "order": 292,
+        "text": "2.如何查询传输侧性能相关参数？"
+      },
+      {
+        "id": "block-293",
+        "kind": "paragraph",
+        "order": 293,
+        "text": "3.如何查询核心网侧性能相关参数？"
+      },
+      {
+        "id": "block-294",
+        "kind": "paragraph",
+        "order": 294,
+        "text": "难点：对无线规划参数、传输参数、核心网参数的认知"
+      },
+      {
+        "id": "block-295",
+        "kind": "paragraph",
+        "order": 295,
+        "text": "二维码预留二维码预留"
+      },
+      {
+        "id": "block-296",
+        "kind": "paragraph",
+        "order": 296,
+        "text": "任务测评"
+      },
+      {
+        "id": "block-297",
+        "kind": "paragraph",
+        "order": 297,
+        "text": "写出覆盖计算相关的公式：数据信道的总噪声和干扰密度、数据信道有效噪声功率、接收器灵敏度、数据信道链路预算、数据信道的最终路损值。"
+      },
+      {
+        "id": "block-298",
+        "kind": "paragraph",
+        "order": 298,
+        "text": "例举出5个影响传输网QoS的参数。"
+      },
+      {
+        "id": "block-299",
+        "kind": "paragraph",
+        "order": 299,
+        "text": "例举出5个影响核心网APN注册的相关参数。"
+      }
+    ],
+    "storyboard": {
+      "schema": "lesson-storyboard/v1",
+      "learningGoal": "学完后能比较当前值、规划值、版本来源和影响域，判断差异属于覆盖、切换、接入、容量还是业务策略风险。",
+      "summary": "本节讲参数核查：先锁定网元、小区、邻区、切片和 QoS 等对象范围，再把现网快照与规划基线转成风险治理清单。",
+      "knowledgeUnits": [
+        {
+          "id": "P09-ku-01",
+          "title": "参数范围",
+          "kind": "concept",
+          "shortText": "明确网元、小区、邻区、切片和策略对象。",
+          "narrationText": "参数核查先定义对象范围：网元、小区、邻区、切片、QoS 或策略对象不同，影响域和回退范围也不同。"
+        },
+        {
+          "id": "P09-ku-02",
+          "title": "现网快照",
+          "kind": "concept",
+          "shortText": "当前值必须带版本、时间、导出范围和来源。",
+          "narrationText": "现网值需要保存导出时间、网管版本、对象范围和数据来源，避免把过期或局部数据当作全量事实。"
+        },
+        {
+          "id": "P09-ku-03",
+          "title": "规划基线",
+          "kind": "criteria",
+          "shortText": "规划值按场景、频段、邻区和业务策略建基线。",
+          "narrationText": "规划基线不是孤立表格，要结合覆盖场景、频段层、邻区关系、容量目标和业务策略确定期望取值。"
+        },
+        {
+          "id": "P09-ku-04",
+          "title": "风险分叉",
+          "kind": "evidence",
+          "shortText": "差异按覆盖、切换、接入、容量和业务树分流。",
+          "narrationText": "参数差异先进入风险树：覆盖类看功率和倾角，切换类看邻区与门限，容量类看负荷策略，业务类看 QoS 与切片策略。"
+        },
+        {
+          "id": "P09-ku-05",
+          "title": "处置准入",
+          "kind": "practice",
+          "shortText": "变更建议必须绑定影响域、回退点和观察窗。",
+          "narrationText": "不是所有差异都立即修改，处置准入要同时满足风险等级、影响范围、回退条件、变更窗口和监控观察要求。"
+        },
+        {
+          "id": "P09-ku-06",
+          "title": "差异治理",
+          "kind": "review",
+          "shortText": "沉淀差异清单、风险等级、动作和回退条件。",
+          "narrationText": "参数核查最终形成治理清单，包含差异类型、影响域、风险等级、建议动作、审批状态和回退条件。"
+        }
+      ],
+      "reviewSummary": "复盘时检查每个差异是否有对象范围、版本时间、风险等级、建议动作、审批状态和回退条件。"
+    }
+  },
+  "knowledge": {
+    "steps": [
+      {
+        "id": "P09-knowledge-01",
+        "label": "参数范围",
+        "description": "明确网元、小区、邻区、切片和策略对象。"
+      },
+      {
+        "id": "P09-knowledge-02",
+        "label": "现网快照",
+        "description": "当前值必须带版本、时间、导出范围和来源。"
+      },
+      {
+        "id": "P09-knowledge-03",
+        "label": "规划基线",
+        "description": "规划值按场景、频段、邻区和业务策略建基线。"
+      },
+      {
+        "id": "P09-knowledge-04",
+        "label": "风险分叉",
+        "description": "差异按覆盖、切换、接入、容量和业务树分流。"
+      },
+      {
+        "id": "P09-knowledge-05",
+        "label": "处置准入",
+        "description": "变更建议必须绑定影响域、回退点和观察窗。"
+      },
+      {
+        "id": "P09-knowledge-06",
+        "label": "差异治理",
+        "description": "沉淀差异清单、风险等级、动作和回退条件。"
+      }
+    ],
+    "metrics": [
+      {
+        "label": "M1",
+        "value": "CM"
+      },
+      {
+        "label": "M2",
+        "value": "一致性"
+      },
+      {
+        "label": "M3",
+        "value": "风险"
+      }
+    ]
+  },
+  "animation": {
+    "templateHint": "optimization-loop",
+    "durationMs": 610000,
+    "targets": [
+      {
+        "id": "P09-step-01",
+        "label": "参数范围",
+        "description": "明确网元、小区、邻区、切片和策略对象。"
+      },
+      {
+        "id": "P09-step-02",
+        "label": "现网快照",
+        "description": "当前值必须带版本、时间、导出范围和来源。"
+      },
+      {
+        "id": "P09-step-03",
+        "label": "规划基线",
+        "description": "规划值按场景、频段、邻区和业务策略建基线。"
+      },
+      {
+        "id": "P09-step-04",
+        "label": "风险分叉",
+        "description": "差异按覆盖、切换、接入、容量和业务树分流。"
+      },
+      {
+        "id": "P09-step-05",
+        "label": "处置准入",
+        "description": "变更建议必须绑定影响域、回退点和观察窗。"
+      },
+      {
+        "id": "P09-step-06",
+        "label": "差异治理",
+        "description": "沉淀差异清单、风险等级、动作和回退条件。"
+      }
+    ]
+  },
+  "playback": {
+    "mode": "one-way",
+    "widgetId": "P09-lesson-animation-001"
+  }
+}

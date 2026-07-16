@@ -1,0 +1,100 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LessonAnimation",
+  "type": "object",
+  "required": ["title", "artifact"],
+  "properties": {
+    "instanceId": { "type": "string" },
+    "title": { "type": "string" },
+    "artifact": {
+      "type": "object",
+      "required": ["type", "scene"],
+      "properties": {
+        "type": { "const": "animation-slide" },
+        "aspectRatio": { "const": "16:9" },
+        "durationMs": { "type": "number" },
+        "mediaTracks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "kind"],
+            "properties": {
+              "id": { "type": "string" },
+              "kind": { "enum": ["manim", "video", "poster"] },
+              "videoUrl": { "type": "string" },
+              "posterUrl": { "type": "string" },
+              "manifestUrl": { "type": "string" }
+            }
+          }
+        },
+        "interactiveRefs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "kind"],
+            "properties": {
+              "id": { "type": "string" },
+              "kind": { "enum": ["edugame-config", "html"] },
+              "indexUrl": { "type": "string" },
+              "manifestUrl": { "type": "string" }
+            }
+          }
+        },
+        "scene": {
+          "type": "object",
+          "required": ["id", "title", "type", "content"],
+          "properties": {
+            "id": { "type": "string" },
+            "title": { "type": "string" },
+            "type": { "const": "slide" },
+            "description": { "type": "string" },
+            "content": {
+              "type": "object",
+              "required": ["type", "canvas"],
+              "properties": {
+                "type": { "const": "slide" },
+                "canvas": {
+                  "type": "object",
+                  "required": ["id", "width", "height", "elements"],
+                  "properties": {
+                    "id": { "type": "string" },
+                    "width": { "const": 1000 },
+                    "height": { "const": 562 },
+                    "background": { "type": "object" },
+                    "theme": { "type": "object" },
+                    "elements": { "type": "array" }
+                  }
+                }
+              }
+            },
+            "actions": { "type": "array" }
+          }
+        }
+      },
+      "diagnostics": { "type": "array" }
+    },
+    "targets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "label"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "selector": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "sources": { "type": "array" },
+    "review": { "type": "object" }
+  },
+  "not": {
+    "anyOf": [
+      { "required": ["playback"] },
+      { "required": ["presenters"] },
+      { "required": ["tts"] }
+    ]
+  }
+}
+

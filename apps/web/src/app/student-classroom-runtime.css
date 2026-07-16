@@ -1,0 +1,462 @@
+/* Participation-driven student classroom: one teacher page, one task, one activity, one exit. */
+.classroom-runtime {
+  min-height: 100dvh;
+  height: auto;
+  display: flex;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background:
+    radial-gradient(circle at 72% 18%, rgba(45, 212, 208, .07), transparent 30%),
+    linear-gradient(145deg, #03121f 0%, var(--dg-bg) 54%, #061c2a 100%);
+}
+
+.classroom-runtime > .scene-classroom-topbar {
+  flex: 0 0 68px;
+  height: 68px;
+  grid-template-columns: minmax(260px, .9fr) minmax(240px, 1fr) auto;
+  border-bottom: 1px solid var(--dg-line-strong);
+  padding: 0 22px;
+  background: rgba(3, 18, 31, .94);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
+  backdrop-filter: blur(16px);
+}
+
+.classroom-runtime > .scene-classroom-topbar strong {
+  font-size: var(--dg-font-body);
+}
+
+.classroom-runtime > .scene-classroom-topbar nav > span {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--dg-line-strong);
+  border-radius: 999px;
+  padding: 0 13px;
+  background: rgba(8, 39, 55, .8);
+}
+
+.classroom-runtime > .scene-classroom-topbar nav i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dg-mastered);
+  box-shadow: 0 0 0 4px rgba(57, 201, 139, .12);
+}
+
+.classroom-runtime[data-connection-state="connecting"] > .scene-classroom-topbar nav i,
+.classroom-runtime[data-connection-state="degraded"] > .scene-classroom-topbar nav i {
+  background: var(--dg-warning);
+  box-shadow: 0 0 0 4px rgba(244, 184, 70, .12);
+}
+
+.classroom-runtime[data-connection-state="offline"] > .scene-classroom-topbar nav i {
+  background: var(--dg-error);
+  box-shadow: 0 0 0 4px rgba(239, 102, 114, .12);
+}
+
+.classroom-follow-screen {
+  min-height: calc(100dvh - 68px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.classroom-follow-renderer {
+  min-height: 0;
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(280px, .72fr);
+  grid-template-rows: auto minmax(220px, 1fr) auto;
+  gap: 12px;
+}
+
+.classroom-follow-current,
+.classroom-follow-task,
+.classroom-follow-activity,
+.classroom-follow-return,
+.classroom-self-status,
+.classroom-entry-status,
+.classroom-content-unavailable {
+  border: 1px solid var(--dg-line);
+  border-radius: var(--dg-radius);
+  color: var(--dg-text);
+  background: linear-gradient(155deg, rgba(9, 40, 57, .98), rgba(5, 27, 42, .98));
+  box-shadow: var(--dg-shadow);
+}
+
+.classroom-follow-current {
+  min-width: 0;
+  grid-row: 1 / 3;
+  display: grid;
+  grid-template-rows: auto minmax(260px, 1fr) auto;
+  overflow: hidden;
+}
+
+.classroom-follow-current > header {
+  display: grid;
+  gap: 8px;
+  border-bottom: 1px solid var(--dg-line);
+  padding: 22px 24px 18px;
+}
+
+.classroom-follow-current > header span,
+.classroom-follow-task > span,
+.classroom-follow-activity > span,
+.classroom-self-status > span,
+.classroom-entry-status > span,
+.classroom-content-unavailable > span {
+  color: var(--dg-current);
+  font-size: var(--dg-font-label);
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.classroom-follow-current h1,
+.classroom-follow-task h2,
+.classroom-follow-activity h2,
+.classroom-self-status h1,
+.classroom-entry-status h1,
+.classroom-content-unavailable h1 {
+  margin: 0;
+  color: var(--dg-text-strong);
+  line-height: 1.25;
+}
+
+.classroom-follow-current h1 {
+  font-size: clamp(26px, 2.7vw, 42px);
+}
+
+.classroom-follow-current p,
+.classroom-follow-task li,
+.classroom-follow-activity li,
+.classroom-self-status p,
+.classroom-entry-status p,
+.classroom-content-unavailable p,
+.classroom-mode-actions span {
+  color: var(--dg-muted);
+  line-height: 1.7;
+}
+
+.classroom-follow-current header p {
+  margin: 0;
+  color: var(--dg-text);
+  font-size: clamp(14px, 1.3vw, 18px);
+}
+
+.classroom-follow-current > p {
+  margin: 0;
+  border-top: 1px solid var(--dg-line);
+  padding: 14px 24px 16px;
+  background: rgba(2, 18, 29, .42);
+}
+
+.classroom-follow-visual {
+  min-height: 0;
+  display: grid;
+  place-items: stretch;
+  overflow: hidden;
+  padding: 14px;
+  background:
+    linear-gradient(rgba(24, 69, 88, .18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(24, 69, 88, .18) 1px, transparent 1px),
+    #031522;
+  background-size: 32px 32px;
+}
+
+.classroom-follow-visual > * {
+  min-height: 100%;
+}
+
+.classroom-follow-task,
+.classroom-follow-activity {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 18px 20px;
+}
+
+.classroom-follow-task {
+  border-top: 3px solid var(--dg-current);
+}
+
+.classroom-follow-activity {
+  position: static;
+  width: auto;
+  overflow-y: auto;
+  border-color: var(--dg-line);
+  border-top: 3px solid var(--dg-warning);
+  transform: none;
+  transition: none;
+  pointer-events: auto;
+}
+
+.classroom-follow-task h2,
+.classroom-follow-activity h2 {
+  font-size: clamp(17px, 1.5vw, 22px);
+}
+
+.classroom-follow-task ul,
+.classroom-follow-activity ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.classroom-follow-return {
+  min-height: 68px;
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-color: rgba(45, 212, 208, .42);
+  padding: 0 20px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.classroom-follow-return span {
+  color: var(--dg-current);
+  font-weight: 900;
+}
+
+.classroom-follow-return small {
+  color: var(--dg-muted);
+  font-size: var(--dg-font-small);
+}
+
+.classroom-follow-return:hover,
+.classroom-follow-return:focus-visible {
+  border-color: var(--dg-current);
+  background: rgba(45, 212, 208, .09);
+}
+
+.classroom-mode-actions {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 4px;
+}
+
+.classroom-mode-actions button,
+.classroom-self-status button,
+.classroom-entry-status button,
+.classroom-content-unavailable button {
+  min-height: 44px;
+  border: 1px solid var(--dg-line-strong);
+  border-radius: 6px;
+  padding: 0 16px;
+  color: var(--dg-text-strong);
+  background: var(--dg-surface-raised);
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.classroom-mode-actions button:hover,
+.classroom-self-status button:hover,
+.classroom-entry-status button:hover,
+.classroom-content-unavailable button:hover {
+  border-color: var(--dg-current);
+}
+
+.classroom-mode-actions button:disabled,
+.classroom-follow-return:disabled,
+.classroom-self-status button:disabled,
+.classroom-entry-status button:disabled,
+.classroom-content-unavailable button:disabled {
+  cursor: not-allowed;
+  opacity: .48;
+}
+
+.classroom-mode-actions span {
+  font-size: var(--dg-font-small);
+}
+
+.classroom-self-status,
+.classroom-entry-status,
+.classroom-content-unavailable {
+  width: min(720px, calc(100% - 32px));
+  min-height: 360px;
+  align-self: center;
+  display: grid;
+  align-content: center;
+  gap: 14px;
+  margin: auto;
+  padding: clamp(28px, 5vw, 58px);
+}
+
+.classroom-self-status h1,
+.classroom-entry-status h1,
+.classroom-content-unavailable h1 {
+  font-size: clamp(24px, 3vw, 38px);
+}
+
+.classroom-self-status > div,
+.classroom-entry-status > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.classroom-self-status > div button:first-child,
+.classroom-entry-status > div button:first-child,
+.classroom-content-unavailable button {
+  border-color: var(--dg-current);
+  color: #03232b;
+  background: var(--dg-current);
+}
+
+.classroom-self-status > div button:first-child,
+.classroom-entry-status > div button:not([data-primary-action]) {
+  border-color: var(--dg-line-strong);
+  color: var(--dg-text-strong);
+  background: var(--dg-surface-raised);
+}
+
+.classroom-self-status [data-primary-action],
+.classroom-entry-status [data-primary-action],
+.classroom-follow-return[data-primary-action] {
+  border-color: var(--dg-current);
+  color: #03232b;
+  background: var(--dg-current);
+}
+
+.classroom-follow-return[data-primary-action] span { color: #03232b; }
+.classroom-follow-return[data-primary-action] small { color: #164654; }
+
+.classroom-action-error {
+  margin: 4px 0 0;
+  border-left: 3px solid var(--dg-error);
+  padding: 10px 12px;
+  color: #ffc2c8;
+  background: rgba(239, 102, 114, .1);
+}
+
+@media (max-width: 960px) {
+  .classroom-follow-renderer {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, .62fr);
+  }
+
+  .classroom-runtime > .scene-classroom-topbar {
+    grid-template-columns: minmax(220px, 1fr) auto;
+  }
+
+  .classroom-runtime > .scene-classroom-topbar > div {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .classroom-runtime {
+    min-height: 100dvh;
+  }
+
+  .classroom-runtime > .scene-classroom-topbar {
+    flex-basis: 58px;
+    height: 58px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 0 10px;
+  }
+
+  .classroom-runtime > .scene-classroom-topbar .scene-classroom-brand small,
+  .classroom-runtime > .scene-classroom-topbar nav span {
+    display: none;
+  }
+
+  .classroom-runtime > .scene-classroom-topbar nav > span {
+    width: auto;
+    min-width: 58px;
+    min-height: 36px;
+    display: inline-flex;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 9px;
+    font-size: 0;
+  }
+
+  .classroom-runtime > .scene-classroom-topbar [data-classroom-connection]::after { font-size: 11px; font-weight: 850; }
+  .classroom-runtime > .scene-classroom-topbar [data-classroom-connection="online"]::after { content: '在线'; }
+  .classroom-runtime > .scene-classroom-topbar [data-classroom-connection="connecting"]::after { content: '连接中'; }
+  .classroom-runtime > .scene-classroom-topbar [data-classroom-connection="degraded"]::after { content: '降级'; }
+  .classroom-runtime > .scene-classroom-topbar [data-classroom-connection="offline"]::after { content: '离线'; }
+
+  .classroom-follow-screen {
+    min-height: calc(100dvh - 58px);
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .classroom-follow-renderer {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .classroom-follow-current {
+    min-height: 0;
+    grid-template-rows: auto clamp(180px, 42vw, 300px) auto;
+  }
+
+  .classroom-follow-current > header {
+    padding: 16px;
+  }
+
+  .classroom-follow-visual {
+    max-height: 300px;
+    padding: 8px;
+  }
+
+  .classroom-follow-visual > * {
+    min-height: 0;
+    height: 100%;
+  }
+
+  .classroom-follow-task,
+  .classroom-follow-activity {
+    padding: 16px;
+  }
+
+  .classroom-follow-return {
+    min-height: 76px;
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 12px 16px;
+  }
+
+  .classroom-mode-actions {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 0;
+  }
+
+  .classroom-mode-actions button,
+  .classroom-self-status button,
+  .classroom-entry-status button,
+  .classroom-content-unavailable button {
+    min-height: 44px;
+  }
+
+  .classroom-self-status,
+  .classroom-entry-status,
+  .classroom-content-unavailable {
+    width: calc(100% - 20px);
+    min-height: 0;
+    align-self: flex-start;
+    align-content: start;
+    margin: 10px auto;
+    padding: 24px 18px;
+  }
+
+  .classroom-self-status > div,
+  .classroom-entry-status > div {
+    display: grid;
+  }
+}

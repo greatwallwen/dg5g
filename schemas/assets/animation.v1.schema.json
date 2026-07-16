@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dgbook.asset.animation.v1",
+  "title": "DGBook Animation Asset",
+  "type": "object",
+  "required": ["schema", "id", "stage", "elements", "timeline"],
+  "properties": {
+    "schema": { "const": "dgbook.asset.animation/v1" },
+    "id": { "type": "string" },
+    "stage": {
+      "type": "object",
+      "required": ["width", "height"],
+      "properties": {
+        "width": { "type": "number", "minimum": 1 },
+        "height": { "type": "number", "minimum": 1 },
+        "aspectRatio": { "type": "string" }
+      }
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "startMs", "durationMs"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "startMs": { "type": "number", "minimum": 0 },
+          "durationMs": { "type": "number", "minimum": 1 }
+        }
+      }
+    },
+    "layers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "role"],
+        "properties": {
+          "id": { "type": "string" },
+          "role": { "enum": ["background", "content", "overlay", "caption"] }
+        }
+      }
+    },
+    "elements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "box"],
+        "properties": {
+          "id": { "type": "string" },
+          "type": {
+            "enum": ["text", "shape", "line", "image", "video", "chart", "table", "latex", "code"]
+          },
+          "layer": { "type": "string" },
+          "page": { "type": "string" },
+          "box": {
+            "type": "object",
+            "required": ["x", "y", "w", "h"],
+            "properties": {
+              "x": { "type": "number" },
+              "y": { "type": "number" },
+              "w": { "type": "number", "minimum": 1 },
+              "h": { "type": "number", "minimum": 1 }
+            }
+          }
+        }
+      }
+    },
+    "timeline": {
+      "type": "object",
+      "required": ["durationMs", "cues"],
+      "properties": {
+        "durationMs": { "type": "number", "minimum": 1 },
+        "cues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "atMs", "durationMs", "effect", "targets"],
+            "properties": {
+              "id": { "type": "string" },
+              "atMs": { "type": "number", "minimum": 0 },
+              "durationMs": { "type": "number", "minimum": 1 },
+              "effect": { "type": "string" },
+              "targets": { "type": "array", "items": { "type": "string" } },
+              "easing": { "type": "string" },
+              "payload": { "type": "object" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

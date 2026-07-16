@@ -1,0 +1,332 @@
+:root {
+  --graphic-line: #1457d9;
+  --graphic-line-muted: #91a9c8;
+  --graphic-node-bg: #ffffff;
+  --graphic-node-soft: #eff6ff;
+  --graphic-ink: #071a38;
+  --graphic-muted: #4b647d;
+  --graphic-accent: #0ea5e9;
+  --graphic-evidence: #0f9f8f;
+  --graphic-output: #6758f4;
+  --graphic-review: #d97706;
+  --graphic-assessment: #dc3545;
+  --graphic-spotlight: #0bbbd6;
+  --graphic-laser: #ff4058;
+}
+
+[data-graphic-theme="dark-engineering"] {
+  --graphic-line: #bfe8ff;
+  --graphic-line-muted: #6f8fb4;
+  --graphic-node-bg: rgba(7, 25, 54, 0.92);
+  --graphic-node-soft: rgba(17, 58, 104, 0.78);
+  --graphic-ink: #f3f8ff;
+  --graphic-muted: #b8c8dc;
+  --graphic-accent: #67e8f9;
+  --graphic-evidence: #5eead4;
+  --graphic-output: #c4b5fd;
+  --graphic-review: #fbbf24;
+  --graphic-assessment: #fda4af;
+}
+
+[data-graphic-system="engineering-line"],
+.engineering-graphic {
+  color: var(--graphic-line);
+}
+
+.engineering-graphic svg,
+[data-graphic-system="engineering-line"] svg {
+  color: currentColor;
+}
+
+.graphic-node {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  border: 1px solid color-mix(in srgb, var(--graphic-line) 30%, transparent);
+  border-radius: 16px;
+  padding: 14px;
+  color: var(--graphic-ink);
+  background: var(--graphic-node-bg);
+  box-shadow: 0 12px 28px rgba(20, 87, 217, 0.08);
+  text-align: center;
+}
+
+.graphic-node-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  color: var(--graphic-line);
+  background: var(--graphic-node-soft);
+}
+
+.graphic-node strong {
+  color: var(--graphic-ink);
+  font-size: 16px;
+}
+
+.graphic-node small {
+  color: var(--graphic-muted);
+  line-height: 1.45;
+}
+
+.graphic-node.is-evidence .graphic-node-icon,
+.semantic-edge-line.is-evidence {
+  color: var(--graphic-evidence);
+}
+
+.graphic-node.is-output .graphic-node-icon,
+.semantic-edge-line.is-output {
+  color: var(--graphic-output);
+}
+
+.graphic-node.is-review .graphic-node-icon,
+.semantic-edge-line.is-review {
+  color: var(--graphic-review);
+}
+
+.graphic-node.is-assessment .graphic-node-icon,
+.semantic-edge-line.is-assessment {
+  color: var(--graphic-assessment);
+}
+
+.graphic-node.is-warning .graphic-node-icon {
+  color: var(--graphic-review);
+}
+
+.semantic-edge-line {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  height: 2px;
+  color: var(--graphic-line);
+  background: currentColor;
+  border-radius: 999px;
+}
+
+.semantic-edge-line::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  width: 9px;
+  height: 9px;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.semantic-edge-line em {
+  position: absolute;
+  top: -24px;
+  white-space: nowrap;
+  border: 1px solid color-mix(in srgb, currentColor 36%, transparent);
+  border-radius: 999px;
+  padding: 3px 8px;
+  color: currentColor;
+  background: color-mix(in srgb, var(--graphic-node-bg) 92%, transparent);
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.web-focus-overlay.is-spotlight {
+  border-color: var(--graphic-spotlight);
+  box-shadow:
+    0 0 0 9999px rgba(6, 18, 44, 0.20),
+    0 0 0 8px rgba(11, 187, 214, 0.18),
+    0 0 30px rgba(11, 187, 214, 0.42);
+}
+
+.web-focus-overlay.is-laser {
+  border-color: color-mix(in srgb, var(--graphic-laser) 82%, transparent);
+  box-shadow:
+    0 0 0 9999px rgba(6, 18, 44, 0.14),
+    0 0 24px rgba(255, 64, 88, 0.46);
+}
+
+.web-laser-dot {
+  background: var(--graphic-laser);
+}
+
+.web-focus-label {
+  z-index: 2;
+  display: inline-flex;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff !important;
+  background: #075a6b !important;
+  text-shadow: none;
+}
+
+.mobility-visual.engineering-graphic,
+.collection-visual.engineering-graphic {
+  border-color: color-mix(in srgb, var(--graphic-line) 24%, transparent);
+  background:
+    linear-gradient(color-mix(in srgb, var(--graphic-line) 7%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--graphic-line) 7%, transparent) 1px, transparent 1px),
+    var(--graphic-node-bg);
+  background-size: 42px 42px, 42px 42px, auto;
+}
+
+[data-graphic-theme="dark-engineering"].mobility-visual,
+[data-graphic-theme="dark-engineering"].collection-visual {
+  background:
+    linear-gradient(color-mix(in srgb, var(--graphic-line) 12%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--graphic-line) 12%, transparent) 1px, transparent 1px),
+    rgba(5, 18, 40, 0.92);
+  background-size: 46px 46px, 46px 46px, auto;
+}
+
+.engineering-graphic .route-shadow {
+  stroke: color-mix(in srgb, var(--graphic-line-muted) 34%, transparent);
+}
+
+.engineering-graphic .route-main {
+  stroke: var(--graphic-line);
+}
+
+.engineering-graphic .route-dash {
+  stroke: var(--graphic-line-muted);
+}
+
+.engineering-graphic .checkpoint,
+.engineering-graphic .checkpoint strong {
+  color: var(--graphic-ink);
+}
+
+.engineering-graphic .checkpoint-ring {
+  border-color: var(--graphic-line);
+  color: var(--graphic-line);
+  background: var(--graphic-node-bg);
+}
+
+.engineering-graphic .checkpoint small,
+.engineering-graphic .checkpoint em,
+.engineering-graphic .visual-legend,
+.engineering-graphic .collection-legend {
+  color: var(--graphic-muted);
+}
+
+.engineering-graphic .legend-line {
+  background: var(--graphic-line);
+}
+
+.engineering-graphic .legend-line.dash {
+  background: repeating-linear-gradient(90deg, var(--graphic-line-muted) 0 8px, transparent 8px 14px);
+}
+
+.engineering-graphic .kpi-card,
+.engineering-graphic .collection-evidence-card {
+  border-color: color-mix(in srgb, var(--graphic-line) 22%, transparent);
+  color: var(--graphic-ink);
+  background: var(--graphic-node-bg);
+}
+
+.engineering-graphic .kpi-icon {
+  color: var(--graphic-line);
+  background: var(--graphic-node-soft);
+}
+
+.engineering-graphic .kpi-card strong {
+  color: var(--graphic-line);
+}
+
+.engineering-graphic .collection-evidence-card span {
+  color: var(--graphic-muted);
+}
+
+.engineering-graphic .collection-evidence-card strong {
+  color: var(--graphic-ink);
+}
+
+.collection-evidence-grid[data-graphic-theme="dark-engineering"] .collection-evidence-card span,
+[data-graphic-theme="dark-engineering"] .collection-evidence-card span {
+  color: var(--graphic-muted) !important;
+}
+
+.collection-evidence-grid[data-graphic-theme="dark-engineering"] .collection-evidence-card strong,
+[data-graphic-theme="dark-engineering"] .collection-evidence-card strong {
+  color: var(--graphic-ink) !important;
+}
+
+.engineering-graphic .kpi-card.is-fail strong {
+  color: var(--graphic-assessment);
+}
+
+.engineering-graphic .kpi-card.is-review strong {
+  color: var(--graphic-review);
+}
+
+.engineering-graphic .collection-backdrop,
+.engineering-graphic .collection-step-index,
+.engineering-graphic .collection-step-icon,
+.engineering-graphic .collection-legend i {
+  display: none;
+}
+
+.engineering-graphic .collection-flowline {
+  left: 13%;
+  right: 13%;
+  top: 47%;
+  height: 2px;
+  background: var(--graphic-line);
+  box-shadow: none;
+}
+
+.engineering-graphic .collection-step {
+  min-height: 138px;
+}
+
+.capability-path-card.engineering-graphic .capability-flow-stage {
+  background:
+    linear-gradient(color-mix(in srgb, var(--graphic-line) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--graphic-line) 6%, transparent) 1px, transparent 1px),
+    #f8fcff;
+  background-size: 34px 34px, 34px 34px, auto;
+}
+
+.capability-flow-node[data-graphic-system="engineering-line"] {
+  border-color: color-mix(in srgb, var(--graphic-line) 24%, transparent);
+  color: var(--graphic-ink);
+  background: var(--graphic-node-bg);
+  box-shadow: 0 12px 28px rgba(20, 87, 217, 0.08);
+}
+
+.capability-flow-node[data-graphic-system="engineering-line"].is-active {
+  border-color: var(--graphic-line);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--graphic-line) 14%, transparent), 0 16px 34px rgba(20, 87, 217, 0.14);
+}
+
+.capability-flow-node[data-graphic-system="engineering-line"] .capability-flow-icon {
+  color: var(--graphic-line);
+  background: var(--graphic-node-soft);
+}
+
+.capability-edge-label {
+  background: color-mix(in srgb, var(--graphic-node-bg) 94%, transparent);
+}
+
+@media (max-width: 700px) {
+  .collection-visual.engineering-graphic { min-height: 0; border-radius: 8px; }
+  .collection-visual.engineering-graphic .collection-flowline { display: none; }
+  .collection-visual.engineering-graphic .collection-step-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 42px 10px 54px;
+  }
+  .collection-visual.engineering-graphic .collection-step {
+    min-height: 108px;
+    gap: 4px;
+    border-radius: 7px;
+    padding: 10px 7px;
+  }
+  .collection-visual.engineering-graphic .collection-step strong { font-size: 14px; line-height: 1.3; }
+  .collection-visual.engineering-graphic .collection-step small { font-size: 12px; line-height: 1.35; }
+  .collection-visual.engineering-graphic .collection-legend { left: 8px; right: 8px; bottom: 12px; gap: 8px; font-size: 12px; }
+  .collection-evidence-grid { gap: 7px; }
+  .collection-evidence-grid .collection-evidence-card { min-height: 104px; border-radius: 7px; padding: 9px 6px; }
+  .collection-evidence-grid .collection-evidence-card strong { font-size: 13px; }
+  .collection-evidence-grid .collection-evidence-card span { font-size: 12px; line-height: 1.35; }
+}

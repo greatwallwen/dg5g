@@ -1,0 +1,705 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="7800" height="11650" viewBox="0 0 7800 11650" role="img" aria-labelledby="title desc">
+<title id="title">5G课程能力图谱 学生学习版 V0.7</title>
+<desc id="desc">数字教材学生端学习地图</desc>
+<defs>
+<marker id="arrowSoft" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M1,1 L8,5 L1,9 z" fill="#475569"/></marker>
+<marker id="arrowStrong" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth"><path d="M1,1 L10,6 L1,11 z" fill="#334155"/></marker>
+<style><![CDATA[
+svg { font-family: "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif; letter-spacing: 0; }
+.node text { pointer-events: none; }
+.edge-layer path { vector-effect: non-scaling-stroke; }
+]]></style>
+</defs>
+<g class="background-layer"><rect x="0" y="0" width="7800" height="11650" fill="#f8fafc"/>
+<rect x="80.0" y="70.0" width="7640.0" height="390.0" rx="8" fill="#ffffff" stroke="#dbe4ef" stroke-width="1.6" />
+<line x1="0" y1="0" x2="0" y2="11650" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="800" y1="0" x2="800" y2="11650" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="1600" y1="0" x2="1600" y2="11650" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="2400" y1="0" x2="2400" y2="11650" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="3200" y1="0" x2="3200" y2="11650" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="4000" y1="0" x2="4000" y2="11650" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="4800" y1="0" x2="4800" y2="11650" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="5600" y1="0" x2="5600" y2="11650" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="6400" y1="0" x2="6400" y2="11650" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="7200" y1="0" x2="7200" y2="11650" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="0" y1="0" x2="7800" y2="0" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="0" y1="800" x2="7800" y2="800" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="0" y1="1600" x2="7800" y2="1600" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="0" y1="2400" x2="7800" y2="2400" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="0" y1="3200" x2="7800" y2="3200" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="0" y1="4000" x2="7800" y2="4000" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="0" y1="4800" x2="7800" y2="4800" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="0" y1="5600" x2="7800" y2="5600" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="0" y1="6400" x2="7800" y2="6400" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="0" y1="7200" x2="7800" y2="7200" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="0" y1="8000" x2="7800" y2="8000" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="0" y1="8800" x2="7800" y2="8800" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="0" y1="9600" x2="7800" y2="9600" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="0" y1="10400" x2="7800" y2="10400" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<line x1="0" y1="11200" x2="7800" y2="11200" stroke="#e2e8f0" stroke-width="1" opacity="0.13"/>
+<rect x="236.0" y="888.0" width="7328.0" height="1664.0" rx="8" fill="#ffffff" stroke="#dbe4ef" stroke-width="1.8" opacity="0.985"/>
+<rect x="236.0" y="2588.0" width="7328.0" height="1664.0" rx="8" fill="#ffffff" stroke="#dbe4ef" stroke-width="1.8" opacity="0.985"/>
+<rect x="236.0" y="4288.0" width="7328.0" height="1664.0" rx="8" fill="#ffffff" stroke="#dbe4ef" stroke-width="1.8" opacity="0.985"/>
+<rect x="236.0" y="5988.0" width="7328.0" height="1664.0" rx="8" fill="#ffffff" stroke="#dbe4ef" stroke-width="1.8" opacity="0.985"/>
+<rect x="236.0" y="7688.0" width="7328.0" height="1664.0" rx="8" fill="#ffffff" stroke="#dbe4ef" stroke-width="1.8" opacity="0.985"/>
+<rect x="236.0" y="9388.0" width="7328.0" height="1664.0" rx="8" fill="#ffffff" stroke="#dbe4ef" stroke-width="1.8" opacity="0.985"/></g>
+<g class="edge-layer"><path d="M2390.0,650.0 L2760.0,650.0" fill="none" stroke="#475569" stroke-width="6.8" opacity="0.9" marker-end="url(#arrowStrong)"/>
+<path d="M5140.0,650.0 L5520.0,650.0" fill="none" stroke="#475569" stroke-width="6.8" opacity="0.9" marker-end="url(#arrowStrong)"/>
+<path d="M3900.0,1095.0 L3155.0,1095.0 L3155.0,1308.3 L2410.0,1308.3" fill="none" stroke="#059669" stroke-width="5.2" opacity="0.78" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M3900.0,1095.0 L3155.0,1095.0 L3155.0,1575.0 L2410.0,1575.0" fill="none" stroke="#059669" stroke-width="5.2" opacity="0.78" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M3900.0,1095.0 L3155.0,1095.0 L3155.0,1841.7 L2410.0,1841.7" fill="none" stroke="#059669" stroke-width="5.2" opacity="0.78" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2540.0,1308.3 L2540.0,1841.7" fill="none" stroke="#ea580c" stroke-width="3.8" opacity="0.55" marker-end="url(#arrowStrong)"/>
+<path d="M2410.0,1308.3 L2540.0,1308.3" fill="none" stroke="#ea580c" stroke-width="4.8" opacity="0.82" marker-end="url(#arrowStrong)"/>
+<path d="M2410.0,1575.0 L2540.0,1575.0" fill="none" stroke="#ea580c" stroke-width="4.8" opacity="0.82" marker-end="url(#arrowStrong)"/>
+<path d="M2410.0,1841.7 L2540.0,1841.7" fill="none" stroke="#ea580c" stroke-width="4.8" opacity="0.82" marker-end="url(#arrowStrong)"/>
+<path d="M2540.0,1575.0 L2680.0,1575.0" fill="none" stroke="#ea580c" stroke-width="5.8" opacity="0.9" marker-end="url(#arrowStrong)"/>
+<path d="M4100.0,1355.0 L4310.0,1355.0" fill="none" stroke="#64748b" stroke-width="5.4" opacity="0.9" marker-end="url(#arrowStrong)"/>
+<path d="M5730.0,1355.0 L5940.0,1355.0" fill="none" stroke="#4f46e5" stroke-width="5.4" opacity="0.9" marker-end="url(#arrowStrong)"/>
+<path d="M6650.0,1880.0 L4037.5,1880.0 L4037.5,1990.0 L1425.0,1990.0" fill="none" stroke="#db2777" stroke-width="4.8" opacity="0.68" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2460.0,2158.0 L2680.0,2158.0" fill="none" stroke="#ca8a04" stroke-width="5.2" opacity="0.86" marker-end="url(#arrowStrong)"/>
+<path d="M4660.0,2158.0 L4880.0,2158.0" fill="none" stroke="#16a34a" stroke-width="5.2" opacity="0.86" marker-end="url(#arrowStrong)"/>
+<path d="M3900.0,2795.0 L3155.0,2795.0 L3155.0,3008.3 L2410.0,3008.3" fill="none" stroke="#059669" stroke-width="5.2" opacity="0.78" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M3900.0,2795.0 L3155.0,2795.0 L3155.0,3275.0 L2410.0,3275.0" fill="none" stroke="#059669" stroke-width="5.2" opacity="0.78" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M3900.0,2795.0 L3155.0,2795.0 L3155.0,3541.7 L2410.0,3541.7" fill="none" stroke="#059669" stroke-width="5.2" opacity="0.78" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2540.0,3008.3 L2540.0,3541.7" fill="none" stroke="#ea580c" stroke-width="3.8" opacity="0.55" marker-end="url(#arrowStrong)"/>
+<path d="M2410.0,3008.3 L2540.0,3008.3" fill="none" stroke="#ea580c" stroke-width="4.8" opacity="0.82" marker-end="url(#arrowStrong)"/>
+<path d="M2410.0,3275.0 L2540.0,3275.0" fill="none" stroke="#ea580c" stroke-width="4.8" opacity="0.82" marker-end="url(#arrowStrong)"/>
+<path d="M2410.0,3541.7 L2540.0,3541.7" fill="none" stroke="#ea580c" stroke-width="4.8" opacity="0.82" marker-end="url(#arrowStrong)"/>
+<path d="M2540.0,3275.0 L2680.0,3275.0" fill="none" stroke="#ea580c" stroke-width="5.8" opacity="0.9" marker-end="url(#arrowStrong)"/>
+<path d="M4100.0,3055.0 L4310.0,3055.0" fill="none" stroke="#64748b" stroke-width="5.4" opacity="0.9" marker-end="url(#arrowStrong)"/>
+<path d="M5730.0,3055.0 L5940.0,3055.0" fill="none" stroke="#4f46e5" stroke-width="5.4" opacity="0.9" marker-end="url(#arrowStrong)"/>
+<path d="M6650.0,3580.0 L4037.5,3580.0 L4037.5,3690.0 L1425.0,3690.0" fill="none" stroke="#db2777" stroke-width="4.8" opacity="0.68" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2460.0,3858.0 L2680.0,3858.0" fill="none" stroke="#ca8a04" stroke-width="5.2" opacity="0.86" marker-end="url(#arrowStrong)"/>
+<path d="M4660.0,3858.0 L4880.0,3858.0" fill="none" stroke="#16a34a" stroke-width="5.2" opacity="0.86" marker-end="url(#arrowStrong)"/>
+<path d="M3900.0,4495.0 L3155.0,4495.0 L3155.0,4675.0 L2410.0,4675.0" fill="none" stroke="#059669" stroke-width="5.2" opacity="0.78" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M3900.0,4495.0 L3155.0,4495.0 L3155.0,4875.0 L2410.0,4875.0" fill="none" stroke="#059669" stroke-width="5.2" opacity="0.78" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M3900.0,4495.0 L3155.0,4495.0 L3155.0,5075.0 L2410.0,5075.0" fill="none" stroke="#059669" stroke-width="5.2" opacity="0.78" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M3900.0,4495.0 L3155.0,4495.0 L3155.0,5275.0 L2410.0,5275.0" fill="none" stroke="#059669" stroke-width="5.2" opacity="0.78" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2540.0,4675.0 L2540.0,5275.0" fill="none" stroke="#ea580c" stroke-width="3.8" opacity="0.55" marker-end="url(#arrowStrong)"/>
+<path d="M2410.0,4675.0 L2540.0,4675.0" fill="none" stroke="#ea580c" stroke-width="4.8" opacity="0.82" marker-end="url(#arrowStrong)"/>
+<path d="M2410.0,4875.0 L2540.0,4875.0" fill="none" stroke="#ea580c" stroke-width="4.8" opacity="0.82" marker-end="url(#arrowStrong)"/>
+<path d="M2410.0,5075.0 L2540.0,5075.0" fill="none" stroke="#ea580c" stroke-width="4.8" opacity="0.82" marker-end="url(#arrowStrong)"/>
+<path d="M2410.0,5275.0 L2540.0,5275.0" fill="none" stroke="#ea580c" stroke-width="4.8" opacity="0.82" marker-end="url(#arrowStrong)"/>
+<path d="M2540.0,4975.0 L2680.0,4975.0" fill="none" stroke="#ea580c" stroke-width="5.8" opacity="0.9" marker-end="url(#arrowStrong)"/>
+<path d="M4100.0,4755.0 L4310.0,4755.0" fill="none" stroke="#64748b" stroke-width="5.4" opacity="0.9" marker-end="url(#arrowStrong)"/>
+<path d="M5730.0,4755.0 L5940.0,4755.0" fill="none" stroke="#4f46e5" stroke-width="5.4" opacity="0.9" marker-end="url(#arrowStrong)"/>
+<path d="M6650.0,5280.0 L4037.5,5280.0 L4037.5,5390.0 L1425.0,5390.0" fill="none" stroke="#db2777" stroke-width="4.8" opacity="0.68" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2460.0,5558.0 L2680.0,5558.0" fill="none" stroke="#ca8a04" stroke-width="5.2" opacity="0.86" marker-end="url(#arrowStrong)"/>
+<path d="M4660.0,5558.0 L4880.0,5558.0" fill="none" stroke="#16a34a" stroke-width="5.2" opacity="0.86" marker-end="url(#arrowStrong)"/>
+<path d="M3900.0,6195.0 L3155.0,6195.0 L3155.0,6408.3 L2410.0,6408.3" fill="none" stroke="#059669" stroke-width="5.2" opacity="0.78" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M3900.0,6195.0 L3155.0,6195.0 L3155.0,6675.0 L2410.0,6675.0" fill="none" stroke="#059669" stroke-width="5.2" opacity="0.78" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M3900.0,6195.0 L3155.0,6195.0 L3155.0,6941.7 L2410.0,6941.7" fill="none" stroke="#059669" stroke-width="5.2" opacity="0.78" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2540.0,6408.3 L2540.0,6941.7" fill="none" stroke="#ea580c" stroke-width="3.8" opacity="0.55" marker-end="url(#arrowStrong)"/>
+<path d="M2410.0,6408.3 L2540.0,6408.3" fill="none" stroke="#ea580c" stroke-width="4.8" opacity="0.82" marker-end="url(#arrowStrong)"/>
+<path d="M2410.0,6675.0 L2540.0,6675.0" fill="none" stroke="#ea580c" stroke-width="4.8" opacity="0.82" marker-end="url(#arrowStrong)"/>
+<path d="M2410.0,6941.7 L2540.0,6941.7" fill="none" stroke="#ea580c" stroke-width="4.8" opacity="0.82" marker-end="url(#arrowStrong)"/>
+<path d="M2540.0,6675.0 L2680.0,6675.0" fill="none" stroke="#ea580c" stroke-width="5.8" opacity="0.9" marker-end="url(#arrowStrong)"/>
+<path d="M4100.0,6455.0 L4310.0,6455.0" fill="none" stroke="#64748b" stroke-width="5.4" opacity="0.9" marker-end="url(#arrowStrong)"/>
+<path d="M5730.0,6455.0 L5940.0,6455.0" fill="none" stroke="#4f46e5" stroke-width="5.4" opacity="0.9" marker-end="url(#arrowStrong)"/>
+<path d="M6650.0,6980.0 L4037.5,6980.0 L4037.5,7090.0 L1425.0,7090.0" fill="none" stroke="#db2777" stroke-width="4.8" opacity="0.68" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2460.0,7258.0 L2680.0,7258.0" fill="none" stroke="#ca8a04" stroke-width="5.2" opacity="0.86" marker-end="url(#arrowStrong)"/>
+<path d="M4660.0,7258.0 L4880.0,7258.0" fill="none" stroke="#16a34a" stroke-width="5.2" opacity="0.86" marker-end="url(#arrowStrong)"/>
+<path d="M3900.0,7895.0 L3155.0,7895.0 L3155.0,8108.3 L2410.0,8108.3" fill="none" stroke="#059669" stroke-width="5.2" opacity="0.78" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M3900.0,7895.0 L3155.0,7895.0 L3155.0,8375.0 L2410.0,8375.0" fill="none" stroke="#059669" stroke-width="5.2" opacity="0.78" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M3900.0,7895.0 L3155.0,7895.0 L3155.0,8641.7 L2410.0,8641.7" fill="none" stroke="#059669" stroke-width="5.2" opacity="0.78" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2540.0,8108.3 L2540.0,8641.7" fill="none" stroke="#ea580c" stroke-width="3.8" opacity="0.55" marker-end="url(#arrowStrong)"/>
+<path d="M2410.0,8108.3 L2540.0,8108.3" fill="none" stroke="#ea580c" stroke-width="4.8" opacity="0.82" marker-end="url(#arrowStrong)"/>
+<path d="M2410.0,8375.0 L2540.0,8375.0" fill="none" stroke="#ea580c" stroke-width="4.8" opacity="0.82" marker-end="url(#arrowStrong)"/>
+<path d="M2410.0,8641.7 L2540.0,8641.7" fill="none" stroke="#ea580c" stroke-width="4.8" opacity="0.82" marker-end="url(#arrowStrong)"/>
+<path d="M2540.0,8375.0 L2680.0,8375.0" fill="none" stroke="#ea580c" stroke-width="5.8" opacity="0.9" marker-end="url(#arrowStrong)"/>
+<path d="M4100.0,8155.0 L4310.0,8155.0" fill="none" stroke="#64748b" stroke-width="5.4" opacity="0.9" marker-end="url(#arrowStrong)"/>
+<path d="M5730.0,8155.0 L5940.0,8155.0" fill="none" stroke="#4f46e5" stroke-width="5.4" opacity="0.9" marker-end="url(#arrowStrong)"/>
+<path d="M6650.0,8680.0 L4037.5,8680.0 L4037.5,8790.0 L1425.0,8790.0" fill="none" stroke="#db2777" stroke-width="4.8" opacity="0.68" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2460.0,8958.0 L2680.0,8958.0" fill="none" stroke="#ca8a04" stroke-width="5.2" opacity="0.86" marker-end="url(#arrowStrong)"/>
+<path d="M4660.0,8958.0 L4880.0,8958.0" fill="none" stroke="#16a34a" stroke-width="5.2" opacity="0.86" marker-end="url(#arrowStrong)"/>
+<path d="M3900.0,9595.0 L3155.0,9595.0 L3155.0,9820.0 L2410.0,9820.0" fill="none" stroke="#059669" stroke-width="5.2" opacity="0.78" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M3900.0,9595.0 L3155.0,9595.0 L3155.0,10110.0 L2410.0,10110.0" fill="none" stroke="#059669" stroke-width="5.2" opacity="0.78" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2540.0,9820.0 L2540.0,10110.0" fill="none" stroke="#ea580c" stroke-width="3.8" opacity="0.55" marker-end="url(#arrowStrong)"/>
+<path d="M2410.0,9820.0 L2540.0,9820.0" fill="none" stroke="#ea580c" stroke-width="4.8" opacity="0.82" marker-end="url(#arrowStrong)"/>
+<path d="M2410.0,10110.0 L2540.0,10110.0" fill="none" stroke="#ea580c" stroke-width="4.8" opacity="0.82" marker-end="url(#arrowStrong)"/>
+<path d="M2540.0,9965.0 L2680.0,9965.0" fill="none" stroke="#ea580c" stroke-width="5.8" opacity="0.9" marker-end="url(#arrowStrong)"/>
+<path d="M4100.0,9855.0 L4310.0,9855.0" fill="none" stroke="#64748b" stroke-width="5.4" opacity="0.9" marker-end="url(#arrowStrong)"/>
+<path d="M5730.0,9855.0 L5940.0,9855.0" fill="none" stroke="#4f46e5" stroke-width="5.4" opacity="0.9" marker-end="url(#arrowStrong)"/>
+<path d="M6650.0,10380.0 L4037.5,10380.0 L4037.5,10490.0 L1425.0,10490.0" fill="none" stroke="#db2777" stroke-width="4.8" opacity="0.68" marker-end="url(#arrowStrong)" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M2460.0,10658.0 L2680.0,10658.0" fill="none" stroke="#ca8a04" stroke-width="5.2" opacity="0.86" marker-end="url(#arrowStrong)"/>
+<path d="M4660.0,10658.0 L4880.0,10658.0" fill="none" stroke="#16a34a" stroke-width="5.2" opacity="0.86" marker-end="url(#arrowStrong)"/></g>
+<g class="node-layer"><text x="180.0" y="118.0" text-anchor="start" font-size="62" font-weight="850" fill="#0f172a" dominant-baseline="text-before-edge"><tspan x="180.0" dy="0.0">5G网络优化（高级）课程能力图谱｜数字教材学生学习版 V0.7</tspan></text>
+<text x="184.0" y="220.0" text-anchor="start" font-size="34" font-weight="500" fill="#475569" dominant-baseline="text-before-edge"><tspan x="184.0" dy="0.0">定位：学生端默认图，不展示审计墙；把“学什么、做什么、产出什么、如何达成”做成可纵向滚动的六项目学习地图。</tspan></text>
+<g id="CAPSULE-89436" class="node node-VisualNote">
+<rect x="4890.0" y="130.0" width="2680.0" height="245.0" rx="7" fill="#eff6ff" stroke="#3b82f6" stroke-width="2.8" />
+<clipPath id="clip-CAPSULE-89436"><rect x="4898.0" y="138.0" width="2664.0" height="229.0" rx="5"/></clipPath>
+<g clip-path="url(#clip-CAPSULE-89436)">
+<text x="6230.0" y="223.3" text-anchor="middle" font-size="24" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="6230.0" dy="0.0">显示策略</tspan></text>
+<text x="6230.0" y="261.6" text-anchor="middle" font-size="17" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="6230.0" dy="0.0">6个项目群完整保留；18个任务完整保留；过程/技能/知识按项目摘要；证据与来源进入点击详情。</tspan></text>
+</g>
+</g>
+<g id="STU-V07-COURSE" class="node node-Course">
+<rect x="250.0" y="500.0" width="2140.0" height="300.0" rx="7" fill="#ffffff" stroke="#334155" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-COURSE"><rect x="258.0" y="508.0" width="2124.0" height="284.0" rx="5"/></clipPath>
+<text x="2380.0" y="509.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-COURSE</text>
+<g clip-path="url(#clip-STU-V07-COURSE)">
+<text x="1320.0" y="594.3" text-anchor="middle" font-size="52" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1320.0" dy="0.0">课程总目标</tspan></text>
+<text x="1320.0" y="665.6" text-anchor="middle" font-size="34" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1320.0" dy="0.0">完成采集、测试、分析、优化、信令解析和质量复核。</tspan></text>
+</g>
+</g>
+<g id="STU-V07-ABILITY" class="node node-Capability">
+<rect x="2760.0" y="500.0" width="2380.0" height="300.0" rx="7" fill="#fde68a" stroke="#ca8a04" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-ABILITY"><rect x="2768.0" y="508.0" width="2364.0" height="284.0" rx="5"/></clipPath>
+<text x="5130.0" y="509.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-ABILITY</text>
+<g clip-path="url(#clip-STU-V07-ABILITY)">
+<text x="3950.0" y="594.3" text-anchor="middle" font-size="52" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3950.0" dy="0.0">学习结果：8项核心能力</tspan></text>
+<text x="3950.0" y="665.6" text-anchor="middle" font-size="34" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3950.0" dy="0.0">采集、测试、数据治理、参数优化、端到端优化、性能提升、信令分析、质量复核。</tspan></text>
+</g>
+</g>
+<g id="STU-V07-ASSESS" class="node node-Assessment">
+<rect x="5520.0" y="500.0" width="2030.0" height="300.0" rx="7" fill="#e9d5ff" stroke="#9333ea" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-ASSESS"><rect x="5528.0" y="508.0" width="2014.0" height="284.0" rx="5"/></clipPath>
+<text x="7540.0" y="509.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-ASSESS</text>
+<g clip-path="url(#clip-STU-V07-ASSESS)">
+<text x="6535.0" y="594.3" text-anchor="middle" font-size="52" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="6535.0" dy="0.0">学习评价</tspan></text>
+<text x="6535.0" y="665.6" text-anchor="middle" font-size="34" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="6535.0" dy="0.0">每个项目对应成果包和过程评价；证据进入数字教材详情页。</tspan></text>
+</g>
+</g>
+<g id="TGRP-001" class="node node-Project">
+<rect x="280.0" y="930.0" width="7240.0" height="165.0" rx="7" fill="#bbf7d0" stroke="#059669" stroke-width="2.8" />
+<clipPath id="clip-TGRP-001"><rect x="288.0" y="938.0" width="7224.0" height="149.0" rx="5"/></clipPath>
+<text x="7510.0" y="939.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">TGRP-001</text>
+<g clip-path="url(#clip-TGRP-001)">
+<text x="3900.0" y="957.9" text-anchor="middle" font-size="52" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3900.0" dy="0.0">5G网络信息采集</tspan></text>
+<text x="3900.0" y="1029.3" text-anchor="middle" font-size="32" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3900.0" dy="0.0">站点与用户场景信息采集、工具测量、记录核验、沟通反馈</tspan></text>
+</g>
+</g>
+<g id="T-001" class="node node-Task">
+<rect x="390.0" y="1190.0" width="2020.0" height="236.7" rx="7" fill="#fed7aa" stroke="#ea580c" stroke-width="2.8" />
+<clipPath id="clip-T-001"><rect x="398.0" y="1198.0" width="2004.0" height="220.7" rx="5"/></clipPath>
+<text x="2400.0" y="1199.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">T-001</text>
+<g clip-path="url(#clip-T-001)">
+<text x="1400.0" y="1258.5" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">室内环境信息采集</tspan></text>
+<text x="1400.0" y="1321.6" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">室内环境信息采集表、照片/截图目录、工具记录、异常说明</tspan></text>
+</g>
+</g>
+<g id="T-002" class="node node-Task">
+<rect x="390.0" y="1456.7" width="2020.0" height="236.7" rx="7" fill="#fed7aa" stroke="#ea580c" stroke-width="2.8" />
+<clipPath id="clip-T-002"><rect x="398.0" y="1464.7" width="2004.0" height="220.7" rx="5"/></clipPath>
+<text x="2400.0" y="1465.7" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">T-002</text>
+<g clip-path="url(#clip-T-002)">
+<text x="1400.0" y="1525.2" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">室外环境信息采集</tspan></text>
+<text x="1400.0" y="1588.3" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">室外环境勘察表、天馈参数记录、覆盖场景照片目录</tspan></text>
+</g>
+</g>
+<g id="T-003" class="node node-Task">
+<rect x="390.0" y="1723.3" width="2020.0" height="236.7" rx="7" fill="#fed7aa" stroke="#ea580c" stroke-width="2.8" />
+<clipPath id="clip-T-003"><rect x="398.0" y="1731.3" width="2004.0" height="220.7" rx="5"/></clipPath>
+<text x="2400.0" y="1732.3" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">T-003</text>
+<g clip-path="url(#clip-T-003)">
+<text x="1400.0" y="1791.8" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">投诉信息采集</tspan></text>
+<text x="1400.0" y="1854.9" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">投诉信息采集单、现场定位记录、处理反馈记录、沟通记录</tspan></text>
+</g>
+</g>
+<g id="STU-V07-PROC-TGRP-001" class="node node-Process">
+<rect x="2680.0" y="1190.0" width="1420.0" height="330.0" rx="7" fill="#e2e8f0" stroke="#64748b" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-PROC-TGRP-001"><rect x="2688.0" y="1198.0" width="1404.0" height="314.0" rx="5"/></clipPath>
+<text x="4090.0" y="1199.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-PROC-TGRP-001</text>
+<g clip-path="url(#clip-STU-V07-PROC-TGRP-001)">
+<text x="3390.0" y="1305.2" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3390.0" dy="0.0">学习过程</tspan></text>
+<text x="3390.0" y="1368.3" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3390.0" dy="0.0">采集准备与安全边界确认；主设备与机房配套识别；电源传输与环境信息采集；采集表填写与离场复核</tspan></text>
+</g>
+</g>
+<g id="STU-V07-SKL-TGRP-001" class="node node-Skill">
+<rect x="4310.0" y="1190.0" width="1420.0" height="330.0" rx="7" fill="#c7d2fe" stroke="#4f46e5" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-SKL-TGRP-001"><rect x="4318.0" y="1198.0" width="1404.0" height="314.0" rx="5"/></clipPath>
+<text x="5720.0" y="1199.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-SKL-TGRP-001</text>
+<g clip-path="url(#clip-STU-V07-SKL-TGRP-001)">
+<text x="5020.0" y="1268.6" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="5020.0" dy="0.0">要会做</tspan></text>
+<text x="5020.0" y="1331.7" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="5020.0" dy="0.0">能核对工参、站点、工具、人员分工和进入机房安全要求，形成采集前检查记录</tspan><tspan x="5020.0" dy="36.6">。；能识别BBU、AAU、RRU、机柜、板卡、电源模块和传输配套并记录型号</tspan><tspan x="5020.0" dy="36.6">、数量、位置。；能测量并记录电源、温湿度、传输速率和端口等关键字段，标注异常或缺失信息…</tspan></text>
+</g>
+</g>
+<g id="STU-V07-KNO-TGRP-001" class="node node-Knowledge">
+<rect x="5940.0" y="1190.0" width="1450.0" height="690.0" rx="7" fill="#fbcfe8" stroke="#db2777" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-KNO-TGRP-001"><rect x="5948.0" y="1198.0" width="1434.0" height="674.0" rx="5"/></clipPath>
+<text x="7380.0" y="1199.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-KNO-TGRP-001</text>
+<g clip-path="url(#clip-STU-V07-KNO-TGRP-001)">
+<text x="6665.0" y="1430.3" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="6665.0" dy="0.0">要懂的知识/规范</tspan></text>
+<text x="6665.0" y="1493.4" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="6665.0" dy="0.0">站点勘察前置资料、机房作业安全、GPS/卷尺/万用表/坡度仪工具用途。；5G</tspan><tspan x="6665.0" dy="36.6">RAN设备组成、BBU板卡功能、电源与传输设备基础知识。；机房运行环境、电源测量</tspan><tspan x="6665.0" dy="36.6">、安全操作、传输链路与端口记录规则。；工程记录完整性、照片编号、表单字段校验和版权公开边界</tspan><tspan x="6665.0" dy="36.6">。</tspan></text>
+</g>
+</g>
+<g id="CAP-001" class="node node-Capability">
+<rect x="390.0" y="1990.0" width="2070.0" height="335.0" rx="7" fill="#fde68a" stroke="#ca8a04" stroke-width="2.8" />
+<clipPath id="clip-CAP-001"><rect x="398.0" y="1998.0" width="2054.0" height="319.0" rx="5"/></clipPath>
+<text x="2450.0" y="1999.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">CAP-001</text>
+<g clip-path="url(#clip-CAP-001)">
+<text x="1425.0" y="2089.4" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1425.0" dy="0.0">5G站点与投诉场景证据采集能力</tspan></text>
+<text x="1425.0" y="2152.5" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1425.0" dy="0.0">面向5G网络规划、优化前置和投诉初筛，能够采集室内机房、室外天馈、覆盖环境和投诉现场证据，完成核验、脱敏归档和问题输入</tspan><tspan x="1425.0" dy="36.6">。</tspan></text>
+</g>
+</g>
+<g id="STU-V07-OUT-TGRP-001" class="node node-Outcome">
+<rect x="2680.0" y="1990.0" width="1980.0" height="335.0" rx="7" fill="#bbf7d0" stroke="#16a34a" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-OUT-TGRP-001"><rect x="2688.0" y="1998.0" width="1964.0" height="319.0" rx="5"/></clipPath>
+<text x="4650.0" y="1999.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-OUT-TGRP-001</text>
+<g clip-path="url(#clip-STU-V07-OUT-TGRP-001)">
+<text x="3670.0" y="2107.7" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3670.0" dy="0.0">成果包</tspan></text>
+<text x="3670.0" y="2170.8" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3670.0" dy="0.0">站点/用户场景信息采集包、室内外勘察记录、投诉反馈记录</tspan></text>
+</g>
+</g>
+<g id="STU-V07-EVAL-TGRP-001" class="node node-Assessment">
+<rect x="4880.0" y="1990.0" width="2510.0" height="335.0" rx="7" fill="#e9d5ff" stroke="#9333ea" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-EVAL-TGRP-001"><rect x="4888.0" y="1998.0" width="2494.0" height="319.0" rx="5"/></clipPath>
+<text x="7380.0" y="1999.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-EVAL-TGRP-001</text>
+<g clip-path="url(#clip-STU-V07-EVAL-TGRP-001)">
+<text x="6135.0" y="2106.5" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="6135.0" dy="0.0">达成判断</tspan></text>
+<text x="6135.0" y="2169.6" text-anchor="middle" font-size="33" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="6135.0" dy="0.0">48条证据支撑；评价详情进入任务页。</tspan></text>
+</g>
+</g>
+<g id="TGRP-002" class="node node-Project">
+<rect x="280.0" y="2630.0" width="7240.0" height="165.0" rx="7" fill="#bbf7d0" stroke="#059669" stroke-width="2.8" />
+<clipPath id="clip-TGRP-002"><rect x="288.0" y="2638.0" width="7224.0" height="149.0" rx="5"/></clipPath>
+<text x="7510.0" y="2639.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">TGRP-002</text>
+<g clip-path="url(#clip-TGRP-002)">
+<text x="3900.0" y="2657.9" text-anchor="middle" font-size="52" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3900.0" dy="0.0">5G网络测试</tspan></text>
+<text x="3900.0" y="2729.3" text-anchor="middle" font-size="32" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3900.0" dy="0.0">测试组织、数据质量控制、异常识别、问题初筛</tspan></text>
+</g>
+</g>
+<g id="T-004" class="node node-Task">
+<rect x="390.0" y="2890.0" width="2020.0" height="236.7" rx="7" fill="#fed7aa" stroke="#ea580c" stroke-width="2.8" />
+<clipPath id="clip-T-004"><rect x="398.0" y="2898.0" width="2004.0" height="220.7" rx="5"/></clipPath>
+<text x="2400.0" y="2899.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">T-004</text>
+<g clip-path="url(#clip-T-004)">
+<text x="1400.0" y="2958.5" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">DT/CQT测试准备和执行</tspan></text>
+<text x="1400.0" y="3021.6" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">测试计划、路线/点位记录、原始log、测试异常记录</tspan></text>
+</g>
+</g>
+<g id="T-005" class="node node-Task">
+<rect x="390.0" y="3156.7" width="2020.0" height="236.7" rx="7" fill="#fed7aa" stroke="#ea580c" stroke-width="2.8" />
+<clipPath id="clip-T-005"><rect x="398.0" y="3164.7" width="2004.0" height="220.7" rx="5"/></clipPath>
+<text x="2400.0" y="3165.7" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">T-005</text>
+<g clip-path="url(#clip-T-005)">
+<text x="1400.0" y="3225.2" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">5G网络测试问题处理</tspan></text>
+<text x="1400.0" y="3288.3" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">测试问题处理单、异常截图/日志、恢复记录</tspan></text>
+</g>
+</g>
+<g id="T-006" class="node node-Task">
+<rect x="390.0" y="3423.3" width="2020.0" height="236.7" rx="7" fill="#fed7aa" stroke="#ea580c" stroke-width="2.8" />
+<clipPath id="clip-T-006"><rect x="398.0" y="3431.3" width="2004.0" height="220.7" rx="5"/></clipPath>
+<text x="2400.0" y="3432.3" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">T-006</text>
+<g clip-path="url(#clip-T-006)">
+<text x="1400.0" y="3491.8" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">5G网络测试数据分析</tspan></text>
+<text x="1400.0" y="3554.9" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">测试数据分析报告、异常清单、处理建议单</tspan></text>
+</g>
+</g>
+<g id="STU-V07-PROC-TGRP-002" class="node node-Process">
+<rect x="2680.0" y="2890.0" width="1420.0" height="330.0" rx="7" fill="#e2e8f0" stroke="#64748b" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-PROC-TGRP-002"><rect x="2688.0" y="2898.0" width="1404.0" height="314.0" rx="5"/></clipPath>
+<text x="4090.0" y="2899.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-PROC-TGRP-002</text>
+<g clip-path="url(#clip-STU-V07-PROC-TGRP-002)">
+<text x="3390.0" y="3005.2" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3390.0" dy="0.0">学习过程</tspan></text>
+<text x="3390.0" y="3068.3" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3390.0" dy="0.0">测试目标和场景确认；测试工具和参数配置；路线/点位规划与风险检查；测试执行与原始日志封存</tspan></text>
+</g>
+</g>
+<g id="STU-V07-SKL-TGRP-002" class="node node-Skill">
+<rect x="4310.0" y="2890.0" width="1420.0" height="330.0" rx="7" fill="#c7d2fe" stroke="#4f46e5" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-SKL-TGRP-002"><rect x="4318.0" y="2898.0" width="1404.0" height="314.0" rx="5"/></clipPath>
+<text x="5720.0" y="2899.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-SKL-TGRP-002</text>
+<g clip-path="url(#clip-STU-V07-SKL-TGRP-002)">
+<text x="5020.0" y="2968.6" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="5020.0" dy="0.0">要会做</tspan></text>
+<text x="5020.0" y="3031.7" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="5020.0" dy="0.0">能区分DT、CQT、NSA/SA场景和测试业务目标，确定测试范围。；能配置终端</tspan><tspan x="5020.0" dy="36.6">、SIM卡、测试软件、采样参数、业务脚本和日志保存路径。；能规划道路或定点测试路线</tspan><tspan x="5020.0" dy="36.6">，检查交通、安全、覆盖区域和重复测试条件。；能按计划执行测试，实时标注异常…</tspan></text>
+</g>
+</g>
+<g id="STU-V07-KNO-TGRP-002" class="node node-Knowledge">
+<rect x="5940.0" y="2890.0" width="1450.0" height="690.0" rx="7" fill="#fbcfe8" stroke="#db2777" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-KNO-TGRP-002"><rect x="5948.0" y="2898.0" width="1434.0" height="674.0" rx="5"/></clipPath>
+<text x="7380.0" y="2899.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-KNO-TGRP-002</text>
+<g clip-path="url(#clip-STU-V07-KNO-TGRP-002)">
+<text x="6665.0" y="3148.6" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="6665.0" dy="0.0">要懂的知识/规范</tspan></text>
+<text x="6665.0" y="3211.7" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="6665.0" dy="0.0">DT/CQT定义、测试场景、NSA/SA组网和性能测量基本口径。；测试工具链、采样参数</tspan><tspan x="6665.0" dy="36.6">、业务脚本、日志文件与数据质量要求。；路线覆盖、点位代表性、测试安全、采样连续性和异常记录规则</tspan><tspan x="6665.0" dy="36.6">。；原始日志、时间戳、GPS轨迹、异常标记和数据封存规则。</tspan></text>
+</g>
+</g>
+<g id="CAP-002" class="node node-Capability">
+<rect x="390.0" y="3690.0" width="2070.0" height="335.0" rx="7" fill="#fde68a" stroke="#ca8a04" stroke-width="2.8" />
+<clipPath id="clip-CAP-002"><rect x="398.0" y="3698.0" width="2054.0" height="319.0" rx="5"/></clipPath>
+<text x="2450.0" y="3699.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">CAP-002</text>
+<g clip-path="url(#clip-CAP-002)">
+<text x="1425.0" y="3789.4" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1425.0" dy="0.0">DT/CQT测试组织、执行与数据质量控制能力</tspan></text>
+<text x="1425.0" y="3852.5" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1425.0" dy="0.0">面向道路测试和定点测试任务，能够确认测试目标、配置工具参数、规划路线/点位、执行测试、处理现场异常并封存可追溯原始数据</tspan><tspan x="1425.0" dy="36.6">。</tspan></text>
+</g>
+</g>
+<g id="STU-V07-OUT-TGRP-002" class="node node-Outcome">
+<rect x="2680.0" y="3690.0" width="1980.0" height="335.0" rx="7" fill="#bbf7d0" stroke="#16a34a" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-OUT-TGRP-002"><rect x="2688.0" y="3698.0" width="1964.0" height="319.0" rx="5"/></clipPath>
+<text x="4650.0" y="3699.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-OUT-TGRP-002</text>
+<g clip-path="url(#clip-STU-V07-OUT-TGRP-002)">
+<text x="3670.0" y="3807.7" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3670.0" dy="0.0">成果包</tspan></text>
+<text x="3670.0" y="3870.8" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3670.0" dy="0.0">DT/CQT测试数据包、异常处理记录、测试数据分析报告</tspan></text>
+</g>
+</g>
+<g id="STU-V07-EVAL-TGRP-002" class="node node-Assessment">
+<rect x="4880.0" y="3690.0" width="2510.0" height="335.0" rx="7" fill="#e9d5ff" stroke="#9333ea" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-EVAL-TGRP-002"><rect x="4888.0" y="3698.0" width="2494.0" height="319.0" rx="5"/></clipPath>
+<text x="7380.0" y="3699.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-EVAL-TGRP-002</text>
+<g clip-path="url(#clip-STU-V07-EVAL-TGRP-002)">
+<text x="6135.0" y="3806.5" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="6135.0" dy="0.0">达成判断</tspan></text>
+<text x="6135.0" y="3869.6" text-anchor="middle" font-size="33" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="6135.0" dy="0.0">48条证据支撑；评价详情进入任务页。</tspan></text>
+</g>
+</g>
+<g id="TGRP-003" class="node node-Project">
+<rect x="280.0" y="4330.0" width="7240.0" height="165.0" rx="7" fill="#bbf7d0" stroke="#059669" stroke-width="2.8" />
+<clipPath id="clip-TGRP-003"><rect x="288.0" y="4338.0" width="7224.0" height="149.0" rx="5"/></clipPath>
+<text x="7510.0" y="4339.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">TGRP-003</text>
+<g clip-path="url(#clip-TGRP-003)">
+<text x="3900.0" y="4357.9" text-anchor="middle" font-size="52" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3900.0" dy="0.0">5G网络信息管理</tspan></text>
+<text x="3900.0" y="4429.3" text-anchor="middle" font-size="32" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3900.0" dy="0.0">网管操作、告警日志监控、参数核查配置、运行状态判断</tspan></text>
+</g>
+</g>
+<g id="T-007" class="node node-Task">
+<rect x="390.0" y="4590.0" width="2020.0" height="170.0" rx="7" fill="#fed7aa" stroke="#ea580c" stroke-width="2.8" />
+<clipPath id="clip-T-007"><rect x="398.0" y="4598.0" width="2004.0" height="154.0" rx="5"/></clipPath>
+<text x="2400.0" y="4599.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">T-007</text>
+<g clip-path="url(#clip-T-007)">
+<text x="1400.0" y="4625.2" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">5G网管架构和功能</tspan></text>
+<text x="1400.0" y="4688.3" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">网管架构识别记录、功能模块说明、平台操作记录</tspan></text>
+</g>
+</g>
+<g id="T-008" class="node node-Task">
+<rect x="390.0" y="4790.0" width="2020.0" height="170.0" rx="7" fill="#fed7aa" stroke="#ea580c" stroke-width="2.8" />
+<clipPath id="clip-T-008"><rect x="398.0" y="4798.0" width="2004.0" height="154.0" rx="5"/></clipPath>
+<text x="2400.0" y="4799.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">T-008</text>
+<g clip-path="url(#clip-T-008)">
+<text x="1400.0" y="4825.2" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">5G网络运行监控</tspan></text>
+<text x="1400.0" y="4888.3" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">监控记录、告警/KPI/日志截图编号、运行状态判断表</tspan></text>
+</g>
+</g>
+<g id="T-009" class="node node-Task">
+<rect x="390.0" y="4990.0" width="2020.0" height="170.0" rx="7" fill="#fed7aa" stroke="#ea580c" stroke-width="2.8" />
+<clipPath id="clip-T-009"><rect x="398.0" y="4998.0" width="2004.0" height="154.0" rx="5"/></clipPath>
+<text x="2400.0" y="4999.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">T-009</text>
+<g clip-path="url(#clip-T-009)">
+<text x="1400.0" y="5025.2" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">5G网络参数检查</tspan></text>
+<text x="1400.0" y="5088.3" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">参数核查表、参数差异清单、问题清单</tspan></text>
+</g>
+</g>
+<g id="T-010" class="node node-Task">
+<rect x="390.0" y="5190.0" width="2020.0" height="170.0" rx="7" fill="#fed7aa" stroke="#ea580c" stroke-width="2.8" />
+<clipPath id="clip-T-010"><rect x="398.0" y="5198.0" width="2004.0" height="154.0" rx="5"/></clipPath>
+<text x="2400.0" y="5199.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">T-010</text>
+<g clip-path="url(#clip-T-010)">
+<text x="1400.0" y="5225.2" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">5G网络参数设置</tspan></text>
+<text x="1400.0" y="5288.3" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">参数配置记录、邻区/锚点变更表、验证截图编号</tspan></text>
+</g>
+</g>
+<g id="STU-V07-PROC-TGRP-003" class="node node-Process">
+<rect x="2680.0" y="4590.0" width="1420.0" height="330.0" rx="7" fill="#e2e8f0" stroke="#64748b" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-PROC-TGRP-003"><rect x="2688.0" y="4598.0" width="1404.0" height="314.0" rx="5"/></clipPath>
+<text x="4090.0" y="4599.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-PROC-TGRP-003</text>
+<g clip-path="url(#clip-STU-V07-PROC-TGRP-003)">
+<text x="3390.0" y="4705.2" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3390.0" dy="0.0">学习过程</tspan></text>
+<text x="3390.0" y="4768.3" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3390.0" dy="0.0">网管系统组成识别；平台登录与权限边界确认；网元与资源对象导航；功能组件与任务关系映射</tspan></text>
+</g>
+</g>
+<g id="STU-V07-SKL-TGRP-003" class="node node-Skill">
+<rect x="4310.0" y="4590.0" width="1420.0" height="330.0" rx="7" fill="#c7d2fe" stroke="#4f46e5" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-SKL-TGRP-003"><rect x="4318.0" y="4598.0" width="1404.0" height="314.0" rx="5"/></clipPath>
+<text x="5720.0" y="4599.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-SKL-TGRP-003</text>
+<g clip-path="url(#clip-STU-V07-SKL-TGRP-003)">
+<text x="5020.0" y="4668.6" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="5020.0" dy="0.0">要会做</tspan></text>
+<text x="5020.0" y="4731.7" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="5020.0" dy="0.0">能识别网管服务器、客户端、数据库、北向接口和无线应用功能模块。；能完成登录</tspan><tspan x="5020.0" dy="36.6">、角色权限识别、菜单入口定位和可操作范围说明。；能定位gNB、小区、传输</tspan><tspan x="5020.0" dy="36.6">、核心网或仿真资源对象并建立对象层级关系。；能把配置、监控、告警、日志…</tspan></text>
+</g>
+</g>
+<g id="STU-V07-KNO-TGRP-003" class="node node-Knowledge">
+<rect x="5940.0" y="4590.0" width="1450.0" height="690.0" rx="7" fill="#fbcfe8" stroke="#db2777" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-KNO-TGRP-003"><rect x="5948.0" y="4598.0" width="1434.0" height="674.0" rx="5"/></clipPath>
+<text x="7380.0" y="4599.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-KNO-TGRP-003</text>
+<g clip-path="url(#clip-STU-V07-KNO-TGRP-003)">
+<text x="6665.0" y="4848.6" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="6665.0" dy="0.0">要懂的知识/规范</tspan></text>
+<text x="6665.0" y="4911.7" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="6665.0" dy="0.0">网管系统架构、管理对象、北向接口和运维监控功能。；用户角色、权限管理、操作审计和最小授权原则</tspan><tspan x="6665.0" dy="36.6">。；NR/NG-RAN资源对象、网元层级、对象命名和资源模型。；网管功能模块</tspan><tspan x="6665.0" dy="36.6">、课程任务链和岗位工作内容对应关系。</tspan></text>
+</g>
+</g>
+<g id="CAP-003" class="node node-Capability">
+<rect x="390.0" y="5390.0" width="2070.0" height="335.0" rx="7" fill="#fde68a" stroke="#ca8a04" stroke-width="2.8" />
+<clipPath id="clip-CAP-003"><rect x="398.0" y="5398.0" width="2054.0" height="319.0" rx="5"/></clipPath>
+<text x="2450.0" y="5399.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">CAP-003</text>
+<g clip-path="url(#clip-CAP-003)">
+<text x="1425.0" y="5489.4" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1425.0" dy="0.0">5G网管监控、日志追溯与参数配置能力</tspan></text>
+<text x="1425.0" y="5552.5" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1425.0" dy="0.0">面向5G网管或仿真平台，能够识别网管架构与对象，完成用户、告警、性能、日志监控，并执行参数检查、邻区和NSA锚点配置记录</tspan><tspan x="1425.0" dy="36.6">。</tspan></text>
+</g>
+</g>
+<g id="STU-V07-OUT-TGRP-003" class="node node-Outcome">
+<rect x="2680.0" y="5390.0" width="1980.0" height="335.0" rx="7" fill="#bbf7d0" stroke="#16a34a" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-OUT-TGRP-003"><rect x="2688.0" y="5398.0" width="1964.0" height="319.0" rx="5"/></clipPath>
+<text x="4650.0" y="5399.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-OUT-TGRP-003</text>
+<g clip-path="url(#clip-STU-V07-OUT-TGRP-003)">
+<text x="3670.0" y="5507.7" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3670.0" dy="0.0">成果包</tspan></text>
+<text x="3670.0" y="5570.8" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3670.0" dy="0.0">网管监控记录、告警/KPI/日志记录、参数核查表、配置变更记录</tspan></text>
+</g>
+</g>
+<g id="STU-V07-EVAL-TGRP-003" class="node node-Assessment">
+<rect x="4880.0" y="5390.0" width="2510.0" height="335.0" rx="7" fill="#e9d5ff" stroke="#9333ea" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-EVAL-TGRP-003"><rect x="4888.0" y="5398.0" width="2494.0" height="319.0" rx="5"/></clipPath>
+<text x="7380.0" y="5399.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-EVAL-TGRP-003</text>
+<g clip-path="url(#clip-STU-V07-EVAL-TGRP-003)">
+<text x="6135.0" y="5506.5" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="6135.0" dy="0.0">达成判断</tspan></text>
+<text x="6135.0" y="5569.6" text-anchor="middle" font-size="33" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="6135.0" dy="0.0">64条证据支撑；评价详情进入任务页。</tspan></text>
+</g>
+</g>
+<g id="TGRP-004" class="node node-Project">
+<rect x="280.0" y="6030.0" width="7240.0" height="165.0" rx="7" fill="#bbf7d0" stroke="#059669" stroke-width="2.8" />
+<clipPath id="clip-TGRP-004"><rect x="288.0" y="6038.0" width="7224.0" height="149.0" rx="5"/></clipPath>
+<text x="7510.0" y="6039.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">TGRP-004</text>
+<g clip-path="url(#clip-TGRP-004)">
+<text x="3900.0" y="6057.9" text-anchor="middle" font-size="52" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3900.0" dy="0.0">5G端到端网络优化</tspan></text>
+<text x="3900.0" y="6129.3" text-anchor="middle" font-size="32" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3900.0" dy="0.0">端到端优化实施、结果验证、报告交付和风险复盘</tspan></text>
+</g>
+</g>
+<g id="T-011" class="node node-Task">
+<rect x="390.0" y="6290.0" width="2020.0" height="236.7" rx="7" fill="#fed7aa" stroke="#ea580c" stroke-width="2.8" />
+<clipPath id="clip-T-011"><rect x="398.0" y="6298.0" width="2004.0" height="220.7" rx="5"/></clipPath>
+<text x="2400.0" y="6299.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">T-011</text>
+<g clip-path="url(#clip-T-011)">
+<text x="1400.0" y="6358.5" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">5G网络优化方案实施</tspan></text>
+<text x="1400.0" y="6421.6" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">优化实施记录、参数变更清单、初步验证记录</tspan></text>
+</g>
+</g>
+<g id="T-012" class="node node-Task">
+<rect x="390.0" y="6556.7" width="2020.0" height="236.7" rx="7" fill="#fed7aa" stroke="#ea580c" stroke-width="2.8" />
+<clipPath id="clip-T-012"><rect x="398.0" y="6564.7" width="2004.0" height="220.7" rx="5"/></clipPath>
+<text x="2400.0" y="6565.7" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">T-012</text>
+<g clip-path="url(#clip-T-012)">
+<text x="1400.0" y="6625.2" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">5G网络优化结果验证</tspan></text>
+<text x="1400.0" y="6688.3" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">复测数据包、KPI对比表、优化验证结论</tspan></text>
+</g>
+</g>
+<g id="T-013" class="node node-Task">
+<rect x="390.0" y="6823.3" width="2020.0" height="236.7" rx="7" fill="#fed7aa" stroke="#ea580c" stroke-width="2.8" />
+<clipPath id="clip-T-013"><rect x="398.0" y="6831.3" width="2004.0" height="220.7" rx="5"/></clipPath>
+<text x="2400.0" y="6832.3" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">T-013</text>
+<g clip-path="url(#clip-T-013)">
+<text x="1400.0" y="6891.8" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">5G网络优化报告输出</tspan></text>
+<text x="1400.0" y="6954.9" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">优化验证报告、沟通记录、整改清单</tspan></text>
+</g>
+</g>
+<g id="STU-V07-PROC-TGRP-004" class="node node-Process">
+<rect x="2680.0" y="6290.0" width="1420.0" height="330.0" rx="7" fill="#e2e8f0" stroke="#64748b" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-PROC-TGRP-004"><rect x="2688.0" y="6298.0" width="1404.0" height="314.0" rx="5"/></clipPath>
+<text x="4090.0" y="6299.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-PROC-TGRP-004</text>
+<g clip-path="url(#clip-STU-V07-PROC-TGRP-004)">
+<text x="3390.0" y="6405.2" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3390.0" dy="0.0">学习过程</tspan></text>
+<text x="3390.0" y="6468.3" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3390.0" dy="0.0">问题场景与影响范围确认；RF与天馈优化实施；无线参数优化实施；承载/核心网协同优化</tspan></text>
+</g>
+</g>
+<g id="STU-V07-SKL-TGRP-004" class="node node-Skill">
+<rect x="4310.0" y="6290.0" width="1420.0" height="330.0" rx="7" fill="#c7d2fe" stroke="#4f46e5" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-SKL-TGRP-004"><rect x="4318.0" y="6298.0" width="1404.0" height="314.0" rx="5"/></clipPath>
+<text x="5720.0" y="6299.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-SKL-TGRP-004</text>
+<g clip-path="url(#clip-STU-V07-SKL-TGRP-004)">
+<text x="5020.0" y="6368.6" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="5020.0" dy="0.0">要会做</tspan></text>
+<text x="5020.0" y="6431.7" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="5020.0" dy="0.0">能依据投诉、测试、告警和KPI判断覆盖、切换、时延、速率、容量或掉线场景</tspan><tspan x="5020.0" dy="36.6">。；能选择并记录方位角、下倾角、功率或站点结构相关调整建议。；能调整移动性</tspan><tspan x="5020.0" dy="36.6">、接入、功控、邻区或QoS相关参数并说明依据。；能识别承载或核心网侧约束…</tspan></text>
+</g>
+</g>
+<g id="STU-V07-KNO-TGRP-004" class="node node-Knowledge">
+<rect x="5940.0" y="6290.0" width="1450.0" height="690.0" rx="7" fill="#fbcfe8" stroke="#db2777" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-KNO-TGRP-004"><rect x="5948.0" y="6298.0" width="1434.0" height="674.0" rx="5"/></clipPath>
+<text x="7380.0" y="6299.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-KNO-TGRP-004</text>
+<g clip-path="url(#clip-STU-V07-KNO-TGRP-004)">
+<text x="6665.0" y="6548.6" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="6665.0" dy="0.0">要懂的知识/规范</tspan></text>
+<text x="6665.0" y="6611.7" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="6665.0" dy="0.0">问题场景分类、影响范围、KPI异常和多源证据链。；RF优化、覆盖控制、天馈参数和现场实施安全</tspan><tspan x="6665.0" dy="36.6">。；RRC测量事件、接入保持、QoS、邻区和移动性参数。；NG/Xn接口、承载时延</tspan><tspan x="6665.0" dy="36.6">、5GC功能、PDU会话和QoS策略。</tspan></text>
+</g>
+</g>
+<g id="CAP-005" class="node node-Capability">
+<rect x="390.0" y="7090.0" width="2070.0" height="335.0" rx="7" fill="#fde68a" stroke="#ca8a04" stroke-width="2.8" />
+<clipPath id="clip-CAP-005"><rect x="398.0" y="7098.0" width="2054.0" height="319.0" rx="5"/></clipPath>
+<text x="2450.0" y="7099.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">CAP-005</text>
+<g clip-path="url(#clip-CAP-005)">
+<text x="1425.0" y="7189.4" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1425.0" dy="0.0">端到端网络优化实施与效果验证能力</tspan></text>
+<text x="1425.0" y="7252.5" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1425.0" dy="0.0">面向覆盖、切换、时延、速率、容量和掉线等场景，能够选择RF、无线参数、承载和核心网协同优化动作，实施变更并完成复测验证</tspan><tspan x="1425.0" dy="36.6">。</tspan></text>
+</g>
+</g>
+<g id="STU-V07-OUT-TGRP-004" class="node node-Outcome">
+<rect x="2680.0" y="7090.0" width="1980.0" height="335.0" rx="7" fill="#bbf7d0" stroke="#16a34a" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-OUT-TGRP-004"><rect x="2688.0" y="7098.0" width="1964.0" height="319.0" rx="5"/></clipPath>
+<text x="4650.0" y="7099.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-OUT-TGRP-004</text>
+<g clip-path="url(#clip-STU-V07-OUT-TGRP-004)">
+<text x="3670.0" y="7207.7" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3670.0" dy="0.0">成果包</tspan></text>
+<text x="3670.0" y="7270.8" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3670.0" dy="0.0">优化实施记录、复测数据包、优化验证报告、客户沟通记录</tspan></text>
+</g>
+</g>
+<g id="STU-V07-EVAL-TGRP-004" class="node node-Assessment">
+<rect x="4880.0" y="7090.0" width="2510.0" height="335.0" rx="7" fill="#e9d5ff" stroke="#9333ea" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-EVAL-TGRP-004"><rect x="4888.0" y="7098.0" width="2494.0" height="319.0" rx="5"/></clipPath>
+<text x="7380.0" y="7099.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-EVAL-TGRP-004</text>
+<g clip-path="url(#clip-STU-V07-EVAL-TGRP-004)">
+<text x="6135.0" y="7206.5" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="6135.0" dy="0.0">达成判断</tspan></text>
+<text x="6135.0" y="7269.6" text-anchor="middle" font-size="33" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="6135.0" dy="0.0">48条证据支撑；评价详情进入任务页。</tspan></text>
+</g>
+</g>
+<g id="TGRP-005" class="node node-Project">
+<rect x="280.0" y="7730.0" width="7240.0" height="165.0" rx="7" fill="#bbf7d0" stroke="#059669" stroke-width="2.8" />
+<clipPath id="clip-TGRP-005"><rect x="288.0" y="7738.0" width="7224.0" height="149.0" rx="5"/></clipPath>
+<text x="7510.0" y="7739.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">TGRP-005</text>
+<g clip-path="url(#clip-TGRP-005)">
+<text x="3900.0" y="7757.9" text-anchor="middle" font-size="52" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3900.0" dy="0.0">5G全网性能提升</tspan></text>
+<text x="3900.0" y="7829.3" text-anchor="middle" font-size="32" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3900.0" dy="0.0">全网性能分析、提升实施、效果评价和持续改进</tspan></text>
+</g>
+</g>
+<g id="T-014" class="node node-Task">
+<rect x="390.0" y="7990.0" width="2020.0" height="236.7" rx="7" fill="#fed7aa" stroke="#ea580c" stroke-width="2.8" />
+<clipPath id="clip-T-014"><rect x="398.0" y="7998.0" width="2004.0" height="220.7" rx="5"/></clipPath>
+<text x="2400.0" y="7999.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">T-014</text>
+<g clip-path="url(#clip-T-014)">
+<text x="1400.0" y="8058.5" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">5G全网性能指标采集</tspan></text>
+<text x="1400.0" y="8121.6" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">全网KPI采集表、性能基线、异常指标清单</tspan></text>
+</g>
+</g>
+<g id="T-015" class="node node-Task">
+<rect x="390.0" y="8256.7" width="2020.0" height="236.7" rx="7" fill="#fed7aa" stroke="#ea580c" stroke-width="2.8" />
+<clipPath id="clip-T-015"><rect x="398.0" y="8264.7" width="2004.0" height="220.7" rx="5"/></clipPath>
+<text x="2400.0" y="8265.7" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">T-015</text>
+<g clip-path="url(#clip-T-015)">
+<text x="1400.0" y="8325.2" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">5G全网性能提升实施</tspan></text>
+<text x="1400.0" y="8388.3" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">性能提升方案、实施记录、调整清单</tspan></text>
+</g>
+</g>
+<g id="T-016" class="node node-Task">
+<rect x="390.0" y="8523.3" width="2020.0" height="236.7" rx="7" fill="#fed7aa" stroke="#ea580c" stroke-width="2.8" />
+<clipPath id="clip-T-016"><rect x="398.0" y="8531.3" width="2004.0" height="220.7" rx="5"/></clipPath>
+<text x="2400.0" y="8532.3" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">T-016</text>
+<g clip-path="url(#clip-T-016)">
+<text x="1400.0" y="8591.8" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">5G全网性能提升验证</tspan></text>
+<text x="1400.0" y="8654.9" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">全网KPI提升对比报告、复盘清单、残留问题清单</tspan></text>
+</g>
+</g>
+<g id="STU-V07-PROC-TGRP-005" class="node node-Process">
+<rect x="2680.0" y="7990.0" width="1420.0" height="330.0" rx="7" fill="#e2e8f0" stroke="#64748b" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-PROC-TGRP-005"><rect x="2688.0" y="7998.0" width="1404.0" height="314.0" rx="5"/></clipPath>
+<text x="4090.0" y="7999.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-PROC-TGRP-005</text>
+<g clip-path="url(#clip-STU-V07-PROC-TGRP-005)">
+<text x="3390.0" y="8105.2" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3390.0" dy="0.0">学习过程</tspan></text>
+<text x="3390.0" y="8168.3" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3390.0" dy="0.0">性能指标体系确认；数据源和统计周期确认；全网基线采集与清洗；异常指标初筛与排序</tspan></text>
+</g>
+</g>
+<g id="STU-V07-SKL-TGRP-005" class="node node-Skill">
+<rect x="4310.0" y="7990.0" width="1420.0" height="330.0" rx="7" fill="#c7d2fe" stroke="#4f46e5" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-SKL-TGRP-005"><rect x="4318.0" y="7998.0" width="1404.0" height="314.0" rx="5"/></clipPath>
+<text x="5720.0" y="7999.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-SKL-TGRP-005</text>
+<g clip-path="url(#clip-STU-V07-SKL-TGRP-005)">
+<text x="5020.0" y="8068.6" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="5020.0" dy="0.0">要会做</tspan></text>
+<text x="5020.0" y="8131.7" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="5020.0" dy="0.0">能按接入、保持、移动性、资源、覆盖、可用性和干扰建立指标清单。；能说明指标来自网管</tspan><tspan x="5020.0" dy="36.6">、测试、告警或日志，并标注统计周期与对象范围。；能采集并清洗异常缺失值</tspan><tspan x="5020.0" dy="36.6">，形成小区、区域或业务维度的性能基线。；能筛选低于目标或异常波动指标，按影响范围…</tspan></text>
+</g>
+</g>
+<g id="STU-V07-KNO-TGRP-005" class="node node-Knowledge">
+<rect x="5940.0" y="7990.0" width="1450.0" height="690.0" rx="7" fill="#fbcfe8" stroke="#db2777" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-KNO-TGRP-005"><rect x="5948.0" y="7998.0" width="1434.0" height="674.0" rx="5"/></clipPath>
+<text x="7380.0" y="7999.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-KNO-TGRP-005</text>
+<g clip-path="url(#clip-STU-V07-KNO-TGRP-005)">
+<text x="6665.0" y="8248.6" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="6665.0" dy="0.0">要懂的知识/规范</tspan></text>
+<text x="6665.0" y="8311.7" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="6665.0" dy="0.0">5G性能测量、KPI分类、指标统计对象和管理口径。；数据源、统计粒度、网元范围和指标可信度</tspan><tspan x="6665.0" dy="36.6">。；基线构建、缺失值处理、异常值标注和多维汇总。；异常阈值、影响范围、优先级排序和问题清单</tspan><tspan x="6665.0" dy="36.6">。</tspan></text>
+</g>
+</g>
+<g id="CAP-006" class="node node-Capability">
+<rect x="390.0" y="8790.0" width="2070.0" height="335.0" rx="7" fill="#fde68a" stroke="#ca8a04" stroke-width="2.8" />
+<clipPath id="clip-CAP-006"><rect x="398.0" y="8798.0" width="2054.0" height="319.0" rx="5"/></clipPath>
+<text x="2450.0" y="8799.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">CAP-006</text>
+<g clip-path="url(#clip-CAP-006)">
+<text x="1425.0" y="8889.4" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1425.0" dy="0.0">全网KPI基线、性能提升与复盘能力</tspan></text>
+<text x="1425.0" y="8952.5" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1425.0" dy="0.0">面向全网性能提升，能够建立接入、保持、移动性、资源、覆盖、可用性和干扰指标基线，制定提升方案、实施验证并沉淀复盘证据</tspan><tspan x="1425.0" dy="36.6">。</tspan></text>
+</g>
+</g>
+<g id="STU-V07-OUT-TGRP-005" class="node node-Outcome">
+<rect x="2680.0" y="8790.0" width="1980.0" height="335.0" rx="7" fill="#bbf7d0" stroke="#16a34a" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-OUT-TGRP-005"><rect x="2688.0" y="8798.0" width="1964.0" height="319.0" rx="5"/></clipPath>
+<text x="4650.0" y="8799.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-OUT-TGRP-005</text>
+<g clip-path="url(#clip-STU-V07-OUT-TGRP-005)">
+<text x="3670.0" y="8907.7" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3670.0" dy="0.0">成果包</tspan></text>
+<text x="3670.0" y="8970.8" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3670.0" dy="0.0">全网KPI基线、性能提升方案、KPI对比报告、复盘清单</tspan></text>
+</g>
+</g>
+<g id="STU-V07-EVAL-TGRP-005" class="node node-Assessment">
+<rect x="4880.0" y="8790.0" width="2510.0" height="335.0" rx="7" fill="#e9d5ff" stroke="#9333ea" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-EVAL-TGRP-005"><rect x="4888.0" y="8798.0" width="2494.0" height="319.0" rx="5"/></clipPath>
+<text x="7380.0" y="8799.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-EVAL-TGRP-005</text>
+<g clip-path="url(#clip-STU-V07-EVAL-TGRP-005)">
+<text x="6135.0" y="8906.5" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="6135.0" dy="0.0">达成判断</tspan></text>
+<text x="6135.0" y="8969.6" text-anchor="middle" font-size="33" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="6135.0" dy="0.0">48条证据支撑；评价详情进入任务页。</tspan></text>
+</g>
+</g>
+<g id="TGRP-006" class="node node-Project">
+<rect x="280.0" y="9430.0" width="7240.0" height="165.0" rx="7" fill="#bbf7d0" stroke="#059669" stroke-width="2.8" />
+<clipPath id="clip-TGRP-006"><rect x="288.0" y="9438.0" width="7224.0" height="149.0" rx="5"/></clipPath>
+<text x="7510.0" y="9439.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">TGRP-006</text>
+<g clip-path="url(#clip-TGRP-006)">
+<text x="3900.0" y="9457.9" text-anchor="middle" font-size="52" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3900.0" dy="0.0">5G信令分析</tspan></text>
+<text x="3900.0" y="9529.3" text-anchor="middle" font-size="32" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3900.0" dy="0.0">SA/NSA信令解析、协议流程判断、问题定位和方案表达</tspan></text>
+</g>
+</g>
+<g id="T-017" class="node node-Task">
+<rect x="390.0" y="9690.0" width="2020.0" height="260.0" rx="7" fill="#fed7aa" stroke="#ea580c" stroke-width="2.8" />
+<clipPath id="clip-T-017"><rect x="398.0" y="9698.0" width="2004.0" height="244.0" rx="5"/></clipPath>
+<text x="2400.0" y="9699.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">T-017</text>
+<g clip-path="url(#clip-T-017)">
+<text x="1400.0" y="9770.2" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">5G关键信令流程及解析</tspan></text>
+<text x="1400.0" y="9833.3" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">信令流程标注、信元解释表、4/5G差异说明</tspan></text>
+</g>
+</g>
+<g id="T-018" class="node node-Task">
+<rect x="390.0" y="9980.0" width="2020.0" height="260.0" rx="7" fill="#fed7aa" stroke="#ea580c" stroke-width="2.8" />
+<clipPath id="clip-T-018"><rect x="398.0" y="9988.0" width="2004.0" height="244.0" rx="5"/></clipPath>
+<text x="2400.0" y="9989.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">T-018</text>
+<g clip-path="url(#clip-T-018)">
+<text x="1400.0" y="10060.2" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">5G信令问题分析及优化</tspan></text>
+<text x="1400.0" y="10123.3" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1400.0" dy="0.0">信令问题分析报告、优化建议、验证记录</tspan></text>
+</g>
+</g>
+<g id="STU-V07-PROC-TGRP-006" class="node node-Process">
+<rect x="2680.0" y="9690.0" width="1420.0" height="330.0" rx="7" fill="#e2e8f0" stroke="#64748b" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-PROC-TGRP-006"><rect x="2688.0" y="9698.0" width="1404.0" height="314.0" rx="5"/></clipPath>
+<text x="4090.0" y="9699.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-PROC-TGRP-006</text>
+<g clip-path="url(#clip-STU-V07-PROC-TGRP-006)">
+<text x="3390.0" y="9786.9" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3390.0" dy="0.0">学习过程</tspan></text>
+<text x="3390.0" y="9850.0" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3390.0" dy="0.0">SA/NSA流程边界和4/5G差异确认；注册与RRC连接流程解析；PDU会话和核心网过程解析</tspan><tspan x="3390.0" dy="36.6">；MIB/SIB与RRC重配置解析</tspan></text>
+</g>
+</g>
+<g id="STU-V07-SKL-TGRP-006" class="node node-Skill">
+<rect x="4310.0" y="9690.0" width="1420.0" height="330.0" rx="7" fill="#c7d2fe" stroke="#4f46e5" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-SKL-TGRP-006"><rect x="4318.0" y="9698.0" width="1404.0" height="314.0" rx="5"/></clipPath>
+<text x="5720.0" y="9699.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-SKL-TGRP-006</text>
+<g clip-path="url(#clip-STU-V07-SKL-TGRP-006)">
+<text x="5020.0" y="9768.6" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="5020.0" dy="0.0">要会做</tspan></text>
+<text x="5020.0" y="9831.7" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="5020.0" dy="0.0">能区分注册、接入、PDU会话、RRC、系统消息和4/5G流程差异。；能标注同步</tspan><tspan x="5020.0" dy="36.6">、随机接入、RRCSetup、RRCSetupComplete、NAS注册和鉴权安全环节。</tspan><tspan x="5020.0" dy="36.6">；能标注PDU Session建立、DNN、切片、QoS、AMBR和会话接受关键字段…</tspan></text>
+</g>
+</g>
+<g id="STU-V07-KNO-TGRP-006" class="node node-Knowledge">
+<rect x="5940.0" y="9690.0" width="1450.0" height="690.0" rx="7" fill="#fbcfe8" stroke="#db2777" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-KNO-TGRP-006"><rect x="5948.0" y="9698.0" width="1434.0" height="674.0" rx="5"/></clipPath>
+<text x="7380.0" y="9699.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-KNO-TGRP-006</text>
+<g clip-path="url(#clip-STU-V07-KNO-TGRP-006)">
+<text x="6665.0" y="9930.3" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="6665.0" dy="0.0">要懂的知识/规范</tspan></text>
+<text x="6665.0" y="9993.4" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="6665.0" dy="0.0">5GS架构、SA/NSA、AMF/SMF/UPF、RRC/NAS和4G/5G差异。；3GPP注册流程</tspan><tspan x="6665.0" dy="36.6">、RRC连接建立、NAS Registration消息和安全过程。；PDU Session流程</tspan><tspan x="6665.0" dy="36.6">、DNN、S-NSSAI、QoS Flow、AMBR和SSC模式。；MIB/SIB1、系统消息</tspan><tspan x="6665.0" dy="36.6">、RRC重配置、测量控制和移动性过程。</tspan></text>
+</g>
+</g>
+<g id="CAP-007" class="node node-Capability">
+<rect x="390.0" y="10490.0" width="2070.0" height="335.0" rx="7" fill="#fde68a" stroke="#ca8a04" stroke-width="2.8" />
+<clipPath id="clip-CAP-007"><rect x="398.0" y="10498.0" width="2054.0" height="319.0" rx="5"/></clipPath>
+<text x="2450.0" y="10499.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">CAP-007</text>
+<g clip-path="url(#clip-CAP-007)">
+<text x="1425.0" y="10589.4" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1425.0" dy="0.0">5G SA/NSA信令流程解析与问题定位能力</tspan></text>
+<text x="1425.0" y="10652.5" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1425.0" dy="0.0">面向5G SA/NSA注册、PDU会话、RRC、系统消息、切换和掉线等流程，能够标注信令、解释字段、比较4/5G差异并定位覆盖</tspan><tspan x="1425.0" dy="36.6">、接入、切换类问题。</tspan></text>
+</g>
+</g>
+<g id="STU-V07-OUT-TGRP-006" class="node node-Outcome">
+<rect x="2680.0" y="10490.0" width="1980.0" height="335.0" rx="7" fill="#bbf7d0" stroke="#16a34a" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-OUT-TGRP-006"><rect x="2688.0" y="10498.0" width="1964.0" height="319.0" rx="5"/></clipPath>
+<text x="4650.0" y="10499.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-OUT-TGRP-006</text>
+<g clip-path="url(#clip-STU-V07-OUT-TGRP-006)">
+<text x="3670.0" y="10607.7" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3670.0" dy="0.0">成果包</tspan></text>
+<text x="3670.0" y="10670.8" text-anchor="middle" font-size="31" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3670.0" dy="0.0">信令流程标注、信元解释表、信令问题分析报告、优化建议</tspan></text>
+</g>
+</g>
+<g id="STU-V07-EVAL-TGRP-006" class="node node-Assessment">
+<rect x="4880.0" y="10490.0" width="2510.0" height="335.0" rx="7" fill="#e9d5ff" stroke="#9333ea" stroke-width="2.8" />
+<clipPath id="clip-STU-V07-EVAL-TGRP-006"><rect x="4888.0" y="10498.0" width="2494.0" height="319.0" rx="5"/></clipPath>
+<text x="7380.0" y="10499.0" text-anchor="end" font-size="16" fill="#64748b" dominant-baseline="text-before-edge">STU-V07-EVAL-TGRP-006</text>
+<g clip-path="url(#clip-STU-V07-EVAL-TGRP-006)">
+<text x="6135.0" y="10606.5" text-anchor="middle" font-size="45" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="6135.0" dy="0.0">达成判断</tspan></text>
+<text x="6135.0" y="10669.6" text-anchor="middle" font-size="33" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="6135.0" dy="0.0">32条证据支撑；评价详情进入任务页。</tspan></text>
+</g>
+</g>
+<rect x="120.0" y="11400.0" width="7560.0" height="150.0" rx="8" fill="#ffffff" stroke="#dbe4ef" stroke-width="1.2" />
+<text x="180.0" y="11440.0" text-anchor="start" font-size="31" font-weight="550" fill="#334155" dominant-baseline="text-before-edge"><tspan x="180.0" dy="0.0">学生版V0.7自检结论：改为纵向滚动学习地图，缩窄画布并放大字号；项目、任务、过程、技能、知识、能力、成果、评价均保留。</tspan></text></g>
+</svg>

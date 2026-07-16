@@ -1,0 +1,439 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dgbook.p1-demo-content/v1",
+  "title": "DGBook P1 demo content contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "project", "tasks"],
+  "properties": {
+    "schema": { "const": "dgbook.p1-demo-content/v1" },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "finalOutput"],
+      "properties": {
+        "id": { "const": "P1" },
+        "title": { "const": "5G网络信息采集" },
+        "finalOutput": { "const": "5G网络信息采集成果包" }
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "prefixItems": [
+        { "$ref": "#/$defs/p01Task" },
+        { "$ref": "#/$defs/p02Task" },
+        { "$ref": "#/$defs/p03Task" }
+      ],
+      "items": false
+    }
+  },
+  "$defs": {
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["taskId", "runtimeTaskId", "title", "why", "taskOutputTitle", "source", "nodes"],
+      "properties": {
+        "taskId": { "enum": ["P01", "P02", "P03"] },
+        "runtimeTaskId": { "enum": ["P1T1", "P1T2", "P1T3"] },
+        "title": { "type": "string", "minLength": 1 },
+        "why": { "type": "string", "minLength": 1 },
+        "prerequisiteTaskId": { "enum": ["P01", "P02"] },
+        "taskOutputTitle": { "type": "string", "minLength": 1 },
+        "source": { "$ref": "#/$defs/source" },
+        "nodes": { "type": "array" }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "goal",
+        "sourceKnowledgeUnitId",
+        "assessmentRole",
+        "requiresFormalTest",
+        "requiresProfessionalOutput",
+        "requiresTeacherVerification",
+        "selfStudy"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^P1T[123]-N0[1-4]$" },
+        "title": { "type": "string", "minLength": 1 },
+        "goal": { "type": "string", "minLength": 1 },
+        "sourceKnowledgeUnitId": { "type": "string", "pattern": "^P0[123]-ku-0[1-6]$" },
+        "assessmentRole": { "enum": ["none", "node-test"] },
+        "requiresFormalTest": { "type": "boolean" },
+        "formalPassScore": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "requiresProfessionalOutput": { "type": "boolean" },
+        "requiresTeacherVerification": { "type": "boolean" },
+        "professionalOutputTitle": { "type": "string", "minLength": 1 },
+        "selfStudy": {
+          "oneOf": [
+            { "$ref": "#/$defs/deepNodeContent" },
+            { "$ref": "#/$defs/standardNodeContent" }
+          ]
+        }
+      }
+    },
+    "glossaryItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["term", "definition"],
+      "properties": {
+        "term": { "type": "string", "minLength": 1 },
+        "definition": { "type": "string", "minLength": 1 }
+      }
+    },
+    "practice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "prompt", "expectedEvidence", "feedback", "correctionPath", "retryable"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "prompt": { "type": "string", "minLength": 1 },
+        "expectedEvidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "feedback": { "type": "string", "minLength": 1 },
+        "correctionPath": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "retryable": { "const": true }
+      }
+    },
+    "example": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "evidence", "reasoning", "conclusion"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "evidence": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "reasoning": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "conclusion": { "type": "string", "minLength": 1 }
+      }
+    },
+    "counterexample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "error", "correctionPath"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "error": { "type": "string", "minLength": 1 },
+        "correctionPath": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "deepNodeContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind", "nodeId", "caseBackground", "taskQuestion", "prerequisites", "glossary",
+        "annotatedFigures", "evidenceRules", "reasoningSteps", "examples", "counterexamples",
+        "practices", "transferTask", "outputTemplate", "rubric"
+      ],
+      "properties": {
+        "kind": { "const": "deep" },
+        "nodeId": { "enum": ["P1T1-N02", "P1T2-N02", "P1T3-N02"] },
+        "caseBackground": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "taskQuestion": { "type": "string", "minLength": 1 },
+        "prerequisites": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "glossary": { "type": "array", "minItems": 3, "items": { "$ref": "#/$defs/glossaryItem" } },
+        "annotatedFigures": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "title", "evidenceLabels"],
+            "properties": {
+              "kind": { "enum": ["topology", "antenna", "complaint"] },
+              "title": { "type": "string", "minLength": 1 },
+              "evidenceLabels": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+            }
+          }
+        },
+        "evidenceRules": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["claim", "requiredEvidence", "reason"],
+            "properties": {
+              "claim": { "type": "string", "minLength": 1 },
+              "requiredEvidence": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+              "reason": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "reasoningSteps": { "type": "array", "minItems": 4, "items": { "type": "string", "minLength": 1 } },
+        "examples": { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/example" } },
+        "counterexamples": { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/counterexample" } },
+        "practices": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["foundation", "application", "transfer"],
+          "properties": {
+            "foundation": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/practice" } },
+            "application": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/practice" } },
+            "transfer": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/practice" } }
+          }
+        },
+        "transferTask": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["scenario", "deliverable", "successCriteria"],
+          "properties": {
+            "scenario": { "type": "string", "minLength": 1 },
+            "deliverable": { "type": "string", "minLength": 1 },
+            "successCriteria": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+          }
+        },
+        "outputTemplate": { "type": "object", "minProperties": 1 },
+        "rubric": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["criterion", "maxScore"],
+            "properties": {
+              "criterion": { "type": "string", "minLength": 1 },
+              "maxScore": { "type": "integer", "minimum": 1, "maximum": 100 }
+            }
+          }
+        }
+      }
+    },
+    "standardNodeContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind", "nodeId", "caseBackground", "glossary", "relationshipFigure", "reasoningSteps",
+        "example", "counterexample", "microPractice", "nodeRecordTemplate"
+      ],
+      "properties": {
+        "kind": { "const": "standard" },
+        "nodeId": { "type": "string", "pattern": "^P1T[123]-N0[134]$" },
+        "caseBackground": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "glossary": { "type": "array", "minItems": 3, "items": { "$ref": "#/$defs/glossaryItem" } },
+        "relationshipFigure": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "evidenceLabels"],
+          "properties": {
+            "kind": { "type": "string", "minLength": 1 },
+            "evidenceLabels": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+          }
+        },
+        "reasoningSteps": { "type": "array", "minItems": 3, "items": { "type": "string", "minLength": 1 } },
+        "example": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["evidence", "conclusion"],
+          "properties": {
+            "evidence": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+            "conclusion": { "type": "string", "minLength": 1 }
+          }
+        },
+        "counterexample": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["error", "correctionPath"],
+          "properties": {
+            "error": { "type": "string", "minLength": 1 },
+            "correctionPath": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+          }
+        },
+        "microPractice": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/practice" } },
+        "nodeRecordTemplate": { "type": "object", "minProperties": 1 }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lessonAstId",
+        "lessonAstPath",
+        "sourceDocumentPath",
+        "storyboardSchema",
+        "knowledgeUnitRefs",
+        "widgetRefs",
+        "mediaRefs"
+      ],
+      "properties": {
+        "lessonAstId": { "enum": ["P01", "P02", "P03"] },
+        "lessonAstPath": { "type": "string", "pattern": "^textbook/5g/generated/lesson-ast/P0[123]\\.json$" },
+        "sourceDocumentPath": { "const": "content/5g/5g.docx" },
+        "storyboardSchema": { "const": "lesson-storyboard/v1" },
+        "knowledgeUnitRefs": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": { "type": "string", "pattern": "^P0[123]-ku-0[1-6]$" },
+          "uniqueItems": true
+        },
+        "widgetRefs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/widgetRef" },
+          "uniqueItems": true
+        },
+        "mediaRefs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^/media/" },
+          "uniqueItems": true
+        }
+      }
+    },
+    "widgetRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^P0[123]-.+$" },
+        "path": { "type": "string", "pattern": "^textbook/5g/widgets/P0[123]-.+\\.json$" }
+      }
+    },
+    "ordinaryNode": {
+      "allOf": [
+        { "$ref": "#/$defs/node" },
+        {
+          "properties": {
+            "assessmentRole": { "const": "none" },
+            "requiresFormalTest": { "const": false },
+            "requiresProfessionalOutput": { "const": false },
+            "requiresTeacherVerification": { "const": false },
+            "selfStudy": { "$ref": "#/$defs/standardNodeContent" }
+          },
+          "not": {
+            "anyOf": [
+              { "required": ["formalPassScore"] },
+              { "required": ["professionalOutputTitle"] }
+            ]
+          }
+        }
+      ]
+    },
+    "nodeTest": {
+      "allOf": [
+        { "$ref": "#/$defs/node" },
+        {
+          "required": ["formalPassScore"],
+          "properties": {
+            "assessmentRole": { "const": "node-test" },
+            "requiresFormalTest": { "const": true },
+            "formalPassScore": { "const": 80 },
+            "requiresProfessionalOutput": { "const": false },
+            "requiresTeacherVerification": { "const": false },
+            "selfStudy": { "$ref": "#/$defs/deepNodeContent" }
+          },
+          "not": { "required": ["professionalOutputTitle"] }
+        }
+      ]
+    },
+    "professionalOutput": {
+      "allOf": [
+        { "$ref": "#/$defs/node" },
+        {
+          "required": ["professionalOutputTitle"],
+          "properties": {
+            "assessmentRole": { "const": "none" },
+            "requiresFormalTest": { "const": false },
+            "requiresProfessionalOutput": { "const": true },
+            "requiresTeacherVerification": { "const": true },
+            "selfStudy": { "$ref": "#/$defs/standardNodeContent" }
+          },
+          "not": { "required": ["formalPassScore"] }
+        }
+      ]
+    },
+    "p01Task": {
+      "allOf": [
+        { "$ref": "#/$defs/task" },
+        {
+          "properties": {
+            "taskId": { "const": "P01" },
+            "runtimeTaskId": { "const": "P1T1" },
+            "taskOutputTitle": { "const": "室内设备与链路证据表" },
+            "nodes": { "$ref": "#/$defs/p1t1Nodes" }
+          },
+          "not": { "required": ["prerequisiteTaskId"] }
+        }
+      ]
+    },
+    "p02Task": {
+      "allOf": [
+        { "$ref": "#/$defs/task" },
+        {
+          "required": ["prerequisiteTaskId"],
+          "properties": {
+            "taskId": { "const": "P02" },
+            "runtimeTaskId": { "const": "P1T2" },
+            "prerequisiteTaskId": { "const": "P01" },
+            "taskOutputTitle": { "const": "室外站点与覆盖采集表" },
+            "nodes": { "$ref": "#/$defs/p1t2Nodes" }
+          }
+        }
+      ]
+    },
+    "p03Task": {
+      "allOf": [
+        { "$ref": "#/$defs/task" },
+        {
+          "required": ["prerequisiteTaskId"],
+          "properties": {
+            "taskId": { "const": "P03" },
+            "runtimeTaskId": { "const": "P1T3" },
+            "prerequisiteTaskId": { "const": "P02" },
+            "taskOutputTitle": { "const": "投诉信息调查单" },
+            "nodes": { "$ref": "#/$defs/p1t3Nodes" }
+          }
+        }
+      ]
+    },
+    "p1t1Nodes": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "prefixItems": [
+        { "allOf": [{ "$ref": "#/$defs/ordinaryNode" }, { "properties": { "id": { "const": "P1T1-N01" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/nodeTest" }, { "properties": { "id": { "const": "P1T1-N02" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/ordinaryNode" }, { "properties": { "id": { "const": "P1T1-N03" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/professionalOutput" }, { "properties": { "id": { "const": "P1T1-N04" }, "professionalOutputTitle": { "const": "室内设备与链路证据表" } } }] }
+      ],
+      "items": false
+    },
+    "p1t2Nodes": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "prefixItems": [
+        { "allOf": [{ "$ref": "#/$defs/ordinaryNode" }, { "properties": { "id": { "const": "P1T2-N01" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/nodeTest" }, { "properties": { "id": { "const": "P1T2-N02" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/ordinaryNode" }, { "properties": { "id": { "const": "P1T2-N03" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/professionalOutput" }, { "properties": { "id": { "const": "P1T2-N04" }, "professionalOutputTitle": { "const": "室外站点与覆盖采集表" } } }] }
+      ],
+      "items": false
+    },
+    "p1t3Nodes": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "prefixItems": [
+        { "allOf": [{ "$ref": "#/$defs/ordinaryNode" }, { "properties": { "id": { "const": "P1T3-N01" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/nodeTest" }, { "properties": { "id": { "const": "P1T3-N02" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/ordinaryNode" }, { "properties": { "id": { "const": "P1T3-N03" } } }] },
+        { "allOf": [{ "$ref": "#/$defs/professionalOutput" }, { "properties": { "id": { "const": "P1T3-N04" }, "professionalOutputTitle": { "const": "投诉信息调查单" } } }] }
+      ],
+      "items": false
+    }
+  }
+}

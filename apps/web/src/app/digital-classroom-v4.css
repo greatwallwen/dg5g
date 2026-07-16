@@ -1,0 +1,799 @@
+/* OpenMAIC-style narration: fixed reservation, synchronized lecturer and caption. */
+.scene-playback-dock.scene-narration-dock,
+.scene-teacher-playback {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  min-height: 0;
+  height: 100%;
+  border: 0;
+  border-top: 1px solid var(--dg-line);
+  border-radius: 0;
+  padding: 0;
+  background: #051827;
+  box-shadow: none;
+}
+
+.scene-narration-dock .dg-teaching-dock,
+.scene-teacher-playback .dg-teaching-dock {
+  min-height: var(--dg-narration-height);
+  border: 0;
+  border-radius: 0;
+  color: var(--dg-text);
+  background: #061b2d;
+  box-shadow: none;
+}
+
+.scene-narration-dock .dg-teaching-presenter,
+.scene-narration-dock .dg-teaching-transcript,
+.scene-narration-dock .dg-teaching-controls,
+.scene-teacher-playback .dg-teaching-presenter,
+.scene-teacher-playback .dg-teaching-transcript,
+.scene-teacher-playback .dg-teaching-controls {
+  color: var(--dg-text);
+}
+
+.scene-narration-dock .dg-teaching-identity strong,
+.scene-teacher-playback .dg-teaching-identity strong {
+  color: var(--dg-current);
+}
+
+.scene-narration-dock .dg-teaching-identity em,
+.scene-teacher-playback .dg-teaching-identity em,
+.scene-narration-dock .dg-teaching-transcript-text p,
+.scene-teacher-playback .dg-teaching-transcript-text p {
+  color: var(--dg-muted);
+}
+
+.scene-narration-dock .dg-teaching-transcript-text p.is-current,
+.scene-teacher-playback .dg-teaching-transcript-text p.is-current {
+  color: var(--dg-text-strong);
+}
+
+.scene-narration-dock .dg-teaching-transcript,
+.scene-teacher-playback .dg-teaching-transcript {
+  border-color: var(--dg-line-strong);
+  border-radius: 5px;
+  color: var(--dg-text);
+  background: var(--dg-surface-raised);
+}
+
+.scene-narration-dock .dg-teaching-controls button,
+.scene-narration-dock .dg-teaching-controls select,
+.scene-teacher-playback .dg-teaching-controls button,
+.scene-teacher-playback .dg-teaching-controls select {
+  min-height: var(--dg-control-height);
+  border-color: var(--dg-line-strong);
+  border-radius: 5px;
+  color: var(--dg-text);
+  background: var(--dg-surface-raised);
+}
+
+.scene-narration-dock .dg-teaching-controls button.is-primary,
+.scene-teacher-playback .dg-teaching-controls button.is-primary {
+  color: #03232b;
+  background: var(--dg-current);
+}
+
+.scene-narration-dock .dg-teaching-progress,
+.scene-teacher-playback .dg-teaching-progress {
+  background: var(--dg-line);
+}
+
+.scene-narration-dock .dock-collapse {
+  top: 8px;
+  right: 8px;
+  width: 36px;
+  height: 36px;
+  border-color: var(--dg-line-strong);
+  background: var(--dg-surface-raised);
+}
+
+.scene-playback-dock.scene-narration-dock.is-collapsed {
+  width: 100%;
+  height: 52px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 12px;
+}
+
+.scene-playback-dock.scene-narration-dock.is-collapsed .dock-collapse {
+  position: static;
+  width: var(--dg-control-height);
+  height: var(--dg-control-height);
+}
+
+/* Shared role shell. */
+.scene-teacher-console,
+.scene-projector-app,
+.scene-student-follow {
+  width: 100%;
+  height: 100dvh;
+  min-height: 720px;
+  overflow: hidden;
+  color: var(--dg-text);
+  background: var(--dg-bg);
+}
+
+.scene-classroom-brand,
+.scene-classroom-brand strong,
+.scene-classroom-topbar > div strong {
+  color: var(--dg-text-strong);
+}
+
+.scene-classroom-brand small,
+.scene-classroom-topbar > div small,
+.scene-classroom-topbar nav > span {
+  border-color: var(--dg-line);
+  color: var(--dg-muted);
+  font-size: var(--dg-font-label);
+}
+
+.scene-classroom-topbar nav > a,
+.scene-classroom-topbar nav > button,
+.scene-classroom-topbar .role-badge {
+  min-height: var(--dg-control-height);
+  border-color: var(--dg-line-strong);
+  color: var(--dg-text);
+  background: var(--dg-surface-raised);
+  font-size: var(--dg-font-control);
+}
+
+/* Teacher: rail, 65% stage, tabbed private inspector. */
+.scene-teacher-console {
+  grid-template-rows: 68px minmax(0, 1fr) 68px;
+}
+
+.scene-teacher-console.has-open-narration {
+  grid-template-rows: 68px minmax(0, 1fr) 152px 68px;
+}
+
+.scene-teacher-grid {
+  grid-template-columns: 184px minmax(0, 1fr) 350px;
+  border-color: var(--dg-line);
+}
+
+.scene-teacher-grid.is-inspector-closed {
+  grid-template-columns: 184px minmax(0, 1fr) 0;
+}
+
+.scene-slide-rail,
+.scene-teacher-inspector,
+.scene-teacher-stage {
+  border-color: var(--dg-line);
+  color: var(--dg-text);
+  background: var(--dg-surface);
+}
+
+.scene-slide-rail > button {
+  min-height: 74px;
+  color: var(--dg-muted);
+}
+
+.scene-slide-rail > button strong,
+.scene-slide-rail header strong,
+.scene-teacher-inspector > header strong {
+  color: var(--dg-text-strong);
+  font-size: var(--dg-font-control);
+}
+
+.scene-slide-rail > button small {
+  color: var(--dg-muted);
+  font-size: var(--dg-font-small);
+}
+
+.scene-slide-rail > button.is-active {
+  border-color: var(--dg-current);
+  color: var(--dg-text-strong);
+  background: rgba(45, 212, 208, .09);
+}
+
+.scene-slide-rail > button.is-active > span {
+  color: #03232b;
+  background: var(--dg-current);
+}
+
+.scene-teacher-stage {
+  padding: 10px 12px 12px;
+  background: var(--dg-bg);
+}
+
+.scene-teacher-stage .stage-header span,
+.scene-teacher-stage .stage-header a {
+  color: var(--dg-muted);
+  font-size: var(--dg-font-label);
+}
+
+.scene-teacher-stage .stage-header a {
+  min-height: 30px;
+  border: 1px solid var(--dg-line-strong);
+  border-radius: 4px;
+  padding: 5px 10px;
+  color: var(--dg-current);
+  background: var(--dg-surface-raised);
+}
+
+.scene-teacher-inspector {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  overflow: hidden;
+  padding: 12px;
+}
+
+.scene-teacher-inspector > header {
+  border-color: var(--dg-line);
+}
+
+.scene-teacher-inspector > header button {
+  width: var(--dg-control-height);
+  height: var(--dg-control-height);
+  border-color: var(--dg-line);
+  color: var(--dg-muted);
+  background: var(--dg-surface-raised);
+}
+
+.teacher-inspector-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin: 10px 0;
+  padding: 3px;
+  border: 1px solid var(--dg-line);
+  border-radius: 5px;
+  background: #061827;
+}
+
+.teacher-inspector-tabs button {
+  min-height: var(--dg-control-height);
+  border: 0;
+  border-radius: 4px;
+  color: var(--dg-muted);
+  background: transparent;
+  font-size: var(--dg-font-label);
+  font-weight: 800;
+}
+
+.teacher-inspector-tabs button[aria-pressed="true"] {
+  color: #03232b;
+  background: var(--dg-current);
+}
+
+.teacher-inspector-panel {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-color: var(--dg-line-strong) transparent;
+}
+
+.teacher-script,
+.teacher-question,
+.scene-teacher-inspector .teacher-formal-analytics,
+.scene-teacher-inspector .teacher-supervision-panel,
+.scene-teacher-inspector .teacher-self-study-snapshot,
+.scene-teacher-inspector .teacher-answer-snapshot,
+.teacher-review-panel,
+.scene-teacher-inspector .student-roster-row,
+.teacher-score-kpis > div {
+  border-color: var(--dg-line);
+  color: var(--dg-text);
+  background: var(--dg-surface-raised);
+}
+
+.teacher-script p,
+.teacher-question strong,
+.teacher-question p,
+.teacher-question small,
+.scene-teacher-inspector p,
+.teacher-review-panel > p,
+.teacher-review-panel > header strong,
+.teacher-review-panel dd {
+  color: var(--dg-text);
+  font-size: var(--dg-font-label);
+}
+
+.teacher-score-kpis small,
+.teacher-formal-analytics > strong,
+.teacher-review-panel dt,
+.teacher-review-panel > header small {
+  color: var(--dg-muted);
+  font-size: var(--dg-font-small);
+}
+
+.scene-teacher-inspector .student-roster-row.is-selected,
+.scene-teacher-inspector .student-roster-row[aria-current="true"] {
+  border-color: var(--dg-current);
+  background: rgba(45, 212, 208, .08);
+  box-shadow: inset 3px 0 0 var(--dg-current);
+}
+
+.scene-teacher-controls {
+  border-top: 1px solid var(--dg-line);
+  padding: 10px 12px;
+  color: var(--dg-muted);
+  background: #061827;
+}
+
+.scene-teacher-controls button {
+  min-height: var(--dg-control-height);
+  border-color: var(--dg-line-strong);
+  color: var(--dg-text);
+  background: var(--dg-surface-raised);
+  font-size: var(--dg-font-control);
+}
+
+.scene-teacher-controls button.is-primary {
+  border-color: var(--dg-current);
+  color: #03232b;
+  background: var(--dg-current);
+}
+
+.scene-teacher-console.has-open-narration .scene-teacher-grid { padding-bottom: 0; }
+
+.scene-teacher-playback {
+  position: relative;
+  z-index: 40;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  width: 100%;
+  height: 152px;
+}
+
+.teacher-helper-pill {
+  min-height: var(--dg-control-height);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--dg-line-strong);
+  border-radius: 5px;
+  padding: 0 10px;
+  color: var(--dg-muted);
+  background: var(--dg-surface-raised);
+  font-size: var(--dg-font-label);
+  font-weight: 850;
+}
+
+.teacher-helper-pill i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dg-error);
+  box-shadow: 0 0 0 4px rgba(239, 102, 114, .1);
+}
+
+.teacher-helper-pill.is-online i {
+  background: var(--dg-mastered);
+  box-shadow: 0 0 0 4px rgba(57, 201, 139, .12);
+}
+
+.teacher-delivery-status {
+  display: grid;
+  gap: 5px;
+  margin-top: 10px;
+  border: 1px solid var(--dg-line);
+  border-radius: 5px;
+  padding: 11px 12px;
+  color: var(--dg-muted);
+  background: var(--dg-surface-raised);
+}
+
+.teacher-delivery-status > span { color: var(--dg-current); font-size: var(--dg-font-small); font-weight: 900; }
+.teacher-delivery-status > strong { color: var(--dg-text-strong); font-size: var(--dg-font-label); }
+.teacher-delivery-status > small { color: var(--dg-muted); font-size: var(--dg-font-small); }
+.teacher-delivery-status.is-offline { border-color: rgba(239, 102, 114, .46); }
+.teacher-delivery-status.is-offline > span { color: #ff9ca6; }
+
+/* One shared dark classroom scene, cropped by role. */
+.shared-classroom-scene {
+  border-color: var(--dg-line);
+  border-radius: var(--dg-radius);
+  color: var(--dg-text);
+  background: var(--dg-surface);
+  box-shadow: var(--dg-shadow);
+}
+
+.shared-classroom-scene > header,
+.shared-classroom-focus,
+.shared-classroom-scene > footer,
+.shared-classroom-scene > footer > div + div {
+  border-color: var(--dg-line);
+}
+
+.shared-classroom-scene > header h1,
+.shared-classroom-scene > header p,
+.shared-classroom-focus > div strong,
+.shared-classroom-focus li,
+.shared-classroom-scene > footer strong {
+  color: var(--dg-text-strong);
+}
+
+.shared-classroom-scene > header span,
+.shared-classroom-focus > div span,
+.shared-classroom-scene > footer svg {
+  color: var(--dg-current);
+}
+
+.shared-classroom-scene > header > strong,
+.shared-classroom-scene > header > strong small,
+.shared-classroom-scene > footer small {
+  color: var(--dg-muted);
+}
+
+.shared-classroom-visual {
+  background: #04192b;
+}
+
+.shared-classroom-focus,
+.shared-classroom-scene > footer {
+  background: var(--dg-surface-raised);
+}
+
+.shared-classroom-scene.is-teacher {
+  grid-template-columns: minmax(0, 1.8fr) minmax(220px, .58fr);
+}
+
+/* Student follow: stage first, activity drawer on demand. */
+.scene-student-follow {
+  position: relative;
+}
+
+.scene-student-follow .scene-classroom-topbar nav > button {
+  width: auto;
+  min-width: 112px;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+.scene-follow-layout {
+  position: relative;
+  grid-template-columns: 176px minmax(0, 1fr);
+  overflow: hidden;
+  background: var(--dg-bg);
+}
+
+.scene-follow-path,
+.scene-follow-activity,
+.scene-follow-controls {
+  border-color: var(--dg-line);
+  color: var(--dg-text);
+  background: var(--dg-surface);
+}
+
+.scene-follow-path {
+  padding: 16px 12px;
+}
+
+.scene-follow-path button {
+  min-height: 64px;
+  color: var(--dg-muted);
+}
+
+.scene-follow-path button[aria-current="step"] {
+  border-color: var(--dg-current);
+  color: var(--dg-text-strong);
+  background: rgba(45, 212, 208, .09);
+}
+
+.scene-follow-path button[aria-current="step"] span {
+  color: #03232b;
+  background: var(--dg-current);
+}
+
+.scene-follow-stage {
+  padding: 12px;
+  background: var(--dg-bg);
+}
+
+.shared-classroom-scene.is-student {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.shared-classroom-scene.is-student .shared-classroom-focus {
+  display: none;
+}
+
+.scene-follow-activity {
+  position: absolute;
+  z-index: 25;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  width: 360px;
+  overflow-y: auto;
+  border: 1px solid var(--dg-line-strong);
+  border-radius: var(--dg-radius);
+  padding: 18px;
+  box-shadow: var(--dg-shadow);
+  transform: translateX(calc(100% + 24px));
+  transition: transform .24s ease;
+  pointer-events: none;
+}
+
+.scene-follow-layout.is-activity-open .scene-follow-activity {
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.scene-follow-activity > header {
+  border-color: var(--dg-line);
+}
+
+.scene-follow-activity > header strong,
+.scene-follow-activity h2 {
+  color: var(--dg-text-strong);
+}
+
+.scene-student-playback {
+  position: relative;
+  z-index: 20;
+  flex: 0 0 148px;
+  min-height: 0;
+  overflow: hidden;
+  border-top: 1px solid var(--dg-line);
+  background: #061827;
+}
+
+.scene-student-playback .web-playback-shell,
+.scene-student-playback .dg-teaching-dock-shell,
+.scene-student-playback .dg-teaching-dock {
+  height: 100%;
+  min-height: 0;
+}
+
+.scene-student-playback .dg-teaching-dock {
+  border: 0;
+  border-radius: 0;
+  color: var(--dg-text);
+  background: #061b2d;
+  box-shadow: none;
+}
+
+.scene-student-playback .dg-teaching-identity strong,
+.scene-student-playback .dg-teaching-transcript-text p.is-current { color: var(--dg-text-strong); }
+.scene-student-playback .dg-teaching-identity em,
+.scene-student-playback .dg-teaching-transcript-text p { color: var(--dg-muted); }
+.scene-student-playback .dg-teaching-transcript { border-color: var(--dg-line-strong); background: var(--dg-surface-raised); }
+.scene-student-playback .dg-teaching-controls { opacity: .68; }
+
+.classroom-playback-follower {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 64px 172px minmax(0, 1fr) 190px;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 24px;
+  color: var(--dg-text);
+  background: #061b2d;
+}
+
+.classroom-playback-follower > img {
+  width: 58px;
+  height: 58px;
+  border: 2px solid rgba(45, 212, 208, .5);
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.classroom-follower-presenter {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  align-content: center;
+  align-self: stretch;
+  border-right: 1px solid var(--dg-line);
+}
+
+.classroom-follower-presenter strong {
+  color: var(--dg-text-strong);
+  font-size: var(--dg-font-body);
+}
+
+.classroom-follower-presenter small,
+.classroom-follower-progress span {
+  color: var(--dg-muted); font-size: var(--dg-font-small);
+}
+
+.classroom-follower-caption {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.classroom-follower-caption span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--dg-current);
+  font-size: var(--dg-font-label);
+  font-weight: 800;
+}
+
+.classroom-follower-caption p {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--dg-text-strong);
+  font-size: var(--dg-font-body);
+  font-weight: 650;
+  line-height: 1.55;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.classroom-follower-progress {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.classroom-follower-progress progress {
+  width: 100%; height: 6px; overflow: hidden;
+  border: 0;
+  border-radius: 3px;
+  background: var(--dg-line);
+  accent-color: var(--dg-current);
+}
+
+.classroom-follower-progress progress::-webkit-progress-bar { background: var(--dg-line); }
+.classroom-follower-progress progress::-webkit-progress-value { background: var(--dg-current); }
+.classroom-playback-follower[data-playback-status="paused"] .classroom-follower-caption span { color: var(--dg-warning); }
+.classroom-playback-follower[data-playback-status="ended"] .classroom-follower-caption span { color: var(--dg-mastered); }
+.scene-follow-activity > small {
+  color: var(--dg-muted);
+  font-size: var(--dg-font-small);
+}
+
+.follow-choice-grid button,
+.scene-follow-activity > p,
+.follow-question-controls button {
+  border-color: var(--dg-line);
+  color: var(--dg-text);
+  background: var(--dg-surface-raised);
+  font-size: var(--dg-font-control);
+}
+
+.follow-choice-grid button.is-selected {
+  border-color: var(--dg-current);
+  color: var(--dg-text-strong);
+  background: rgba(45, 212, 208, .09);
+  box-shadow: 0 0 0 1px var(--dg-current);
+}
+
+.scene-follow-activity > p.is-correct {
+  border-color: var(--dg-mastered);
+  color: #baf3d6;
+  background: rgba(57, 201, 139, .09);
+}
+
+.scene-follow-activity > p.is-wrong {
+  border-color: var(--dg-error);
+  color: #ffc2c8;
+  background: rgba(239, 102, 114, .09);
+}
+
+.follow-question-controls button.is-primary {
+  border-color: var(--dg-current);
+  color: #03232b;
+  background: var(--dg-current);
+}
+
+.scene-follow-controls {
+  flex-basis: 68px;
+  padding: 10px 12px;
+}
+
+.scene-follow-controls button {
+  min-height: var(--dg-control-height);
+  border-color: var(--dg-line-strong);
+  color: var(--dg-text);
+  background: var(--dg-surface-raised);
+  font-size: var(--dg-font-control);
+}
+
+.scene-student-follow .follow-skill-handoff {
+  right: 24px;
+  bottom: 222px;
+  left: 200px;
+  border-color: rgba(57, 201, 139, .58);
+  color: var(--dg-text);
+  background: rgba(7, 35, 48, .97);
+  box-shadow: var(--dg-shadow);
+}
+
+.scene-student-follow .follow-skill-handoff span {
+  color: var(--dg-mastered);
+}
+
+.scene-student-follow .follow-skill-handoff strong {
+  color: var(--dg-text-strong);
+}
+
+/* Projector: only the common attention field. */
+.scene-projector-app {
+  grid-template-rows: 68px minmax(0, 1fr) 64px;
+  background: var(--dg-bg);
+}
+
+.scene-projector-stage {
+  padding: 12px 16px;
+  background: var(--dg-bg);
+}
+
+.scene-projector-stage .shared-classroom-scene > header h1 {
+  font-size: 40px;
+}
+
+.scene-projector-stage .shared-classroom-scene > header p,
+.scene-projector-stage .shared-classroom-focus > div strong,
+.scene-projector-stage .shared-classroom-focus li,
+.scene-projector-stage .shared-classroom-scene > footer strong {
+  font-size: 20px;
+}
+
+.scene-projector-footer {
+  border-color: var(--dg-line);
+  color: var(--dg-text);
+  background: #061827;
+}
+
+.scene-projector-footer > span,
+.scene-projector-footer strong,
+.scene-projector-footer small {
+  color: var(--dg-text);
+  font-size: 16px;
+}
+
+.scene-projector-footer .projector-control-note {
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  color: var(--dg-muted);
+  background: transparent;
+}
+
+/* Game surfaces inherit the textbook palette while Pixi owns the visual stage. */
+.skill-game-panel,
+.skill-game-panel > header,
+.skill-game-panel > footer,
+.student-formal-test-workspace,
+.student-formal-test-workspace .skill-game-panel > header {
+  border-color: var(--dg-line);
+  color: var(--dg-text);
+  background: var(--dg-surface);
+}
+
+.student-formal-test-workspace {
+  margin: 12px 16px;
+  border-radius: var(--dg-radius);
+}
+
+.student-evidence-workspace {
+  border-color: var(--dg-line);
+}
+
+.student-evidence-workspace button {
+  min-height: var(--dg-control-height);
+  font-size: var(--dg-font-control);
+}
+
+.eg-topology-stage,
+.eg-evidence-stage,
+.eg-beam-stage,
+.eg-survey-stage {
+  border-radius: 0 !important;
+  background: #041522 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

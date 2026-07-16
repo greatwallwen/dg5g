@@ -1,0 +1,2206 @@
+{
+  "schema": "dgbook.lesson-ast/v1",
+  "source": {
+    "kind": "docx",
+    "path": "content/5g/5g.docx",
+    "importer": "scripts/import-5g-docx.py"
+  },
+  "project": {
+    "id": "P15",
+    "title": "5G全网性能提升实施",
+    "sourceNo": "2",
+    "chapterTitle": "5G全网性能提升",
+    "taskIndex": 2
+  },
+  "lesson": {
+    "id": "P15",
+    "title": "5G全网性能提升实施",
+    "widgetId": "P15-lesson-animation-001",
+    "scenario": "kpi",
+    "scenarioLabel": "指标分析"
+  },
+  "content": {
+    "sections": [
+      {
+        "id": "sec-overview",
+        "title": "导学摘要",
+        "icon": "overview",
+        "texts": [
+          "本节讲全网性能提升：先定位覆盖、干扰、容量或体验瓶颈，再选择工程、参数、资源和邻区组合动作，并监控副作用。"
+        ]
+      },
+      {
+        "id": "P15-ku-01",
+        "title": "概念与对象",
+        "icon": "radar",
+        "texts": [
+          "全网性能提升先找瓶颈类型和影响范围，不能从动作清单直接开始。"
+        ]
+      },
+      {
+        "id": "P15-ku-02",
+        "title": "概念与对象",
+        "icon": "route",
+        "texts": [
+          "覆盖、干扰、容量和业务体验短板对应不同策略，策略选择要服从证据和影响面。"
+        ]
+      },
+      {
+        "id": "P15-ku-03",
+        "title": "工程判读",
+        "icon": "chart",
+        "texts": [
+          "全网提升常需要组合动作，必须评估参数调整、工程整改、资源扩容和邻区优化之间的耦合影响。"
+        ]
+      },
+      {
+        "id": "P15-ku-04",
+        "title": "数据与现场佐证",
+        "icon": "tool",
+        "texts": [
+          "执行后要持续观察 KPI 趋势、活动告警、投诉变化和业务体验，识别局部改善带来的副作用。"
+        ]
+      },
+      {
+        "id": "P15-ku-05",
+        "title": "操作校验",
+        "icon": "search",
+        "texts": [
+          "路径校验确保每个动作都能回扣到瓶颈假设，并有对应的验证指标和复测口径。"
+        ]
+      },
+      {
+        "id": "P15-ku-06",
+        "title": "闭环复盘",
+        "icon": "check",
+        "texts": [
+          "效果确认后固化策略、参数版本、适用场景和限制条件，形成可复制的提升路径。"
+        ]
+      }
+    ],
+    "blocks": [
+      {
+        "id": "block-001",
+        "kind": "paragraph",
+        "order": 1,
+        "text": "任务导入"
+      },
+      {
+        "id": "block-002",
+        "kind": "paragraph",
+        "order": 2,
+        "text": "在学习了上一节5G全网性能指标的采集内容后，请大家思考如何制定具体的能指标提升方案。"
+      },
+      {
+        "id": "block-003",
+        "kind": "paragraph",
+        "order": 3,
+        "text": "任务要求"
+      },
+      {
+        "id": "block-004",
+        "kind": "paragraph",
+        "order": 4,
+        "text": "完成接入类指标提升解决方案的制定；"
+      },
+      {
+        "id": "block-005",
+        "kind": "paragraph",
+        "order": 5,
+        "text": "完成保持类指标提升解决方案的制定；"
+      },
+      {
+        "id": "block-006",
+        "kind": "paragraph",
+        "order": 6,
+        "text": "完成移动性类指标提升解决方案的制定；"
+      },
+      {
+        "id": "block-007",
+        "kind": "paragraph",
+        "order": 7,
+        "text": "完成资源类指标提升解决方案的制定；"
+      },
+      {
+        "id": "block-008",
+        "kind": "paragraph",
+        "order": 8,
+        "text": "完成可用性指标提升解决方案的制定；"
+      },
+      {
+        "id": "block-009",
+        "kind": "paragraph",
+        "order": 9,
+        "text": "知识准备"
+      },
+      {
+        "id": "block-010",
+        "kind": "paragraph",
+        "order": 10,
+        "text": "8维5步法全网性能提升流程"
+      },
+      {
+        "id": "block-011",
+        "kind": "paragraph",
+        "order": 11,
+        "text": "5G全网性能提升包括指标统计、短板分析、确定目标、制定方案、方案实施共计5个步骤，主要从硬件告警、资源利用率、覆盖率、干扰、参数核查、邻区关系、基站版本和小区健康度等8个维度进行指标关联分析，定位主要问题并制定提升方案。"
+      },
+      {
+        "id": "block-012",
+        "kind": "paragraph",
+        "order": 12,
+        "mediaRefs": [
+          "rId331"
+        ]
+      },
+      {
+        "id": "block-013",
+        "kind": "paragraph",
+        "order": 13,
+        "text": "图5-2-1 8维5步法全网性能提升方法"
+      },
+      {
+        "id": "block-014",
+        "kind": "paragraph",
+        "order": 14,
+        "text": "5G接入类指标提升方案"
+      },
+      {
+        "id": "block-015",
+        "kind": "paragraph",
+        "order": 15,
+        "text": "（一）接入类指标提升方案"
+      },
+      {
+        "id": "block-016",
+        "kind": "paragraph",
+        "order": 16,
+        "text": "1.分段统计"
+      },
+      {
+        "id": "block-017",
+        "kind": "paragraph",
+        "order": 17,
+        "text": "通过随机接入失败（被叫侧响应寻呼时需要随机接入）、RRC建立失败、NG接口信令异常、Qos Flow建立失败这4个方面对接入问题进行进行分阶段统计，相应的指标为prach建立成功率、RRC建立成功率、NG口UE专用信令建立成功率、Qos Flow建立成功率，除了这些基本指标的统计外，也可以参考厂家的私有counter自行定义指标进行统计。"
+      },
+      {
+        "id": "block-018",
+        "kind": "paragraph",
+        "order": 18,
+        "mediaRefs": [
+          "rId332"
+        ]
+      },
+      {
+        "id": "block-019",
+        "kind": "paragraph",
+        "order": 19,
+        "text": "图5-2-2 接入类指标提升方案"
+      },
+      {
+        "id": "block-020",
+        "kind": "paragraph",
+        "order": 20,
+        "text": "2.关联分析"
+      },
+      {
+        "id": "block-021",
+        "kind": "paragraph",
+        "order": 21,
+        "text": "对于全网存在的低接入小区根据如下判定准则进行关联分析，进行初步问题定界并提出优化方案。"
+      },
+      {
+        "id": "block-022",
+        "kind": "paragraph",
+        "order": 22,
+        "text": "表5-2-1 低接入小区关联分析"
+      },
+      {
+        "id": "block-023",
+        "kind": "table",
+        "order": 23,
+        "rows": [
+          [
+            "弱覆盖",
+            "上行干扰",
+            "下行干扰",
+            "资源问题",
+            "参数问题"
+          ],
+          [
+            "MR覆盖率(RSRP<=-108dBm)<90%",
+            "上行每PRB的接收干扰噪声平均值>-100dB",
+            "MR覆盖率(RSRP<=-108dBm)>95% 且 SINR均值<0",
+            "RRC reject原因导致的RRC失败比例高、PRB利用率>80%",
+            "最小接入电平、RAR响应窗口大小、Preamble最大发送次数、前导接收功率、T300定时器设置"
+          ],
+          [
+            "覆盖优化",
+            "上行干扰排查",
+            "下行PCI优化、天馈调整、功率参数优化、干扰抑制功能开启核查",
+            "RRC license核查、负荷分流、扩容",
+            "参数调整优化"
+          ]
+        ]
+      },
+      {
+        "id": "block-024",
+        "kind": "paragraph",
+        "order": 24,
+        "text": "3.接入参数核查"
+      },
+      {
+        "id": "block-025",
+        "kind": "paragraph",
+        "order": 25,
+        "text": "参考接入基线参数进行全网参数核查，对于参数异常且接入指标差的小区根据小区实际覆盖情况、是否测试保障小区进行参数调整。接入参数如下表5-2-2"
+      },
+      {
+        "id": "block-026",
+        "kind": "paragraph",
+        "order": 26,
+        "text": "表5-2-2 接入类主要参数"
+      },
+      {
+        "id": "block-027",
+        "kind": "table",
+        "order": 27,
+        "rows": [
+          [
+            "参数名称",
+            "英文名称",
+            "取值范围",
+            "参数说明"
+          ],
+          [
+            "UE 类型",
+            "Ue Type",
+            "0CPE/1高通终端",
+            "该参数用于设置小区所接入的UE类型，例如中兴终端（CPE）、高通终端（IOT）。当该参数设置为某类UE时，小区采用适合于该类终端接入的一组默认参数配置。"
+          ],
+          [
+            "UE等待RRC连接响应的定时器长度(T300)",
+            "t300",
+            "100~2000",
+            "该参数用于指示UE等待RRC连接响应的定时器长度，当UE发送RRC连接请求消息后将启动定时器T300"
+          ],
+          [
+            "Rach 非竞争的随机接入前导码",
+            "macNonContenPreamble",
+            "0~64",
+            "该参数表示基于非竞争的随机接入前导码，由基站直接分配给UE，用于切换，定位或者有下行数据到达但上行失步等情况下的随机接入过程"
+          ],
+          [
+            "小区重选 高速移动状态判决的小区重选次数",
+            "nCrH",
+            "1~16",
+            "该参数用于指示高速移动状态判决的小区重选次数门限。如果在TCrmax时间内小区重选次数超过NCR_H则标记为高速移动状态"
+          ],
+          [
+            "Rach 随机接入前导码总数量",
+            "totalNumberOfRAPreambles",
+            "1~63",
+            "该参数指示PRACH前导码的个数"
+          ],
+          [
+            "rachConfigGeneric 频域RACH Occasion的起始RB",
+            "msg1FrequencyStart",
+            "0~274",
+            "msg1的频域起始位置，不能超过系统RB数与RACH RB数之差"
+          ],
+          [
+            "rachConfigGeneric PRACH功率攀升步长",
+            "powerRampingStep",
+            "0/2/4/6",
+            "发送prach后，没有收到MSG2后，重新发送PRACH的功率攀升值"
+          ],
+          [
+            "Inactive参数 inactive 定时器",
+            "inactiveTimer",
+            "1~50",
+            "该参数为UE不活动定时器"
+          ]
+        ]
+      },
+      {
+        "id": "block-028",
+        "kind": "paragraph",
+        "order": 28,
+        "text": "4.方案实施"
+      },
+      {
+        "id": "block-029",
+        "kind": "paragraph",
+        "order": 29,
+        "text": "对全网存在的故障、覆盖、干扰、资源、参数问题按照相应的指导手册，分配到相关部门进行处理，并定期督促落实情况。"
+      },
+      {
+        "id": "block-030",
+        "kind": "paragraph",
+        "order": 30,
+        "text": "5G保持类指标提升方案"
+      },
+      {
+        "id": "block-031",
+        "kind": "paragraph",
+        "order": 31,
+        "text": "（一）掉线指标提升方案"
+      },
+      {
+        "id": "block-032",
+        "kind": "paragraph",
+        "order": 32,
+        "text": "1.确定问题类型"
+      },
+      {
+        "id": "block-033",
+        "kind": "paragraph",
+        "order": 33,
+        "text": "根据KPI指标变化分析明确问题类型，确定优化目标。"
+      },
+      {
+        "id": "block-034",
+        "kind": "paragraph",
+        "order": 34,
+        "text": "（1）KPI指标突然恶化，或者某些时段恶化。"
+      },
+      {
+        "id": "block-035",
+        "kind": "paragraph",
+        "order": 35,
+        "text": "（2）KPI缓慢变化，逐渐变差。"
+      },
+      {
+        "id": "block-036",
+        "kind": "paragraph",
+        "order": 36,
+        "text": "（3）当前KPI不达标，需要提升到某个目标值。"
+      },
+      {
+        "id": "block-037",
+        "kind": "paragraph",
+        "order": 37,
+        "text": "（4）多个区域对比，分析某个区域相比其它区域差的原因。"
+      },
+      {
+        "id": "block-038",
+        "kind": "paragraph",
+        "order": 38,
+        "text": "2.时间趋势分析"
+      },
+      {
+        "id": "block-039",
+        "kind": "paragraph",
+        "order": 39,
+        "text": "时间趋势分析主要是分析掉话率公式中涉及的各子Counter的变化趋势和指标变化时间点是否有规律。"
+      },
+      {
+        "id": "block-040",
+        "kind": "paragraph",
+        "order": 40,
+        "text": "首先是看总的释放次数和异常释放次数的变化规律，正常、异常释放次数都同时增加，还是只有异常释放次数增加。分析分子、分母变化和用户数变化是否相关。"
+      },
+      {
+        "id": "block-041",
+        "kind": "paragraph",
+        "order": 41,
+        "text": "其次分析指标变化在时间维度是否有规律，指标是持续缓慢下降、阶梯式下降、还是正常波动。分析指标是否固定发生在每天某些小时，或者每周的周几，或者固定在月初月末等等。天级指标对比一定要注意同时段对比，每周的不同时间段（比如周末、工作日）、每月的月初、月中由于用户行为的变化指标均会出现波动，节假日期间指标也会存在波动。"
+      },
+      {
+        "id": "block-042",
+        "kind": "paragraph",
+        "order": 42,
+        "text": "分析话统时要注意分析统计时间段内小区个数的变化，避免由于采集的话统数据不全，小区数量存在较大变化，导致KPI趋势变化，从而误判断。当发现小区数量差异较大时，首先要确认反馈数据是否完整，小区数，站点数是否符合预期。如果数据反馈没有问题，那就说明现网在逐步新增站点，或者关闭站点，导致KPI变化，属于“外部事件”排查的内容"
+      },
+      {
+        "id": "block-043",
+        "kind": "paragraph",
+        "order": 43,
+        "text": "3.掉线原因分析"
+      },
+      {
+        "id": "block-044",
+        "kind": "paragraph",
+        "order": 44,
+        "text": "分Counter对掉线原因进行统计，通过不同原因的释放占比指标确定导致掉线的主要因素，掉线原因包括无线链路失败、切换失败、小区中断或复位等，根据厂家网管上的私有Counter进行分析。"
+      },
+      {
+        "id": "block-045",
+        "kind": "paragraph",
+        "order": 45,
+        "text": "4.TOPN小区分析"
+      },
+      {
+        "id": "block-046",
+        "kind": "paragraph",
+        "order": 46,
+        "text": "接下来要确认问题范围是TOP小区问题还是整网问题。"
+      },
+      {
+        "id": "block-047",
+        "kind": "paragraph",
+        "order": 47,
+        "text": "“TOP小区”问题："
+      },
+      {
+        "id": "block-048",
+        "kind": "paragraph",
+        "order": 48,
+        "text": "分别去除”掉话率TOP小区”和”掉话次数TOP小区”后，如果整网掉话率明显改善且与掉话率恶化前指标基本持平(或者达到了目标值)，则定义为TOP小区问题。剔除TOPN小区数根据小区规模设定，例如TOP100。"
+      },
+      {
+        "id": "block-049",
+        "kind": "paragraph",
+        "order": 49,
+        "text": "“整网”问题："
+      },
+      {
+        "id": "block-050",
+        "kind": "paragraph",
+        "order": 50,
+        "text": "去除”掉话率TOP小区”和”掉话次数TOP小区”后，如果整网掉话率没有明显改善，则定义为整网问题。"
+      },
+      {
+        "id": "block-051",
+        "kind": "paragraph",
+        "order": 51,
+        "text": "筛选TOP小区时，要根据现网实际话务水平，选择总释放次数不低于平均值50%的水平作为基础，排除总的释放次数较少，少量异常释放就会出现较高掉话率的情况。"
+      },
+      {
+        "id": "block-052",
+        "kind": "paragraph",
+        "order": 52,
+        "text": "5.掉线问题关联指标，如下表5-2-3"
+      },
+      {
+        "id": "block-053",
+        "kind": "paragraph",
+        "order": 53,
+        "text": "表5-2-3 掉线关联指标"
+      },
+      {
+        "id": "block-054",
+        "kind": "table",
+        "order": 54,
+        "rows": [
+          [
+            "弱覆盖",
+            "上行干扰",
+            "下行干扰",
+            "资源问题",
+            "参数问题",
+            "传输误码率",
+            "切换问题",
+            "CCE聚集级别高",
+            "低CQI占比高",
+            "远距离接入",
+            "平均用户数突增"
+          ],
+          [
+            "MR覆盖率(RSRP<=-108dBm)<90%",
+            "上行每PRB的接收干扰噪声平均值>-100dB",
+            "MR覆盖率(RSRP<=-108dBm)>95% 且 SINR均值<0",
+            "PRB利用率>80%",
+            "无线链路检测定时器、RRC重配置定时器、切换定时器、呼叫重建定时器等",
+            "下行IBLER>10%或下行RBLER>10%或上行RBLER>10%或上行重传率>50%或下行重传率>50%",
+            "小区切入成功率<90%或小区切出成功率<90%",
+            "CCE聚合度大于8的占比>30%",
+            "CQI0-6占比>30%",
+            "TA均值大于1公里",
+            "平均用户数>前一周平均用户数的100%"
+          ],
+          [
+            "覆盖优化",
+            "上行干扰排查",
+            "下行PCI优化、天馈调整、功率参数优化、干扰抑制功能开启核查",
+            "负荷分流、扩容",
+            "参数调整优化",
+            "覆盖、干扰优化、故障排查、传输优化",
+            "切换参数优化、邻区优化",
+            "覆盖、干扰优化",
+            "覆盖、干扰优化",
+            "越区覆盖优化",
+            "核查用户激增原因、排查外部事件"
+          ]
+        ]
+      },
+      {
+        "id": "block-055",
+        "kind": "paragraph",
+        "order": 55,
+        "text": "对于全网存在的高掉线小区根据如下判定准则进行关联分析，进行初步问题定界并提出优化方案。"
+      },
+      {
+        "id": "block-056",
+        "kind": "paragraph",
+        "order": 56,
+        "text": "掉线分析流程："
+      },
+      {
+        "id": "block-057",
+        "kind": "paragraph",
+        "order": 57,
+        "mediaRefs": [
+          "rId333"
+        ]
+      },
+      {
+        "id": "block-058",
+        "kind": "paragraph",
+        "order": 58,
+        "text": "图5-2-3 掉线优化流程"
+      },
+      {
+        "id": "block-059",
+        "kind": "paragraph",
+        "order": 59,
+        "text": "6.参数核查"
+      },
+      {
+        "id": "block-060",
+        "kind": "paragraph",
+        "order": 60,
+        "text": "参考掉线基线参数进行全网参数核查，对于参数异常且指标差的小区根据小区实际覆盖情况、是否测试保障小区进行参数调整。"
+      },
+      {
+        "id": "block-061",
+        "kind": "paragraph",
+        "order": 61,
+        "text": "7.方式实施"
+      },
+      {
+        "id": "block-062",
+        "kind": "paragraph",
+        "order": 62,
+        "text": "对全网存在的故障、覆盖、干扰、资源、参数问题按照相应的指导手册，分配到相关部门进行处理，并定期督促落实情况。"
+      },
+      {
+        "id": "block-063",
+        "kind": "paragraph",
+        "order": 63,
+        "text": "掉线类参数调整可参考下表5-2-4"
+      },
+      {
+        "id": "block-064",
+        "kind": "paragraph",
+        "order": 64,
+        "text": "表5-2-4 掉线保持类主要相关参数"
+      },
+      {
+        "id": "block-065",
+        "kind": "table",
+        "order": 65,
+        "rows": [
+          [
+            "参数名称",
+            "英文名称",
+            "取值范围",
+            "参数说明"
+          ],
+          [
+            "UE等待RRC重建响应的定时器长度(T301)",
+            "t301",
+            "100~2000",
+            "该参数用于指示UE等待RRC重建响应的定时器长度。当UE发送RRC连接重建请求消息时，打开T301定时器。当UE收到RRC连接重建消息或RRC连接重建拒绝消息后，停止T301定时器；当定时器超时，UE进入IDLE态"
+          ],
+          [
+            "UE接收下行失步指示的最大个数(N310)",
+            "n310",
+            "1~20",
+            "该参数用于指示UE检测下行失步时，连续接收失步指示的最大个数"
+          ],
+          [
+            "移动性功能 NR语音开关指示",
+            "voNrSwitch",
+            "false/ture",
+            "开关打开时，表示基站支持VONR业务。开关关闭时，表示基站不支持VONR的业务"
+          ],
+          [
+            "UE监测到无线链路失败后转入idle状态的定时器长度(T311)",
+            "t311",
+            "1000~30000",
+            "该参数用于指示UE检测下行失步时，连续接收失步指示的最大个数。"
+          ],
+          [
+            "同频测量对象 评估小区级质量的CSI-RS最大个数",
+            "csiRsMaxToAverage",
+            "2~16",
+            "该参数用于指示用于评估小区级质量的最大CSI-RS个数"
+          ],
+          [
+            "UE定时器配置 UE监测无线链路失败的定时器长度(T310)",
+            "t310",
+            "0~6000",
+            "该参数用于指示UE监测无线链路失败的定时器长度。当UE监测主服务小区物理层出现问题，即连续收到N310个out-of-sync指示时，启动T310定时器；在接收到N311个in-sync指示,或者收到该小区组带reconfigurationWithSync信元的RRC重配，或者发起RRC连接重建流程时，停止定时器"
+          ]
+        ]
+      },
+      {
+        "id": "block-066",
+        "kind": "paragraph",
+        "order": 66,
+        "text": "（三）设备问题导致掉线解决方案"
+      },
+      {
+        "id": "block-067",
+        "kind": "paragraph",
+        "order": 67,
+        "text": "硬件问题"
+      },
+      {
+        "id": "block-068",
+        "kind": "paragraph",
+        "order": 68,
+        "text": "终端设备硬件问题的需更换终端。"
+      },
+      {
+        "id": "block-069",
+        "kind": "paragraph",
+        "order": 69,
+        "text": "5G基站设备硬件存在故障需进行故障处理。"
+      },
+      {
+        "id": "block-070",
+        "kind": "paragraph",
+        "order": 70,
+        "text": "软件问题"
+      },
+      {
+        "id": "block-071",
+        "kind": "paragraph",
+        "order": 71,
+        "text": "终端设备软件存在BUG的需进行终端版本升级。"
+      },
+      {
+        "id": "block-072",
+        "kind": "paragraph",
+        "order": 72,
+        "text": "5G基站设备软件存在BUG的需进行版本升级。"
+      },
+      {
+        "id": "block-073",
+        "kind": "paragraph",
+        "order": 73,
+        "text": "（四）覆盖问题导致掉线解决方案"
+      },
+      {
+        "id": "block-074",
+        "kind": "paragraph",
+        "order": 74,
+        "text": "参见接入类性能指标提升解决方案内容。"
+      },
+      {
+        "id": "block-075",
+        "kind": "paragraph",
+        "order": 75,
+        "text": "（五）切换问题导致掉线解决方案"
+      },
+      {
+        "id": "block-076",
+        "kind": "paragraph",
+        "order": 76,
+        "text": "参见移动类性能指标提升解决方案内容。"
+      },
+      {
+        "id": "block-077",
+        "kind": "paragraph",
+        "order": 77,
+        "text": "（六）拥塞问题导致掉线解决方案"
+      },
+      {
+        "id": "block-078",
+        "kind": "paragraph",
+        "order": 78,
+        "text": "参见资源类性能指标提升解决方案内容。"
+      },
+      {
+        "id": "block-079",
+        "kind": "paragraph",
+        "order": 79,
+        "text": "5G移动性指标提升方案"
+      },
+      {
+        "id": "block-080",
+        "kind": "paragraph",
+        "order": 80,
+        "text": "（一）分析思路"
+      },
+      {
+        "id": "block-081",
+        "kind": "paragraph",
+        "order": 81,
+        "mediaRefs": [
+          "rId334"
+        ]
+      },
+      {
+        "id": "block-082",
+        "kind": "paragraph",
+        "order": 82,
+        "text": "图5-2-4 切换优化流程"
+      },
+      {
+        "id": "block-083",
+        "kind": "paragraph",
+        "order": 83,
+        "text": "（二）SA切换优化思路"
+      },
+      {
+        "id": "block-084",
+        "kind": "paragraph",
+        "order": 84,
+        "text": "基站未收到测量报告（可通过后台信令跟踪检查）"
+      },
+      {
+        "id": "block-085",
+        "kind": "paragraph",
+        "order": 85,
+        "text": "覆盖：检查弱覆盖、质差。若存在可以根据现网情况进行RF调整、切换参数调整。"
+      },
+      {
+        "id": "block-086",
+        "kind": "paragraph",
+        "order": 86,
+        "text": "干扰：检查是否存在上行干扰。可以通过后台干扰监测或扫频来查询，核查是否存在邻站GPS失锁和时隙配比不一致（同频）的问题。"
+      },
+      {
+        "id": "block-087",
+        "kind": "paragraph",
+        "order": 87,
+        "text": "参数：检查切换测量启动门限、切换判决门限是否设置的不合理，造成终端难以达到测量上报条件。"
+      },
+      {
+        "id": "block-088",
+        "kind": "paragraph",
+        "order": 88,
+        "text": "基站收到了测量报告，但未下发切换命令"
+      },
+      {
+        "id": "block-089",
+        "kind": "paragraph",
+        "order": 89,
+        "text": "邻区漏配：核查RRC侧控制消息中的PCI和测量上报PCI是否一致，或者通过网管核查邻区关系是否漏配。"
+      },
+      {
+        "id": "block-090",
+        "kind": "paragraph",
+        "order": 90,
+        "text": "PCI混淆和冲突：根据目标小区回复切换准备失败原因，进行初步定位或者定期核查是否存在近距离同频同PCI邻区，如果存在进行PCI优化。"
+      },
+      {
+        "id": "block-091",
+        "kind": "paragraph",
+        "order": 91,
+        "text": "下发切换命令，但目标PCI错误"
+      },
+      {
+        "id": "block-092",
+        "kind": "paragraph",
+        "order": 92,
+        "text": "邻区关系：核查邻区关系，邻区错配会导致该问题，重点核查外部邻区小区ID、PCI等参数设置。"
+      },
+      {
+        "id": "block-093",
+        "kind": "paragraph",
+        "order": 93,
+        "text": "在目标基站随机接入失败"
+      },
+      {
+        "id": "block-094",
+        "kind": "paragraph",
+        "order": 94,
+        "text": "参数核查：核查TAC、随机接入等关键参数是否正确，避免由参数错误导致的切换失败。"
+      },
+      {
+        "id": "block-095",
+        "kind": "paragraph",
+        "order": 95,
+        "text": "覆盖：随机接入过程失败，检查源基站和目标基站弱覆盖、质差等，如果是进行RF调整。"
+      },
+      {
+        "id": "block-096",
+        "kind": "paragraph",
+        "order": 96,
+        "text": "故障：检查目标基站是否存在告警。"
+      },
+      {
+        "id": "block-097",
+        "kind": "paragraph",
+        "order": 97,
+        "text": "切换过早、切换过晚"
+      },
+      {
+        "id": "block-098",
+        "kind": "paragraph",
+        "order": 98,
+        "text": "参数：进行RF优化。修改切换参数，例如CIO，事件触发时长。"
+      },
+      {
+        "id": "block-099",
+        "kind": "paragraph",
+        "order": 99,
+        "text": "（三）NSA切换优化思路"
+      },
+      {
+        "id": "block-100",
+        "kind": "paragraph",
+        "order": 100,
+        "text": "优化原则"
+      },
+      {
+        "id": "block-101",
+        "kind": "paragraph",
+        "order": 101,
+        "text": "MN切换门限与SN变更的门限尽量满足切换/变更点一致。"
+      },
+      {
+        "id": "block-102",
+        "kind": "paragraph",
+        "order": 102,
+        "text": "SN添加、删除的门限尽量满足NR可提供服务的最小门限。"
+      },
+      {
+        "id": "block-103",
+        "kind": "paragraph",
+        "order": 103,
+        "text": "4G优化成果继承"
+      },
+      {
+        "id": "block-104",
+        "kind": "paragraph",
+        "order": 104,
+        "text": "4G的现网邻区关系继承。"
+      },
+      {
+        "id": "block-105",
+        "kind": "paragraph",
+        "order": 105,
+        "text": "4G的系统优先级、多频点组网优先级等组网策略继承。"
+      },
+      {
+        "id": "block-106",
+        "kind": "paragraph",
+        "order": 106,
+        "text": "4G的A3事件offset、hysteresis、CIO参数继承。"
+      },
+      {
+        "id": "block-107",
+        "kind": "paragraph",
+        "order": 107,
+        "text": "4G切换和重选的个体偏移继承。"
+      },
+      {
+        "id": "block-108",
+        "kind": "paragraph",
+        "order": 108,
+        "text": "4/5G协同优化"
+      },
+      {
+        "id": "block-109",
+        "kind": "paragraph",
+        "order": 109,
+        "text": "优化锚点小区所在的4G网络的切换成功率，切换关系合理，抑制乒乓切换。"
+      },
+      {
+        "id": "block-110",
+        "kind": "paragraph",
+        "order": 110,
+        "text": "网络建设阶段，建议5G按照和4G进行1:1组网，保证5G网络覆盖连续性，NR至锚点推荐使用一对多方。"
+      },
+      {
+        "id": "block-111",
+        "kind": "paragraph",
+        "order": 111,
+        "text": "4G和5G 1:1组网下，5G小区的工参，如方向角、下倾角初始规划可以借鉴锚点4G小区，充分利用4G优化成果，簇优化/全网优化阶段再进行精细调整。"
+      },
+      {
+        "id": "block-112",
+        "kind": "paragraph",
+        "order": 112,
+        "text": "以控制最优切换带为原则，给出最优化的天线下倾角和方位角来进行覆盖优化。"
+      },
+      {
+        "id": "block-113",
+        "kind": "paragraph",
+        "order": 113,
+        "text": "针对拐角等特殊场景，由于5G衰落比较大可以适当的不进行同覆盖规划。"
+      },
+      {
+        "id": "block-114",
+        "kind": "paragraph",
+        "order": 114,
+        "text": "（四）邻区漏配解决方案"
+      },
+      {
+        "id": "block-115",
+        "kind": "paragraph",
+        "order": 115,
+        "text": "邻区漏配的概念"
+      },
+      {
+        "id": "block-116",
+        "kind": "paragraph",
+        "order": 116,
+        "text": "邻区漏配就是激活小区和未激活小区之间没有邻区关系，但是未激活小区的信号很好。两个小区的信号在其覆盖区有重叠的部分，正常情况下应该定义两者的邻区关系，如果没有定义的话就造成了邻区漏配。"
+      },
+      {
+        "id": "block-117",
+        "kind": "paragraph",
+        "order": 117,
+        "text": "邻区漏配判断方法"
+      },
+      {
+        "id": "block-118",
+        "kind": "paragraph",
+        "order": 118,
+        "text": "通过查看信令流程，终端多次上报测量报告，但终端不切换至测量报告中信号最好的小区，而是切换至信号次之的小区或在服务小区上拖死掉线。"
+      },
+      {
+        "id": "block-119",
+        "kind": "paragraph",
+        "order": 119,
+        "text": "通过查看测试软件服务小区和邻区信号强度列表进行判断，终端没有切换至信号最强邻区，而是切换到其他信号强度次之的小区。"
+      },
+      {
+        "id": "block-120",
+        "kind": "paragraph",
+        "order": 120,
+        "text": "邻区漏配解决方案"
+      },
+      {
+        "id": "block-121",
+        "kind": "paragraph",
+        "order": 121,
+        "text": "（1）邻区添加通用原则"
+      },
+      {
+        "id": "block-122",
+        "kind": "paragraph",
+        "order": 122,
+        "text": "临近原则：同基站的小区要互为邻区；地理位置上相邻的小区一般互为邻区（因为距离源小区越近的相邻小区与源小区发生切换的可能性越大）。"
+      },
+      {
+        "id": "block-123",
+        "kind": "paragraph",
+        "order": 123,
+        "text": "强度原则：对网络做过优化的前提下，信号强度达到了要求的门限，需要考虑配置为邻小区。"
+      },
+      {
+        "id": "block-124",
+        "kind": "paragraph",
+        "order": 124,
+        "text": "单向邻区配置：在一些特殊场景下，如高速覆盖小区，高层室分小区与室外宏小区、越区覆盖小区可能要求配置单向邻区。"
+      },
+      {
+        "id": "block-125",
+        "kind": "paragraph",
+        "order": 125,
+        "text": "（2）SA组网邻区添加原则"
+      },
+      {
+        "id": "block-126",
+        "kind": "paragraph",
+        "order": 126,
+        "text": "4G->5G的系统间邻区：用于UE从4G切换到5G系统服务。"
+      },
+      {
+        "id": "block-127",
+        "kind": "paragraph",
+        "order": 127,
+        "text": "5G->4G的系统间邻区：用于UE从5G弱覆盖或者没有5G覆盖的区域切换到4G系统服务。"
+      },
+      {
+        "id": "block-128",
+        "kind": "paragraph",
+        "order": 128,
+        "text": "5G->5G的系统内邻区：包括同频和异频，用于UE在5G系统内部的移动连续性。"
+      },
+      {
+        "id": "block-129",
+        "kind": "paragraph",
+        "order": 129,
+        "text": "上述邻区初始配置推荐正向2层背向1层，邻区个数各约20个（含本系统同频或异系统的每个频点）。"
+      },
+      {
+        "id": "block-130",
+        "kind": "paragraph",
+        "order": 130,
+        "text": "（3）NSA组网邻区添加原则"
+      },
+      {
+        "id": "block-131",
+        "kind": "paragraph",
+        "order": 131,
+        "text": "4G->5G的系统间邻区：只需规划锚点频点对应的NR邻区。"
+      },
+      {
+        "id": "block-132",
+        "kind": "paragraph",
+        "order": 132,
+        "text": "5G->5G的系统内邻区：包括同频和异频，用于UE在5G系统内部小区间的移动。"
+      },
+      {
+        "id": "block-133",
+        "kind": "paragraph",
+        "order": 133,
+        "text": "上述邻区初始配置建议20个。"
+      },
+      {
+        "id": "block-134",
+        "kind": "paragraph",
+        "order": 134,
+        "text": "（4）定期核查"
+      },
+      {
+        "id": "block-135",
+        "kind": "paragraph",
+        "order": 135,
+        "text": "定期核查邻区关系，完善邻区关系完整性和合理性。"
+      },
+      {
+        "id": "block-136",
+        "kind": "paragraph",
+        "order": 136,
+        "text": "（五）乒乓切换解决方案"
+      },
+      {
+        "id": "block-137",
+        "kind": "paragraph",
+        "order": 137,
+        "text": "乒乓切换的概念"
+      },
+      {
+        "id": "block-138",
+        "kind": "paragraph",
+        "order": 138,
+        "text": "乒乓切换的概念是UE在服务小区和相邻小区来回进行切换的现象，例如当UE从A小区→B小区→A小区这样反复来回的切换，从小区A切换到小区B后，在小区B停留的时间很短，又返回到小区A。"
+      },
+      {
+        "id": "block-139",
+        "kind": "paragraph",
+        "order": 139,
+        "text": "乒乓切换判断方法"
+      },
+      {
+        "id": "block-140",
+        "kind": "paragraph",
+        "order": 140,
+        "text": "通过信令流程分析，看上一次切换入到下一次切换出的时间是否太短（一般认为3s内发生多次切换为乒乓切换）。"
+      },
+      {
+        "id": "block-141",
+        "kind": "paragraph",
+        "order": 141,
+        "text": "乒乓切换解决方案"
+      },
+      {
+        "id": "block-142",
+        "kind": "paragraph",
+        "order": 142,
+        "text": "特殊场景：拐角等特殊场景，由于5G衰落比较大可以适当的不进行同覆盖规划。"
+      },
+      {
+        "id": "block-143",
+        "kind": "paragraph",
+        "order": 143,
+        "text": "覆盖：合理的切换是5G网络连续覆盖的前提，重叠覆盖度高、无主覆盖均会导致频繁切换，所以在优化切换类问题时优先完成覆盖类问题解决。常见的优化方法有：天线方位角调整、下倾角优化调整、功率调整。"
+      },
+      {
+        "id": "block-144",
+        "kind": "paragraph",
+        "order": 144,
+        "text": "参数：合理调整切换参数，例如：CIO、事件触发时长（Time To Trigger）、上报间隔（Report Interval）上报次数（report Amount）等参数。"
+      },
+      {
+        "id": "block-145",
+        "kind": "paragraph",
+        "order": 145,
+        "text": "（六）移动性参数调整可参考下表5-2-5"
+      },
+      {
+        "id": "block-146",
+        "kind": "paragraph",
+        "order": 146,
+        "text": "表5-2-5 移动性主要参数"
+      },
+      {
+        "id": "block-147",
+        "kind": "table",
+        "order": 147,
+        "rows": [
+          [
+            "参数名称",
+            "英文名称",
+            "取值范围",
+            "参数说明"
+          ],
+          [
+            "打开用于切换的异频测量事件A2 A2事件RSRP门限",
+            "rsrpThreshold",
+            "-156~-31",
+            "测量时服务小区A2事件RSRP绝对门限，当测量到的服务小区RSRP低于门限时UE上报A2事件。"
+          ],
+          [
+            "打开用于切换的异频测量事件A2 A2事件SINR门限",
+            "sinrThreshold",
+            "-23~40.5",
+            "测量时服务小区A2事件SINR绝对门限，当测量到的服务小区SINR低于门限时UE上报A2事件。"
+          ],
+          [
+            "打开用于切换的异系统测量事件A2 A2事件判决的RSRQ绝对门限",
+            "rsrqThreshold",
+            "-43~20",
+            "测量时服务小区A2事件RSRQ绝对门限，当测量到的服务小区RSRQ低于门限时UE上报A2事件。"
+          ],
+          [
+            "同频小区重选配置 同频小区重选起测RSRP门限",
+            "sIntraSearchP",
+            "0~31",
+            "该参数指示了小区重选的同频测量触发门限，UE用来进行是否执行频内测量的判决。如果服务小区质量大于该门限则不执行频内测量；如果服务小区质量小于等于该门限，UE执行频内测量。具体描述见TS 38.304。"
+          ],
+          [
+            "基于覆盖的同频测量 A3事件偏移",
+            "eventOffset",
+            "-15~15",
+            "事件触发RSRP上报的触发条件，满足该条件的含义是，邻区与本区的RSRP差值比该值实际dB值大时，触发RSRP上报。"
+          ],
+          [
+            "EPS fallback切换 B1事件RSRP门限",
+            "rsrpThreshold",
+            "-140~-43",
+            "测量时B1事件RSRP绝对门限，当测量到的RSRP高于门限时UE上报B1事件。"
+          ],
+          [
+            "无线测试的测量配置 A3、A6事件偏移",
+            "eventOffset",
+            "-15~15",
+            "事件触发RSRP/RSRQ/SINR上报的触发条件，满足该条件的含义是：邻区与本区的RSRP/RSRQ/SINR差值比该值实际dB值大时，触发RSRP/RSRQ/SINR上报。"
+          ],
+          [
+            "默认的基于覆盖的异系统测量 B1/B2事件邻区判决的RSRP绝对门限",
+            "rsrpThreshold",
+            "-140~-43",
+            "测量时B1/B2事件邻区判决的RSRP绝对门限"
+          ],
+          [
+            "基于覆盖的同频测量 事件触发量",
+            "triggerQuantity",
+            "0参考信号接收功率/1参考信号接收质量/2参考信号信噪比",
+            "事件触发的测量量,当UE测到该触发量的值满足事件触发门限值时，会触发小区测量事件。"
+          ],
+          [
+            "基于覆盖的同频测量 最大上报小区数目",
+            "maxRptCellNum",
+            "1~8",
+            "该参数指示了测量上报的最大小区数目,不包括服务小区。"
+          ],
+          [
+            "默认的基于覆盖的异系统测量 B2事件服务小区判决的RSRP绝对门限1",
+            "b2Thrd1Rsrp",
+            "-156~-31",
+            "该参数为测量时B2事件服务小区判决的RSRP绝对门限1，当测量到服务小区的信号强度低于RSRP绝对门限1时上报该事件。"
+          ],
+          [
+            "EPS fallback切换 B1事件RSRP门限",
+            "rsrpThreshold",
+            "-140~-43",
+            "测量时B1事件RSRP绝对门限，当测量到的RSRP高于门限时UE上报B1事件。"
+          ],
+          [
+            "默认的基于覆盖的异系统测量 B1/B2事件邻区判决的RSRP绝对门限",
+            "rsrpThreshold",
+            "-140~-43",
+            "测量时B1/B2事件邻区判决的RSRP绝对门限"
+          ]
+        ]
+      },
+      {
+        "id": "block-148",
+        "kind": "paragraph",
+        "order": 148,
+        "text": "5G资源类指标提升方案"
+      },
+      {
+        "id": "block-149",
+        "kind": "paragraph",
+        "order": 149,
+        "text": "（一）分析思路"
+      },
+      {
+        "id": "block-150",
+        "kind": "paragraph",
+        "order": 150,
+        "text": "移动通信网络业务量的增长需要越来越多的资源支撑业务的发展，任何一种资源的短缺，都会导致用户体验下降。维护和网络规划人员应及时监控各种网络资源的使用情况，为网络资源容量的调整优化和扩容提供数据依据，避免因为资源容量不足导致网络质量和用户体验下降。"
+      },
+      {
+        "id": "block-151",
+        "kind": "paragraph",
+        "order": 151,
+        "text": "5G资源性能指标提升，主要可以从以下几个方面进行分析和优化，如下图所示："
+      },
+      {
+        "id": "block-152",
+        "kind": "paragraph",
+        "order": 152,
+        "mediaRefs": [
+          "rId335"
+        ]
+      },
+      {
+        "id": "block-153",
+        "kind": "paragraph",
+        "order": 153,
+        "text": "图5-2-5 5G资源性能指标"
+      },
+      {
+        "id": "block-154",
+        "kind": "paragraph",
+        "order": 154,
+        "text": "（二）PRB利用率解决方案"
+      },
+      {
+        "id": "block-155",
+        "kind": "paragraph",
+        "order": 155,
+        "text": "随着用户数的增加，PRB利用率越来越高，而用户的资源需求就越来越可能得不到满足，导致用户速率下降，用户的体验满足度下降。因此，通过观察PRB资源利用率来判断可能达到资源瓶颈的门限，则该PRB资源利用率门限即为触发小区扩容的原因。"
+      },
+      {
+        "id": "block-156",
+        "kind": "paragraph",
+        "order": 156,
+        "text": "1.判断标准"
+      },
+      {
+        "id": "block-157",
+        "kind": "paragraph",
+        "order": 157,
+        "text": "上行或者下行PRB资源利用率＞70%。"
+      },
+      {
+        "id": "block-158",
+        "kind": "paragraph",
+        "order": 158,
+        "text": "2.解决方案"
+      },
+      {
+        "id": "block-159",
+        "kind": "paragraph",
+        "order": 159,
+        "text": "如果PRB资源利用率高小区CQI差值占比≥门限值X（根据实际情况确定，默认为门限值X=10%），建议通过RF优化提升吞吐率。"
+      },
+      {
+        "id": "block-160",
+        "kind": "paragraph",
+        "order": 160,
+        "text": "如果PRB PRB资源利用率高小区CQI差值占比＜门限值X，建议通过增加载波或增加现有载波带宽或新增站点。"
+      },
+      {
+        "id": "block-161",
+        "kind": "paragraph",
+        "order": 161,
+        "text": "（二）RRC连接态用户数解决方案"
+      },
+      {
+        "id": "block-162",
+        "kind": "paragraph",
+        "order": 162,
+        "text": "RRC连接态用户数可以通过网管提取“小区RRC连接用户数规格利用率”指标进行评估，其中RRC连接用户指5G系统中处于RRC_Connected状态的用户。当小区或单板承载的用户数超过产品规格时，会导致网络KPI的下降。"
+      },
+      {
+        "id": "block-163",
+        "kind": "paragraph",
+        "order": 163,
+        "text": "1.判断标准"
+      },
+      {
+        "id": "block-164",
+        "kind": "paragraph",
+        "order": 164,
+        "text": "一周内有X天（可根据实际情况决定，默认3天）“小区RRC连接用户数规格利用率”≥60%时，"
+      },
+      {
+        "id": "block-165",
+        "kind": "paragraph",
+        "order": 165,
+        "text": "2.解决方案"
+      },
+      {
+        "id": "block-166",
+        "kind": "paragraph",
+        "order": 166,
+        "text": "分流本gNodeB的用户：如果相邻基站负荷较小，可以通过调整天线下倾角或减小功率来缩小受限基站覆盖范围以减少本基站CPU负荷，同时需要增大相邻基站覆盖范围以分担负荷。"
+      },
+      {
+        "id": "block-167",
+        "kind": "paragraph",
+        "order": 167,
+        "text": "小区分裂或载波扩容或新增站点。"
+      },
+      {
+        "id": "block-168",
+        "kind": "paragraph",
+        "order": 168,
+        "text": "（三）PDCCH资源利用率解决方案"
+      },
+      {
+        "id": "block-169",
+        "kind": "paragraph",
+        "order": 169,
+        "text": "PDCCH资源由CCE组成，所以PDCCH资源利用率通过CCE的利用率评估，反映PDCCH信道CCE的利用情况。如果CCE利用率过高将会导致新的调度用户分配CCE失败，从而导致用户调度时延增大，影响用户感受。"
+      },
+      {
+        "id": "block-170",
+        "kind": "paragraph",
+        "order": 170,
+        "text": "1.判断标准"
+      },
+      {
+        "id": "block-171",
+        "kind": "paragraph",
+        "order": 171,
+        "text": "一周内有X天（根据实际情况决定，默认3天）的每天忙时“CCE利用率”≥50%。"
+      },
+      {
+        "id": "block-172",
+        "kind": "paragraph",
+        "order": 172,
+        "text": "2.解决方案"
+      },
+      {
+        "id": "block-173",
+        "kind": "paragraph",
+        "order": 173,
+        "text": "通过增加“PDCCH占用OFDM符号数”，“PDCCH占用RB数”增加PDCCH资源。"
+      },
+      {
+        "id": "block-174",
+        "kind": "paragraph",
+        "order": 174,
+        "text": "如果PDCCH符号数和RB数达到最大值后也不满足要求，建议：扩容（即增加小区或小区分裂）或RF优化，降低邻区对PDCCH的干扰。"
+      },
+      {
+        "id": "block-175",
+        "kind": "paragraph",
+        "order": 175,
+        "text": "（四）寻呼资源利用率解决方案"
+      },
+      {
+        "id": "block-176",
+        "kind": "paragraph",
+        "order": 176,
+        "text": "NSA组网场景下，寻呼消息通过eNodeB基站在S1接口上传递，因此寻呼资源利用率可以通过S1接口的寻呼消息接收率评估。eNodeB的寻呼次数一旦超过规格，eNodeB发送给UE的寻呼消息就可能被丢弃，导致接通率下降。"
+      },
+      {
+        "id": "block-177",
+        "kind": "paragraph",
+        "order": 177,
+        "text": "SA组网场景下，寻呼消息在NG接口上传递，因此寻呼资源利用率可以通过NG接口的寻呼消息接收率评估。gNodeB的寻呼次数一旦超过规格，gNodeB发送给UE的寻呼消息就可能被丢弃，导致接通率下降。"
+      },
+      {
+        "id": "block-178",
+        "kind": "paragraph",
+        "order": 178,
+        "text": "对于混合组网 当小区处于SA组网状态时，参见SA组网的监控方法；当小区处于NSA组网状态时，参见NSA组网的监控方法。"
+      },
+      {
+        "id": "block-179",
+        "kind": "paragraph",
+        "order": 179,
+        "text": "1.判断标准"
+      },
+      {
+        "id": "block-180",
+        "kind": "paragraph",
+        "order": 180,
+        "text": "一周内有X天（根据实际情况决定，默认3天）的每天“寻呼消息接收率”≥60%。"
+      },
+      {
+        "id": "block-181",
+        "kind": "paragraph",
+        "order": 181,
+        "text": "2.解决方案"
+      },
+      {
+        "id": "block-182",
+        "kind": "paragraph",
+        "order": 182,
+        "text": "根据网络的实际情况缩小拥塞小区所在的TAL。"
+      },
+      {
+        "id": "block-183",
+        "kind": "paragraph",
+        "order": 183,
+        "text": "修改核心网侧寻呼策略，减少同一次呼叫在失败后的二次/三次寻呼量，减少信令负荷。"
+      },
+      {
+        "id": "block-184",
+        "kind": "paragraph",
+        "order": 184,
+        "text": "根据核心网的特性条件，若支持精准寻呼功能，则开启该功能。"
+      },
+      {
+        "id": "block-185",
+        "kind": "paragraph",
+        "order": 185,
+        "text": "（五）主控板CPU利用率解决方案"
+      },
+      {
+        "id": "block-186",
+        "kind": "paragraph",
+        "order": 186,
+        "text": "主控板CPU的利用率可能由于某些原因，偶然的出现偏高。但偶然的CPU利用率偏高不能作为扩容依据，因此，主控板CPU利用率用主控板的CPU平均利用率和主控板CPU占用率超门限的比例共同评估。"
+      },
+      {
+        "id": "block-187",
+        "kind": "paragraph",
+        "order": 187,
+        "text": "1.判断标准"
+      },
+      {
+        "id": "block-188",
+        "kind": "paragraph",
+        "order": 188,
+        "text": "一周内有X天（根据实际情况决定，默认3天）主控板CPU平均利用率≥60%。"
+      },
+      {
+        "id": "block-189",
+        "kind": "paragraph",
+        "order": 189,
+        "text": "2.解决方案"
+      },
+      {
+        "id": "block-190",
+        "kind": "paragraph",
+        "order": 190,
+        "text": "分流本gNodeB的用户：如果相邻基站负荷较小，可以通过调整天线下倾角或减小功率来缩小受限基站覆盖范围以减少本基站CPU负荷，同时需要增大相邻基站覆盖范围以分担负荷。"
+      },
+      {
+        "id": "block-191",
+        "kind": "paragraph",
+        "order": 191,
+        "text": "小区分裂或载波扩容或新增站点。"
+      },
+      {
+        "id": "block-192",
+        "kind": "paragraph",
+        "order": 192,
+        "text": "（六）基带板CPU占用率解决方案"
+      },
+      {
+        "id": "block-193",
+        "kind": "paragraph",
+        "order": 193,
+        "text": "基带板CPU占用率反映了基带板CPU的使用情况。当gNodeB收到了过多的数据流量，负责基带板数据面协议栈处理的CPU会处于高负荷运行状态。将导致RRC连接成功率过低、切换成功率过低以及掉话率过高等现象出现。"
+      },
+      {
+        "id": "block-194",
+        "kind": "paragraph",
+        "order": 194,
+        "text": "1.判断标准"
+      },
+      {
+        "id": "block-195",
+        "kind": "paragraph",
+        "order": 195,
+        "text": "一周内有X天（根据实际情况决定，默认3天）基带板控制面CPU平均利用率≥60%或基带板用户面CPU平均利用率≥60%。"
+      },
+      {
+        "id": "block-196",
+        "kind": "paragraph",
+        "order": 196,
+        "text": "一周内有X天（根据实际情况决定，默认3天）基带板控制面CPU利用率超门限比例≥5%或基带板用户面利用率CPU超门限比例≥5%。"
+      },
+      {
+        "id": "block-197",
+        "kind": "paragraph",
+        "order": 197,
+        "text": "2.解决方案"
+      },
+      {
+        "id": "block-198",
+        "kind": "paragraph",
+        "order": 198,
+        "text": "迁移本gNodeB的小区：如果gNodeB配置有多块基带板，且其中某块基带板过载。可以把该基带板上的小区迁移到负载相对较小的基带板上。"
+      },
+      {
+        "id": "block-199",
+        "kind": "paragraph",
+        "order": 199,
+        "text": "增加基带板。如果gNodeB有空闲槽位，可以增加基带板，同时将原基带板的小区迁移到新基带板上，进行负荷分担。"
+      },
+      {
+        "id": "block-200",
+        "kind": "paragraph",
+        "order": 200,
+        "text": "增加基站。如果基带板已增加到规格允许的最大数量，则只能通过增加新的基站进行扩容。"
+      },
+      {
+        "id": "block-201",
+        "kind": "paragraph",
+        "order": 201,
+        "text": "（七）资源类参数调整可参考下表5-2-6"
+      },
+      {
+        "id": "block-202",
+        "kind": "paragraph",
+        "order": 202,
+        "text": "表5-2-6 资源类主要参数"
+      },
+      {
+        "id": "block-203",
+        "kind": "table",
+        "order": 203,
+        "rows": [
+          [
+            "参数名称",
+            "英文名称",
+            "取值范围",
+            "参数说明"
+          ],
+          [
+            "负载均衡策略配置 负荷均衡PRB利用率触发门限",
+            "lbServPrbUsageThrd",
+            "0~100",
+            "该参数表示执行小区PRB负荷均衡功能，当服务小区在统计窗长时间内上行或下行PRB利用率大于或等于该门限时，本小区执行上行或下行PRB负荷均衡。"
+          ]
+        ]
+      },
+      {
+        "id": "block-204",
+        "kind": "paragraph",
+        "order": 204,
+        "text": "5G可用类指标提升方案"
+      },
+      {
+        "id": "block-205",
+        "kind": "paragraph",
+        "order": 205,
+        "text": "（一）分析思路"
+      },
+      {
+        "id": "block-206",
+        "kind": "paragraph",
+        "order": 206,
+        "text": "5G可用类指标主要为小区可用率，该指标定义为小区在服时间和统计时间的比值。反映基站的小区正常运行比率，为分析系统故障和衡量系统稳定性提供参考依据。"
+      },
+      {
+        "id": "block-207",
+        "kind": "paragraph",
+        "order": 207,
+        "text": "小区可用类=100%*小区可用时长/统计时长"
+      },
+      {
+        "id": "block-208",
+        "kind": "paragraph",
+        "order": 208,
+        "text": "（二）小区可用率解决方案"
+      },
+      {
+        "id": "block-209",
+        "kind": "paragraph",
+        "order": 209,
+        "text": "告警信息全面监控，优先解决高优先级告警。"
+      },
+      {
+        "id": "block-210",
+        "kind": "paragraph",
+        "order": 210,
+        "text": "提高维护人员技能水平，提高维护效率。"
+      },
+      {
+        "id": "block-211",
+        "kind": "paragraph",
+        "order": 211,
+        "text": "以周、月、季度为周期，对设备机房进行日常运维检查，消除潜在故障。"
+      },
+      {
+        "id": "block-212",
+        "kind": "paragraph",
+        "order": 212,
+        "text": "完善运维管理制度，优化运维管理流程，及时高效解决问题。"
+      },
+      {
+        "id": "block-213",
+        "kind": "paragraph",
+        "order": 213,
+        "text": "(三）可用类参数调整可参考下表5-2-7"
+      },
+      {
+        "id": "block-214",
+        "kind": "paragraph",
+        "order": 214,
+        "text": "表5-2-7 可用类主要参数"
+      },
+      {
+        "id": "block-215",
+        "kind": "table",
+        "order": 215,
+        "rows": [
+          [
+            "参数名称",
+            "英文名称",
+            "取值范围",
+            "参数说明"
+          ],
+          [
+            "最小接入电平",
+            "RxLevMin",
+            "-47~-159",
+            "最小接入电平"
+          ],
+          [
+            "SCTP 出入流个数",
+            "inOutStreamNum",
+            "2~6",
+            "表示SCTP偶联的出入流数量"
+          ]
+        ]
+      },
+      {
+        "id": "block-216",
+        "kind": "paragraph",
+        "order": 216,
+        "text": "任务实施"
+      },
+      {
+        "id": "block-217",
+        "kind": "paragraph",
+        "order": 217,
+        "text": "结合仿真软件中的性能指标、配置进行性能指标分析，并制定优化调整方案，以接通率指标提升进行演示。"
+      },
+      {
+        "id": "block-218",
+        "kind": "paragraph",
+        "order": 218,
+        "text": "一、 接收任务，进入配置数据界面进行参数核查，找出和接通问题相关联的参数并调整，比如针对接通率指标提升，需调整T300定时器，找到需要调整的小区，通过如下界面进行调整，示例中将T300从300毫秒调整为800毫秒。"
+      },
+      {
+        "id": "block-219",
+        "kind": "paragraph",
+        "order": 219,
+        "mediaRefs": [
+          "rId336"
+        ]
+      },
+      {
+        "id": "block-220",
+        "kind": "paragraph",
+        "order": 220,
+        "text": "图5-2-6 配置数据修改界面-1"
+      },
+      {
+        "id": "block-221",
+        "kind": "paragraph",
+        "order": 221,
+        "mediaRefs": [
+          "rId337"
+        ]
+      },
+      {
+        "id": "block-222",
+        "kind": "paragraph",
+        "order": 222,
+        "text": "图5-2-7 配置数据修改界面-2"
+      },
+      {
+        "id": "block-223",
+        "kind": "paragraph",
+        "order": 223,
+        "text": "调整完站点1后保存，接着调整其它基站。"
+      },
+      {
+        "id": "block-224",
+        "kind": "paragraph",
+        "order": 224,
+        "text": "然后再找到其它相关参数，依次进行调整。"
+      },
+      {
+        "id": "block-225",
+        "kind": "paragraph",
+        "order": 225,
+        "text": "随堂测试"
+      },
+      {
+        "id": "block-226",
+        "kind": "paragraph",
+        "order": 226,
+        "text": "练习接入类指标提升参数基站期望的前导接收功率调整。"
+      },
+      {
+        "id": "block-227",
+        "kind": "paragraph",
+        "order": 227,
+        "text": "练习掉线率指标提升N310、T310定时器调整。"
+      },
+      {
+        "id": "block-228",
+        "kind": "paragraph",
+        "order": 228,
+        "text": "经典案例"
+      },
+      {
+        "id": "block-229",
+        "kind": "paragraph",
+        "order": 229,
+        "text": "案例1 某地市掉线率指标提升"
+      },
+      {
+        "id": "block-230",
+        "kind": "paragraph",
+        "order": 230,
+        "text": "问题描述："
+      },
+      {
+        "id": "block-231",
+        "kind": "paragraph",
+        "order": 231,
+        "text": "某地市从10月20日开始，掉线率指标开始劣化，从之前的0.10%逐渐升高至0.16%，需分析原因并进行优化。"
+      },
+      {
+        "id": "block-232",
+        "kind": "paragraph",
+        "order": 232,
+        "text": "图5-2-8 某地市全网掉线率指标"
+      },
+      {
+        "id": "block-233",
+        "kind": "paragraph",
+        "order": 233,
+        "text": "问题分析"
+      },
+      {
+        "id": "block-234",
+        "kind": "paragraph",
+        "order": 234,
+        "text": "（1）通过对全网掉线分counter统计，造成掉线的主要原因时空口失败引起的异常释放。"
+      },
+      {
+        "id": "block-235",
+        "kind": "paragraph",
+        "order": 235,
+        "text": "表5-2-8 掉线指标分项统计"
+      },
+      {
+        "id": "block-236",
+        "kind": "table",
+        "order": 236,
+        "rows": [
+          [
+            "日期",
+            "GNB切换失败引发释放次数",
+            "GNB空口失败引发释放次数",
+            "GNB由于其它原因引发释放次数",
+            "由于小区关断或复位引发释放次数"
+          ],
+          [
+            "10月20日",
+            "100",
+            "2828",
+            "12",
+            "0"
+          ],
+          [
+            "10月21日",
+            "99",
+            "2912",
+            "10",
+            "1"
+          ],
+          [
+            "10月22日",
+            "101",
+            "3018",
+            "9",
+            "0"
+          ],
+          [
+            "10月23日",
+            "98",
+            "2998",
+            "8",
+            "0"
+          ]
+        ]
+      },
+      {
+        "id": "block-237",
+        "kind": "paragraph",
+        "order": 237,
+        "text": "（2）通过小区级指标统计分析，从20日开始掉话次数突然增加的小区主要集中在基站37286及其周围的6个小区，这些小区GNB空口失败引发释放次数总计为1886次，同时段全网该类型掉线次数为2998次，TOP6小区占比为62.24%，因此可以断定这6个小区掉线指标的增加是导致全网性能下降的主要因素。"
+      },
+      {
+        "id": "block-238",
+        "kind": "paragraph",
+        "order": 238,
+        "text": "表5-2-9 掉线指标主要原因分析"
+      },
+      {
+        "id": "block-239",
+        "kind": "table",
+        "order": 239,
+        "rows": [
+          [
+            "日期",
+            "小区ID",
+            "GNB空口失败引发释放次数"
+          ],
+          [
+            "10月23日",
+            "37286_0",
+            "436"
+          ],
+          [
+            "10月23日",
+            "37286_1",
+            "546"
+          ],
+          [
+            "10月23日",
+            "37286_2",
+            "185"
+          ],
+          [
+            "10月23日",
+            "39287_2",
+            "312"
+          ],
+          [
+            "10月23日",
+            "38275_1",
+            "184"
+          ],
+          [
+            "10月23日",
+            "38275_2",
+            "203"
+          ],
+          [
+            "合计",
+            "",
+            "1866"
+          ]
+        ]
+      },
+      {
+        "id": "block-240",
+        "kind": "paragraph",
+        "order": 240,
+        "text": "（3）通过对这六个小区的干扰指标统计，发现小区级PRB上行平均干扰均较高，均值达到-91dBm左右，因此可以进一步判断，上行干扰是造成指标劣化的主要原因。"
+      },
+      {
+        "id": "block-241",
+        "kind": "paragraph",
+        "order": 241,
+        "text": "表5-2-10 上行干扰指标统计"
+      },
+      {
+        "id": "block-242",
+        "kind": "table",
+        "order": 242,
+        "rows": [
+          [
+            "日期",
+            "小区ID",
+            "上行每PRB的接收干扰噪声平均值"
+          ],
+          [
+            "10月23日",
+            "37286_0",
+            "-85"
+          ],
+          [
+            "10月23日",
+            "37286_1",
+            "-71"
+          ],
+          [
+            "10月23日",
+            "37286_2",
+            "-96"
+          ],
+          [
+            "10月23日",
+            "39287_2",
+            "-100"
+          ],
+          [
+            "10月23日",
+            "38275_1",
+            "-98"
+          ],
+          [
+            "10月23日",
+            "38275_2",
+            "-101"
+          ]
+        ]
+      },
+      {
+        "id": "block-243",
+        "kind": "paragraph",
+        "order": 243,
+        "text": "（4）由于这些小区地理位置相近，因此安排干扰排查队伍进行现场扫频，经过多日扫频后发现该区域有一中学，在模拟考试期间开启了干扰器，10月28日10点联系校方将干扰器关闭后观察小时级指标得到好转，因此可以确定，学校干扰器开启是造成全网指标劣化的主要原因。"
+      },
+      {
+        "id": "block-244",
+        "kind": "paragraph",
+        "order": 244,
+        "text": "表5-2-11 上行干扰指标优化对比"
+      },
+      {
+        "id": "block-245",
+        "kind": "table",
+        "order": 245,
+        "rows": [
+          [
+            "日期",
+            "时间",
+            "小区ID",
+            "上行每PRB的接收干扰噪声平均值-10点",
+            "上行每PRB的接收干扰噪声平均值-11点"
+          ],
+          [
+            "10月28日",
+            "10",
+            "37286_0",
+            "-85",
+            "-118"
+          ],
+          [
+            "10月28日",
+            "10",
+            "37286_1",
+            "-71",
+            "-120"
+          ],
+          [
+            "10月28日",
+            "10",
+            "37286_2",
+            "-96",
+            "-115"
+          ],
+          [
+            "10月28日",
+            "10",
+            "39287_2",
+            "-100",
+            "-114"
+          ],
+          [
+            "10月28日",
+            "10",
+            "38275_1",
+            "-98",
+            "-117"
+          ],
+          [
+            "10月28日",
+            "10",
+            "38275_2",
+            "-101",
+            "-119"
+          ]
+        ]
+      },
+      {
+        "id": "block-246",
+        "kind": "paragraph",
+        "order": 246,
+        "text": "优化方案实施"
+      },
+      {
+        "id": "block-247",
+        "kind": "paragraph",
+        "order": 247,
+        "text": "联系校方将干扰器长期关闭，如果在考试期间需要开启提前通知网优部门采取降功率等优化措施，确保全网指标不出现较大波动。经过市场部门协调，已和校方达成一致。"
+      },
+      {
+        "id": "block-248",
+        "kind": "paragraph",
+        "order": 248,
+        "text": "优化方案验证"
+      },
+      {
+        "id": "block-249",
+        "kind": "paragraph",
+        "order": 249,
+        "text": "从10月29日后全网掉线率指标开始好转并恢复到0.10%左右。"
+      },
+      {
+        "id": "block-250",
+        "kind": "paragraph",
+        "order": 250,
+        "text": "图5-2-9 某地市全网掉线率指标优化效果"
+      },
+      {
+        "id": "block-251",
+        "kind": "paragraph",
+        "order": 251,
+        "text": "直击难点"
+      },
+      {
+        "id": "block-252",
+        "kind": "paragraph",
+        "order": 252,
+        "text": "重点掌握接入全网性能提升方案制定的总体思路，清楚理解接入类、保持性、移动性指标提升的方法，明白相关参数的含义、参数对指标的影响机理。二维码预留二维码预留"
+      },
+      {
+        "id": "block-253",
+        "kind": "paragraph",
+        "order": 253,
+        "text": "任务测评"
+      },
+      {
+        "id": "block-254",
+        "kind": "paragraph",
+        "order": 254,
+        "text": "一、网络拥塞的解决方案有哪些？"
+      },
+      {
+        "id": "block-255",
+        "kind": "paragraph",
+        "order": 255,
+        "text": "二、乒乓切换的解决方案有哪些？"
+      }
+    ],
+    "storyboard": {
+      "schema": "lesson-storyboard/v1",
+      "learningGoal": "学完后能让瓶颈、策略、动作、影响面和复测指标保持一致，形成可复制的全网提升路径。",
+      "summary": "本节讲全网性能提升：先定位覆盖、干扰、容量或体验瓶颈，再选择工程、参数、资源和邻区组合动作，并监控副作用。",
+      "knowledgeUnits": [
+        {
+          "id": "P15-ku-01",
+          "title": "瓶颈定位",
+          "kind": "concept",
+          "shortText": "先定位覆盖、干扰、容量或体验短板。",
+          "narrationText": "全网性能提升先找瓶颈类型和影响范围，不能从动作清单直接开始。"
+        },
+        {
+          "id": "P15-ku-02",
+          "title": "策略匹配",
+          "kind": "concept",
+          "shortText": "不同瓶颈匹配不同工程、参数和资源策略。",
+          "narrationText": "覆盖、干扰、容量和业务体验短板对应不同策略，策略选择要服从证据和影响面。"
+        },
+        {
+          "id": "P15-ku-03",
+          "title": "组合动作",
+          "kind": "criteria",
+          "shortText": "参数、工程、资源和邻区动作组合评估。",
+          "narrationText": "全网提升常需要组合动作，必须评估参数调整、工程整改、资源扩容和邻区优化之间的耦合影响。"
+        },
+        {
+          "id": "P15-ku-04",
+          "title": "副作用监控",
+          "kind": "evidence",
+          "shortText": "实施后观察趋势、告警、投诉和体验波动。",
+          "narrationText": "执行后要持续观察 KPI 趋势、活动告警、投诉变化和业务体验，识别局部改善带来的副作用。"
+        },
+        {
+          "id": "P15-ku-05",
+          "title": "路径校验",
+          "kind": "practice",
+          "shortText": "瓶颈、策略、动作和验证路径必须一致。",
+          "narrationText": "路径校验确保每个动作都能回扣到瓶颈假设，并有对应的验证指标和复测口径。"
+        },
+        {
+          "id": "P15-ku-06",
+          "title": "提升固化",
+          "kind": "review",
+          "shortText": "用同口径复测和全网趋势确认提升效果。",
+          "narrationText": "效果确认后固化策略、参数版本、适用场景和限制条件，形成可复制的提升路径。"
+        }
+      ],
+      "reviewSummary": "复盘时看每个组合动作是否对应瓶颈假设，实施后 KPI、告警、投诉和体验波动是否证明收益大于副作用。"
+    }
+  },
+  "knowledge": {
+    "steps": [
+      {
+        "id": "P15-knowledge-01",
+        "label": "瓶颈定位",
+        "description": "先定位覆盖、干扰、容量或体验短板。"
+      },
+      {
+        "id": "P15-knowledge-02",
+        "label": "策略匹配",
+        "description": "不同瓶颈匹配不同工程、参数和资源策略。"
+      },
+      {
+        "id": "P15-knowledge-03",
+        "label": "组合动作",
+        "description": "参数、工程、资源和邻区动作组合评估。"
+      },
+      {
+        "id": "P15-knowledge-04",
+        "label": "副作用监控",
+        "description": "实施后观察趋势、告警、投诉和体验波动。"
+      },
+      {
+        "id": "P15-knowledge-05",
+        "label": "路径校验",
+        "description": "瓶颈、策略、动作和验证路径必须一致。"
+      },
+      {
+        "id": "P15-knowledge-06",
+        "label": "提升固化",
+        "description": "用同口径复测和全网趋势确认提升效果。"
+      }
+    ],
+    "metrics": [
+      {
+        "label": "M1",
+        "value": "PM Co"
+      },
+      {
+        "label": "M2",
+        "value": "RSRP/"
+      },
+      {
+        "label": "M3",
+        "value": "Throu"
+      }
+    ]
+  },
+  "animation": {
+    "templateHint": "optimization-loop",
+    "durationMs": 610000,
+    "targets": [
+      {
+        "id": "P15-step-01",
+        "label": "瓶颈定位",
+        "description": "先定位覆盖、干扰、容量或体验短板。"
+      },
+      {
+        "id": "P15-step-02",
+        "label": "策略匹配",
+        "description": "不同瓶颈匹配不同工程、参数和资源策略。"
+      },
+      {
+        "id": "P15-step-03",
+        "label": "组合动作",
+        "description": "参数、工程、资源和邻区动作组合评估。"
+      },
+      {
+        "id": "P15-step-04",
+        "label": "副作用监控",
+        "description": "实施后观察趋势、告警、投诉和体验波动。"
+      },
+      {
+        "id": "P15-step-05",
+        "label": "路径校验",
+        "description": "瓶颈、策略、动作和验证路径必须一致。"
+      },
+      {
+        "id": "P15-step-06",
+        "label": "提升固化",
+        "description": "用同口径复测和全网趋势确认提升效果。"
+      }
+    ]
+  },
+  "playback": {
+    "mode": "one-way",
+    "widgetId": "P15-lesson-animation-001"
+  }
+}

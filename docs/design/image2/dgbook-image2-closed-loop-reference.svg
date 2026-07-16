@@ -1,0 +1,202 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">DGBook Image2 UI and workflow reference</title>
+  <desc id="desc">Authoritative SVG reference for the DGBook digital textbook closed loop and UI layout relationships.</desc>
+  <defs>
+    <marker id="arrow-blue" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M2 2 L10 6 L2 10 Z" fill="#1d4ed8" />
+    </marker>
+    <marker id="arrow-teal" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M2 2 L10 6 L2 10 Z" fill="#0f766e" />
+    </marker>
+    <linearGradient id="panel" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" />
+      <stop offset="1" stop-color="#eef6ff" />
+    </linearGradient>
+    <style>
+      .bg { fill: #f7fafc; }
+      .title { font: 700 34px "Segoe UI", Arial, sans-serif; fill: #0f172a; letter-spacing: 0; }
+      .subtitle { font: 500 15px "Segoe UI", Arial, sans-serif; fill: #475569; letter-spacing: 0; }
+      .panel { fill: url(#panel); stroke: #93c5fd; stroke-width: 2; rx: 18; }
+      .dark-panel { fill: #0f1f2f; stroke: #38bdf8; stroke-width: 2; rx: 18; }
+      .section-label { font: 700 20px "Segoe UI", Arial, sans-serif; fill: #0f172a; letter-spacing: 0; }
+      .section-label-light { font: 700 19px "Segoe UI", Arial, sans-serif; fill: #f8fafc; letter-spacing: 0; }
+      .small { font: 500 13px "Segoe UI", Arial, sans-serif; fill: #475569; letter-spacing: 0; }
+      .small-light { font: 500 13px "Segoe UI", Arial, sans-serif; fill: #cbd5e1; letter-spacing: 0; }
+      .node { fill: #ffffff; stroke: #2563eb; stroke-width: 2; rx: 14; }
+      .node-teal { fill: #ecfdf5; stroke: #0f766e; stroke-width: 2; rx: 14; }
+      .node-dark { fill: #172a3d; stroke: #38bdf8; stroke-width: 2; rx: 14; }
+      .node-title { font: 700 15px "Segoe UI", Arial, sans-serif; fill: #0f172a; text-anchor: middle; letter-spacing: 0; }
+      .node-text { font: 500 12px "Segoe UI", Arial, sans-serif; fill: #475569; text-anchor: middle; letter-spacing: 0; }
+      .flow { fill: none; stroke: #1d4ed8; stroke-width: 3; marker-end: url(#arrow-blue); }
+      .return { fill: none; stroke: #0f766e; stroke-width: 3; marker-end: url(#arrow-teal); }
+      .attach { fill: none; stroke: #2563eb; stroke-width: 2; stroke-dasharray: 6 6; }
+      .gate { fill: #f59e0b; stroke: #92400e; stroke-width: 1.5; }
+      .card { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; rx: 10; }
+      .screen { fill: #ffffff; stroke: #64748b; stroke-width: 1.5; rx: 8; }
+      .screen-dark { fill: #132235; stroke: #38bdf8; stroke-width: 1.5; rx: 8; }
+      .metric { fill: #dbeafe; stroke: #60a5fa; stroke-width: 1; rx: 4; }
+      .badge { fill: #e0f2fe; stroke: #0284c7; stroke-width: 1; rx: 12; }
+      .badge-text { font: 700 12px "Segoe UI", Arial, sans-serif; fill: #075985; text-anchor: middle; letter-spacing: 0; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1600" height="1000" />
+  <text class="title" x="800" y="58" text-anchor="middle">DGBook 数字教材闭环：UI 布局与流程参考</text>
+  <text class="subtitle" x="800" y="86" text-anchor="middle">AI 生产工具链 -> 能力图谱 -> 资源卡片 -> 教材呈现 -> 教师授课 -> 学生学习 -> 学习证据 -> 版本更新</text>
+
+  <g id="main-flow" transform="translate(90 130)">
+    <rect class="panel" x="0" y="0" width="1420" height="250" />
+    <text class="section-label" x="28" y="36">一条主轴：生产、呈现、课堂、证据、版本</text>
+    <text class="small" x="28" y="61">主流程用于约束页面信息架构；复杂 SVG 只作为资料视图，不塞入主流程。</text>
+
+    <g transform="translate(42 88)">
+      <rect class="node" x="0" y="0" width="140" height="96" />
+      <text class="node-title" x="70" y="28">AI 生产工具链</text>
+      <text class="node-text" x="70" y="54">材料诊断</text>
+      <text class="node-text" x="70" y="74">AI 结构化</text>
+    </g>
+    <path class="flow" d="M182 136 H250" />
+
+    <g transform="translate(250 88)">
+      <rect class="node" x="0" y="0" width="140" height="96" />
+      <text class="node-title" x="70" y="28">课程能力图谱</text>
+      <text class="node-text" x="70" y="54">节点主数据</text>
+      <text class="node-text" x="70" y="74">五类语义边</text>
+    </g>
+    <path class="flow" d="M390 136 H458" />
+
+    <g transform="translate(458 88)">
+      <rect class="node-teal" x="0" y="0" width="140" height="96" />
+      <text class="node-title" x="70" y="28">资源卡片</text>
+      <text class="node-text" x="70" y="54">目标/动作</text>
+      <text class="node-text" x="70" y="74">审核/输出</text>
+    </g>
+    <circle class="gate" cx="528" cy="202" r="8" />
+    <path class="flow" d="M598 136 H666" />
+
+    <g transform="translate(666 88)">
+      <rect class="node" x="0" y="0" width="140" height="96" />
+      <text class="node-title" x="70" y="28">数字教材呈现</text>
+      <text class="node-text" x="70" y="54">正文深度</text>
+      <text class="node-text" x="70" y="74">图表支架</text>
+    </g>
+    <path class="flow" d="M806 136 H874" />
+
+    <g transform="translate(874 88)">
+      <rect class="node-dark" x="0" y="0" width="140" height="96" />
+      <text class="node-title" x="70" y="28" fill="#f8fafc">教师授课</text>
+      <text class="node-text" x="70" y="54" fill="#cbd5e1">页级课件</text>
+      <text class="node-text" x="70" y="74" fill="#cbd5e1">讲评优先级</text>
+    </g>
+    <path class="flow" d="M1014 136 H1082" />
+
+    <g transform="translate(1082 88)">
+      <rect class="node-teal" x="0" y="0" width="140" height="96" />
+      <text class="node-title" x="70" y="28">学生学习</text>
+      <text class="node-text" x="70" y="54">自学/跟学</text>
+      <text class="node-text" x="70" y="74">可评价产出</text>
+    </g>
+    <path class="flow" d="M1222 136 H1290" />
+
+    <g transform="translate(1290 88)">
+      <rect class="node" x="0" y="0" width="140" height="96" />
+      <text class="node-title" x="70" y="28">学习证据</text>
+      <text class="node-text" x="70" y="54">提交记录</text>
+      <text class="node-text" x="70" y="74">课堂统计</text>
+    </g>
+
+    <path class="return" d="M1360 184 V222 H112 H182 V184" />
+    <text class="small" x="680" y="236" text-anchor="middle">证据回流触发资源修订、专业复核和版本更新</text>
+  </g>
+
+  <g id="platform-home" transform="translate(90 430)">
+    <rect class="panel" x="0" y="0" width="320" height="235" />
+    <text class="section-label" x="20" y="34">公开平台首页</text>
+    <text class="small" x="20" y="58">第一屏直接证明平台闭环</text>
+    <rect class="screen" x="22" y="80" width="276" height="124" />
+    <rect class="metric" x="42" y="104" width="84" height="12" />
+    <rect class="metric" x="42" y="126" width="128" height="12" />
+    <rect class="badge" x="42" y="156" width="72" height="24" />
+    <text class="badge-text" x="78" y="172">P1 样例</text>
+    <rect class="badge" x="122" y="156" width="96" height="24" />
+    <text class="badge-text" x="170" y="172">P4T2-N04</text>
+    <path class="attach" d="M242 110 C258 124 270 144 278 184" />
+  </g>
+
+  <g id="production-chain" transform="translate(440 430)">
+    <rect class="panel" x="0" y="0" width="320" height="235" />
+    <text class="section-label" x="20" y="34">/platform 生产链页</text>
+    <text class="small" x="20" y="58">材料、AI、审核、输出、版本</text>
+    <g transform="translate(30 90)">
+      <rect class="card" x="0" y="0" width="78" height="42" />
+      <text class="small" x="14" y="26">输入</text>
+      <path class="flow" d="M78 21 H102" />
+      <rect class="card" x="102" y="0" width="78" height="42" />
+      <text class="small" x="116" y="26">结构化</text>
+      <path class="flow" d="M180 21 H204" />
+      <rect class="card" x="204" y="0" width="78" height="42" />
+      <text class="small" x="218" y="26">审核</text>
+      <circle class="gate" cx="243" cy="62" r="7" />
+      <path class="return" d="M243 69 V96 H36 V48" />
+      <text class="small" x="30" y="126">资源包输出 + 直接呈现输出</text>
+    </g>
+  </g>
+
+  <g id="p1-loop" transform="translate(790 430)">
+    <rect class="panel" x="0" y="0" width="320" height="235" />
+    <text class="section-label" x="20" y="34">P1 样例闭环</text>
+    <text class="small" x="20" y="58">资源卡片服务能力节点</text>
+    <circle cx="92" cy="126" r="38" fill="#dbeafe" stroke="#2563eb" stroke-width="2" />
+    <text class="node-title" x="92" y="122">能力节点</text>
+    <text class="node-text" x="92" y="144">P1T1-N01</text>
+    <g transform="translate(170 82)">
+      <rect class="card" x="0" y="0" width="112" height="26" />
+      <rect class="card" x="0" y="36" width="112" height="26" />
+      <rect class="card" x="0" y="72" width="112" height="26" />
+      <text class="small" x="14" y="18">正文</text>
+      <text class="small" x="14" y="54">课堂活动</text>
+      <text class="small" x="14" y="90">投屏页</text>
+    </g>
+    <path class="attach" d="M130 112 H170" />
+    <path class="attach" d="M130 126 H170" />
+    <path class="attach" d="M130 140 H170" />
+  </g>
+
+  <g id="deep-sample" transform="translate(1140 430)">
+    <rect class="panel" x="0" y="0" width="370" height="235" />
+    <text class="section-label" x="20" y="34">P4T2-N04 教材深度样板</text>
+    <text class="small" x="20" y="58">只读样板，不进入 P1 学习链</text>
+    <rect class="screen" x="24" y="78" width="322" height="128" />
+    <rect class="metric" x="44" y="100" width="76" height="12" />
+    <rect class="metric" x="44" y="124" width="120" height="12" />
+    <path d="M210 100 H320 M210 132 H320 M210 164 H320" stroke="#94a3b8" stroke-width="2" />
+    <path d="M220 172 C244 136 274 158 310 120" fill="none" stroke="#ef4444" stroke-width="3" />
+    <text class="small" x="44" y="172">案例 -> 问题 -> 解释 -> 反例 -> 修正</text>
+  </g>
+
+  <g id="classroom" transform="translate(190 720)">
+    <rect class="dark-panel" x="0" y="0" width="1220" height="220" />
+    <text class="section-label-light" x="24" y="38">三端课堂关系：入口隔离，状态同步，投屏只读</text>
+    <g transform="translate(40 70)">
+      <rect class="screen" x="0" y="0" width="300" height="120" />
+      <text class="section-label" x="20" y="30">学生端</text>
+      <text class="small" x="20" y="56">教材正文 + 课堂跟随</text>
+      <text class="small" x="20" y="82">提交选择/判断/产出证据</text>
+    </g>
+    <path class="flow" d="M350 130 H430" />
+    <g transform="translate(430 70)">
+      <rect class="screen-dark" x="0" y="0" width="300" height="120" />
+      <text class="section-label-light" x="20" y="30">教师端</text>
+      <text class="small-light" x="20" y="56">PPT 式页级组织</text>
+      <text class="small-light" x="20" y="82">讲解脚本 + 提交统计 + 讲评优先级</text>
+    </g>
+    <path class="flow" d="M740 130 H820" />
+    <g transform="translate(820 70)">
+      <rect class="screen-dark" x="0" y="0" width="300" height="120" />
+      <text class="section-label-light" x="20" y="30">投屏端</text>
+      <text class="small-light" x="20" y="56">只读共同注意力焦点</text>
+      <text class="small-light" x="20" y="82">大标题 + 关键图表 + 当前问题</text>
+    </g>
+    <path class="return" d="M970 70 V28 H198 V70" />
+  </g>
+</svg>

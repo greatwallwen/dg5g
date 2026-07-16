@@ -1,0 +1,31 @@
+schema: dgbook.lesson/v1
+id: new-lesson
+title: 新教材模板
+version: 0.1.0
+authors:
+  - name: Author
+license: private
+audience:
+  level: beginner
+  prerequisites: []
+defaults:
+  locale: zh-CN
+  presenter: teacher-01
+  voice: qwen-cherry
+chapters:
+  - id: ch1
+    title: 第一章
+    sections:
+      - id: ch1-sec1
+        title: 第一个知识点
+        blocks:
+          - id: ch1-sec1-explain
+            type: explain
+            title: 核心概念
+            body: 在这里写教材正文。
+          - id: ch1-sec1-demo
+            type: animation-demo
+            title: 知识点动画
+            animation: demo-animation
+            narration: demo-narration
+assets: []

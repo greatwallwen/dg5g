@@ -1,0 +1,223 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="7440" height="1737" viewBox="80 820 7440 1737" role="img" aria-labelledby="title desc">
+<title>ch4-module-map-readable-v2</title>
+<title id="title">5G网络优化（高级）课程能力图谱 5G端到端网络优化 学生版模块图谱</title>
+<desc id="desc">数字教材章节内嵌用学生学习模块图谱</desc>
+<defs>
+<style><![CDATA[
+svg { font-family: "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif; letter-spacing: 0; }
+.node text { pointer-events: none; }
+.edge-layer path { vector-effect: non-scaling-stroke; }
+]]></style>
+</defs>
+<g class="background-layer"><rect x="0" y="0" width="7600" height="2585" fill="#f8fafc"/>
+<line x1="0" y1="0" x2="0" y2="2585" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<line x1="500" y1="0" x2="500" y2="2585" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<line x1="1000" y1="0" x2="1000" y2="2585" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<line x1="1500" y1="0" x2="1500" y2="2585" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<line x1="2000" y1="0" x2="2000" y2="2585" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<line x1="2500" y1="0" x2="2500" y2="2585" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<line x1="3000" y1="0" x2="3000" y2="2585" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<line x1="3500" y1="0" x2="3500" y2="2585" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<line x1="4000" y1="0" x2="4000" y2="2585" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<line x1="4500" y1="0" x2="4500" y2="2585" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<line x1="5000" y1="0" x2="5000" y2="2585" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<line x1="5500" y1="0" x2="5500" y2="2585" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<line x1="6000" y1="0" x2="6000" y2="2585" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<line x1="6500" y1="0" x2="6500" y2="2585" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<line x1="7000" y1="0" x2="7000" y2="2585" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<line x1="7500" y1="0" x2="7500" y2="2585" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<line x1="0" y1="0" x2="7600" y2="0" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<line x1="0" y1="500" x2="7600" y2="500" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<line x1="0" y1="1000" x2="7600" y2="1000" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<line x1="0" y1="1500" x2="7600" y2="1500" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<line x1="0" y1="2000" x2="7600" y2="2000" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<line x1="0" y1="2500" x2="7600" y2="2500" stroke="#dbe4ef" stroke-width="1" opacity="0.12"/>
+<rect x="80.0" y="58.0" width="7440.0" height="710.0" rx="8" fill="#ffffff" stroke="#dbe4ef" stroke-width="1.6" />
+<rect x="220.0" y="510.0" width="7160.0" height="86.0" rx="7" fill="#ecfeff" stroke="#0891b2" stroke-width="1.35" />
+<rect x="96.0" y="832.0" width="7408.0" height="1695.0" rx="8" fill="#ffffff" stroke="#dbe4ef" stroke-width="1.55" opacity="0.985"/></g>
+<g class="edge-layer"></g>
+<g class="node-layer"><text x="150.0" y="104.0" text-anchor="start" font-size="43" font-weight="850" fill="#0f172a" dominant-baseline="text-before-edge"><tspan x="150.0" dy="0.0">5G网络优化（高级）课程能力图谱｜学生版模块拆分图谱 V1.1</tspan></text>
+<text x="152.0" y="170.0" text-anchor="start" font-size="24" font-weight="520" fill="#475569" dominant-baseline="text-before-edge"><tspan x="152.0" dy="0.0">用途：按项目模块嵌入数字教材章节；每张图独立呈现本模块任务链、能力链、成果链和评价入口。</tspan></text>
+<g id="S30-COURSE" class="node node-Course">
+<rect x="220.0" y="248.0" width="1500.0" height="230.0" rx="7" fill="#ffffff" stroke="#334155" stroke-width="2.8" />
+<clipPath id="clip-S30-COURSE"><rect x="228.0" y="256.0" width="1484.0" height="214.0" rx="5"/></clipPath>
+<g clip-path="url(#clip-S30-COURSE)">
+<text x="970.0" y="328.5" text-anchor="middle" font-size="31" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="970.0" dy="0.0">课程总目标</tspan></text>
+<text x="970.0" y="375.1" text-anchor="middle" font-size="19" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="970.0" dy="0.0">完成采集、测试、网管、优化、性能提升、信令分析与工程交付复盘。</tspan></text>
+</g>
+</g>
+<g id="TGRP-004" class="node node-Project">
+<rect x="1900.0" y="248.0" width="3150.0" height="230.0" rx="7" fill="#bbf7d0" stroke="#059669" stroke-width="2.8" />
+<clipPath id="clip-TGRP-004"><rect x="1908.0" y="256.0" width="3134.0" height="214.0" rx="5"/></clipPath>
+<g clip-path="url(#clip-TGRP-004)">
+<text x="3475.0" y="319.1" text-anchor="middle" font-size="42" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3475.0" dy="0.0">5G端到端网络优化</tspan></text>
+<text x="3475.0" y="378.6" text-anchor="middle" font-size="24" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3475.0" dy="0.0">端到端优化实施、结果验证、报告交付和风险复盘</tspan></text>
+</g>
+</g>
+<g id="S30-POS-POS-004" class="node node-Position">
+<rect x="5230.0" y="248.0" width="2150.0" height="230.0" rx="7" fill="#bae6fd" stroke="#0284c7" stroke-width="2.8" />
+<clipPath id="clip-S30-POS-POS-004"><rect x="5238.0" y="256.0" width="2134.0" height="214.0" rx="5"/></clipPath>
+<g clip-path="url(#clip-S30-POS-POS-004)">
+<text x="6305.0" y="331.4" text-anchor="middle" font-size="28" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="6305.0" dy="0.0">移动通信网络优化实施、性能提升与效果验证技术领域</tspan></text>
+<text x="6305.0" y="374.5" text-anchor="middle" font-size="17" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="6305.0" dy="0.0">面向覆盖、切换、时延、速率、容量、掉线、接入、保持、移动性、资源、可用性和干扰等问题，制定并实施优化方案，完成复测、KPI对比和效果验证。</tspan></text>
+</g>
+</g>
+<text x="305.0" y="535.0" text-anchor="start" font-size="24" font-weight="800" fill="#0f172a" dominant-baseline="text-before-edge"><tspan x="305.0" dy="0.0">读图路径</tspan></text>
+<text x="1130.0" y="535.0" text-anchor="start" font-size="18" font-weight="650" fill="#7c2d12" dominant-baseline="text-before-edge"><tspan x="1130.0" dy="0.0">任务 -&gt; 过程/技能/知识</tspan></text>
+<text x="3140.0" y="535.0" text-anchor="start" font-size="18" font-weight="650" fill="#3730a3" dominant-baseline="text-before-edge"><tspan x="3140.0" dy="0.0">能力 -&gt; 成果</tspan></text>
+<text x="4630.0" y="535.0" text-anchor="start" font-size="18" font-weight="650" fill="#166534" dominant-baseline="text-before-edge"><tspan x="4630.0" dy="0.0">成果 -&gt; 达成评价</tspan></text>
+<text x="5960.0" y="535.0" text-anchor="start" font-size="18" font-weight="650" fill="#334155" dominant-baseline="text-before-edge"><tspan x="5960.0" dy="0.0">证据明细进入任务详情/教师版/专家版</tspan></text>
+<g id="S30-SOURCE-TGRP-004" class="node node-SourcePool">
+<rect x="220.0" y="630.0" width="7160.0" height="92.0" rx="7" fill="#eff6ff" stroke="#2563eb" stroke-width="2.8" />
+<clipPath id="clip-S30-SOURCE-TGRP-004"><rect x="228.0" y="638.0" width="7144.0" height="76.0" rx="5"/></clipPath>
+<g clip-path="url(#clip-S30-SOURCE-TGRP-004)">
+<text x="3800.0" y="650.4" text-anchor="middle" font-size="21" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3800.0" dy="0.0">本模块依据入口</tspan></text>
+<text x="3800.0" y="685.1" text-anchor="middle" font-size="14" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3800.0" dy="0.0">SRC-TB-5G:课程内强依据；SRC-MOE-MCT-2025:验证依据；SRC-MOHRSS-ICOM:验证依据；SRC-3GPP-28552:验证依据</tspan></text>
+</g>
+</g>
+<g id="S30-TGRP-004-HEAD-学习任务｜做什么" class="node node-VisualNote"><rect x="220.0" y="850.0" width="1620.0" height="72.0" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4" /><clipPath id="clip-S30-TGRP-004-HEAD-学习任务-做什么"><rect x="226.0" y="856.0" width="1608.0" height="60.0" rx="4"/></clipPath><g clip-path="url(#clip-S30-TGRP-004-HEAD-学习任务-做什么)"><text x="1030.0" y="872.1" text-anchor="middle" font-size="24" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1030.0" dy="0.0">学习任务｜做什么</tspan></text></g></g>
+<g id="S30-TGRP-004-HEAD-过程-技能-知识｜怎么做" class="node node-VisualNote"><rect x="1898.0" y="850.0" width="2720.0" height="72.0" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4" /><clipPath id="clip-S30-TGRP-004-HEAD-过程-技能-知识-怎么做"><rect x="1904.0" y="856.0" width="2708.0" height="60.0" rx="4"/></clipPath><g clip-path="url(#clip-S30-TGRP-004-HEAD-过程-技能-知识-怎么做)"><text x="3258.0" y="872.1" text-anchor="middle" font-size="24" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3258.0" dy="0.0">过程-技能-知识｜怎么做</tspan></text></g></g>
+<g id="S30-TGRP-004-HEAD-能力｜要形成什么" class="node node-VisualNote"><rect x="4676.0" y="850.0" width="900.0" height="72.0" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4" /><clipPath id="clip-S30-TGRP-004-HEAD-能力-要形成什么"><rect x="4682.0" y="856.0" width="888.0" height="60.0" rx="4"/></clipPath><g clip-path="url(#clip-S30-TGRP-004-HEAD-能力-要形成什么)"><text x="5126.0" y="872.1" text-anchor="middle" font-size="24" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="5126.0" dy="0.0">能力｜要形成什么</tspan></text></g></g>
+<g id="S30-TGRP-004-HEAD-成果｜交什么" class="node node-VisualNote"><rect x="5634.0" y="850.0" width="1040.0" height="72.0" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4" /><clipPath id="clip-S30-TGRP-004-HEAD-成果-交什么"><rect x="5640.0" y="856.0" width="1028.0" height="60.0" rx="4"/></clipPath><g clip-path="url(#clip-S30-TGRP-004-HEAD-成果-交什么)"><text x="6154.0" y="872.1" text-anchor="middle" font-size="24" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="6154.0" dy="0.0">成果｜交什么</tspan></text></g></g>
+<g id="S30-TGRP-004-HEAD-评价_证据入口｜怎么达成" class="node node-VisualNote"><rect x="6732.0" y="850.0" width="648.0" height="72.0" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4" /><clipPath id="clip-S30-TGRP-004-HEAD-评价-证据入口-怎么达成"><rect x="6738.0" y="856.0" width="636.0" height="60.0" rx="4"/></clipPath><g clip-path="url(#clip-S30-TGRP-004-HEAD-评价-证据入口-怎么达成)"><text x="7056.0" y="872.1" text-anchor="middle" font-size="24" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="7056.0" dy="0.0">评价/证据入口｜怎么达成</tspan></text></g></g>
+<g id="T-011" class="node node-Task">
+<rect x="220.0" y="960.0" width="1620.0" height="420.0" rx="7" fill="#fed7aa" stroke="#ea580c" stroke-width="2.8" />
+<clipPath id="clip-T-011"><rect x="228.0" y="968.0" width="1604.0" height="404.0" rx="5"/></clipPath>
+<g clip-path="url(#clip-T-011)">
+<text x="1030.0" y="1106.6" text-anchor="middle" font-size="33" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1030.0" dy="0.0">根据问题场景实施天线、无线、承载和核心网优化调整方案并记录变更</tspan></text>
+<text x="1030.0" y="1155.5" text-anchor="middle" font-size="22" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1030.0" dy="0.0">场景：端到端优化任务启动；需要把问题分析转化为可执行调整方案｜对象：天线、无线参数、承载网参数、核心网参数、邻区</tspan><tspan x="1030.0" dy="26.0">、锚点｜行动链：确认问题场景→选择优化手段→执行调整→记录变更→进行初步验证→保留回退信息｜成果：优化实施记录、参数变更清单</tspan><tspan x="1030.0" dy="26.0">、初步验证记录</tspan></text>
+</g>
+</g>
+<g id="S07-P-011-01" class="node node-Process"><rect x="1898.0" y="960.0" width="520.0" height="97.5" rx="6" fill="#e2e8f0" stroke="#64748b" stroke-width="1.4" /><clipPath id="clip-S07-P-011-01"><rect x="1904.0" y="966.0" width="508.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-P-011-01)"><text x="2158.0" y="997.1" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2158.0" dy="0.0">1问题场景与影响范围确认</tspan></text></g></g>
+<g id="S07-SKL-011-01" class="node node-Skill"><rect x="2453.0" y="960.0" width="1015.0" height="97.5" rx="6" fill="#c7d2fe" stroke="#4f46e5" stroke-width="1.4" /><clipPath id="clip-S07-SKL-011-01"><rect x="2459.0" y="966.0" width="1003.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-SKL-011-01)"><text x="2960.5" y="997.1" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2960.5" dy="0.0">能依据投诉、测试、告警和KPI判断覆盖、切换、时延、速率、容量或掉线场景。</tspan></text></g></g>
+<g id="S07-KNO-011-01" class="node node-Knowledge"><rect x="3503.0" y="960.0" width="1115.0" height="97.5" rx="6" fill="#fbcfe8" stroke="#db2777" stroke-width="1.4" /><clipPath id="clip-S07-KNO-011-01"><rect x="3509.0" y="966.0" width="1103.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-KNO-011-01)"><text x="4060.5" y="997.1" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="4060.5" dy="0.0">问题场景分类、影响范围、KPI异常和多源证据链。</tspan></text></g></g>
+<g id="S07-P-011-02" class="node node-Process"><rect x="1898.0" y="1067.5" width="520.0" height="97.5" rx="6" fill="#e2e8f0" stroke="#64748b" stroke-width="1.4" /><clipPath id="clip-S07-P-011-02"><rect x="1904.0" y="1073.5" width="508.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-P-011-02)"><text x="2158.0" y="1104.7" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2158.0" dy="0.0">2RF与天馈优化实施</tspan></text></g></g>
+<g id="S07-SKL-011-02" class="node node-Skill"><rect x="2453.0" y="1067.5" width="1015.0" height="97.5" rx="6" fill="#c7d2fe" stroke="#4f46e5" stroke-width="1.4" /><clipPath id="clip-S07-SKL-011-02"><rect x="2459.0" y="1073.5" width="1003.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-SKL-011-02)"><text x="2960.5" y="1104.7" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2960.5" dy="0.0">能选择并记录方位角、下倾角、功率或站点结构相关调整建议。</tspan></text></g></g>
+<g id="S07-KNO-011-02" class="node node-Knowledge"><rect x="3503.0" y="1067.5" width="1115.0" height="97.5" rx="6" fill="#fbcfe8" stroke="#db2777" stroke-width="1.4" /><clipPath id="clip-S07-KNO-011-02"><rect x="3509.0" y="1073.5" width="1103.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-KNO-011-02)"><text x="4060.5" y="1104.7" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="4060.5" dy="0.0">RF优化、覆盖控制、天馈参数和现场实施安全。</tspan></text></g></g>
+<g id="S07-P-011-03" class="node node-Process"><rect x="1898.0" y="1175.0" width="520.0" height="97.5" rx="6" fill="#e2e8f0" stroke="#64748b" stroke-width="1.4" /><clipPath id="clip-S07-P-011-03"><rect x="1904.0" y="1181.0" width="508.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-P-011-03)"><text x="2158.0" y="1212.2" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2158.0" dy="0.0">3无线参数优化实施</tspan></text></g></g>
+<g id="S07-SKL-011-03" class="node node-Skill"><rect x="2453.0" y="1175.0" width="1015.0" height="97.5" rx="6" fill="#c7d2fe" stroke="#4f46e5" stroke-width="1.4" /><clipPath id="clip-S07-SKL-011-03"><rect x="2459.0" y="1181.0" width="1003.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-SKL-011-03)"><text x="2960.5" y="1212.2" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2960.5" dy="0.0">能调整移动性、接入、功控、邻区或QoS相关参数并说明依据。</tspan></text></g></g>
+<g id="S07-KNO-011-03" class="node node-Knowledge"><rect x="3503.0" y="1175.0" width="1115.0" height="97.5" rx="6" fill="#fbcfe8" stroke="#db2777" stroke-width="1.4" /><clipPath id="clip-S07-KNO-011-03"><rect x="3509.0" y="1181.0" width="1103.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-KNO-011-03)"><text x="4060.5" y="1212.2" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="4060.5" dy="0.0">RRC测量事件、接入保持、QoS、邻区和移动性参数。</tspan></text></g></g>
+<g id="S07-P-011-04" class="node node-Process"><rect x="1898.0" y="1282.5" width="520.0" height="97.5" rx="6" fill="#e2e8f0" stroke="#64748b" stroke-width="1.4" /><clipPath id="clip-S07-P-011-04"><rect x="1904.0" y="1288.5" width="508.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-P-011-04)"><text x="2158.0" y="1319.7" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2158.0" dy="0.0">4承载/核心网协同优化</tspan></text></g></g>
+<g id="S07-SKL-011-04" class="node node-Skill"><rect x="2453.0" y="1282.5" width="1015.0" height="97.5" rx="6" fill="#c7d2fe" stroke="#4f46e5" stroke-width="1.4" /><clipPath id="clip-S07-SKL-011-04"><rect x="2459.0" y="1288.5" width="1003.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-SKL-011-04)"><text x="2960.5" y="1319.7" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2960.5" dy="0.0">能识别承载或核心网侧约束，提出传输、AMF/SMF/UPF或QoS协同处理建议。</tspan></text></g></g>
+<g id="S07-KNO-011-04" class="node node-Knowledge"><rect x="3503.0" y="1282.5" width="1115.0" height="97.5" rx="6" fill="#fbcfe8" stroke="#db2777" stroke-width="1.4" /><clipPath id="clip-S07-KNO-011-04"><rect x="3509.0" y="1288.5" width="1103.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-KNO-011-04)"><text x="4060.5" y="1319.7" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="4060.5" dy="0.0">NG/Xn接口、承载时延、5GC功能、PDU会话和QoS策略。</tspan></text></g></g>
+<g id="S30-CAP-T-011" class="node node-Capability">
+<rect x="4676.0" y="960.0" width="900.0" height="420.0" rx="7" fill="#fde68a" stroke="#ca8a04" stroke-width="2.8" />
+<clipPath id="clip-S30-CAP-T-011"><rect x="4684.0" y="968.0" width="884.0" height="404.0" rx="5"/></clipPath>
+<g clip-path="url(#clip-S30-CAP-T-011)">
+<text x="5126.0" y="1127.8" text-anchor="middle" font-size="27" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="5126.0" dy="0.0">端到端网络优化实施与效果验证能力</tspan></text>
+<text x="5126.0" y="1169.7" text-anchor="middle" font-size="18" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="5126.0" dy="0.0">面向覆盖、切换、时延、速率、容量和掉线等场景，能够选择RF、无线参数、承载和核心网协同优化动作</tspan><tspan x="5126.0" dy="21.2">，实施变更并完成复测验证。</tspan></text>
+</g>
+</g>
+<g id="S07-OUT-011" class="node node-Outcome">
+<rect x="5634.0" y="960.0" width="1040.0" height="420.0" rx="7" fill="#bbf7d0" stroke="#16a34a" stroke-width="2.8" />
+<clipPath id="clip-S07-OUT-011"><rect x="5642.0" y="968.0" width="1024.0" height="404.0" rx="5"/></clipPath>
+<g clip-path="url(#clip-S07-OUT-011)">
+<text x="6154.0" y="1125.5" text-anchor="middle" font-size="29" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="6154.0" dy="0.0">优化实施记录、参数/天馈调整记录、风险与回退说明</tspan></text>
+<text x="6154.0" y="1169.7" text-anchor="middle" font-size="19" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="6154.0" dy="0.0">成果构成：优化实施记录、参数变更清单、初步验证记录｜评价证据：方案匹配度、实施规范性</tspan><tspan x="6154.0" dy="22.4">、变更可追溯性、风险控制</tspan></text>
+</g>
+</g>
+<g id="S07-ASS-011" class="node node-Assessment">
+<rect x="6732.0" y="960.0" width="648.0" height="420.0" rx="7" fill="#e9d5ff" stroke="#9333ea" stroke-width="2.8" />
+<clipPath id="clip-S07-ASS-011"><rect x="6740.0" y="968.0" width="632.0" height="404.0" rx="5"/></clipPath>
+<g clip-path="url(#clip-S07-ASS-011)">
+<text x="7056.0" y="1116.6" text-anchor="middle" font-size="28" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="7056.0" dy="0.0">达成评价与证据入口</tspan></text>
+<text x="7056.0" y="1159.7" text-anchor="middle" font-size="18" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="7056.0" dy="0.0">问题场景匹配、方案选择合理性、执行记录完整性、回退与影响控制｜正式证据</tspan><tspan x="7056.0" dy="21.2">16条，图表33项，媒体35项；目标密度12-20条；详情进任务页</tspan><tspan x="7056.0" dy="21.2">。</tspan></text>
+</g>
+</g>
+<g id="T-012" class="node node-Task">
+<rect x="220.0" y="1418.0" width="1620.0" height="420.0" rx="7" fill="#fed7aa" stroke="#ea580c" stroke-width="2.8" />
+<clipPath id="clip-T-012"><rect x="228.0" y="1426.0" width="1604.0" height="404.0" rx="5"/></clipPath>
+<g clip-path="url(#clip-T-012)">
+<text x="1030.0" y="1577.6" text-anchor="middle" font-size="33" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1030.0" dy="0.0">验证覆盖、切换、时延、速率、容量和掉线优化效果，形成复测和对比结论</tspan></text>
+<text x="1030.0" y="1626.5" text-anchor="middle" font-size="22" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1030.0" dy="0.0">场景：优化实施后需要证明方案是否有效并识别残留问题｜对象：覆盖、切换、时延、速率、容量、掉线、复测数据、前后对比｜行动链：确定验证指标→组织复测→提取</tspan><tspan x="1030.0" dy="26.0">前后数据→对比效果→判断达成→记录残留风险｜成果：复测数据包、KPI对比表、优化验证结论</tspan></text>
+</g>
+</g>
+<g id="S07-P-012-01" class="node node-Process"><rect x="1898.0" y="1418.0" width="520.0" height="97.5" rx="6" fill="#e2e8f0" stroke="#64748b" stroke-width="1.4" /><clipPath id="clip-S07-P-012-01"><rect x="1904.0" y="1424.0" width="508.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-P-012-01)"><text x="2158.0" y="1455.2" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2158.0" dy="0.0">1验证方案与基线确认</tspan></text></g></g>
+<g id="S07-SKL-012-01" class="node node-Skill"><rect x="2453.0" y="1418.0" width="1015.0" height="97.5" rx="6" fill="#c7d2fe" stroke="#4f46e5" stroke-width="1.4" /><clipPath id="clip-S07-SKL-012-01"><rect x="2459.0" y="1424.0" width="1003.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-SKL-012-01)"><text x="2960.5" y="1455.2" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2960.5" dy="0.0">能明确优化前基线、复测范围、测试方法和统计周期。</tspan></text></g></g>
+<g id="S07-KNO-012-01" class="node node-Knowledge"><rect x="3503.0" y="1418.0" width="1115.0" height="97.5" rx="6" fill="#fbcfe8" stroke="#db2777" stroke-width="1.4" /><clipPath id="clip-S07-KNO-012-01"><rect x="3509.0" y="1424.0" width="1103.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-KNO-012-01)"><text x="4060.5" y="1455.2" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="4060.5" dy="0.0">基线数据、复测设计、统计周期和样本可比性。</tspan></text></g></g>
+<g id="S07-P-012-02" class="node node-Process"><rect x="1898.0" y="1525.5" width="520.0" height="97.5" rx="6" fill="#e2e8f0" stroke="#64748b" stroke-width="1.4" /><clipPath id="clip-S07-P-012-02"><rect x="1904.0" y="1531.5" width="508.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-P-012-02)"><text x="2158.0" y="1562.7" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2158.0" dy="0.0">2覆盖和质量效果验证</tspan></text></g></g>
+<g id="S07-SKL-012-02" class="node node-Skill"><rect x="2453.0" y="1525.5" width="1015.0" height="97.5" rx="6" fill="#c7d2fe" stroke="#4f46e5" stroke-width="1.4" /><clipPath id="clip-S07-SKL-012-02"><rect x="2459.0" y="1531.5" width="1003.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-SKL-012-02)"><text x="2960.5" y="1562.7" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2960.5" dy="0.0">能验证RSRP、SINR、覆盖空洞、重叠覆盖和弱覆盖改善情况。</tspan></text></g></g>
+<g id="S07-KNO-012-02" class="node node-Knowledge"><rect x="3503.0" y="1525.5" width="1115.0" height="97.5" rx="6" fill="#fbcfe8" stroke="#db2777" stroke-width="1.4" /><clipPath id="clip-S07-KNO-012-02"><rect x="3509.0" y="1531.5" width="1103.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-KNO-012-02)"><text x="4060.5" y="1562.7" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="4060.5" dy="0.0">覆盖指标、信号质量、干扰和覆盖优化评价逻辑。</tspan></text></g></g>
+<g id="S07-P-012-03" class="node node-Process"><rect x="1898.0" y="1633.0" width="520.0" height="97.5" rx="6" fill="#e2e8f0" stroke="#64748b" stroke-width="1.4" /><clipPath id="clip-S07-P-012-03"><rect x="1904.0" y="1639.0" width="508.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-P-012-03)"><text x="2158.0" y="1670.2" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2158.0" dy="0.0">3切换、时延和速率效果验证</tspan></text></g></g>
+<g id="S07-SKL-012-03" class="node node-Skill"><rect x="2453.0" y="1633.0" width="1015.0" height="97.5" rx="6" fill="#c7d2fe" stroke="#4f46e5" stroke-width="1.4" /><clipPath id="clip-S07-SKL-012-03"><rect x="2459.0" y="1639.0" width="1003.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-SKL-012-03)"><text x="2960.5" y="1670.2" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2960.5" dy="0.0">能验证切换成功率、乒乓切换、时延、吞吐量和业务体验变化。</tspan></text></g></g>
+<g id="S07-KNO-012-03" class="node node-Knowledge"><rect x="3503.0" y="1633.0" width="1115.0" height="97.5" rx="6" fill="#fbcfe8" stroke="#db2777" stroke-width="1.4" /><clipPath id="clip-S07-KNO-012-03"><rect x="3509.0" y="1639.0" width="1103.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-KNO-012-03)"><text x="4060.5" y="1670.2" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="4060.5" dy="0.0">切换事件、时延、速率、QoS和用户体验指标。</tspan></text></g></g>
+<g id="S07-P-012-04" class="node node-Process"><rect x="1898.0" y="1740.5" width="520.0" height="97.5" rx="6" fill="#e2e8f0" stroke="#64748b" stroke-width="1.4" /><clipPath id="clip-S07-P-012-04"><rect x="1904.0" y="1746.5" width="508.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-P-012-04)"><text x="2158.0" y="1777.7" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2158.0" dy="0.0">4残留问题与闭环结论</tspan></text></g></g>
+<g id="S07-SKL-012-04" class="node node-Skill"><rect x="2453.0" y="1740.5" width="1015.0" height="97.5" rx="6" fill="#c7d2fe" stroke="#4f46e5" stroke-width="1.4" /><clipPath id="clip-S07-SKL-012-04"><rect x="2459.0" y="1746.5" width="1003.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-SKL-012-04)"><text x="2960.5" y="1777.7" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2960.5" dy="0.0">能标注未达成指标、残留风险、二次优化建议和验收结论。</tspan></text></g></g>
+<g id="S07-KNO-012-04" class="node node-Knowledge"><rect x="3503.0" y="1740.5" width="1115.0" height="97.5" rx="6" fill="#fbcfe8" stroke="#db2777" stroke-width="1.4" /><clipPath id="clip-S07-KNO-012-04"><rect x="3509.0" y="1746.5" width="1103.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-KNO-012-04)"><text x="4060.5" y="1777.7" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="4060.5" dy="0.0">残留问题分级、闭环验收、风险说明和复盘记录。</tspan></text></g></g>
+<g id="S30-CAP-T-012" class="node node-Capability">
+<rect x="4676.0" y="1418.0" width="900.0" height="420.0" rx="7" fill="#fde68a" stroke="#ca8a04" stroke-width="2.8" />
+<clipPath id="clip-S30-CAP-T-012"><rect x="4684.0" y="1426.0" width="884.0" height="404.0" rx="5"/></clipPath>
+<g clip-path="url(#clip-S30-CAP-T-012)">
+<text x="5126.0" y="1580.5" text-anchor="middle" font-size="27" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="5126.0" dy="0.0">端到端网络优化实施与效果验证能力；全网KPI基线、性能提升与复盘</tspan><tspan x="5126.0" dy="31.9">能力</tspan></text>
+<text x="5126.0" y="1654.2" text-anchor="middle" font-size="18" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="5126.0" dy="0.0">CAP-005优化实施与闭环验证能力；CAP-006全网性能治理能力</tspan></text>
+</g>
+</g>
+<g id="S07-OUT-012" class="node node-Outcome">
+<rect x="5634.0" y="1418.0" width="1040.0" height="420.0" rx="7" fill="#bbf7d0" stroke="#16a34a" stroke-width="2.8" />
+<clipPath id="clip-S07-OUT-012"><rect x="5642.0" y="1426.0" width="1024.0" height="404.0" rx="5"/></clipPath>
+<g clip-path="url(#clip-S07-OUT-012)">
+<text x="6154.0" y="1583.5" text-anchor="middle" font-size="29" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="6154.0" dy="0.0">KPI对比表、复测报告、优化效果验证结论</tspan></text>
+<text x="6154.0" y="1627.7" text-anchor="middle" font-size="19" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="6154.0" dy="0.0">成果构成：复测数据包、KPI对比表、优化验证结论｜评价证据：指标选择合理性、复测规范性</tspan><tspan x="6154.0" dy="22.4">、对比分析和结论可靠性</tspan></text>
+</g>
+</g>
+<g id="S07-ASS-012" class="node node-Assessment">
+<rect x="6732.0" y="1418.0" width="648.0" height="420.0" rx="7" fill="#e9d5ff" stroke="#9333ea" stroke-width="2.8" />
+<clipPath id="clip-S07-ASS-012"><rect x="6740.0" y="1426.0" width="632.0" height="404.0" rx="5"/></clipPath>
+<g clip-path="url(#clip-S07-ASS-012)">
+<text x="7056.0" y="1574.6" text-anchor="middle" font-size="28" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="7056.0" dy="0.0">达成评价与证据入口</tspan></text>
+<text x="7056.0" y="1617.7" text-anchor="middle" font-size="18" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="7056.0" dy="0.0">前后数据可比性、指标解释、残留问题识别、验证结论可信度｜正式证据16条</tspan><tspan x="7056.0" dy="21.2">，图表59项，媒体61项；目标密度12-22条；详情进任务页</tspan><tspan x="7056.0" dy="21.2">。</tspan></text>
+</g>
+</g>
+<g id="T-013" class="node node-Task">
+<rect x="220.0" y="1876.0" width="1620.0" height="420.0" rx="7" fill="#fed7aa" stroke="#ea580c" stroke-width="2.8" />
+<clipPath id="clip-T-013"><rect x="228.0" y="1884.0" width="1604.0" height="404.0" rx="5"/></clipPath>
+<g clip-path="url(#clip-T-013)">
+<text x="1030.0" y="2035.6" text-anchor="middle" font-size="33" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="1030.0" dy="0.0">整理优化过程、数据对比和验证结论，输出优化报告并完成客户/专家沟通</tspan></text>
+<text x="1030.0" y="2084.5" text-anchor="middle" font-size="22" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="1030.0" dy="0.0">场景：优化闭环交付阶段；需要把技术过程转化为可审阅成果｜对象：优化方案、复测数据、KPI对比、验证结论、客户要求｜行动链：汇总问题和方案→整理数据和图</tspan><tspan x="1030.0" dy="26.0">表→撰写报告→沟通结论→记录反馈和整改｜成果：优化验证报告、沟通记录、整改清单</tspan></text>
+</g>
+</g>
+<g id="S07-P-013-01" class="node node-Process"><rect x="1898.0" y="1876.0" width="520.0" height="97.5" rx="6" fill="#e2e8f0" stroke="#64748b" stroke-width="1.4" /><clipPath id="clip-S07-P-013-01"><rect x="1904.0" y="1882.0" width="508.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-P-013-01)"><text x="2158.0" y="1913.2" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2158.0" dy="0.0">1报告框架和证据目录搭建</tspan></text></g></g>
+<g id="S07-SKL-013-01" class="node node-Skill"><rect x="2453.0" y="1876.0" width="1015.0" height="97.5" rx="6" fill="#c7d2fe" stroke="#4f46e5" stroke-width="1.4" /><clipPath id="clip-S07-SKL-013-01"><rect x="2459.0" y="1882.0" width="1003.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-SKL-013-01)"><text x="2960.5" y="1913.2" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2960.5" dy="0.0">能按问题背景、数据证据、优化动作、验证结果和结论组织报告。</tspan></text></g></g>
+<g id="S07-KNO-013-01" class="node node-Knowledge"><rect x="3503.0" y="1876.0" width="1115.0" height="97.5" rx="6" fill="#fbcfe8" stroke="#db2777" stroke-width="1.4" /><clipPath id="clip-S07-KNO-013-01"><rect x="3509.0" y="1882.0" width="1103.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-KNO-013-01)"><text x="4060.5" y="1913.2" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="4060.5" dy="0.0">工程报告结构、证据目录、图表引用和版权边界。</tspan></text></g></g>
+<g id="S07-P-013-02" class="node node-Process"><rect x="1898.0" y="1983.5" width="520.0" height="97.5" rx="6" fill="#e2e8f0" stroke="#64748b" stroke-width="1.4" /><clipPath id="clip-S07-P-013-02"><rect x="1904.0" y="1989.5" width="508.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-P-013-02)"><text x="2158.0" y="2020.7" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2158.0" dy="0.0">2优化前后数据对比呈现</tspan></text></g></g>
+<g id="S07-SKL-013-02" class="node node-Skill"><rect x="2453.0" y="1983.5" width="1015.0" height="97.5" rx="6" fill="#c7d2fe" stroke="#4f46e5" stroke-width="1.4" /><clipPath id="clip-S07-SKL-013-02"><rect x="2459.0" y="1989.5" width="1003.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-SKL-013-02)"><text x="2960.5" y="2020.7" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2960.5" dy="0.0">能用表格或图示表达KPI、测试、参数和现场证据的前后变化。</tspan></text></g></g>
+<g id="S07-KNO-013-02" class="node node-Knowledge"><rect x="3503.0" y="1983.5" width="1115.0" height="97.5" rx="6" fill="#fbcfe8" stroke="#db2777" stroke-width="1.4" /><clipPath id="clip-S07-KNO-013-02"><rect x="3509.0" y="1989.5" width="1103.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-KNO-013-02)"><text x="4060.5" y="2020.7" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="4060.5" dy="0.0">数据对比、图表解读、统计口径和可追溯表达。</tspan></text></g></g>
+<g id="S07-P-013-03" class="node node-Process"><rect x="1898.0" y="2091.0" width="520.0" height="97.5" rx="6" fill="#e2e8f0" stroke="#64748b" stroke-width="1.4" /><clipPath id="clip-S07-P-013-03"><rect x="1904.0" y="2097.0" width="508.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-P-013-03)"><text x="2158.0" y="2128.2" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2158.0" dy="0.0">3结论、风险和建议撰写</tspan></text></g></g>
+<g id="S07-SKL-013-03" class="node node-Skill"><rect x="2453.0" y="2091.0" width="1015.0" height="97.5" rx="6" fill="#c7d2fe" stroke="#4f46e5" stroke-width="1.4" /><clipPath id="clip-S07-SKL-013-03"><rect x="2459.0" y="2097.0" width="1003.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-SKL-013-03)"><text x="2960.5" y="2128.2" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2960.5" dy="0.0">能给出达成结论、残留风险、后续建议和责任边界。</tspan></text></g></g>
+<g id="S07-KNO-013-03" class="node node-Knowledge"><rect x="3503.0" y="2091.0" width="1115.0" height="97.5" rx="6" fill="#fbcfe8" stroke="#db2777" stroke-width="1.4" /><clipPath id="clip-S07-KNO-013-03"><rect x="3509.0" y="2097.0" width="1103.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-KNO-013-03)"><text x="4060.5" y="2128.2" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="4060.5" dy="0.0">验收结论、风险分级、后续计划和工程交付话术。</tspan></text></g></g>
+<g id="S07-P-013-04" class="node node-Process"><rect x="1898.0" y="2198.5" width="520.0" height="97.5" rx="6" fill="#e2e8f0" stroke="#64748b" stroke-width="1.4" /><clipPath id="clip-S07-P-013-04"><rect x="1904.0" y="2204.5" width="508.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-P-013-04)"><text x="2158.0" y="2235.7" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2158.0" dy="0.0">4客户/专家沟通与复盘</tspan></text></g></g>
+<g id="S07-SKL-013-04" class="node node-Skill"><rect x="2453.0" y="2198.5" width="1015.0" height="97.5" rx="6" fill="#c7d2fe" stroke="#4f46e5" stroke-width="1.4" /><clipPath id="clip-S07-SKL-013-04"><rect x="2459.0" y="2204.5" width="1003.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-SKL-013-04)"><text x="2960.5" y="2235.7" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="2960.5" dy="0.0">能根据反馈修订报告并沉淀可复用问题案例。</tspan></text></g></g>
+<g id="S07-KNO-013-04" class="node node-Knowledge"><rect x="3503.0" y="2198.5" width="1115.0" height="97.5" rx="6" fill="#fbcfe8" stroke="#db2777" stroke-width="1.4" /><clipPath id="clip-S07-KNO-013-04"><rect x="3509.0" y="2204.5" width="1103.0" height="85.5" rx="4"/></clipPath><g clip-path="url(#clip-S07-KNO-013-04)"><text x="4060.5" y="2235.7" text-anchor="middle" font-size="20" font-weight="550" fill="#111827" dominant-baseline="text-before-edge"><tspan x="4060.5" dy="0.0">客户沟通、专家审定、复盘机制和案例沉淀。</tspan></text></g></g>
+<g id="S30-CAP-T-013" class="node node-Capability">
+<rect x="4676.0" y="1876.0" width="900.0" height="420.0" rx="7" fill="#fde68a" stroke="#ca8a04" stroke-width="2.8" />
+<clipPath id="clip-S30-CAP-T-013"><rect x="4684.0" y="1884.0" width="884.0" height="404.0" rx="5"/></clipPath>
+<g clip-path="url(#clip-S30-CAP-T-013)">
+<text x="5126.0" y="2038.5" text-anchor="middle" font-size="27" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="5126.0" dy="0.0">工程交付、质量安全与复盘沟通能力；端到端网络优化实施与效果验证能</tspan><tspan x="5126.0" dy="31.9">力</tspan></text>
+<text x="5126.0" y="2112.2" text-anchor="middle" font-size="18" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="5126.0" dy="0.0">CAP-008贯穿支撑与交付能力；CAP-005优化实施与闭环验证能力</tspan></text>
+</g>
+</g>
+<g id="S07-OUT-013" class="node node-Outcome">
+<rect x="5634.0" y="1876.0" width="1040.0" height="420.0" rx="7" fill="#bbf7d0" stroke="#16a34a" stroke-width="2.8" />
+<clipPath id="clip-S07-OUT-013"><rect x="5642.0" y="1884.0" width="1024.0" height="404.0" rx="5"/></clipPath>
+<g clip-path="url(#clip-S07-OUT-013)">
+<text x="6154.0" y="2041.5" text-anchor="middle" font-size="29" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="6154.0" dy="0.0">优化验证报告、客户沟通纪要、问题闭环清单</tspan></text>
+<text x="6154.0" y="2085.7" text-anchor="middle" font-size="19" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="6154.0" dy="0.0">成果构成：优化验证报告、沟通记录、整改清单｜评价证据：报告完整性、证据链、结论表达</tspan><tspan x="6154.0" dy="22.4">、沟通反馈和整改闭环</tspan></text>
+</g>
+</g>
+<g id="S07-ASS-013" class="node node-Assessment">
+<rect x="6732.0" y="1876.0" width="648.0" height="420.0" rx="7" fill="#e9d5ff" stroke="#9333ea" stroke-width="2.8" />
+<clipPath id="clip-S07-ASS-013"><rect x="6740.0" y="1884.0" width="632.0" height="404.0" rx="5"/></clipPath>
+<g clip-path="url(#clip-S07-ASS-013)">
+<text x="7056.0" y="2043.2" text-anchor="middle" font-size="28" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="7056.0" dy="0.0">达成评价与证据入口</tspan></text>
+<text x="7056.0" y="2086.3" text-anchor="middle" font-size="18" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="7056.0" dy="0.0">报告结构、证据引用、数据图表解释、沟通反馈和闭环完整性｜正式证据16条</tspan><tspan x="7056.0" dy="21.2">，图表4项，媒体3项；目标密度6-12条；详情进任务页。</tspan></text>
+</g>
+</g>
+<g id="S30-TGRP-004-SELF-CHECK" class="node node-VisualNote">
+<rect x="220.0" y="2340.0" width="7160.0" height="150.0" rx="7" fill="#ecfeff" stroke="#0891b2" stroke-width="2.8" />
+<clipPath id="clip-S30-TGRP-004-SELF-CHECK"><rect x="228.0" y="2348.0" width="7144.0" height="134.0" rx="5"/></clipPath>
+<g clip-path="url(#clip-S30-TGRP-004-SELF-CHECK)">
+<text x="3800.0" y="2381.1" text-anchor="middle" font-size="29" font-weight="700" fill="#111827" dominant-baseline="text-before-edge"><tspan x="3800.0" dy="0.0">学生自查</tspan></text>
+<text x="3800.0" y="2425.3" text-anchor="middle" font-size="20" font-weight="450" fill="#334155" dominant-baseline="text-before-edge"><tspan x="3800.0" dy="0.0">本模块完成后，应能按“问题场景确认→优化方案实施→覆盖/切换/时延/速率/容量/掉线验证→报告输出与沟通”复述工作链，提交优化实施记录、复测数据包、优化验证报告、客户沟通记录，并用任务证据说明自己达到端到端优化实施、结果验证、报告交付和风险复盘。</tspan></text>
+</g>
+</g></g>
+</svg>

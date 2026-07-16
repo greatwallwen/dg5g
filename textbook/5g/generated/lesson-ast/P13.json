@@ -1,0 +1,1034 @@
+{
+  "schema": "dgbook.lesson-ast/v1",
+  "source": {
+    "kind": "docx",
+    "path": "content/5g/5g.docx",
+    "importer": "scripts/import-5g-docx.py"
+  },
+  "project": {
+    "id": "P13",
+    "title": "5G网络优化报告输出",
+    "sourceNo": "3",
+    "chapterTitle": "5G端到端网络优化",
+    "taskIndex": 3
+  },
+  "lesson": {
+    "id": "P13",
+    "title": "5G网络优化报告输出",
+    "widgetId": "P13-lesson-animation-001",
+    "scenario": "optimization",
+    "scenarioLabel": "端到端优化"
+  },
+  "content": {
+    "sections": [
+      {
+        "id": "sec-overview",
+        "title": "导学摘要",
+        "icon": "overview",
+        "texts": [
+          "本节讲优化报告写作：先给问题、原因、动作和效果主线，再用图表、日志、地图、KPI 和工参支撑每一个判断。"
+        ]
+      },
+      {
+        "id": "P13-ku-01",
+        "title": "概念与对象",
+        "icon": "radar",
+        "texts": [
+          "优化报告开头要先给主线，说明问题是什么、证据指向哪里、采取了什么动作以及效果如何。"
+        ]
+      },
+      {
+        "id": "P13-ku-02",
+        "title": "概念与对象",
+        "icon": "route",
+        "texts": [
+          "证据材料按结论服务，不堆截图；图表、日志、地图和关键指标要能支撑每一个判断。"
+        ]
+      },
+      {
+        "id": "P13-ku-03",
+        "title": "工程判读",
+        "icon": "chart",
+        "texts": [
+          "报告中的过程部分需保留关键证据和推理顺序，让他人能从原始日志、KPI 和工参复原判断。"
+        ]
+      },
+      {
+        "id": "P13-ku-04",
+        "title": "数据与现场佐证",
+        "icon": "tool",
+        "texts": [
+          "效果表达要包含前后指标对比、业务体验变化、异常样本说明和适用边界，避免只写结论。"
+        ]
+      },
+      {
+        "id": "P13-ku-05",
+        "title": "操作校验",
+        "icon": "search",
+        "texts": [
+          "结构校验关注章节之间是否闭合，摘要中的结论必须能在证据、动作和效果章节找到支撑。"
+        ]
+      },
+      {
+        "id": "P13-ku-06",
+        "title": "闭环复盘",
+        "icon": "check",
+        "texts": [
+          "报告归档要留下遗留风险、后续建议、适用场景和复用边界，支撑后续问题处理。"
+        ]
+      }
+    ],
+    "blocks": [
+      {
+        "id": "block-001",
+        "kind": "paragraph",
+        "order": 1,
+        "text": "课前导入"
+      },
+      {
+        "id": "block-002",
+        "kind": "paragraph",
+        "order": 2,
+        "text": "完成优化之后，应对本次优化进行总结经验，以应对下次类似问题，并能按照标准模板进行输出报告。"
+      },
+      {
+        "id": "block-003",
+        "kind": "paragraph",
+        "order": 3,
+        "text": "任务要求"
+      },
+      {
+        "id": "block-004",
+        "kind": "paragraph",
+        "order": 4,
+        "text": "通过本节学习和完成前两章节的学习的基础上，能够完成5G网络优化报告的输出工作，在报告中能反映优化调整的验证结论，能够按照标准模板完成报告，并能够掌握和客户沟通交流的技巧。"
+      },
+      {
+        "id": "block-005",
+        "kind": "paragraph",
+        "order": 5,
+        "text": "本次任务具体内容包括："
+      },
+      {
+        "id": "block-006",
+        "kind": "paragraph",
+        "order": 6,
+        "text": "按照客户要求输出优化验证报告；"
+      },
+      {
+        "id": "block-007",
+        "kind": "paragraph",
+        "order": 7,
+        "text": "对比分析优化验证结论；"
+      },
+      {
+        "id": "block-008",
+        "kind": "paragraph",
+        "order": 8,
+        "text": "与客户沟通交流优化验证结果。"
+      },
+      {
+        "id": "block-009",
+        "kind": "paragraph",
+        "order": 9,
+        "text": "知识准备"
+      },
+      {
+        "id": "block-010",
+        "kind": "paragraph",
+        "order": 10,
+        "text": "一、5G网络优化报告规范"
+      },
+      {
+        "id": "block-011",
+        "kind": "paragraph",
+        "order": 11,
+        "text": "整体网络优化报告需要按照不同运营商的要求订立不同的报告模板，但报告中内容呈现分为两大类别，注意不同类型的报告结构有所区别。"
+      },
+      {
+        "id": "block-012",
+        "kind": "paragraph",
+        "order": 12,
+        "text": "KPI指标优化类:"
+      },
+      {
+        "id": "block-013",
+        "kind": "paragraph",
+        "order": 13,
+        "text": "其中包括了问题指标采集与分析、TOPN小区处理、干扰故障排查、优化调整效果测试验证。"
+      },
+      {
+        "id": "block-014",
+        "kind": "paragraph",
+        "order": 14,
+        "text": "测试指标优化类:"
+      },
+      {
+        "id": "block-015",
+        "kind": "paragraph",
+        "order": 15,
+        "text": "其中包括了测试数据采集与分析、问题路段方案处理、优化调整效果测试评估。"
+      },
+      {
+        "id": "block-016",
+        "kind": "paragraph",
+        "order": 16,
+        "text": "网络优化报告内容结构"
+      },
+      {
+        "id": "block-017",
+        "kind": "paragraph",
+        "order": 17,
+        "text": "网络优化报告内容，一般由网络问题概述、干扰原因分类、优化措施、干扰处理情况、干扰处理案例等部分组成。"
+      },
+      {
+        "id": "block-018",
+        "kind": "paragraph",
+        "order": 18,
+        "text": "问题概述部分，该部分内容主要反馈问题总体改善情况，通过优化方案调整和实施的工作，对于问题小区或者问题路段的质量变化情况。"
+      },
+      {
+        "id": "block-019",
+        "kind": "paragraph",
+        "order": 19,
+        "text": "原有问题分类和具体情况分析，该部分需要将KPI问题或者测试问题进行汇总分析，将网络中的主要问题进行归集处理，抓住核心要点，清晰明确的指出需要有针对性的工作方向。针对问题情况对应的优化措施或者解决方案，这里需要详细阐述，主要采用的优化方案和技术调整措施，在这里需要充分说明自身选择的优化方案的合理性和可操作性。"
+      },
+      {
+        "id": "block-020",
+        "kind": "paragraph",
+        "order": 20,
+        "text": "优化措施或解决方案实施情况，这部分环节中，需要考虑将前面归集的KPI问题小区或者测试问题路段的优化措施或者整改解决方案的实施情况进行展示，已完成的方案占比情况，已完成已解决的KPI问题小区或者测试问题路段占比情况。"
+      },
+      {
+        "id": "block-021",
+        "kind": "paragraph",
+        "order": 21,
+        "text": "典型案例分析分享部分，这个部分将优化调整工作中具有典型意义的问题小区进行详细的分析，按照标准的处理流程完成问题原因分析定位，优化方案制定，优化方案实施，实施效果评估，后续注意事项这些案例部分内容。最后整理所有材料进行汇报本次优化结果。"
+      },
+      {
+        "id": "block-022",
+        "kind": "paragraph",
+        "order": 22,
+        "text": "任务实施"
+      },
+      {
+        "id": "block-023",
+        "kind": "paragraph",
+        "order": 23,
+        "text": "编写5G网络优化验证报告"
+      },
+      {
+        "id": "block-024",
+        "kind": "paragraph",
+        "order": 24,
+        "text": "根据优化内容不同，优化报告表现过程一般包括以下内容："
+      },
+      {
+        "id": "block-025",
+        "kind": "paragraph",
+        "order": 25,
+        "text": "根据本次网络优化工作内容，编写需求概述；"
+      },
+      {
+        "id": "block-026",
+        "kind": "paragraph",
+        "order": 26,
+        "text": "以覆盖优化为例，如："
+      },
+      {
+        "id": "block-027",
+        "kind": "paragraph",
+        "order": 27,
+        "text": "覆盖优化概述"
+      },
+      {
+        "id": "block-028",
+        "kind": "paragraph",
+        "order": 28,
+        "text": "无线网络覆盖是网络业务和性能的基石，通过开展无线网络覆盖优化工作，可以使网络覆盖范围更合理、覆盖水平更高、干扰水平更低，为业务应用和性能提升提供重要保障。无线网络覆盖优化工作伴随实验网建设、预商用网络建设、工程优化、日常运维优化、专项优化等各个网络发展阶段，是网络优化工作的主要组成部分。"
+      },
+      {
+        "id": "block-029",
+        "kind": "paragraph",
+        "order": 29,
+        "text": "优化内容，网络问题或故障描述；"
+      },
+      {
+        "id": "block-030",
+        "kind": "paragraph",
+        "order": 30,
+        "text": "以覆盖优化为例，如："
+      },
+      {
+        "id": "block-031",
+        "kind": "paragraph",
+        "order": 31,
+        "text": "5GNR覆盖优化内容"
+      },
+      {
+        "id": "block-032",
+        "kind": "paragraph",
+        "order": 32,
+        "text": "5G NR覆盖优化主要消除网络中存在的四种问题：覆盖空洞、弱覆盖、越区覆盖和导频污染。覆盖空洞可以归入到弱覆盖中，越区覆盖和导频污染都可以归为交叉覆盖，所以，从这个角度和现场可实施角度来讲，优化主要有两个内容：消除弱覆盖和交叉覆盖。"
+      },
+      {
+        "id": "block-033",
+        "kind": "paragraph",
+        "order": 33,
+        "text": "优化目标确定"
+      },
+      {
+        "id": "block-034",
+        "kind": "paragraph",
+        "order": 34,
+        "text": "以覆盖优化为例，如："
+      },
+      {
+        "id": "block-035",
+        "kind": "paragraph",
+        "order": 35,
+        "text": "5G NR覆盖优化目标"
+      },
+      {
+        "id": "block-036",
+        "kind": "paragraph",
+        "order": 36,
+        "text": "无线网络覆盖以保障网络基础覆盖水平、有效抑制干扰、提升业务上传下载速率为根本目标。开展无线网络覆盖优化之前，需要明确优化的基线KPI目标。"
+      },
+      {
+        "id": "block-037",
+        "kind": "paragraph",
+        "order": 37,
+        "text": "SS RSRP：以最小增益的宽波束配置为基准，建议边缘覆盖按照-100dBm统计。"
+      },
+      {
+        "id": "block-038",
+        "kind": "paragraph",
+        "order": 38,
+        "text": "密集城区SSB RSRP > -100dBm的采样点比例大于等于95%；"
+      },
+      {
+        "id": "block-039",
+        "kind": "paragraph",
+        "order": 39,
+        "text": "一般城区和郊区要求SSB RSRP > -100dBm的采样点比例大于等于90%；"
+      },
+      {
+        "id": "block-040",
+        "kind": "paragraph",
+        "order": 40,
+        "text": "CSI-SINR：宽波束配置下，边缘速率100M，对应的CSI-SINR边缘要求为-5dB。各场景下SSB SINR > -5dBm的采样点比例大于等于90%；"
+      },
+      {
+        "id": "block-041",
+        "kind": "paragraph",
+        "order": 41,
+        "text": "SSB-SINR：宽波束配置下，边缘速率100M，对应的CSI-SINR边缘要求为-5dB。各场景下SSB SINR > -5dBm的采样点比例大于等于90%"
+      },
+      {
+        "id": "block-042",
+        "kind": "paragraph",
+        "order": 42,
+        "text": "表4-3-1 基准覆盖规划设计要求"
+      },
+      {
+        "id": "block-043",
+        "kind": "table",
+        "order": 43,
+        "rows": [
+          [
+            "类型",
+            "穿透损耗",
+            "SS-RSRP（dBm，90%概率）",
+            "SS-SINR（dB，90%概率）"
+          ],
+          [
+            "主城区",
+            "核心城区",
+            "≥-93",
+            "-3"
+          ],
+          [
+            "主城区",
+            "其它区域",
+            "≥-96",
+            "-3"
+          ],
+          [
+            "一般城区",
+            "≥-97",
+            "-5"
+          ],
+          [
+            "县城及郊区",
+            "≥-99",
+            "-5"
+          ]
+        ]
+      },
+      {
+        "id": "block-044",
+        "kind": "paragraph",
+        "order": 44,
+        "text": "优化过程，采取的优化分析和措施"
+      },
+      {
+        "id": "block-045",
+        "kind": "paragraph",
+        "order": 45,
+        "text": "以覆盖优化为例，如："
+      },
+      {
+        "id": "block-046",
+        "kind": "paragraph",
+        "order": 46,
+        "text": "5G NR覆盖优化原则"
+      },
+      {
+        "id": "block-047",
+        "kind": "paragraph",
+        "order": 47,
+        "text": "覆盖问题优化整体遵循如下几个原则："
+      },
+      {
+        "id": "block-048",
+        "kind": "paragraph",
+        "order": 48,
+        "text": "原则1：先优化SSB RSRP，后优化SSB SINR；"
+      },
+      {
+        "id": "block-049",
+        "kind": "paragraph",
+        "order": 49,
+        "text": "原则2：覆盖优化的两大关键任务：消除弱覆盖；消除交叉覆盖；"
+      },
+      {
+        "id": "block-050",
+        "kind": "paragraph",
+        "order": 50,
+        "text": "原则3：优先优化弱覆盖、越区覆盖、再优化导频污染；"
+      },
+      {
+        "id": "block-051",
+        "kind": "paragraph",
+        "order": 51,
+        "text": "原则4：工程优化阶段按照规划方案优先开展工程质量整改，其次建议优先权值功率优化，再物理天馈调整优化；"
+      },
+      {
+        "id": "block-052",
+        "kind": "paragraph",
+        "order": 52,
+        "text": "2.覆盖问题原因分析"
+      },
+      {
+        "id": "block-053",
+        "kind": "paragraph",
+        "order": 53,
+        "text": "根据无线传播模型和无线网络优化经验，影响无线网络覆盖的主要因素如下："
+      },
+      {
+        "id": "block-054",
+        "kind": "paragraph",
+        "order": 54,
+        "text": "网络规划不合理"
+      },
+      {
+        "id": "block-055",
+        "kind": "paragraph",
+        "order": 55,
+        "text": "站址规划不合理"
+      },
+      {
+        "id": "block-056",
+        "kind": "paragraph",
+        "order": 56,
+        "text": "站高规划不合理"
+      },
+      {
+        "id": "block-057",
+        "kind": "paragraph",
+        "order": 57,
+        "text": "方位角规划不合理"
+      },
+      {
+        "id": "block-058",
+        "kind": "paragraph",
+        "order": 58,
+        "text": "下倾角规划不合理"
+      },
+      {
+        "id": "block-059",
+        "kind": "paragraph",
+        "order": 59,
+        "text": "主方向有障碍物"
+      },
+      {
+        "id": "block-060",
+        "kind": "paragraph",
+        "order": 60,
+        "text": "无线环境发生变化"
+      },
+      {
+        "id": "block-061",
+        "kind": "paragraph",
+        "order": 61,
+        "text": "新增覆盖需求等"
+      },
+      {
+        "id": "block-062",
+        "kind": "paragraph",
+        "order": 62,
+        "text": "（2）工程质量问题"
+      },
+      {
+        "id": "block-063",
+        "kind": "paragraph",
+        "order": 63,
+        "text": "线缆接口施工质量不合格"
+      },
+      {
+        "id": "block-064",
+        "kind": "paragraph",
+        "order": 64,
+        "text": "天线物理参数未按规划方案施工"
+      },
+      {
+        "id": "block-065",
+        "kind": "paragraph",
+        "order": 65,
+        "text": "站点位置未按规划方案实施"
+      },
+      {
+        "id": "block-066",
+        "kind": "paragraph",
+        "order": 66,
+        "text": "GPS安装位置不符合规范"
+      },
+      {
+        "id": "block-067",
+        "kind": "paragraph",
+        "order": 67,
+        "text": "天馈接反等"
+      },
+      {
+        "id": "block-068",
+        "kind": "paragraph",
+        "order": 68,
+        "text": "（3）设备异常"
+      },
+      {
+        "id": "block-069",
+        "kind": "paragraph",
+        "order": 69,
+        "text": "电源不稳定"
+      },
+      {
+        "id": "block-070",
+        "kind": "paragraph",
+        "order": 70,
+        "text": "GPS故障"
+      },
+      {
+        "id": "block-071",
+        "kind": "paragraph",
+        "order": 71,
+        "text": "光模块故障"
+      },
+      {
+        "id": "block-072",
+        "kind": "paragraph",
+        "order": 72,
+        "text": "主设备运用异常"
+      },
+      {
+        "id": "block-073",
+        "kind": "paragraph",
+        "order": 73,
+        "text": "版本Bug"
+      },
+      {
+        "id": "block-074",
+        "kind": "paragraph",
+        "order": 74,
+        "text": "容器吊死"
+      },
+      {
+        "id": "block-075",
+        "kind": "paragraph",
+        "order": 75,
+        "text": "AAU功率异常等"
+      },
+      {
+        "id": "block-076",
+        "kind": "paragraph",
+        "order": 76,
+        "text": "（4）工程参数配置问题"
+      },
+      {
+        "id": "block-077",
+        "kind": "paragraph",
+        "order": 77,
+        "text": "天馈物理参数"
+      },
+      {
+        "id": "block-078",
+        "kind": "paragraph",
+        "order": 78,
+        "text": "频率配置"
+      },
+      {
+        "id": "block-079",
+        "kind": "paragraph",
+        "order": 79,
+        "text": "功率参数"
+      },
+      {
+        "id": "block-080",
+        "kind": "paragraph",
+        "order": 80,
+        "text": "PCI配置"
+      },
+      {
+        "id": "block-081",
+        "kind": "paragraph",
+        "order": 81,
+        "text": "邻区配置"
+      },
+      {
+        "id": "block-082",
+        "kind": "paragraph",
+        "order": 82,
+        "text": "3.覆盖问题优化方法"
+      },
+      {
+        "id": "block-083",
+        "kind": "paragraph",
+        "order": 83,
+        "text": "5G NR覆盖优化方法主要有如下几个方面"
+      },
+      {
+        "id": "block-084",
+        "kind": "paragraph",
+        "order": 84,
+        "text": "第一、工程参数调整"
+      },
+      {
+        "id": "block-085",
+        "kind": "paragraph",
+        "order": 85,
+        "text": "调整内容：机械下倾角、机械方位角、AAU天线挂高、AAU位置调整等；"
+      },
+      {
+        "id": "block-086",
+        "kind": "paragraph",
+        "order": 86,
+        "text": "第二、参数配置优化"
+      },
+      {
+        "id": "block-087",
+        "kind": "paragraph",
+        "order": 87,
+        "text": "基础参数配置优化：频点、功率、PCI/PRACH、邻区、切换门限等基础参数调整优化；"
+      },
+      {
+        "id": "block-088",
+        "kind": "paragraph",
+        "order": 88,
+        "text": "第三、波束管理优化："
+      },
+      {
+        "id": "block-089",
+        "kind": "paragraph",
+        "order": 89,
+        "text": "广播波束管理优化，主要涉及宽波束和多波束轮询配置以及波束级的权值配置优化。"
+      },
+      {
+        "id": "block-090",
+        "kind": "paragraph",
+        "order": 90,
+        "text": "优化过程中典型案例分析"
+      },
+      {
+        "id": "block-091",
+        "kind": "paragraph",
+        "order": 91,
+        "text": "以覆盖优化为例，如："
+      },
+      {
+        "id": "block-092",
+        "kind": "paragraph",
+        "order": 92,
+        "text": "例 城三5G海淀香泉环岛1小区越区覆盖"
+      },
+      {
+        "id": "block-093",
+        "kind": "paragraph",
+        "order": 93,
+        "text": "问题描述：城三5G海淀香泉环岛1小区越区覆盖占用，干扰严重拉低业务速率，如图4-3-1："
+      },
+      {
+        "id": "block-094",
+        "kind": "paragraph",
+        "order": 94,
+        "mediaRefs": [
+          "rId311"
+        ]
+      },
+      {
+        "id": "block-095",
+        "kind": "paragraph",
+        "order": 95,
+        "text": "图4-3-1 测试截图1"
+      },
+      {
+        "id": "block-096",
+        "kind": "paragraph",
+        "order": 96,
+        "text": "问题分析：越区覆盖引发干扰，导致业务速率受影响。"
+      },
+      {
+        "id": "block-097",
+        "kind": "paragraph",
+        "order": 97,
+        "text": "优化方案：城三5G海淀香泉环岛1小区机械倾角下压5度；（临时调整方案功率降低5db）。"
+      },
+      {
+        "id": "block-098",
+        "kind": "paragraph",
+        "order": 98,
+        "text": "优化效果：收缩覆盖后越区覆盖问题得到控制，切换链恢复正常，业务速率得到有效提升，如图4-3-2。"
+      },
+      {
+        "id": "block-099",
+        "kind": "paragraph",
+        "order": 99,
+        "mediaRefs": [
+          "rId312"
+        ]
+      },
+      {
+        "id": "block-100",
+        "kind": "paragraph",
+        "order": 100,
+        "text": "图4-3-2 测试截图2"
+      },
+      {
+        "id": "block-101",
+        "kind": "paragraph",
+        "order": 101,
+        "text": "对比分析优化前后性能指标输出验证结论"
+      },
+      {
+        "id": "block-102",
+        "kind": "paragraph",
+        "order": 102,
+        "text": "以覆盖优化为例，如："
+      },
+      {
+        "id": "block-103",
+        "kind": "paragraph",
+        "order": 103,
+        "text": "对比三种不同配置方式，由于采用“易入难出”的门限设置，将接入5G门限设置更为容易且出5G门限设置更难，因此MR覆盖率出现劣化，且随门限下探越大劣化越为明显，但同时MR总采样点明显增长，方案2和3均增长100%以上。"
+      },
+      {
+        "id": "block-104",
+        "kind": "paragraph",
+        "order": 104,
+        "text": "表4-3-2 覆盖方案对比"
+      },
+      {
+        "id": "block-105",
+        "kind": "table",
+        "order": 105,
+        "rows": [
+          [
+            "时间",
+            "覆盖方面"
+          ],
+          [
+            "",
+            "总采样点",
+            "弱覆盖采样点",
+            "覆盖率"
+          ],
+          [
+            "部署前",
+            "2849921",
+            "14366",
+            "99.50%"
+          ],
+          [
+            "方案一",
+            "4792147",
+            "58587",
+            "98.78%"
+          ],
+          [
+            "对比",
+            "68.15%",
+            "307.82%",
+            "-0.72%"
+          ],
+          [
+            "方案二",
+            "7026711",
+            "191604",
+            "97.27%"
+          ],
+          [
+            "对比",
+            "146.56%",
+            "1233.73%",
+            "-2.15%"
+          ],
+          [
+            "方案三",
+            "6661157",
+            "117627",
+            "98.23%"
+          ],
+          [
+            "对比",
+            "133.73%",
+            "718.79%",
+            "-1.26%"
+          ]
+        ]
+      },
+      {
+        "id": "block-106",
+        "kind": "paragraph",
+        "order": 106,
+        "text": "和客户沟通交流验证结果"
+      },
+      {
+        "id": "block-107",
+        "kind": "paragraph",
+        "order": 107,
+        "text": "与客户沟通交流的主要内容有："
+      },
+      {
+        "id": "block-108",
+        "kind": "paragraph",
+        "order": 108,
+        "text": "总结报告指标优化方案实施结果；"
+      },
+      {
+        "id": "block-109",
+        "kind": "paragraph",
+        "order": 109,
+        "text": "对方案指标过程进行分析；"
+      },
+      {
+        "id": "block-110",
+        "kind": "paragraph",
+        "order": 110,
+        "text": "与客户讨论本次优化结果是否达到预期目标。"
+      },
+      {
+        "id": "block-111",
+        "kind": "paragraph",
+        "order": 111,
+        "text": "随堂练习"
+      },
+      {
+        "id": "block-112",
+        "kind": "paragraph",
+        "order": 112,
+        "text": "请思考，当你用的原有报告模板和领导给你的模板不一致的时候，你会选择原有的模板还是新模板？"
+      },
+      {
+        "id": "block-113",
+        "kind": "paragraph",
+        "order": 113,
+        "text": "请按照上面这个案例进行编写一个类似案例。"
+      },
+      {
+        "id": "block-114",
+        "kind": "paragraph",
+        "order": 114,
+        "text": "直击难点"
+      },
+      {
+        "id": "block-115",
+        "kind": "paragraph",
+        "order": 115,
+        "text": "本节重点：按照标准进行输出网络优化报告文档。"
+      },
+      {
+        "id": "block-116",
+        "kind": "paragraph",
+        "order": 116,
+        "text": "本节难点：对网络优化报告指标内容对比分析。"
+      },
+      {
+        "id": "block-117",
+        "kind": "paragraph",
+        "order": 117,
+        "text": "任务测评"
+      },
+      {
+        "id": "block-118",
+        "kind": "paragraph",
+        "order": 118,
+        "text": "1、请描述5G网络优化报告的内容"
+      },
+      {
+        "id": "block-119",
+        "kind": "paragraph",
+        "order": 119,
+        "text": "预留二维码位置预留二维码位置"
+      },
+      {
+        "id": "block-120",
+        "kind": "paragraph",
+        "order": 120,
+        "text": "网优趣味课堂"
+      },
+      {
+        "id": "block-121",
+        "kind": "paragraph",
+        "order": 121,
+        "text": "根据端到端优化场景，包括站点覆盖，切换，容量，掉话，速率，时延等，各项相关参数作用、取值范围、影响等，对仿真软件进行操作练习。 1.在仿真软件教师端，按照六个不同场景分别下发端到端单模块任务，学生登录账号进行操作练习，完成并提交任务，教师根据任务提交成绩，对学生学习成果进行考核； 2.在仿真软件教师端，按照六个不同场景，多个场景组合下发端到端多模块任务，学生登录账号进行操作练习，完成并提交任务，教师根据任务提交成绩，对学生学习成果进行考核；"
+      }
+    ],
+    "storyboard": {
+      "schema": "lesson-storyboard/v1",
+      "learningGoal": "学完后能把原始证据编排成可追溯报告，清楚表达前后对比、业务体验、异常样本、遗留风险和后续建议。",
+      "summary": "本节讲优化报告写作：先给问题、原因、动作和效果主线，再用图表、日志、地图、KPI 和工参支撑每一个判断。",
+      "knowledgeUnits": [
+        {
+          "id": "P13-ku-01",
+          "title": "报告主线",
+          "kind": "concept",
+          "shortText": "问题、原因、动作和效果先形成一句主线。",
+          "narrationText": "优化报告开头要先给主线，说明问题是什么、证据指向哪里、采取了什么动作以及效果如何。"
+        },
+        {
+          "id": "P13-ku-02",
+          "title": "证据编排",
+          "kind": "concept",
+          "shortText": "图表、日志、截图和指标围绕结论排序。",
+          "narrationText": "证据材料按结论服务，不堆截图；图表、日志、地图和关键指标要能支撑每一个判断。"
+        },
+        {
+          "id": "P13-ku-03",
+          "title": "过程可追溯",
+          "kind": "criteria",
+          "shortText": "分析路径要能从原始证据复原判断。",
+          "narrationText": "报告中的过程部分需保留关键证据和推理顺序，让他人能从原始日志、KPI 和工参复原判断。"
+        },
+        {
+          "id": "P13-ku-04",
+          "title": "效果表达",
+          "kind": "evidence",
+          "shortText": "前后指标、业务体验和异常说明共同呈现。",
+          "narrationText": "效果表达要包含前后指标对比、业务体验变化、异常样本说明和适用边界，避免只写结论。"
+        },
+        {
+          "id": "P13-ku-05",
+          "title": "结构校验",
+          "kind": "practice",
+          "shortText": "摘要、证据、动作、效果和风险保持闭合。",
+          "narrationText": "结构校验关注章节之间是否闭合，摘要中的结论必须能在证据、动作和效果章节找到支撑。"
+        },
+        {
+          "id": "P13-ku-06",
+          "title": "经验归档",
+          "kind": "review",
+          "shortText": "保留风险、建议、适用场景和复用边界。",
+          "narrationText": "报告归档要留下遗留风险、后续建议、适用场景和复用边界，支撑后续问题处理。"
+        }
+      ],
+      "reviewSummary": "复盘时看摘要结论能否在证据、过程、动作、效果和风险章节找到支撑，报告不能堆截图而断掉推理链。"
+    }
+  },
+  "knowledge": {
+    "steps": [
+      {
+        "id": "P13-knowledge-01",
+        "label": "报告主线",
+        "description": "问题、原因、动作和效果先形成一句主线。"
+      },
+      {
+        "id": "P13-knowledge-02",
+        "label": "证据编排",
+        "description": "图表、日志、截图和指标围绕结论排序。"
+      },
+      {
+        "id": "P13-knowledge-03",
+        "label": "过程可追溯",
+        "description": "分析路径要能从原始证据复原判断。"
+      },
+      {
+        "id": "P13-knowledge-04",
+        "label": "效果表达",
+        "description": "前后指标、业务体验和异常说明共同呈现。"
+      },
+      {
+        "id": "P13-knowledge-05",
+        "label": "结构校验",
+        "description": "摘要、证据、动作、效果和风险保持闭合。"
+      },
+      {
+        "id": "P13-knowledge-06",
+        "label": "经验归档",
+        "description": "保留风险、建议、适用场景和复用边界。"
+      }
+    ],
+    "metrics": [
+      {
+        "label": "M1",
+        "value": "N2/N3"
+      },
+      {
+        "label": "M2",
+        "value": "复测"
+      },
+      {
+        "label": "M3",
+        "value": "闭环"
+      }
+    ]
+  },
+  "animation": {
+    "templateHint": "optimization-loop",
+    "durationMs": 610000,
+    "targets": [
+      {
+        "id": "P13-step-01",
+        "label": "报告主线",
+        "description": "问题、原因、动作和效果先形成一句主线。"
+      },
+      {
+        "id": "P13-step-02",
+        "label": "证据编排",
+        "description": "图表、日志、截图和指标围绕结论排序。"
+      },
+      {
+        "id": "P13-step-03",
+        "label": "过程可追溯",
+        "description": "分析路径要能从原始证据复原判断。"
+      },
+      {
+        "id": "P13-step-04",
+        "label": "效果表达",
+        "description": "前后指标、业务体验和异常说明共同呈现。"
+      },
+      {
+        "id": "P13-step-05",
+        "label": "结构校验",
+        "description": "摘要、证据、动作、效果和风险保持闭合。"
+      },
+      {
+        "id": "P13-step-06",
+        "label": "经验归档",
+        "description": "保留风险、建议、适用场景和复用边界。"
+      }
+    ]
+  },
+  "playback": {
+    "mode": "one-way",
+    "widgetId": "P13-lesson-animation-001"
+  }
+}

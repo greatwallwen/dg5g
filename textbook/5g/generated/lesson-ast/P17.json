@@ -1,0 +1,1381 @@
+{
+  "schema": "dgbook.lesson-ast/v1",
+  "source": {
+    "kind": "docx",
+    "path": "content/5g/5g.docx",
+    "importer": "scripts/import-5g-docx.py"
+  },
+  "project": {
+    "id": "P17",
+    "title": "5G关键信令流程及解析",
+    "sourceNo": "1",
+    "chapterTitle": "5G信令分析",
+    "taskIndex": 1
+  },
+  "lesson": {
+    "id": "P17",
+    "title": "5G关键信令流程及解析",
+    "widgetId": "P17-lesson-animation-001",
+    "scenario": "signaling",
+    "scenarioLabel": "信令分析"
+  },
+  "content": {
+    "sections": [
+      {
+        "id": "sec-overview",
+        "title": "导学摘要",
+        "icon": "overview",
+        "texts": [
+          "本节讲 5G 关键信令流程：从 RRC 接入、NAS 注册到 PDU Session 和用户面路径，按节点角色、消息方向、状态迁移和 Cause 定位断点。"
+        ]
+      },
+      {
+        "id": "P17-ku-01",
+        "title": "概念与对象",
+        "icon": "radar",
+        "texts": [
+          "信令解析先从 RRC 建立、重配置和释放看无线侧控制面是否顺畅，定位接入阶段断点。"
+        ]
+      },
+      {
+        "id": "P17-ku-02",
+        "title": "概念与对象",
+        "icon": "route",
+        "texts": [
+          "NAS 流程说明 UE 如何进入核心网控制面，注册、鉴权、安全模式和移动性管理是关键节点。"
+        ]
+      },
+      {
+        "id": "P17-ku-03",
+        "title": "工程判读",
+        "icon": "chart",
+        "texts": [
+          "PDU Session 将控制面决策转为用户面承载，SMF、UPF、QoS 和 DNN/S-NSSAI 决定业务是否可达。"
+        ]
+      },
+      {
+        "id": "P17-ku-04",
+        "title": "数据与现场佐证",
+        "icon": "tool",
+        "texts": [
+          "信令失败不能只看最后一条消息，要结合消息方向、Cause、定时器、重传次数和上下文定位断点。"
+        ]
+      },
+      {
+        "id": "P17-ku-05",
+        "title": "操作校验",
+        "icon": "search",
+        "texts": [
+          "序列校验关注消息是否缺失、顺序是否异常、节点角色是否匹配，以及状态迁移是否符合流程。"
+        ]
+      },
+      {
+        "id": "P17-ku-06",
+        "title": "闭环复盘",
+        "icon": "check",
+        "texts": [
+          "信令判断链要从无线接入、核心网注册到会话承载贯通，明确每一层的证据和责任边界。"
+        ]
+      }
+    ],
+    "blocks": [
+      {
+        "id": "block-001",
+        "kind": "paragraph",
+        "order": 1,
+        "text": "项目概述"
+      },
+      {
+        "id": "block-002",
+        "kind": "paragraph",
+        "order": 2,
+        "text": "由于移动网络无线环境的复杂性,在5G网络优化中,问题定位具有一定的模糊性和不确定性,而信令分析由于其数据采集的充分性、数据分析的全面性和精确性,对提高问题定位的准确性有很大作用。通过本项目的学习，能够熟练掌握5G空口常见的注册流程、鉴权加密流程、PDU会话建立、重配置和重建立等信令类型，结合无线参数变化，分析网络接入问题，移动性问题，掉线问题等，并最终提出问题解决方案。"
+      },
+      {
+        "id": "block-003",
+        "kind": "paragraph",
+        "order": 3,
+        "text": "项目导学"
+      },
+      {
+        "id": "block-004",
+        "kind": "paragraph",
+        "order": 4,
+        "text": "本项目章节的知识结构如下："
+      },
+      {
+        "id": "block-005",
+        "kind": "paragraph",
+        "order": 5,
+        "mediaRefs": [
+          "rId359"
+        ]
+      },
+      {
+        "id": "block-006",
+        "kind": "paragraph",
+        "order": 6,
+        "text": "任务导入"
+      },
+      {
+        "id": "block-007",
+        "kind": "paragraph",
+        "order": 7,
+        "text": "5G 关键信令相比4G时代信令流程，5G又表现出了一些异同点，在5G网络中可以通过分析相关信令，读取信令中信元的含义，从中找出影响业务的问题根源。"
+      },
+      {
+        "id": "block-008",
+        "kind": "paragraph",
+        "order": 8,
+        "text": "任务要求"
+      },
+      {
+        "id": "block-009",
+        "kind": "paragraph",
+        "order": 9,
+        "text": "1.学会5G SA关键信令流程"
+      },
+      {
+        "id": "block-010",
+        "kind": "paragraph",
+        "order": 10,
+        "text": "2.掌握关键信令分析方法"
+      },
+      {
+        "id": "block-011",
+        "kind": "paragraph",
+        "order": 11,
+        "text": "3.掌握4/5G信令过程差别"
+      },
+      {
+        "id": "block-012",
+        "kind": "paragraph",
+        "order": 12,
+        "text": "知识准备"
+      },
+      {
+        "id": "block-013",
+        "kind": "paragraph",
+        "order": 13,
+        "text": "一、4G/5G 信令过程差别"
+      },
+      {
+        "id": "block-014",
+        "kind": "paragraph",
+        "order": 14,
+        "text": "1. UE/gNB/AMF状态管理"
+      },
+      {
+        "id": "block-015",
+        "kind": "paragraph",
+        "order": 15,
+        "text": "注册状态：4/5G都一样，包含注册态和去注册态;"
+      },
+      {
+        "id": "block-016",
+        "kind": "paragraph",
+        "order": 16,
+        "text": "连接状态NAS层：4G：CM_IDLE and CM_CONNECTED；5G：CM_IDLE,CM_CONNECTED;"
+      },
+      {
+        "id": "block-017",
+        "kind": "paragraph",
+        "order": 17,
+        "text": "连接状态AS层(RRC)：4G：IDLE and CONNECTED；5G：IDLE,CONNECTED and INACTIVE。"
+      },
+      {
+        "id": "block-018",
+        "kind": "paragraph",
+        "order": 18,
+        "text": "2.开机注册"
+      },
+      {
+        "id": "block-019",
+        "kind": "paragraph",
+        "order": 19,
+        "text": "4G： Attach过程 ； 5G：Register过程"
+      },
+      {
+        "id": "block-020",
+        "kind": "paragraph",
+        "order": 20,
+        "text": "3.RRC连接建立、重配置、释放、修改"
+      },
+      {
+        "id": "block-021",
+        "kind": "paragraph",
+        "order": 21,
+        "text": "4/5G 基本相同，5G增加了Inactive态，新增了Inactive相关的RRC释放、恢复、RNAU流程。"
+      },
+      {
+        "id": "block-022",
+        "kind": "paragraph",
+        "order": 22,
+        "text": "4.业务发起"
+      },
+      {
+        "id": "block-023",
+        "kind": "paragraph",
+        "order": 23,
+        "text": "IDLE态发起： 4G Service Request；5G Service Request；"
+      },
+      {
+        "id": "block-024",
+        "kind": "paragraph",
+        "order": 24,
+        "text": "连接态发起新业务： 4G ERAB建立或者修改；5G PDU Session建立或者修改。"
+      },
+      {
+        "id": "block-025",
+        "kind": "paragraph",
+        "order": 25,
+        "text": "5.切换"
+      },
+      {
+        "id": "block-026",
+        "kind": "paragraph",
+        "order": 26,
+        "text": "4/5G 基本切换 除去由于核心网网元变化引入的差别，大体流程上相同。"
+      },
+      {
+        "id": "block-027",
+        "kind": "paragraph",
+        "order": 27,
+        "text": "6.位置更新"
+      },
+      {
+        "id": "block-028",
+        "kind": "paragraph",
+        "order": 28,
+        "text": "4G：TAU；5G：Registration update 以及RAN Notification Area Update（用于RRC Inactive态）"
+      },
+      {
+        "id": "block-029",
+        "kind": "paragraph",
+        "order": 29,
+        "text": "7.寻呼"
+      },
+      {
+        "id": "block-030",
+        "kind": "paragraph",
+        "order": 30,
+        "text": "4G：MME发起。（广播更新发起寻呼用于读广播，不算真正寻呼）；"
+      },
+      {
+        "id": "block-031",
+        "kind": "paragraph",
+        "order": 31,
+        "text": "5G：SA场景下 gNB和AMF 发起寻呼。用于RRC_INACTIVE态和IDLE态的UE。"
+      },
+      {
+        "id": "block-032",
+        "kind": "paragraph",
+        "order": 32,
+        "text": "8.短消息Over Nas"
+      },
+      {
+        "id": "block-033",
+        "kind": "paragraph",
+        "order": 33,
+        "text": "4/5G 一样。5G核心网提供了SMSF作为短消息总功能接口。"
+      },
+      {
+        "id": "block-034",
+        "kind": "paragraph",
+        "order": 34,
+        "text": "二、5G SA关键信令流程及解析"
+      },
+      {
+        "id": "block-035",
+        "kind": "paragraph",
+        "order": 35,
+        "text": "（一）注册流程：如图：6-1-1 5G注册流程"
+      },
+      {
+        "id": "block-036",
+        "kind": "paragraph",
+        "order": 36,
+        "mediaRefs": [
+          "rId360"
+        ]
+      },
+      {
+        "id": "block-037",
+        "kind": "paragraph",
+        "order": 37,
+        "text": "图6-1-1 5G注册流程"
+      },
+      {
+        "id": "block-038",
+        "kind": "paragraph",
+        "order": 38,
+        "text": "0）UE如果是刚开机，需要先进行物理下行同步，选择一个小区，接收sib，获取RA相关参数；"
+      },
+      {
+        "id": "block-039",
+        "kind": "paragraph",
+        "order": 39,
+        "text": "1~4）进行竞争RA过程，建立RRC连接；"
+      },
+      {
+        "id": "block-040",
+        "kind": "paragraph",
+        "order": 40,
+        "text": "5）UE发送RRCSetupComplete消息（带NAS消息Registration request）"
+      },
+      {
+        "id": "block-041",
+        "kind": "paragraph",
+        "order": 41,
+        "text": "当RRCSetupComplete没有带5G-S-TMSI或GUAMI，或者5G-S-TMSI/GUAMI指示的不是一个有效的AMF，gNB基于Requested NSSAI（如果有）和本地策略进行AMF选择；"
+      },
+      {
+        "id": "block-042",
+        "kind": "paragraph",
+        "order": 42,
+        "text": "7）gNB选择好AMF后，发送INITIAL UE MESSAGE消息（带NAS消息Registration request）"
+      },
+      {
+        "id": "block-043",
+        "kind": "paragraph",
+        "order": 43,
+        "text": "8~11）如果AMF没有获得UE的SUCI，则发起Identity Request过程请求SUCI；"
+      },
+      {
+        "id": "block-044",
+        "kind": "paragraph",
+        "order": 44,
+        "text": "12~13）AMF选择AUSF，进行鉴权、安全过程；"
+      },
+      {
+        "id": "block-045",
+        "kind": "paragraph",
+        "order": 45,
+        "text": "15~16）进行UDM和PCF相关处理，具体可查看23502协议；"
+      },
+      {
+        "id": "block-046",
+        "kind": "paragraph",
+        "order": 46,
+        "text": "17）发送Registration accept消息；"
+      },
+      {
+        "id": "block-047",
+        "kind": "paragraph",
+        "order": 47,
+        "text": "18）UE回复Registration Complete"
+      },
+      {
+        "id": "block-048",
+        "kind": "paragraph",
+        "order": 48,
+        "text": "当然，在移动终端开机过程中，终端在网络注册时，也可能出现异常，导致注册失败。如图：6-1-2"
+      },
+      {
+        "id": "block-049",
+        "kind": "paragraph",
+        "order": 49,
+        "mediaRefs": [
+          "rId361",
+          "rId362"
+        ]
+      },
+      {
+        "id": "block-050",
+        "kind": "paragraph",
+        "order": 50,
+        "text": "图：6-1-2 正常流程（左），失败流程（右）"
+      },
+      {
+        "id": "block-051",
+        "kind": "paragraph",
+        "order": 51,
+        "text": "1.Registration request信令解析 如图：6-1-3"
+      },
+      {
+        "id": "block-052",
+        "kind": "paragraph",
+        "order": 52,
+        "text": "5GS registration type ："
+      },
+      {
+        "id": "block-053",
+        "kind": "paragraph",
+        "order": 53,
+        "text": "initial registration：初始注册，比如刚开机时，UE发起初始注册；"
+      },
+      {
+        "id": "block-054",
+        "kind": "paragraph",
+        "order": 54,
+        "text": "mobility registration updating：移动更新注册。当UE移动到不属于已注册的TAI list的TA（tracking area）时，或者当UE需要更新通过注册流程协商的能力和协议参数时，UE发起移动更新注册；"
+      },
+      {
+        "id": "block-055",
+        "kind": "paragraph",
+        "order": 55,
+        "text": "periodic registration updating：周期更新注册。当周期更新定时器T3512超时时，UE发起周期更新注册；"
+      },
+      {
+        "id": "block-056",
+        "kind": "paragraph",
+        "order": 56,
+        "text": "emergency registration：紧急注册，用于UE在受限状态下发起紧急服务的注册。"
+      },
+      {
+        "id": "block-057",
+        "kind": "paragraph",
+        "order": 57,
+        "text": "图：6-1-3 Registration request"
+      },
+      {
+        "id": "block-058",
+        "kind": "paragraph",
+        "order": 58,
+        "text": "5GS mobile identity：UE ID ："
+      },
+      {
+        "id": "block-059",
+        "kind": "paragraph",
+        "order": 59,
+        "text": "对于初始注册，UE首先带5G-GUTI;"
+      },
+      {
+        "id": "block-060",
+        "kind": "paragraph",
+        "order": 60,
+        "text": "如果没有有效的5G-GUTI，带SUCI；"
+      },
+      {
+        "id": "block-061",
+        "kind": "paragraph",
+        "order": 61,
+        "text": "对于紧急注册，如果没有有效的5G-GUTI和SUCI，带PEI；"
+      },
+      {
+        "id": "block-062",
+        "kind": "paragraph",
+        "order": 62,
+        "text": "2.RRCSetupRequest信令解析 如图：6-1-4"
+      },
+      {
+        "id": "block-063",
+        "kind": "paragraph",
+        "order": 63,
+        "text": "1）InitialUE-Identity："
+      },
+      {
+        "id": "block-064",
+        "kind": "paragraph",
+        "order": 64,
+        "text": "UE已经注册到网络时，核心网给UE分配了5G-S-TMSI，低39bit即为ng-5G-S-TMSI-Part1；如果属于开机的初始接入，使用39bit的随机值；"
+      },
+      {
+        "id": "block-065",
+        "kind": "paragraph",
+        "order": 65,
+        "text": "2）EstablishmentCause："
+      },
+      {
+        "id": "block-066",
+        "kind": "paragraph",
+        "order": 66,
+        "text": "回复寻呼应答时，填写mt-Access；UE由于有UL信令需要发送而发起RRC连接建立时，填写mo-Signalling；有UL数据时，填写mo-Data；"
+      },
+      {
+        "id": "block-067",
+        "kind": "paragraph",
+        "order": 67,
+        "text": "建立原因包括 emergency, highPriorityAccess, mt-Access, mo-Signalling,"
+      },
+      {
+        "id": "block-068",
+        "kind": "paragraph",
+        "order": 68,
+        "text": "mo-Data, mo-VoiceCall, mo-VideoCall, mo-SMS, mps-PriorityAccess, mcs-PriorityAccess, spare6, spare5, spare4, spare3, spare2, spare1}"
+      },
+      {
+        "id": "block-069",
+        "kind": "paragraph",
+        "order": 69,
+        "mediaRefs": [
+          "rId365"
+        ]
+      },
+      {
+        "id": "block-070",
+        "kind": "paragraph",
+        "order": 70,
+        "text": "图：6-1-4 RRCSetupRequest"
+      },
+      {
+        "id": "block-071",
+        "kind": "paragraph",
+        "order": 71,
+        "text": "3.RRCSetup信令解析 如图：6-1-5"
+      },
+      {
+        "id": "block-072",
+        "kind": "paragraph",
+        "order": 72,
+        "text": "RRCSetup："
+      },
+      {
+        "id": "block-073",
+        "kind": "paragraph",
+        "order": 73,
+        "text": "radioBearerConfig: srb-Identity = 1"
+      },
+      {
+        "id": "block-074",
+        "kind": "paragraph",
+        "order": 74,
+        "text": "CellGroupConfig：masterCellGroup"
+      },
+      {
+        "id": "block-075",
+        "kind": "paragraph",
+        "order": 75,
+        "mediaRefs": [
+          "rId366"
+        ]
+      },
+      {
+        "id": "block-076",
+        "kind": "paragraph",
+        "order": 76,
+        "text": "图：6-1-5 RRCSetup"
+      },
+      {
+        "id": "block-077",
+        "kind": "paragraph",
+        "order": 77,
+        "text": "4.RRCSetupComplete信令解析 如图：6-1-6"
+      },
+      {
+        "id": "block-078",
+        "kind": "paragraph",
+        "order": 78,
+        "text": "RRCSetupComplete："
+      },
+      {
+        "id": "block-079",
+        "kind": "paragraph",
+        "order": 79,
+        "text": "selectedPLMN-Identity：UE选择的PLMN；"
+      },
+      {
+        "id": "block-080",
+        "kind": "paragraph",
+        "order": 80,
+        "text": "dedicatedNAS-Message：携带NAS消息。"
+      },
+      {
+        "id": "block-081",
+        "kind": "paragraph",
+        "order": 81,
+        "text": "registeredAMF：UE已注册AMF的GUAMI；"
+      },
+      {
+        "id": "block-082",
+        "kind": "paragraph",
+        "order": 82,
+        "text": "guami-Type：指示GUAMI来自5G-GUTI，还是EPS GUTI；"
+      },
+      {
+        "id": "block-083",
+        "kind": "paragraph",
+        "order": 83,
+        "text": "s-NSSAI-List：UE NAS提供的S-NSSAI列表；"
+      },
+      {
+        "id": "block-084",
+        "kind": "paragraph",
+        "order": 84,
+        "text": "ng-5G-S-TMSI-Value：5G-S-TMSI值。当RRCSetupComplete没有带5G-S-TMSI或GUAMI，或者5G-S-TMSI/GUAMI指示的不是一个有效的AMF，gNB基于Requested NSSAI（如果有）和本地策略进行AMF选择"
+      },
+      {
+        "id": "block-085",
+        "kind": "paragraph",
+        "order": 85,
+        "mediaRefs": [
+          "rId367"
+        ]
+      },
+      {
+        "id": "block-086",
+        "kind": "paragraph",
+        "order": 86,
+        "text": "图：6-1-6 RRCSetupComplete"
+      },
+      {
+        "id": "block-087",
+        "kind": "paragraph",
+        "order": 87,
+        "text": "5.Registration accept，Registration Complete解析 如图：6-1-7"
+      },
+      {
+        "id": "block-088",
+        "kind": "paragraph",
+        "order": 88,
+        "text": "1）Registration accept："
+      },
+      {
+        "id": "block-089",
+        "kind": "paragraph",
+        "order": 89,
+        "text": "5GS registration result：注册结果；"
+      },
+      {
+        "id": "block-090",
+        "kind": "paragraph",
+        "order": 90,
+        "text": "5G-GUTI：核心网分给UE的5G-GUTI；"
+      },
+      {
+        "id": "block-091",
+        "kind": "paragraph",
+        "order": 91,
+        "text": "Equivalent PLMNs：等效PLMN列表；"
+      },
+      {
+        "id": "block-092",
+        "kind": "paragraph",
+        "order": 92,
+        "text": "TAI list：TAI列表；"
+      },
+      {
+        "id": "block-093",
+        "kind": "paragraph",
+        "order": 93,
+        "text": "Allowed NSSAI：允许的NSSAI，即当前服务PLMN的当前注册域内，允许UE使用的S-NSSAI"
+      },
+      {
+        "id": "block-094",
+        "kind": "paragraph",
+        "order": 94,
+        "mediaRefs": [
+          "rId368"
+        ]
+      },
+      {
+        "id": "block-095",
+        "kind": "paragraph",
+        "order": 95,
+        "text": "图：6-1-7 Registration accept"
+      },
+      {
+        "id": "block-096",
+        "kind": "paragraph",
+        "order": 96,
+        "text": "2）Registration Complete ：以下情况UE回复Registration Complete"
+      },
+      {
+        "id": "block-097",
+        "kind": "paragraph",
+        "order": 97,
+        "text": "Registration accept分配了新的5G-GUTI；"
+      },
+      {
+        "id": "block-098",
+        "kind": "paragraph",
+        "order": 98,
+        "text": "Registration accept带了Network slicing indication，指示UE的网络切片签约信息发生变化；"
+      },
+      {
+        "id": "block-099",
+        "kind": "paragraph",
+        "order": 99,
+        "text": "Registration accept带了新的configured NSSAI。"
+      },
+      {
+        "id": "block-100",
+        "kind": "paragraph",
+        "order": 100,
+        "text": "（二）NR PDU会话信令流程 如图：6-1-8"
+      },
+      {
+        "id": "block-101",
+        "kind": "paragraph",
+        "order": 101,
+        "mediaRefs": [
+          "rId369"
+        ]
+      },
+      {
+        "id": "block-102",
+        "kind": "paragraph",
+        "order": 102,
+        "text": "图：6-1-8 PDU会话建立信令流程"
+      },
+      {
+        "id": "block-103",
+        "kind": "paragraph",
+        "order": 103,
+        "text": "0）如果是在IDLE下，UE需要先发起service request建立NAS信令连接；如果是在connected下，UE可以直接发起PDU会话建立流程；"
+      },
+      {
+        "id": "block-104",
+        "kind": "paragraph",
+        "order": 104,
+        "text": "1~2）UE的NAS-SM层生成PDU session establishment request消息，，通过空口发给gNB，gNB生成UPLINK NAS TRANSPORT消息，把NAS-PDU透传给SMF"
+      },
+      {
+        "id": "block-105",
+        "kind": "paragraph",
+        "order": 105,
+        "text": "12）AMF生成INITIAL CONTEXT SETUP REQUEST消息，携带来自SMF的N1消息（封装到NAS-MM消息DL NAS transport中）和N2 IE，发给gNB；"
+      },
+      {
+        "id": "block-106",
+        "kind": "paragraph",
+        "order": 106,
+        "text": "15）gNB生成RRCReconfiguration消息，把NAS-MM消息DL NAS transport（带SMF的N1 PDU session establishment accept消息）透传给UE；"
+      },
+      {
+        "id": "block-107",
+        "kind": "paragraph",
+        "order": 107,
+        "text": "16~17）UE回复RRCReconfigurationComplete消息，gNB收到后回复INITIAL CONTEXT SETUP RESPONSE消息；"
+      },
+      {
+        "id": "block-108",
+        "kind": "paragraph",
+        "order": 108,
+        "text": "18）UE可以发送上行数据；"
+      },
+      {
+        "id": "block-109",
+        "kind": "paragraph",
+        "order": 109,
+        "text": "19~23）SMF和UPF更新PDU session相关信息；"
+      },
+      {
+        "id": "block-110",
+        "kind": "paragraph",
+        "order": 110,
+        "text": "UPF可以发送下行数据。"
+      },
+      {
+        "id": "block-111",
+        "kind": "paragraph",
+        "order": 111,
+        "text": "1.PDU session establishment request信令解析 如图：6-1-9"
+      },
+      {
+        "id": "block-112",
+        "kind": "paragraph",
+        "order": 112,
+        "text": "UE的NAS-SM层生成PDU session establishment request消息，消息内容如下。"
+      },
+      {
+        "id": "block-113",
+        "kind": "paragraph",
+        "order": 113,
+        "text": "PDU session ID：UE分配PDU session ID，取值1~15；"
+      },
+      {
+        "id": "block-114",
+        "kind": "paragraph",
+        "order": 114,
+        "text": "Integrity protection maximum data rate：UE支持的用户面完保的最大数据速率，包括上行和下行。"
+      },
+      {
+        "id": "block-115",
+        "kind": "paragraph",
+        "order": 115,
+        "text": "PDU session type：新建立一个PDU会话时，带该字段，取值为IPv4、IPv6、IPv4IPv6、Unstructured、Ethernet；"
+      },
+      {
+        "id": "block-116",
+        "kind": "paragraph",
+        "order": 116,
+        "text": "SSC mode：SSC模式；PDU session有各自的SSC mode，并且在PDU session的整个生命周期内不能改变。分3种SSC mode."
+      },
+      {
+        "id": "block-117",
+        "kind": "paragraph",
+        "order": 117,
+        "mediaRefs": [
+          "rId370"
+        ]
+      },
+      {
+        "id": "block-118",
+        "kind": "paragraph",
+        "order": 118,
+        "text": "图：6-1-9 PDU session establishment request"
+      },
+      {
+        "id": "block-119",
+        "kind": "paragraph",
+        "order": 119,
+        "text": "2.PDU session establishment accept信令解析 如图6-1-10"
+      },
+      {
+        "id": "block-120",
+        "kind": "paragraph",
+        "order": 120,
+        "text": "PDU session establishment accept:",
+        "mediaRefs": [
+          "rId371"
+        ]
+      },
+      {
+        "id": "block-121",
+        "kind": "paragraph",
+        "order": 121,
+        "text": "PDU_Session_identity = 5；"
+      },
+      {
+        "id": "block-122",
+        "kind": "paragraph",
+        "order": 122,
+        "text": "QoS规则及描述；"
+      },
+      {
+        "id": "block-123",
+        "kind": "paragraph",
+        "order": 123,
+        "text": "Session_AMBR：包括上下行；"
+      },
+      {
+        "id": "block-124",
+        "kind": "paragraph",
+        "order": 124,
+        "text": "PDU_Address：UE IP;"
+      },
+      {
+        "id": "block-125",
+        "kind": "paragraph",
+        "order": 125,
+        "text": "S-NSSAI:切片信息;"
+      },
+      {
+        "id": "block-126",
+        "kind": "paragraph",
+        "order": 126,
+        "text": "DNN网关;"
+      },
+      {
+        "id": "block-127",
+        "kind": "paragraph",
+        "order": 127,
+        "mediaRefs": [
+          "rId372"
+        ]
+      },
+      {
+        "id": "block-128",
+        "kind": "paragraph",
+        "order": 128,
+        "text": "图6-1-10 PDU session establishment accept"
+      },
+      {
+        "id": "block-129",
+        "kind": "paragraph",
+        "order": 129,
+        "text": "3.MIB（Master Information Block）信令解析 如图：6-1-11"
+      },
+      {
+        "id": "block-130",
+        "kind": "paragraph",
+        "order": 130,
+        "text": "1)携带的消息：systemFrameNumber、subCarrierSpacingCommon、 ssb-SubcarrierOffset、dmrs-TypeA-Position、pdcch-ConfigSIB1、cellBarred 、 intraFreqReselection（是否允许同频重选）。"
+      },
+      {
+        "id": "block-131",
+        "kind": "paragraph",
+        "order": 131,
+        "text": "2)MIB消息在BCH上周期性重复广播，周期为80ms。重复次数由SSB的周期决定。"
+      },
+      {
+        "id": "block-132",
+        "kind": "paragraph",
+        "order": 132,
+        "mediaRefs": [
+          "rId373"
+        ]
+      },
+      {
+        "id": "block-133",
+        "kind": "paragraph",
+        "order": 133,
+        "text": "图：6-1-11 Master Information Block"
+      },
+      {
+        "id": "block-134",
+        "kind": "paragraph",
+        "order": 134,
+        "text": "4.SIB1(System information Block)信令解析 如图：6-1-12"
+      },
+      {
+        "id": "block-135",
+        "kind": "paragraph",
+        "order": 135,
+        "text": "Sib1包括了初始接入需要的信息以及其它SI的调度信息."
+      },
+      {
+        "id": "block-136",
+        "kind": "paragraph",
+        "order": 136,
+        "text": "携带的消息： cellSelectionInfo 、cellAccessRelatedInfo 、connEstFailureControl、si-SchedulingInfo、 servingCellConfigCommon、ims-EmergencySupport、eCallOverIMS-Support 、ue-TimersAndConstants 、uac-BarringInfo、useFullResumeID。"
+      },
+      {
+        "id": "block-137",
+        "kind": "paragraph",
+        "order": 137,
+        "text": "SIB1在DL-SCH上周期性重复广播，周期为160ms。"
+      },
+      {
+        "id": "block-138",
+        "kind": "paragraph",
+        "order": 138,
+        "text": "当UE处于RRC_CONNECTED态时，可通过周期广播，或者通过RRCReconfiguration消息获取SIB1。"
+      },
+      {
+        "id": "block-139",
+        "kind": "paragraph",
+        "order": 139,
+        "text": "SIB1指示其它SI是周期性广播，还是按需提供。若按需提供其它SI，则SIB1还需包括UE执行SI请求的信息。"
+      },
+      {
+        "id": "block-140",
+        "kind": "paragraph",
+        "order": 140,
+        "mediaRefs": [
+          "rId374"
+        ]
+      },
+      {
+        "id": "block-141",
+        "kind": "paragraph",
+        "order": 141,
+        "mediaRefs": [
+          "rId375"
+        ]
+      },
+      {
+        "id": "block-142",
+        "kind": "paragraph",
+        "order": 142,
+        "mediaRefs": [
+          "rId376"
+        ]
+      },
+      {
+        "id": "block-143",
+        "kind": "paragraph",
+        "order": 143,
+        "text": "图：6-1-12 System information Block 1"
+      },
+      {
+        "id": "block-144",
+        "kind": "paragraph",
+        "order": 144,
+        "text": "5.RRCReconfiguration 信令解析"
+      },
+      {
+        "id": "block-145",
+        "kind": "paragraph",
+        "order": 145,
+        "text": "RRCReconfiguration 信令在空口很多场景下都会看到，具体所表达的意义需要进到信令里面查看详情，有时通过这条信令配置SRB和DRB; 有时通过这条信令配置测量控制信息；有时通过这条信令传送切换命令等等；具体可参考下图：6-1-13"
+      },
+      {
+        "id": "block-146",
+        "kind": "paragraph",
+        "order": 146,
+        "mediaRefs": [
+          "rId377"
+        ]
+      },
+      {
+        "id": "block-147",
+        "kind": "paragraph",
+        "order": 147,
+        "text": "图：6-1-13 RRCReconfiguration"
+      },
+      {
+        "id": "block-148",
+        "kind": "paragraph",
+        "order": 148,
+        "text": "任务实施"
+      },
+      {
+        "id": "block-149",
+        "kind": "paragraph",
+        "order": 149,
+        "text": "登陆5G网络优化仿真实训系统，接收信令分析任务，进入任务。如图：6-1-14"
+      },
+      {
+        "id": "block-150",
+        "kind": "paragraph",
+        "order": 150,
+        "mediaRefs": [
+          "rId378"
+        ]
+      },
+      {
+        "id": "block-151",
+        "kind": "paragraph",
+        "order": 151,
+        "text": "图：6-1-14 信令分析界面"
+      },
+      {
+        "id": "block-152",
+        "kind": "paragraph",
+        "order": 152,
+        "text": "二、点击地图窗口，可观看测试打点图，配合切换指标：ss sinr/ss rsrp/cell简单判断问题路段。如图：6-1-15"
+      },
+      {
+        "id": "block-153",
+        "kind": "paragraph",
+        "order": 153,
+        "mediaRefs": [
+          "rId379"
+        ]
+      },
+      {
+        "id": "block-154",
+        "kind": "paragraph",
+        "order": 154,
+        "text": "图：6-1-15 地图窗口操作"
+      },
+      {
+        "id": "block-155",
+        "kind": "paragraph",
+        "order": 155,
+        "text": "三、点击关键信令，可打开信令，具体看信令里面相关配置如图：6-1-16"
+      },
+      {
+        "id": "block-156",
+        "kind": "paragraph",
+        "order": 156,
+        "mediaRefs": [
+          "rId380"
+        ]
+      },
+      {
+        "id": "block-157",
+        "kind": "paragraph",
+        "order": 157,
+        "text": "图：6-1-16 信令窗口"
+      },
+      {
+        "id": "block-158",
+        "kind": "paragraph",
+        "order": 158,
+        "text": "四、邻区窗口查看，可以看当前服务小区和邻小区信息相关参数，点击服务小区，可以看到每个ssb波束相关参数。如图：6-1-17"
+      },
+      {
+        "id": "block-159",
+        "kind": "paragraph",
+        "order": 159,
+        "mediaRefs": [
+          "rId381",
+          "rId382"
+        ]
+      },
+      {
+        "id": "block-160",
+        "kind": "paragraph",
+        "order": 160,
+        "text": "图：6-1-17 邻区列表"
+      },
+      {
+        "id": "block-161",
+        "kind": "paragraph",
+        "order": 161,
+        "text": "五、无线参数窗口查看和吞吐量窗口信息查看。如图：6-1-18"
+      },
+      {
+        "id": "block-162",
+        "kind": "paragraph",
+        "order": 162,
+        "text": "通过无线测量窗口，可以看到当前无线信号相关测量信息，上下行时频资源的调度，MCS调制相关参数； 通过吞吐率窗口，可以看到不同协议层DL/UL的吞吐率。"
+      },
+      {
+        "id": "block-163",
+        "kind": "paragraph",
+        "order": 163,
+        "text": "图：6-1-18 无线窗口和吞吐率窗口"
+      },
+      {
+        "id": "block-164",
+        "kind": "paragraph",
+        "order": 164,
+        "text": "随堂测试"
+      },
+      {
+        "id": "block-165",
+        "kind": "paragraph",
+        "order": 165,
+        "text": "1.地图窗口切换到ss rsrp打点图，找出弱覆盖区域。"
+      },
+      {
+        "id": "block-166",
+        "kind": "paragraph",
+        "order": 166,
+        "text": "2.打开SIB1信令，找出SSB的发送功率。"
+      },
+      {
+        "id": "block-167",
+        "kind": "paragraph",
+        "order": 167,
+        "text": "3.找到一次完整的切换信令流程（从测量控制下发-测量报告-切换-切换完成）"
+      },
+      {
+        "id": "block-168",
+        "kind": "paragraph",
+        "order": 168,
+        "text": "经典案例"
+      },
+      {
+        "id": "block-169",
+        "kind": "paragraph",
+        "order": 169,
+        "text": "问题描述：某次路测时，发现UE终端在空闲状态下，从5G重选到了4G网络，当前区域周边通过邻区窗口查看5G信号良好，如图6-1-19"
+      },
+      {
+        "id": "block-170",
+        "kind": "paragraph",
+        "order": 170,
+        "mediaRefs": [
+          "rId383"
+        ]
+      },
+      {
+        "id": "block-171",
+        "kind": "paragraph",
+        "order": 171,
+        "text": "图6-1-19 5G--4G重选时刻"
+      },
+      {
+        "id": "block-172",
+        "kind": "paragraph",
+        "order": 172,
+        "text": "问题分析：打开重选到4G网络前的系统消息信令sib，我们发现，sib3和sib4的信元没有配置，SIB3主要配置同频重选信息，SIB4主要配置异频重选信息，SIB5配置的是异系统重选信息，如图6-1-20；而且异系统重选配置优先级别比较高，导致UE终端重选到4G小区上。如图：6-1-21"
+      },
+      {
+        "id": "block-173",
+        "kind": "paragraph",
+        "order": 173,
+        "mediaRefs": [
+          "rId384"
+        ]
+      },
+      {
+        "id": "block-174",
+        "kind": "paragraph",
+        "order": 174,
+        "text": "图6-1-20 SIB3/SIB4"
+      },
+      {
+        "id": "block-175",
+        "kind": "paragraph",
+        "order": 175,
+        "mediaRefs": [
+          "rId385"
+        ]
+      },
+      {
+        "id": "block-176",
+        "kind": "paragraph",
+        "order": 176,
+        "text": "图6-1-21 SIB5 优先级设置"
+      },
+      {
+        "id": "block-177",
+        "kind": "paragraph",
+        "order": 177,
+        "text": "优化措施："
+      },
+      {
+        "id": "block-178",
+        "kind": "paragraph",
+        "order": 178,
+        "text": "当前站点PCI:344配置系统消息SIB3/SIB4; SIB5降低异系统重选优先级，从7降为4。"
+      },
+      {
+        "id": "block-179",
+        "kind": "paragraph",
+        "order": 179,
+        "text": "直击难点"
+      },
+      {
+        "id": "block-180",
+        "kind": "paragraph",
+        "order": 180,
+        "text": "重点掌握5G 关键信令和相关信令解析，会通过信令分析网络问题。"
+      },
+      {
+        "id": "block-181",
+        "kind": "paragraph",
+        "order": 181,
+        "text": "二维码预留二维码预留"
+      },
+      {
+        "id": "block-182",
+        "kind": "paragraph",
+        "order": 182,
+        "text": "任务测评"
+      },
+      {
+        "id": "block-183",
+        "kind": "paragraph",
+        "order": 183,
+        "text": "1.系统消息sib1都携带哪些信息。"
+      },
+      {
+        "id": "block-184",
+        "kind": "paragraph",
+        "order": 184,
+        "text": "2.RRCReconfiguration消息都会携带哪些信息。"
+      },
+      {
+        "id": "block-185",
+        "kind": "paragraph",
+        "order": 185,
+        "text": "3.分析当路测指标SS SINR指标低于-5db时，5G基站覆盖路段区域业务影响原因。"
+      }
+    ],
+    "storyboard": {
+      "schema": "lesson-storyboard/v1",
+      "learningGoal": "学完后能读懂 UE、gNB、AMF、SMF、UPF 之间的控制面/用户面关系，并解释接入、注册、会话建立和释放的关键消息。",
+      "summary": "本节讲 5G 关键信令流程：从 RRC 接入、NAS 注册到 PDU Session 和用户面路径，按节点角色、消息方向、状态迁移和 Cause 定位断点。",
+      "knowledgeUnits": [
+        {
+          "id": "P17-ku-01",
+          "title": "RRC 接入",
+          "kind": "concept",
+          "shortText": "先看 UE 与 gNB 的无线控制面建立。",
+          "narrationText": "信令解析先从 RRC 建立、重配置和释放看无线侧控制面是否顺畅，定位接入阶段断点。"
+        },
+        {
+          "id": "P17-ku-02",
+          "title": "NAS 注册",
+          "kind": "concept",
+          "shortText": "AMF 承担注册、鉴权、安全和移动性控制。",
+          "narrationText": "NAS 流程说明 UE 如何进入核心网控制面，注册、鉴权、安全模式和移动性管理是关键节点。"
+        },
+        {
+          "id": "P17-ku-03",
+          "title": "会话承载",
+          "kind": "criteria",
+          "shortText": "SMF 与 UPF 建立 PDU Session 和用户面路径。",
+          "narrationText": "PDU Session 将控制面决策转为用户面承载，SMF、UPF、QoS 和 DNN/S-NSSAI 决定业务是否可达。"
+        },
+        {
+          "id": "P17-ku-04",
+          "title": "失败断点",
+          "kind": "evidence",
+          "shortText": "Cause、方向、定时器和重传共同定位断点。",
+          "narrationText": "信令失败不能只看最后一条消息，要结合消息方向、Cause、定时器、重传次数和上下文定位断点。"
+        },
+        {
+          "id": "P17-ku-05",
+          "title": "序列校验",
+          "kind": "practice",
+          "shortText": "消息顺序、节点角色和状态迁移逐项校验。",
+          "narrationText": "序列校验关注消息是否缺失、顺序是否异常、节点角色是否匹配，以及状态迁移是否符合流程。"
+        },
+        {
+          "id": "P17-ku-06",
+          "title": "端到端路径",
+          "kind": "review",
+          "shortText": "形成 RRC、NAS、PDU Session 的端到端判断链。",
+          "narrationText": "信令判断链要从无线接入、核心网注册到会话承载贯通，明确每一层的证据和责任边界。"
+        }
+      ],
+      "reviewSummary": "复盘时检查 RRC、NAS、PDU Session 的端到端顺序，失败分析要同时看 Cause、定时器、重传和上下文。"
+    }
+  },
+  "knowledge": {
+    "steps": [
+      {
+        "id": "P17-knowledge-01",
+        "label": "RRC 接入",
+        "description": "先看 UE 与 gNB 的无线控制面建立。"
+      },
+      {
+        "id": "P17-knowledge-02",
+        "label": "NAS 注册",
+        "description": "AMF 承担注册、鉴权、安全和移动性控制。"
+      },
+      {
+        "id": "P17-knowledge-03",
+        "label": "会话承载",
+        "description": "SMF 与 UPF 建立 PDU Session 和用户面路径。"
+      },
+      {
+        "id": "P17-knowledge-04",
+        "label": "失败断点",
+        "description": "Cause、方向、定时器和重传共同定位断点。"
+      },
+      {
+        "id": "P17-knowledge-05",
+        "label": "序列校验",
+        "description": "消息顺序、节点角色和状态迁移逐项校验。"
+      },
+      {
+        "id": "P17-knowledge-06",
+        "label": "端到端路径",
+        "description": "形成 RRC、NAS、PDU Session 的端到端判断链。"
+      }
+    ],
+    "metrics": [
+      {
+        "label": "M1",
+        "value": "RRC"
+      },
+      {
+        "label": "M2",
+        "value": "NAS"
+      },
+      {
+        "label": "M3",
+        "value": "Regis"
+      }
+    ]
+  },
+  "animation": {
+    "templateHint": "signaling-ladder",
+    "durationMs": 610000,
+    "targets": [
+      {
+        "id": "P17-step-01",
+        "label": "RRC 接入",
+        "description": "先看 UE 与 gNB 的无线控制面建立。"
+      },
+      {
+        "id": "P17-step-02",
+        "label": "NAS 注册",
+        "description": "AMF 承担注册、鉴权、安全和移动性控制。"
+      },
+      {
+        "id": "P17-step-03",
+        "label": "会话承载",
+        "description": "SMF 与 UPF 建立 PDU Session 和用户面路径。"
+      },
+      {
+        "id": "P17-step-04",
+        "label": "失败断点",
+        "description": "Cause、方向、定时器和重传共同定位断点。"
+      },
+      {
+        "id": "P17-step-05",
+        "label": "序列校验",
+        "description": "消息顺序、节点角色和状态迁移逐项校验。"
+      },
+      {
+        "id": "P17-step-06",
+        "label": "端到端路径",
+        "description": "形成 RRC、NAS、PDU Session 的端到端判断链。"
+      }
+    ]
+  },
+  "playback": {
+    "mode": "one-way",
+    "widgetId": "P17-lesson-animation-001"
+  }
+}

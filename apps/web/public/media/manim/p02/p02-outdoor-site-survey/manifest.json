@@ -1,0 +1,105 @@
+{
+  "schema": "dgbook.asset.manim-animation/v1",
+  "id": "p02-p02-outdoor-site-survey",
+  "title": "室外站点勘察：把环境建成覆盖模型",
+  "body": "空间关系、遮挡变化、证据底图",
+  "sceneName": "P02P02OutdoorSiteSurvey",
+  "status": "rendered",
+  "source": {
+    "path": "tools/manim-scenes/generated/p02-p02-outdoor-site-survey.py",
+    "templateId": "p02-outdoor-site-survey",
+    "projectId": "P02",
+    "beatIds": [
+      "P02-beat-01",
+      "P02-beat-02",
+      "P02-beat-03"
+    ]
+  },
+  "sceneGrammar": {
+    "sceneTemplateId": "p02-outdoor-site-survey",
+    "grammar": "survey",
+    "visualMode": "sector-coverage",
+    "generator": "generic",
+    "stages": [
+      "01 概念建模",
+      "02 动态演化",
+      "03 证据结论"
+    ],
+    "items": [
+      [
+        "区域",
+        "楼宇"
+      ],
+      [
+        "站点",
+        "方向"
+      ],
+      [
+        "遮挡",
+        "路径"
+      ],
+      [
+        "照片",
+        "证据"
+      ]
+    ],
+    "knowledgeParameters": {
+      "unitId": "P02-ku-sector-obstruction",
+      "knowledgePoint": "室外站点勘察要把站向、道路、楼宇遮挡转成覆盖模型",
+      "engineeringObject": "宏站扇区与遮挡面",
+      "primaryMetric": "方位角/下倾角/遮挡距离",
+      "evidence": [
+        "站点照片",
+        "道路关系",
+        "楼宇高度"
+      ],
+      "decisionRule": "遮挡或站向证据不闭合时不能直接推覆盖结论"
+    }
+  },
+  "knowledgeParameters": {
+    "unitId": "P02-ku-sector-obstruction",
+    "knowledgePoint": "室外站点勘察要把站向、道路、楼宇遮挡转成覆盖模型",
+    "engineeringObject": "宏站扇区与遮挡面",
+    "primaryMetric": "方位角/下倾角/遮挡距离",
+    "evidence": [
+      "站点照片",
+      "道路关系",
+      "楼宇高度"
+    ],
+    "decisionRule": "遮挡或站向证据不闭合时不能直接推覆盖结论"
+  },
+  "visual": {
+    "signature": "outdoor-sector-obstruction-map",
+    "motif": "sector-coverage",
+    "learningFocus": "read outdoor site direction through roads, buildings, azimuth, and obstruction evidence",
+    "primitives": [
+      "road-grid",
+      "sector-fan",
+      "building-blocks",
+      "obstruction-rays"
+    ],
+    "palette": [
+      "#0f766e",
+      "#2563eb",
+      "#f59e0b",
+      "#7c3aed"
+    ]
+  },
+  "outputs": {
+    "manifest": "/media/manim/p02/p02-outdoor-site-survey/manifest.json",
+    "videoUrl": "/media/manim/p02/p02-outdoor-site-survey/p02-p02-outdoor-site-survey.webm",
+    "posterUrl": "/media/manim/p02/p02-outdoor-site-survey/poster.png",
+    "durationMs": 30000,
+    "format": "webm"
+  },
+  "constraints": {
+    "maxVisibleTextChars": 90,
+    "safeArea": {
+      "left": 48,
+      "top": 40,
+      "right": 48,
+      "bottom": 56
+    }
+  },
+  "diagnostics": []
+}

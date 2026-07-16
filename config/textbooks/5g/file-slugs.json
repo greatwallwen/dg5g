@@ -1,0 +1,20 @@
+{
+  "P01": "indoor-environment-collection",
+  "P02": "outdoor-environment-collection",
+  "P03": "complaint-information-collection",
+  "P04": "dt-cqt-test-preparation-execution",
+  "P05": "network-test-issue-handling",
+  "P06": "network-test-data-analysis",
+  "P07": "network-management-architecture-functions",
+  "P08": "network-operation-monitoring",
+  "P09": "network-parameter-check",
+  "P10": "network-parameter-setting",
+  "P11": "optimization-plan-implementation",
+  "P12": "optimization-result-validation",
+  "P13": "optimization-report-output",
+  "P14": "network-kpi-collection",
+  "P15": "network-performance-improvement",
+  "P16": "network-performance-validation",
+  "P17": "signaling-procedure-analysis",
+  "P18": "signaling-issue-analysis-optimization"
+}

@@ -1,0 +1,1180 @@
+{
+  "schema": "dgbook.lesson-ast/v1",
+  "source": {
+    "kind": "docx",
+    "path": "content/5g/5g.docx",
+    "importer": "scripts/import-5g-docx.py"
+  },
+  "project": {
+    "id": "P04",
+    "title": "DT/CQT测试准备和执行",
+    "sourceNo": "1",
+    "chapterTitle": "5G网络测试",
+    "taskIndex": 1
+  },
+  "lesson": {
+    "id": "P04",
+    "title": "DT/CQT测试准备和执行",
+    "widgetId": "P04-lesson-animation-001",
+    "scenario": "drive-test",
+    "scenarioLabel": "DT/CQT 测试"
+  },
+  "content": {
+    "sections": [
+      {
+        "id": "sec-overview",
+        "title": "导学摘要",
+        "icon": "overview",
+        "texts": [
+          "本节讲 DT/CQT 测试设计与判读：用连续路线和定点脚本补足彼此盲区，并把 GPS、LOG、业务动作和信令事件对齐到同一时间轴。"
+        ]
+      },
+      {
+        "id": "P04-ku-01",
+        "title": "概念与对象",
+        "icon": "radar",
+        "texts": [
+          "DT 用于验证道路和区域连续覆盖，CQT 用于验证热点点位接入、保持和业务质量，两类测试互补。"
+        ]
+      },
+      {
+        "id": "P04-ku-02",
+        "title": "概念与对象",
+        "icon": "route",
+        "texts": [
+          "测试前固定路线、点位、业务脚本、终端配置、GPS、日志格式和异常标记，保证后续数据可对比。"
+        ]
+      },
+      {
+        "id": "P04-ku-03",
+        "title": "工程判读",
+        "icon": "chart",
+        "texts": [
+          "采样链路要保证 GPS、LOG、业务动作、KPI 和信令事件处在同一时间轴，便于回放定位。"
+        ]
+      },
+      {
+        "id": "P04-ku-04",
+        "title": "数据与现场佐证",
+        "icon": "tool",
+        "texts": [
+          "DT/CQT 判读不依赖单点指标，需把覆盖强度、无线质量、切换事件、掉线和吞吐体验串成证据链。"
+        ]
+      },
+      {
+        "id": "P04-ku-05",
+        "title": "操作校验",
+        "icon": "search",
+        "texts": [
+          "核验测试设计时重点看路线是否覆盖问题区域，点位是否代表热点，业务脚本是否贴近真实体验。"
+        ]
+      },
+      {
+        "id": "P04-ku-06",
+        "title": "闭环复盘",
+        "icon": "check",
+        "texts": [
+          "测试结论只有在同路线、同点位、同业务口径下比较才可靠，复测结果用于确认优化效果。"
+        ]
+      }
+    ],
+    "blocks": [
+      {
+        "id": "block-001",
+        "kind": "paragraph",
+        "order": 1,
+        "text": "项目概述"
+      },
+      {
+        "id": "block-002",
+        "kind": "paragraph",
+        "order": 2,
+        "text": "网络测试是反应网络中存在问题的最基本手段，该项目主要介绍DT（路测DriverTest）和CQT（CallQualityTest即呼叫质量测试）的测试流程以及测试中常见的异常问题处理思路，通过完成本项目学习后能够掌握无线网络测试流程、测试软件及相关工具的使用以及后台测试数据分析，可以独立完成网络测试环节的工作。"
+      },
+      {
+        "id": "block-003",
+        "kind": "paragraph",
+        "order": 3,
+        "text": "项目导学"
+      },
+      {
+        "id": "block-004",
+        "kind": "paragraph",
+        "order": 4,
+        "mediaRefs": [
+          "rId79"
+        ]
+      },
+      {
+        "id": "block-005",
+        "kind": "paragraph",
+        "order": 5,
+        "text": "任务导入"
+      },
+      {
+        "id": "block-006",
+        "kind": "paragraph",
+        "order": 6,
+        "text": "DT和CQT是通信网络中处理和分析存在的的问题的重要手段，那它们分别是什么呢？具体执行之前我们都应该准备哪些工具和数据呢？具体的测试应该关注哪些参数呢？让我们通过本章节的内容来跟进一步的了解吧！"
+      },
+      {
+        "id": "block-007",
+        "kind": "paragraph",
+        "order": 7,
+        "text": "任务要求"
+      },
+      {
+        "id": "block-008",
+        "kind": "paragraph",
+        "order": 8,
+        "text": "完成DT/CQT测试任务中涉及到相关参数"
+      },
+      {
+        "id": "block-009",
+        "kind": "paragraph",
+        "order": 9,
+        "text": "完成DT/CQT所需要获取的相关信息"
+      },
+      {
+        "id": "block-010",
+        "kind": "paragraph",
+        "order": 10,
+        "text": "完成DT/CQT任务如何规划测试路线"
+      },
+      {
+        "id": "block-011",
+        "kind": "paragraph",
+        "order": 11,
+        "text": "完成DT/CQT所用到的工具"
+      },
+      {
+        "id": "block-012",
+        "kind": "paragraph",
+        "order": 12,
+        "text": "完成DT/CQT的具体测试步骤"
+      },
+      {
+        "id": "block-013",
+        "kind": "paragraph",
+        "order": 13,
+        "text": "完成DT/CQT的测试数据保存方法"
+      },
+      {
+        "id": "block-014",
+        "kind": "paragraph",
+        "order": 14,
+        "text": "知识准备"
+      },
+      {
+        "id": "block-015",
+        "kind": "paragraph",
+        "order": 15,
+        "text": "一、测试相关概念的定义"
+      },
+      {
+        "id": "block-016",
+        "kind": "paragraph",
+        "order": 16,
+        "text": "(1)DT定义：DT(DriverTest)通常也称为路测,是在行驶中的测试车上借助专门的测试设备来对移动台的通信状态、收发信令和各项性能参数进行记录的一种测试方法。"
+      },
+      {
+        "id": "block-017",
+        "kind": "paragraph",
+        "order": 17,
+        "text": "(2)CQT的定义：CQT测试（CallQualityTest）即呼叫质量测试，主要用来检验网络性能，往往在正式测试之前会对测试结果有一个明确的要求，CQT测试是指针对预先定义的重点区域分别进行拨打测试，感受实际业务情况，根据相应的验收标准对业务接通、掉话、业务质量等多项指标进行考核。"
+      },
+      {
+        "id": "block-018",
+        "kind": "paragraph",
+        "order": 18,
+        "text": "二、5G组网方式介绍"
+      },
+      {
+        "id": "block-019",
+        "kind": "paragraph",
+        "order": 19,
+        "text": "1、SA（Standalone，独立部署）是指核心网是5GC,接入网是NG-RAN，不涉及到4G网元，就是5G独立组网。如下图所示："
+      },
+      {
+        "id": "block-020",
+        "kind": "paragraph",
+        "order": 20,
+        "mediaRefs": [
+          "rId80"
+        ]
+      },
+      {
+        "id": "block-021",
+        "kind": "paragraph",
+        "order": 21,
+        "text": "图2-1-1 标准组网"
+      },
+      {
+        "id": "block-022",
+        "kind": "paragraph",
+        "order": 22,
+        "text": "2、NSA（Non-standalone，非独立部署）在原先LTE 网络基础上加入5G 网元设备，并结合原先4G网络快速的部署5G业务。"
+      },
+      {
+        "id": "block-023",
+        "kind": "paragraph",
+        "order": 23,
+        "text": "相对于NSA，SA对LTE现网改造更小，且便于引入5G新业务，但是投资成本高，产业进度略晚， SA和NSA各有优劣，建议运营商根据实际需求选择建网模式。",
+        "mediaRefs": [
+          "rId81"
+        ]
+      },
+      {
+        "id": "block-024",
+        "kind": "paragraph",
+        "order": 24,
+        "text": "图2-1-2 独立部署"
+      },
+      {
+        "id": "block-025",
+        "kind": "paragraph",
+        "order": 25,
+        "text": "对于NSA和SA两种模式都各自有优缺点，运营商在建网过程中需要根据自身网络情况部署。组网优缺点罗列如下图：",
+        "mediaRefs": [
+          "rId82"
+        ]
+      },
+      {
+        "id": "block-026",
+        "kind": "paragraph",
+        "order": 26,
+        "text": "图2-1-3 SA与NSA组网对比"
+      },
+      {
+        "id": "block-027",
+        "kind": "paragraph",
+        "order": 27,
+        "text": "从长远来看，5G系统与4G系统将长期共存，两者协同提供移动通信服务。因此，5G与4G协同组网是5G时代的必然选择。3GPP已经提出了多种5G与4G协同组网方案，下面主要介绍目前应用比较广泛的组网方式，Option3系列和Option7系列",
+        "mediaRefs": [
+          "rId83"
+        ]
+      },
+      {
+        "id": "block-028",
+        "kind": "paragraph",
+        "order": 28,
+        "text": "图2-1-4 NSA组网"
+      },
+      {
+        "id": "block-029",
+        "kind": "paragraph",
+        "order": 29,
+        "text": "NSA Option3模式下，LTE eNodeB不但要作为NR锚点，还需要作为数据汇聚和分发点，对LTE eNodeB处理能力要求很高。Option 3X作为Option3的优化方案，将NR作为数据汇聚和分发点，充分利用NR设备处理能力更强的优势，提升网络处理能力。同样情况也适合Option 7/7x方案，在Option7方案中，LTE基站接入5GC核心网络。"
+      },
+      {
+        "id": "block-030",
+        "kind": "paragraph",
+        "order": 30,
+        "text": "图2-1-5 O3与O7优劣势",
+        "mediaRefs": [
+          "rId84"
+        ]
+      },
+      {
+        "id": "block-031",
+        "kind": "paragraph",
+        "order": 31,
+        "text": "任务实施"
+      },
+      {
+        "id": "block-032",
+        "kind": "paragraph",
+        "order": 32,
+        "text": "通过学习路测的基本知识，能够独立完成软件安装，设备连接调试、测试中所涉及到的测试工具的申请和准备、结合客户的要求合理的指定测试计划及测试路线，申请相关许可以及最终的测试数据采集任务执行。"
+      },
+      {
+        "id": "block-033",
+        "kind": "paragraph",
+        "order": 33,
+        "text": "一、准备5G DT/CQT测试"
+      },
+      {
+        "id": "block-034",
+        "kind": "paragraph",
+        "order": 34,
+        "text": "网络规划信息数据"
+      },
+      {
+        "id": "block-035",
+        "kind": "paragraph",
+        "order": 35,
+        "text": "(1)基站规划信息表（站点编号、MCC、MNC、TAC、经纬度、天线挂高、方位角、下倾角、发射功率、频率信息、PCI、ICIC、PRACH等）"
+      },
+      {
+        "id": "block-036",
+        "kind": "paragraph",
+        "order": 36,
+        "text": "(2)邻区关系表、仿真报告、FTP 服务器登录信息。"
+      },
+      {
+        "id": "block-037",
+        "kind": "paragraph",
+        "order": 37,
+        "text": "（二）人力资源及配套设备"
+      },
+      {
+        "id": "block-038",
+        "kind": "paragraph",
+        "order": 38,
+        "text": "(1)测试工具,如电子地图、测试软件、测试终端、测试配套工具（GPS、电源逆变器、扫频仪）、测试内网服务器。"
+      },
+      {
+        "id": "block-039",
+        "kind": "paragraph",
+        "order": 39,
+        "text": "(2)测试车辆、网优人员、塔工等、客户接口人联系方式（如遇特殊场地需要协调入场进行测试）。"
+      },
+      {
+        "id": "block-040",
+        "kind": "paragraph",
+        "order": 40,
+        "text": "（三）准备测试图层"
+      },
+      {
+        "id": "block-041",
+        "kind": "paragraph",
+        "order": 41,
+        "text": "(1)基站分布图层mapinfor"
+      },
+      {
+        "id": "block-042",
+        "kind": "paragraph",
+        "order": 42,
+        "text": "(2)道路分布图层：高速路、桥梁，国道、省道、交通灯、村庄等"
+      },
+      {
+        "id": "block-043",
+        "kind": "paragraph",
+        "order": 43,
+        "text": "（四）准备测试报告模板"
+      },
+      {
+        "id": "block-044",
+        "kind": "paragraph",
+        "order": 44,
+        "text": "1.获取客户已确认的测试模板"
+      },
+      {
+        "id": "block-045",
+        "kind": "paragraph",
+        "order": 45,
+        "text": "（1）要求其中包括簇优化主要包括如下几个方面：覆盖优化、干扰优化、切换优化、性能优化、告警故障发现等："
+      },
+      {
+        "id": "block-046",
+        "kind": "paragraph",
+        "order": 46,
+        "text": "（2）报告应该包括含网络优化方案实施前后对比，以及根据存在的问题提供的优化建议，具体的指标和参数最终以客户确认的为准。"
+      },
+      {
+        "id": "block-047",
+        "kind": "paragraph",
+        "order": 47,
+        "text": "（3）在完成拉网测试和对比测试之后要输出测试报告，并就所优化的项目内容对客户进行总结汇报。"
+      },
+      {
+        "id": "block-048",
+        "kind": "paragraph",
+        "order": 48,
+        "text": "（五）申请站点入场测试许可"
+      },
+      {
+        "id": "block-049",
+        "kind": "paragraph",
+        "order": 49,
+        "text": "(1)按照测试计划，提前向客户申请用于CQT 测试的入场测试许可，内容涉及测试人员名单，测试时间段，工作证等。"
+      },
+      {
+        "id": "block-050",
+        "kind": "paragraph",
+        "order": 50,
+        "text": "二、配置5G DT/CQT测试软/硬件"
+      },
+      {
+        "id": "block-051",
+        "kind": "paragraph",
+        "order": 51,
+        "text": "(一）DT测试常用工具"
+      },
+      {
+        "id": "block-052",
+        "kind": "paragraph",
+        "order": 52,
+        "text": "表2-1-1 测试设备清单"
+      },
+      {
+        "id": "block-053",
+        "kind": "table",
+        "order": 53,
+        "rows": [
+          [
+            "工具分类",
+            "设备名称"
+          ],
+          [
+            "硬件",
+            "GPS 吸顶天线"
+          ],
+          [
+            "",
+            "测试手机和数据线"
+          ],
+          [
+            "",
+            "用于测试的SIM卡（4G/5G）"
+          ],
+          [
+            "",
+            "笔记本电脑"
+          ],
+          [
+            "",
+            "扫频仪（可选）"
+          ],
+          [
+            "",
+            "车载逆变器"
+          ],
+          [
+            "",
+            "测试车辆"
+          ],
+          [
+            "软件",
+            "路测前台采集软件+加密狗"
+          ],
+          [
+            "",
+            "路测后台分析软件"
+          ],
+          [
+            "",
+            "FTP 软件"
+          ],
+          [
+            "",
+            "谷歌地图图层（站点分布，街道，桥梁、交通灯、高速等）"
+          ]
+        ]
+      },
+      {
+        "id": "block-054",
+        "kind": "paragraph",
+        "order": 54,
+        "text": "硬件构成"
+      },
+      {
+        "id": "block-055",
+        "kind": "paragraph",
+        "order": 55,
+        "text": "(1)测试电脑："
+      },
+      {
+        "id": "block-056",
+        "kind": "paragraph",
+        "order": 56,
+        "text": "(2)CPU：Pentium IV 1.6GHz 或更高；"
+      },
+      {
+        "id": "block-057",
+        "kind": "paragraph",
+        "order": 57,
+        "text": "(3)内存：256MB 或以上；"
+      },
+      {
+        "id": "block-058",
+        "kind": "paragraph",
+        "order": 58,
+        "text": "(4)显示卡：SVGA，16 位彩色以上显示模式；"
+      },
+      {
+        "id": "block-059",
+        "kind": "paragraph",
+        "order": 59,
+        "text": "(5)显示分辨率：1024*768；"
+      },
+      {
+        "id": "block-060",
+        "kind": "paragraph",
+        "order": 60,
+        "text": "(6)硬盘：1GB 以上剩余空间。"
+      },
+      {
+        "id": "block-061",
+        "kind": "paragraph",
+        "order": 61,
+        "text": "(7)测试设备：5G UE"
+      },
+      {
+        "id": "block-062",
+        "kind": "paragraph",
+        "order": 62,
+        "text": "(8)GPS设备：支持RS232、USB以及蓝牙接口的GPS设备，协议类型为NMEA"
+      },
+      {
+        "id": "block-063",
+        "kind": "paragraph",
+        "order": 63,
+        "text": "(9)支持01832.0协议"
+      },
+      {
+        "id": "block-064",
+        "kind": "paragraph",
+        "order": 64,
+        "text": "(10)加密狗：用于路测软件"
+      },
+      {
+        "id": "block-065",
+        "kind": "paragraph",
+        "order": 65,
+        "text": "(三)软件构成"
+      },
+      {
+        "id": "block-066",
+        "kind": "paragraph",
+        "order": 66,
+        "text": "(1)操作系统：WindowsXP(不推荐)、Vista(不推荐)、Windows7(SP1)、Win8(不推荐)、Win10"
+      },
+      {
+        "id": "block-067",
+        "kind": "paragraph",
+        "order": 67,
+        "text": "(2)Excel2007或以上"
+      },
+      {
+        "id": "block-068",
+        "kind": "paragraph",
+        "order": 68,
+        "text": "(3)IE7.0或以上（推荐IE8.0或以上）"
+      },
+      {
+        "id": "block-069",
+        "kind": "paragraph",
+        "order": 69,
+        "text": "(4)GoogleEarth(可选)"
+      },
+      {
+        "id": "block-070",
+        "kind": "paragraph",
+        "order": 70,
+        "text": "(5)DU Meter"
+      },
+      {
+        "id": "block-071",
+        "kind": "paragraph",
+        "order": 71,
+        "text": "(6)测试软件版本包，license"
+      },
+      {
+        "id": "block-072",
+        "kind": "paragraph",
+        "order": 72,
+        "text": "(7)路测采集软件需要在路测开始前在测试电脑中安装完成，并持续运行记录数据"
+      },
+      {
+        "id": "block-073",
+        "kind": "paragraph",
+        "order": 73,
+        "mediaRefs": [
+          "rId85"
+        ]
+      },
+      {
+        "id": "block-074",
+        "kind": "paragraph",
+        "order": 74,
+        "text": "图2-1-6 软件安装"
+      },
+      {
+        "id": "block-075",
+        "kind": "paragraph",
+        "order": 75,
+        "text": "三、规划5G DT/CQT测试路线"
+      },
+      {
+        "id": "block-076",
+        "kind": "paragraph",
+        "order": 76,
+        "text": "（一）划分站点区域及规划测试路线"
+      },
+      {
+        "id": "block-077",
+        "kind": "paragraph",
+        "order": 77,
+        "text": "(1)对于DT测试，测试路线应该覆盖簇内所有开通的站点。如果测试区域内存在主干道或高速公路，这些路线也需要被选择作为测试路线,如果基站簇边界的站点属于孤岛站点，也就是说相邻基站簇没有站点能够提供连续覆盖，那么在这些站点附近的测试路线应该选择RSRP 大于-100dBm的路线。"
+      },
+      {
+        "id": "block-078",
+        "kind": "paragraph",
+        "order": 78,
+        "text": "(2)测试路线应该经过与相邻基站簇重叠区域，以便测试基站簇交叠区域的网络性能，包括邻区关系的正确性。测试路线应该标明车辆行驶的方向，测试路线尽量考虑当地的行车习惯。测试路线需要用Mapinfo 的TAB格式存，以便后续进行优化验证测试时能保持同样的测试路线。"
+      },
+      {
+        "id": "block-079",
+        "kind": "paragraph",
+        "order": 79,
+        "text": "(3)影响测试路线设计的一个重要因素就是簇内站点的开通比例。测试路线在设计时需要尽量避免经过那些没有开通站点的目标覆盖区域，尽量保证测试路线有连续覆盖。实际情况下，路测数据会包含一些覆盖空洞区域的异常数据，直接影响覆盖和业务性能的测试结果。对于这些异常数据，在对路测数据进行后处理分析的时候需要滤除。"
+      },
+      {
+        "id": "block-080",
+        "kind": "paragraph",
+        "order": 80,
+        "text": "（二）划分CQT测试场景"
+      },
+      {
+        "id": "block-081",
+        "kind": "paragraph",
+        "order": 81,
+        "text": "1.CQT测试分为室内室外两种场景"
+      },
+      {
+        "id": "block-082",
+        "kind": "paragraph",
+        "order": 82,
+        "text": "(1)对于室外站点，需要获取待测试站点列表和工程参数，确定站点运行正常无告警，在每个扇区下进行业务拨打测试。"
+      },
+      {
+        "id": "block-083",
+        "kind": "paragraph",
+        "order": 83,
+        "text": "(2)室内站点的CQT测试需要提前获取站点信息、pRRU在楼层内部分布地图，确定站点运行正常无告警后，在各个楼层内部，按照天线分布位置进行打点业务测试。"
+      },
+      {
+        "id": "block-084",
+        "kind": "paragraph",
+        "order": 84,
+        "text": "四、采集5G DT路测数据"
+      },
+      {
+        "id": "block-085",
+        "kind": "paragraph",
+        "order": 85,
+        "text": "（一）DT路测的目的"
+      },
+      {
+        "id": "block-086",
+        "kind": "paragraph",
+        "order": 86,
+        "text": "1.DT路测是一种反映网络的性能和运行状态的手段"
+      },
+      {
+        "id": "block-087",
+        "kind": "paragraph",
+        "order": 87,
+        "text": "因而在测试开始前应设计好测试路线，使得测试结果能够尽量准确的反映网络实际情况。"
+      },
+      {
+        "id": "block-088",
+        "kind": "paragraph",
+        "order": 88,
+        "text": "2.路测线路可以选择一条或者多条，一般遵循以下原则："
+      },
+      {
+        "id": "block-089",
+        "kind": "paragraph",
+        "order": 89,
+        "text": "(1)穿越尽可能多的基站"
+      },
+      {
+        "id": "block-090",
+        "kind": "paragraph",
+        "order": 90,
+        "text": "(2)包含网络覆盖区域的主要道路，由于测试路线具有方向性，测试时应沿相同方向进行，并在主要道路上进行来回两个方向的测试。"
+      },
+      {
+        "id": "block-091",
+        "kind": "paragraph",
+        "order": 91,
+        "text": "(3)在测试路线上车辆以不同的速度行驶"
+      },
+      {
+        "id": "block-092",
+        "kind": "paragraph",
+        "order": 92,
+        "text": "(4)包含不同的电波传播环境"
+      },
+      {
+        "id": "block-093",
+        "kind": "paragraph",
+        "order": 93,
+        "text": "(5)穿越小区间的切换区域"
+      },
+      {
+        "id": "block-094",
+        "kind": "paragraph",
+        "order": 94,
+        "text": "(6)包含用户投诉较多的区域"
+      },
+      {
+        "id": "block-095",
+        "kind": "paragraph",
+        "order": 95,
+        "text": "(7)道路测试前设备准备阶段"
+      },
+      {
+        "id": "block-096",
+        "kind": "paragraph",
+        "order": 96,
+        "text": "(8)确认所有测试设备均已连接完成"
+      },
+      {
+        "id": "block-097",
+        "kind": "paragraph",
+        "order": 97,
+        "mediaRefs": [
+          "rId86"
+        ]
+      },
+      {
+        "id": "block-098",
+        "kind": "paragraph",
+        "order": 98,
+        "text": "图2-1-7 测试设备连接"
+      },
+      {
+        "id": "block-099",
+        "kind": "paragraph",
+        "order": 99,
+        "text": "（二）确认测试设备工作状态"
+      },
+      {
+        "id": "block-100",
+        "kind": "paragraph",
+        "order": 100,
+        "text": "(1)确认测试手机已经打开，运行路测前台软件进行相关调试确保测试设备能够正常连接。"
+      },
+      {
+        "id": "block-101",
+        "kind": "paragraph",
+        "order": 101,
+        "text": "(2)确认GPS连接状态和卫星接收状态，是否能够正常在地图上打点。"
+      },
+      {
+        "id": "block-102",
+        "kind": "paragraph",
+        "order": 102,
+        "text": "(3)正确配置相关测试任务，并确认测试计划可以顺利执行，测试路线开始进行测试任务。"
+      },
+      {
+        "id": "block-103",
+        "kind": "paragraph",
+        "order": 103,
+        "mediaRefs": [
+          "rId87"
+        ]
+      },
+      {
+        "id": "block-104",
+        "kind": "paragraph",
+        "order": 104,
+        "text": "图2-1-8创建测试任务"
+      },
+      {
+        "id": "block-105",
+        "kind": "paragraph",
+        "order": 105,
+        "text": "(4)DT 测试无需进行其他设置，只需打开 FTP 下载业务，同时按照要求进行移动测试即可，软件会以每秒 1 个点的频率进行打点。测试完成后，按照测试任务进行 DT 测试 log 命名。"
+      },
+      {
+        "id": "block-106",
+        "kind": "paragraph",
+        "order": 106,
+        "text": "(5)设置完 FTP 后，即可启动测试，如下图所示。FTP 上传测试首先要启动 GPS，请确保终端 GPS 开关已经打开。"
+      },
+      {
+        "id": "block-107",
+        "kind": "paragraph",
+        "order": 107,
+        "text": "(6)填写测试站点的站名、测试小区号、测试小区 PCI"
+      },
+      {
+        "id": "block-108",
+        "kind": "paragraph",
+        "order": 108,
+        "text": "(7)填写完成的测试条目"
+      },
+      {
+        "id": "block-109",
+        "kind": "paragraph",
+        "order": 109,
+        "mediaRefs": [
+          "rId88"
+        ]
+      },
+      {
+        "id": "block-110",
+        "kind": "paragraph",
+        "order": 110,
+        "text": "图2-1-9保存测试log"
+      },
+      {
+        "id": "block-111",
+        "kind": "paragraph",
+        "order": 111,
+        "text": "（三）记录DT测试数据结果"
+      },
+      {
+        "id": "block-112",
+        "kind": "paragraph",
+        "order": 112,
+        "text": "(1)测试人员在测试过程中，需要确认测试设备运行状态和记录异常问题相关信息，对于采集过程中如果遇见突发的测试设备中断、故障或者异常问题，需要及时停止路测，重新调整设备配置和确认设备连接正常情况下，再重新开始DT测试。"
+      },
+      {
+        "id": "block-113",
+        "kind": "paragraph",
+        "order": 113,
+        "text": "(2)在测试过程中出现的异常问题、应记录下事件发生的时间、地点和现场的一些情况，以便优化人员后续的数据信息分析规避异常点。"
+      },
+      {
+        "id": "block-114",
+        "kind": "paragraph",
+        "order": 114,
+        "text": "(3)在测试过程中如果连续出现异常问题，需要及时联系后台优化人员，排查原因。"
+      },
+      {
+        "id": "block-115",
+        "kind": "paragraph",
+        "order": 115,
+        "text": "全部完成测试后，先停止测试终端的业务，再停止测试记录，确保测试采集数据的完整。测试完成后确认采集数据有效性，并及时将测试数据和异常事件信息传递给后台优化分析人员。"
+      },
+      {
+        "id": "block-116",
+        "kind": "paragraph",
+        "order": 116,
+        "text": "记录DT测试数据结果"
+      },
+      {
+        "id": "block-117",
+        "kind": "paragraph",
+        "order": 117,
+        "text": "在NSA组网下，DT数据采集除了5G的数据，还需要采集LTE数据，例如RSRP、SINR等4G 的常见指标"
+      },
+      {
+        "id": "block-118",
+        "kind": "paragraph",
+        "order": 118,
+        "text": "关注SN添加、NR变更成功率、SN建立时延等切换指标。"
+      },
+      {
+        "id": "block-119",
+        "kind": "paragraph",
+        "order": 119,
+        "text": "五、记录5G CQT测试数据结果"
+      },
+      {
+        "id": "block-120",
+        "kind": "paragraph",
+        "order": 120,
+        "text": "(一）拨打测试相关要求"
+      },
+      {
+        "id": "block-121",
+        "kind": "paragraph",
+        "order": 121,
+        "text": "(1)测试时间要求:CQT测试时间段选择非节假日的周一到周五，每日的9：00-21：00时段作为安排测试时段。"
+      },
+      {
+        "id": "block-122",
+        "kind": "paragraph",
+        "order": 122,
+        "text": "(2)测试地点要求:CQT测试主要考虑选择交通枢纽场景如飞机场、火车站和长途汽车站，商业区域场景商场，超市，宾馆、写字楼和酒店等娱乐场所，居民区场景，旅游景点场景，以及客户指定的测试地点。"
+      },
+      {
+        "id": "block-123",
+        "kind": "paragraph",
+        "order": 123,
+        "text": "(3)对于新建基站的CQT测试，一般每个扇区要满足近点（-70dBm）、中点（-90dBm）、远点（-105dBm）的测试要求。"
+      },
+      {
+        "id": "block-124",
+        "kind": "paragraph",
+        "order": 124,
+        "text": "(4)测试人员和设备要求：根据CQT测试区域场景规模安排人员和测试设备，一般大型场馆区域安排3-5组测试人员，中小型规模场景安排1-2组测试人员，每组人员携带2部CQT测试手机和测试用SIM卡，作为主被叫测试终端设备。"
+      },
+      {
+        "id": "block-125",
+        "kind": "paragraph",
+        "order": 125,
+        "text": "(5)现场测试工作要求：对于室外宏站语音业务测试情况，在同一测试点采用两部测试手机之间互相拨测的形式，评估语言呼叫质量，在每个测试点要求做主被叫，各10次，每次通话时长不低于30秒，呼叫间隔为15秒左右，如出现未接通现象，在15秒后重新拨打。 对于室内点，要求在人员密集的地方拨打，包括了大堂、餐厅、娱乐购物场所、电梯、地下停车场、商务楼层、客房等公共场所，对于有电梯的场所需要进行电梯内测试，并记录标注。对于多层建筑，要求在底层（含地下停车场），中层和高层三部分进行测试，拨测的位置在测试区域合理分布，避免在一个位置作多次拨测，电梯和地下室要保证至少一次拨测。对于景点应在主要景区售票和游客接待区域进行拨测，记录语言测试过程中主被叫的话音质量情况，如断续、背景噪音、单通、回声和串话情况。对于数据业务测试部分，可以和语音测试同时进行，每个测试点需要完成网页访问速度和时延，FTP上传和下载速率，PING包测试等数据业务测试质量情况。"
+      },
+      {
+        "id": "block-126",
+        "kind": "paragraph",
+        "order": 126,
+        "text": "（二）FTP上传下载业务测试要求"
+      },
+      {
+        "id": "block-127",
+        "kind": "paragraph",
+        "order": 127,
+        "text": "(1)一般选择大于1G的文件，循环测试选择10次。"
+      },
+      {
+        "id": "block-128",
+        "kind": "paragraph",
+        "order": 128,
+        "text": "(2)超时时间，单位为秒。如果在该设定值内，没有将FTP服务器中指定的数据文件完全上传到本地计算机中，则认为FTP上传超时。"
+      },
+      {
+        "id": "block-129",
+        "kind": "paragraph",
+        "order": 129,
+        "text": "(3)空闲间隔：本次业务正常完成后与下次业务开始前的时间间隔，单位为秒。"
+      },
+      {
+        "id": "block-130",
+        "kind": "paragraph",
+        "order": 130,
+        "text": "(4)失败间隔：本次业务失败后与下次业务开始前的时间间隔，单位为秒。"
+      },
+      {
+        "id": "block-131",
+        "kind": "paragraph",
+        "order": 131,
+        "text": "(5)需要注意的是，在测试的时候需要查看所接入的PCI 是正确的，因为，有些站点由于测试位置的限制，可能到达不了最佳覆盖位置，如果在两个扇区切换区域内，就可能出现两个小区的信号来回切换，可适当调整测试位置，也可以通知后台网管，暂时将邻小区的信号闭塞，待业务测试完成后重新放开。"
+      },
+      {
+        "id": "block-132",
+        "kind": "paragraph",
+        "order": 132,
+        "text": "（三）记录测试结束后的归档信息"
+      },
+      {
+        "id": "block-133",
+        "kind": "paragraph",
+        "order": 133,
+        "text": "(1)将测试信息、测试时间、测试点、测试设备型号、测试卡号、测试人员、语言主被叫质量情况、数据业务质量情况、汇总记录"
+      },
+      {
+        "id": "block-134",
+        "kind": "paragraph",
+        "order": 134,
+        "text": "(2)输出相应场景的测试文档，最终将以图表化格式输出测试结果。"
+      },
+      {
+        "id": "block-135",
+        "kind": "paragraph",
+        "order": 135,
+        "text": "随堂测试"
+      },
+      {
+        "id": "block-136",
+        "kind": "paragraph",
+        "order": 136,
+        "text": "一、如何正确连接测试所需要的硬件设备？"
+      },
+      {
+        "id": "block-137",
+        "kind": "paragraph",
+        "order": 137,
+        "text": "二、测试前需要获取的参数都有哪些？"
+      },
+      {
+        "id": "block-138",
+        "kind": "paragraph",
+        "order": 138,
+        "text": "经典案例"
+      },
+      {
+        "id": "block-139",
+        "kind": "paragraph",
+        "order": 139,
+        "text": "表2-1-2案例介绍"
+      },
+      {
+        "id": "block-140",
+        "kind": "table",
+        "order": 140,
+        "rows": [
+          [
+            "问题名称及现象概述",
+            "【问题名称】接收道的信号和工参表中的信号不一致【问题描述】在测试过程中，发现邻区列表中出现未知ID的PCI电平"
+          ],
+          [
+            "解决方案详细说明",
+            "【问题分析】测试过程中，测试软件接收到多个带有未知小区ID 的PCI 信号重新导入基站列表，问题为解决联系工程部同步测试区域基站列表，发现该区域由于客户临时新增了一个规划表之外的站点，但工程侧未将信息同步刷新【解决措施】更新基站列表，重新导入软件，启动测试，正常识别出未知小区ID问题解决。"
+          ]
+        ]
+      },
+      {
+        "id": "block-141",
+        "kind": "paragraph",
+        "order": 141,
+        "text": "直击难点"
+      },
+      {
+        "id": "block-142",
+        "kind": "paragraph",
+        "order": 142,
+        "text": "二维码预留二维码预留该章节是完成测试的重要环节，重点是要掌握DT和CQT 测试所需要的硬件、软件和信息的提前准备。能够根据测试计划规划测试路线和测试点。并使用测试工具完成目标站点的测试内容。"
+      },
+      {
+        "id": "block-143",
+        "kind": "paragraph",
+        "order": 143,
+        "text": "任务测评"
+      },
+      {
+        "id": "block-144",
+        "kind": "paragraph",
+        "order": 144,
+        "text": "一.DT/CQT测试前需要准备的工具有哪些？"
+      },
+      {
+        "id": "block-145",
+        "kind": "paragraph",
+        "order": 145,
+        "text": "二.DT/CQT测试前需要收集的信息都有哪些？"
+      },
+      {
+        "id": "block-146",
+        "kind": "paragraph",
+        "order": 146,
+        "text": "三.测试过程中应该重点关注的指标都有哪些？"
+      }
+    ],
+    "storyboard": {
+      "schema": "lesson-storyboard/v1",
+      "learningGoal": "学完后能设计可复测的 DT/CQT 路线、点位、脚本和采样口径，并用 RSRP、SINR、切换、掉线和吞吐联合判读体验。",
+      "summary": "本节讲 DT/CQT 测试设计与判读：用连续路线和定点脚本补足彼此盲区，并把 GPS、LOG、业务动作和信令事件对齐到同一时间轴。",
+      "knowledgeUnits": [
+        {
+          "id": "P04-ku-01",
+          "title": "DT/CQT 边界",
+          "kind": "concept",
+          "shortText": "DT 看连续移动体验，CQT 看定点业务质量。",
+          "narrationText": "DT 用于验证道路和区域连续覆盖，CQT 用于验证热点点位接入、保持和业务质量，两类测试互补。"
+        },
+        {
+          "id": "P04-ku-02",
+          "title": "测试设计",
+          "kind": "concept",
+          "shortText": "路线、点位、脚本、终端和采样口径先固定。",
+          "narrationText": "测试前固定路线、点位、业务脚本、终端配置、GPS、日志格式和异常标记，保证后续数据可对比。"
+        },
+        {
+          "id": "P04-ku-03",
+          "title": "同步采样",
+          "kind": "criteria",
+          "shortText": "位置、时间、业务动作和网络事件同步采集。",
+          "narrationText": "采样链路要保证 GPS、LOG、业务动作、KPI 和信令事件处在同一时间轴，便于回放定位。"
+        },
+        {
+          "id": "P04-ku-04",
+          "title": "指标联判",
+          "kind": "evidence",
+          "shortText": "RSRP、SINR、切换、掉线和吞吐联合判读。",
+          "narrationText": "DT/CQT 判读不依赖单点指标，需把覆盖强度、无线质量、切换事件、掉线和吞吐体验串成证据链。"
+        },
+        {
+          "id": "P04-ku-05",
+          "title": "路线核验",
+          "kind": "practice",
+          "shortText": "测试方式、路径密度和点位代表性要匹配。",
+          "narrationText": "核验测试设计时重点看路线是否覆盖问题区域，点位是否代表热点，业务脚本是否贴近真实体验。"
+        },
+        {
+          "id": "P04-ku-06",
+          "title": "同口径复测",
+          "kind": "review",
+          "shortText": "优化前后用同路线或同点位比较效果。",
+          "narrationText": "测试结论只有在同路线、同点位、同业务口径下比较才可靠，复测结果用于确认优化效果。"
+        }
+      ],
+      "reviewSummary": "复盘时检查路线密度、热点代表性、终端脚本、时间同步和复测口径是否一致，优化前后必须能同口径比较。"
+    }
+  },
+  "knowledge": {
+    "steps": [
+      {
+        "id": "P04-knowledge-01",
+        "label": "DT/CQT 边界",
+        "description": "DT 看连续移动体验，CQT 看定点业务质量。"
+      },
+      {
+        "id": "P04-knowledge-02",
+        "label": "测试设计",
+        "description": "路线、点位、脚本、终端和采样口径先固定。"
+      },
+      {
+        "id": "P04-knowledge-03",
+        "label": "同步采样",
+        "description": "位置、时间、业务动作和网络事件同步采集。"
+      },
+      {
+        "id": "P04-knowledge-04",
+        "label": "指标联判",
+        "description": "RSRP、SINR、切换、掉线和吞吐联合判读。"
+      },
+      {
+        "id": "P04-knowledge-05",
+        "label": "路线核验",
+        "description": "测试方式、路径密度和点位代表性要匹配。"
+      },
+      {
+        "id": "P04-knowledge-06",
+        "label": "同口径复测",
+        "description": "优化前后用同路线或同点位比较效果。"
+      }
+    ],
+    "metrics": [
+      {
+        "label": "M1",
+        "value": "DT/CQ"
+      },
+      {
+        "label": "M2",
+        "value": "RSRP"
+      },
+      {
+        "label": "M3",
+        "value": "SINR"
+      }
+    ]
+  },
+  "animation": {
+    "templateHint": "optimization-loop",
+    "durationMs": 610000,
+    "targets": [
+      {
+        "id": "P04-step-01",
+        "label": "DT/CQT 边界",
+        "description": "DT 看连续移动体验，CQT 看定点业务质量。"
+      },
+      {
+        "id": "P04-step-02",
+        "label": "测试设计",
+        "description": "路线、点位、脚本、终端和采样口径先固定。"
+      },
+      {
+        "id": "P04-step-03",
+        "label": "同步采样",
+        "description": "位置、时间、业务动作和网络事件同步采集。"
+      },
+      {
+        "id": "P04-step-04",
+        "label": "指标联判",
+        "description": "RSRP、SINR、切换、掉线和吞吐联合判读。"
+      },
+      {
+        "id": "P04-step-05",
+        "label": "路线核验",
+        "description": "测试方式、路径密度和点位代表性要匹配。"
+      },
+      {
+        "id": "P04-step-06",
+        "label": "同口径复测",
+        "description": "优化前后用同路线或同点位比较效果。"
+      }
+    ]
+  },
+  "playback": {
+    "mode": "one-way",
+    "widgetId": "P04-lesson-animation-001"
+  }
+}

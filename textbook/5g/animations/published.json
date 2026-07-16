@@ -1,0 +1,76 @@
+{
+  "projects": {
+    "P01": [
+      "P01-lesson-animation-001",
+      "P01-edugame-interactive-001"
+    ],
+    "P02": [
+      "P02-lesson-animation-001",
+      "P02-edugame-interactive-001"
+    ],
+    "P03": [
+      "P03-lesson-animation-001",
+      "P03-edugame-interactive-001"
+    ],
+    "P04": [
+      "P04-lesson-animation-001",
+      "P04-edugame-interactive-001"
+    ],
+    "P05": [
+      "P05-lesson-animation-001",
+      "P05-edugame-interactive-001"
+    ],
+    "P06": [
+      "P06-lesson-animation-001",
+      "P06-edugame-interactive-001"
+    ],
+    "P07": [
+      "P07-lesson-animation-001",
+      "P07-edugame-interactive-001"
+    ],
+    "P08": [
+      "P08-lesson-animation-001",
+      "P08-edugame-interactive-001"
+    ],
+    "P09": [
+      "P09-lesson-animation-001",
+      "P09-edugame-interactive-001"
+    ],
+    "P10": [
+      "P10-lesson-animation-001",
+      "P10-edugame-interactive-001"
+    ],
+    "P11": [
+      "P11-lesson-animation-001",
+      "P11-edugame-interactive-001"
+    ],
+    "P12": [
+      "P12-lesson-animation-001",
+      "P12-edugame-interactive-001"
+    ],
+    "P13": [
+      "P13-lesson-animation-001",
+      "P13-edugame-interactive-001"
+    ],
+    "P14": [
+      "P14-lesson-animation-001",
+      "P14-edugame-interactive-001"
+    ],
+    "P15": [
+      "P15-lesson-animation-001",
+      "P15-edugame-interactive-001"
+    ],
+    "P16": [
+      "P16-lesson-animation-001",
+      "P16-edugame-interactive-001"
+    ],
+    "P17": [
+      "P17-lesson-animation-001",
+      "P17-edugame-interactive-001"
+    ],
+    "P18": [
+      "P18-lesson-animation-001",
+      "P18-edugame-interactive-001"
+    ]
+  }
+}

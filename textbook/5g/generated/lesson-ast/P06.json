@@ -1,0 +1,881 @@
+{
+  "schema": "dgbook.lesson-ast/v1",
+  "source": {
+    "kind": "docx",
+    "path": "content/5g/5g.docx",
+    "importer": "scripts/import-5g-docx.py"
+  },
+  "project": {
+    "id": "P06",
+    "title": "5G网络测试数据分析",
+    "sourceNo": "3",
+    "chapterTitle": "5G网络测试",
+    "taskIndex": 3
+  },
+  "lesson": {
+    "id": "P06",
+    "title": "5G网络测试数据分析",
+    "widgetId": "P06-lesson-animation-001",
+    "scenario": "kpi",
+    "scenarioLabel": "指标分析"
+  },
+  "content": {
+    "sections": [
+      {
+        "id": "sec-overview",
+        "title": "导学摘要",
+        "icon": "overview",
+        "texts": [
+          "本节讲测试 LOG 分析：先统一时间、坐标、工参和事件口径，再把覆盖图层、质量图层、业务动作和信令回放叠合定位。"
+        ]
+      },
+      {
+        "id": "P06-ku-01",
+        "title": "概念与对象",
+        "icon": "radar",
+        "texts": [
+          "数据分析前先统一时间、坐标、工参版本和事件口径，保证地图轨迹、KPI 曲线和信令记录可互相定位。"
+        ]
+      },
+      {
+        "id": "P06-ku-02",
+        "title": "概念与对象",
+        "icon": "route",
+        "texts": [
+          "覆盖分析要同时看强弱分布、PCI、服务小区和邻区关系，区分弱覆盖、越区覆盖和重叠覆盖。"
+        ]
+      },
+      {
+        "id": "P06-ku-03",
+        "title": "工程判读",
+        "icon": "chart",
+        "texts": [
+          "无线质量需联动 SINR、干扰源、切换事件、掉线点和业务速率，不能只凭颜色图下结论。"
+        ]
+      },
+      {
+        "id": "P06-ku-04",
+        "title": "数据与现场佐证",
+        "icon": "tool",
+        "texts": [
+          "回放时将异常位置、KPI 曲线、信令事件和业务动作对齐，判断问题发生在无线、参数、终端还是业务侧。"
+        ]
+      },
+      {
+        "id": "P06-ku-05",
+        "title": "操作校验",
+        "icon": "search",
+        "texts": [
+          "异常定位关注字段缺失、指标突变、切换失败、掉线事件和信令断点，逐步收敛到可验证原因。"
+        ]
+      },
+      {
+        "id": "P06-ku-06",
+        "title": "闭环复盘",
+        "icon": "check",
+        "texts": [
+          "分析结论要保留问题点、证据链、原因判断、建议动作和复测口径，便于后续闭环。"
+        ]
+      }
+    ],
+    "blocks": [
+      {
+        "id": "block-001",
+        "kind": "paragraph",
+        "order": 1,
+        "text": "任务导入"
+      },
+      {
+        "id": "block-002",
+        "kind": "paragraph",
+        "order": 2,
+        "text": "对于测试LOG，我们该如何进行分析？如何操作分析软件进行数据的导入导出呢？不同的问题有什么分析思路呢？让我们在本章节中一探究竟吧。"
+      },
+      {
+        "id": "block-003",
+        "kind": "paragraph",
+        "order": 3,
+        "text": "任务要求"
+      },
+      {
+        "id": "block-004",
+        "kind": "paragraph",
+        "order": 4,
+        "text": "完成从测试软件导入结果数据"
+      },
+      {
+        "id": "block-005",
+        "kind": "paragraph",
+        "order": 5,
+        "text": "完成向分析软件导出分析报告"
+      },
+      {
+        "id": "block-006",
+        "kind": "paragraph",
+        "order": 6,
+        "text": "完成分析测试数据异常问题"
+      },
+      {
+        "id": "block-007",
+        "kind": "paragraph",
+        "order": 7,
+        "text": "完成异常问题输出解决方案"
+      },
+      {
+        "id": "block-008",
+        "kind": "paragraph",
+        "order": 8,
+        "text": "知识准备"
+      },
+      {
+        "id": "block-009",
+        "kind": "paragraph",
+        "order": 9,
+        "text": "测试数据分析需要具备一定的网络优化知识储备，包括指标定义，参数公式等例如："
+      },
+      {
+        "id": "block-010",
+        "kind": "paragraph",
+        "order": 10,
+        "text": "一、测试常见指标参数："
+      },
+      {
+        "id": "block-011",
+        "kind": "paragraph",
+        "order": 11,
+        "text": "（一）PCI (physical cell ID) 物理小区标识。每个5G NR 小区都有一个物理小区标识，用于无线侧标识一个小区。5G中总共有1008个可用PCI。 它由两部分组成，分别是：辅同步信号 SSS （1）和主同步信号PSS（2）.其计算公式为："
+      },
+      {
+        "id": "block-012",
+        "kind": "paragraph",
+        "order": 12,
+        "text": "PCI 在使用过程中要避免发生碰撞，相邻的小区不能使用相同的PCI，否则会出现干扰，初始搜索中就一个小区能够做同步业务。必须要避免和相邻小区的PCI 冲突，就需要在物理上增大PCI 的复用层数。5G的PCI 目前可用数量为1008个，相比4G容量提升了一倍。"
+      },
+      {
+        "id": "block-013",
+        "kind": "paragraph",
+        "order": 13,
+        "text": "（二）SS-RSRP是接收到同步参考信号的功率值,是衡量系统无线网络覆盖率的重要指标。SS-RSRP 是一个表示接收信号强度的绝对值，一定程度上可反映移动台与基站的距离，5G系统广播小区参考信号的发送功率，终端根据SS-RSRP可以计算出传播损耗，从而判断与基站的距离，因此这个值可以用来度量小区覆盖范围大小。3GPP协议中规定终端上报测量SS-RSRP 的范围是［ -140 dBm，-44 dBm］，路测时，在密集城区、一般城区和重点交通干线上，一般要求RSRP值必须大于-100 dBm ，否则容易出现掉话、弱覆盖等问题。"
+      },
+      {
+        "id": "block-014",
+        "kind": "paragraph",
+        "order": 14,
+        "text": "（三）SS-SINR 是辅同步信号(SS)信噪比和干扰之比值。它是同一频带宽度内，携带辅同步（SSS）的资源粒子功率(W)除以噪声和干扰功率贡献(瓦特)的线性平均值，与 SS-RSRQ 相比，SS-SINR 分母中只包含干扰和噪声，在反映信号质量的同时，也能更准确地知道信道环境好坏。通常SS-SINR越高，信号越能正确解调，信道环境越好，传输速率越高。在 3GPP 提案中，很多技术需要 CQI 将信道特征反馈给发射机，用于调整天线的数据速率，实现自适应调制。但在实际系统中，尤其是 MIMO 系统中，准确及时估计信道矩阵 H 是不现实的，并且受反馈信道的限制，反馈信息也不可能太多，因此，在 3GPP 提案中大多采用 SS-SINR 作为反馈信息，用于自适应调制的控制参数，然后对应相应的 CQI 信息。"
+      },
+      {
+        "id": "block-015",
+        "kind": "paragraph",
+        "order": 15,
+        "text": "（四）NR-RSSI是NR载波接收信号强度，它是测量周期内某些OFDM符号中接收到的总接收功率(W)线性平均值；在测量带宽中包括同信道服务和非服务小区、邻接信道干扰、热噪声等总共超过N个资源块；NR 载波RSSI的测量时间资源被限制在SS/PBCH块测量时间配置(SMTC)窗期内。3GPP 协议中规定终端上报测量 NR-RSSI 的正常范围是［ -90 dBm， -25dBm ］，超过这个范围，则可视为NR-RSSI异常。NR-RSSI是否正常，对通话质量、 掉话、切换 、拥塞以及网络的覆盖、容量等均有显著影响。NR-RSSI过低 （RSSI<-90dBm ）说明手机收到的信号太弱，可能导致解调失败；NR-RSSI过高 （RSSI > -25 dBm）说明手机接收到的信号太强，相互之间的干扰太大，也影响信号解调。"
+      },
+      {
+        "id": "block-016",
+        "kind": "paragraph",
+        "order": 16,
+        "text": "（五）SS-RSRQ是辅同步信号质量，决定系统的实际覆盖情况。它是N×SS-RSRP /NR载波的RSSI比值，其中N是NR 载波RSSI测量带宽中的资源块数。分子和分母的测量应在同一组资源块上进行。SS-RSRQ 值随着网络负荷和干扰发生变化，网络负荷越大，干扰越大，SS-RSRQ 测量值越小。"
+      },
+      {
+        "id": "block-017",
+        "kind": "paragraph",
+        "order": 17,
+        "text": "（六）吞吐量是用户使用网络过程中直接感知的参数 （如网页刷新速率、数据下载速率等），因此，提高吞吐量一直是移动通信系统追求的目标之一，5G系统采用OFDM （正交频分复用）和 MIMO（多输入多输出）技术后，系统吞吐量有了很大提高，在 100 MHz 的载波带宽下，当终端采用4天线接收4天线发送时，理论上要求下行峰值速率可达到20 Gbit/s，上行峰值速率可达到10 Gbit/s。在通信系统中，吞吐量和数据速率是一个概念，单位都是 bit/s，但是两者并不完全等同，严格的说，吞吐量等于有效数据速率。吞吐量是网络性能的一个重要参数，是指在单位时间内通过的数据比特数量，与终端性能、在线用户数、调度算法、功率控制、载波带宽、天线模式、时隙配置、 CQI、SINR、MCS 等都密切相关。但通常在路测之前会事先配置好载波带宽、天线模式、时隙配比等，调度算法和功率控制是基站侧实现的，测试过程中常关注的变量参数主要是 CQI、SINR、MCS。"
+      },
+      {
+        "id": "block-018",
+        "kind": "paragraph",
+        "order": 18,
+        "text": "（七）CQI 是无线信道的通信质量的测量标准，反映基站与终端间信道质量的信息，下行信道信息通过终端测量全带宽的CSI（信道状态信息参考信号）获得，并通过上行信道反馈给基站，上行信道信息通过基站测量终端发送的 CSI获得。3GPP 协议里规定，CQI 取值范围是［0，15］，不同的 CQI 取值对应不同的调制方式和编码效率，一般情况下，CQI 值越高说明信道质量越好。在5G系统中，CQI 反馈提供两种信道质量信息： a）宽带 CQI 反馈，对整个系统带宽的 CQI 进行反馈。 b）从多个子带 CQI 中选择一个或多个子带 CQI 进行反馈。在实际应用中，针对不同的业务需求和传输模式选择不同的反馈方式。例如，基站在进行频域调度时，可以根据子带的CQI反馈选择较好的频率资源进行传输。"
+      },
+      {
+        "id": "block-019",
+        "kind": "paragraph",
+        "order": 19,
+        "text": "（八）MCS（Modulation and Coding Scheme，调制与编码策略）在 3GPP 协议里规定 的取值范围是［0，31］，其中对于初传数据比特只有［ 0，28］可用，MCS 等级越高，依赖的信道条件需要越好。不同的 MCS 值对应于各种调制阶数和编码速率，当信道条件变化时，系统需要根据信道条件选择不同的 MCS 方案，以适应信道变化带来的影响。从理论角度考虑，对每个并行数据流进行独立的自适应调制编码，可以提高频谱效率，但是实际应用中会造成大量的控制开销和反馈信令开销，所以在系统选择 MCS 方案时，需综合考虑，争取在无线信道容量、信道质量反馈误差及信令开销三者之间取得折中。"
+      },
+      {
+        "id": "block-020",
+        "kind": "paragraph",
+        "order": 20,
+        "text": "二、切换涉及到的事件参数定义，如下表："
+      },
+      {
+        "id": "block-021",
+        "kind": "paragraph",
+        "order": 21,
+        "text": "表2-3-1 切换事件概念"
+      },
+      {
+        "id": "block-022",
+        "kind": "paragraph",
+        "order": 22,
+        "mediaRefs": [
+          "rId92"
+        ]
+      },
+      {
+        "id": "block-023",
+        "kind": "paragraph",
+        "order": 23,
+        "text": "任务实施"
+      },
+      {
+        "id": "block-024",
+        "kind": "paragraph",
+        "order": 24,
+        "text": "通过完成测试任务，熟悉软件的后台分析操作，常见路测参数和相关指标，并输出路测数据分析报告。"
+      },
+      {
+        "id": "block-025",
+        "kind": "paragraph",
+        "order": 25,
+        "text": "一、导出导入测试数据"
+      },
+      {
+        "id": "block-026",
+        "kind": "paragraph",
+        "order": 26,
+        "text": "5G仿真后台分析软件可将所有集采到的原始数据，包括IE、事件、信令，导入软件进行数据分析"
+      },
+      {
+        "id": "block-027",
+        "kind": "paragraph",
+        "order": 27,
+        "text": "且可添加一个或多个日志文件。"
+      },
+      {
+        "id": "block-028",
+        "kind": "paragraph",
+        "order": 28,
+        "text": "分析结果支持多种格式文件输出，包括： Word、EXCEL、PDF等,可按照任务选择输出分析报告"
+      },
+      {
+        "id": "block-029",
+        "kind": "paragraph",
+        "order": 29,
+        "mediaRefs": [
+          "rId88"
+        ]
+      },
+      {
+        "id": "block-030",
+        "kind": "paragraph",
+        "order": 30,
+        "text": "图2-3-1 测试结果"
+      },
+      {
+        "id": "block-031",
+        "kind": "paragraph",
+        "order": 31,
+        "text": "二、分析5G测试数据"
+      },
+      {
+        "id": "block-032",
+        "kind": "paragraph",
+        "order": 32,
+        "text": "（一）覆盖类问题"
+      },
+      {
+        "id": "block-033",
+        "kind": "paragraph",
+        "order": 33,
+        "text": "覆盖类问题概述：覆盖一般存在弱覆盖现象、越区覆盖、覆盖不均衡、重复覆盖等方面的问题。"
+      },
+      {
+        "id": "block-034",
+        "kind": "paragraph",
+        "order": 34,
+        "text": "覆盖类问题的处理流程一般如下图所示："
+      },
+      {
+        "id": "block-035",
+        "kind": "paragraph",
+        "order": 35,
+        "mediaRefs": [
+          "rId93"
+        ]
+      },
+      {
+        "id": "block-036",
+        "kind": "paragraph",
+        "order": 36,
+        "text": "图2-3-2 分析流程"
+      },
+      {
+        "id": "block-037",
+        "kind": "paragraph",
+        "order": 37,
+        "text": "1.弱覆盖"
+      },
+      {
+        "id": "block-038",
+        "kind": "paragraph",
+        "order": 38,
+        "text": "空闲态测试数据帮助分析网络覆盖问题，5G覆盖率计算公式：覆盖率=（SS-RSRP大于等于-110dBm且SS_SINR大于等于-3dB）/总采样点*100%，一般认为SS-RSRP低于-110dBm的区域为弱覆盖场景区域，弱覆盖主要成因："
+      },
+      {
+        "id": "block-039",
+        "kind": "paragraph",
+        "order": 39,
+        "mediaRefs": [
+          "rId94"
+        ]
+      },
+      {
+        "id": "block-040",
+        "kind": "paragraph",
+        "order": 40,
+        "text": "图2-3-3 弱覆盖分析思路"
+      },
+      {
+        "id": "block-041",
+        "kind": "paragraph",
+        "order": 41,
+        "text": "基站故障告警问题，常见为站点故障导致现场实际无输出情况，后台指标观察站点是否存在退服或者射频单元故障告警问题。"
+      },
+      {
+        "id": "block-042",
+        "kind": "paragraph",
+        "order": 42,
+        "text": "（1）缺站，常见为站点间距较大，站点覆盖区域过远，区域周边无较近的站点覆盖。"
+      },
+      {
+        "id": "block-043",
+        "kind": "paragraph",
+        "order": 43,
+        "text": "（2）工参（天线方位角和下倾角）与规划不一致，常见为未按照实际情况更新网络工参数据，存在越区覆盖或其他覆盖问题。"
+      },
+      {
+        "id": "block-044",
+        "kind": "paragraph",
+        "order": 44,
+        "text": "（3）天线异常，常见情况有天线被阻挡，天线输出异常，天线接反等问题。"
+      },
+      {
+        "id": "block-045",
+        "kind": "paragraph",
+        "order": 45,
+        "text": "（4）小区功率配置过低，小区参考信号功率过低导致实际覆盖区域小于规划覆盖区域。"
+      },
+      {
+        "id": "block-046",
+        "kind": "paragraph",
+        "order": 46,
+        "text": "（5）重选参数配置不合理，服务小区的邻区、异频测量频点漏配错配等相关重选参数配置存在异常。"
+      },
+      {
+        "id": "block-047",
+        "kind": "paragraph",
+        "order": 47,
+        "text": "弱覆盖提升优化的原则"
+      },
+      {
+        "id": "block-048",
+        "kind": "paragraph",
+        "order": 48,
+        "text": "（6）两大关键任务，消除弱覆盖，保证参数配置正确。"
+      },
+      {
+        "id": "block-049",
+        "kind": "paragraph",
+        "order": 49,
+        "text": "（7）处理思想先优化提升SS-RSRP值，再优化提升SS-SINR值，先优化弱覆盖，过覆盖和越区覆盖，再优化重叠覆盖。"
+      },
+      {
+        "id": "block-050",
+        "kind": "paragraph",
+        "order": 50,
+        "text": "（8）优化手段方面先考虑调整天线挂高，方位角，下倾角，以及搬迁站或者新建站，再考虑调整小区发射功率和波瓣宽度等参数手段。"
+      },
+      {
+        "id": "block-051",
+        "kind": "paragraph",
+        "order": 51,
+        "text": "2.仿真软件上的数据分析"
+      },
+      {
+        "id": "block-052",
+        "kind": "paragraph",
+        "order": 52,
+        "text": "测试任务结束后，在端到端优化界面，选择有警示提示的站点，这种站点表示测试中有网络问题。"
+      },
+      {
+        "id": "block-053",
+        "kind": "paragraph",
+        "order": 53,
+        "text": "如下图所示，选择带有警示标识的站点1，点击进入站点数据分析界面"
+      },
+      {
+        "id": "block-054",
+        "kind": "paragraph",
+        "order": 54,
+        "mediaRefs": [
+          "rId95"
+        ]
+      },
+      {
+        "id": "block-055",
+        "kind": "paragraph",
+        "order": 55,
+        "text": "图2-3-4问题站点示例"
+      },
+      {
+        "id": "block-056",
+        "kind": "paragraph",
+        "order": 56,
+        "text": "站点测试数据分析界面中，我们可以看到该站点存在覆盖类问题，在小区统计指标窗口中，选择覆盖问题选项，点击 “确定”，软件会给出不同测试采样点的电平值、服务小区和邻小区的测量结果、掉话事件列表等信息。"
+      },
+      {
+        "id": "block-057",
+        "kind": "paragraph",
+        "order": 57,
+        "mediaRefs": [
+          "rId96"
+        ]
+      },
+      {
+        "id": "block-058",
+        "kind": "paragraph",
+        "order": 58,
+        "text": "图2-3-5测试数据分析"
+      },
+      {
+        "id": "block-059",
+        "kind": "paragraph",
+        "order": 59,
+        "text": "随堂测试"
+      },
+      {
+        "id": "block-060",
+        "kind": "paragraph",
+        "order": 60,
+        "text": "一、如何根据站点、业务类型正确保存测试数据？"
+      },
+      {
+        "id": "block-061",
+        "kind": "paragraph",
+        "order": 61,
+        "text": "经典案例"
+      },
+      {
+        "id": "block-062",
+        "kind": "paragraph",
+        "order": 62,
+        "text": "邻区漏配"
+      },
+      {
+        "id": "block-063",
+        "kind": "paragraph",
+        "order": 63,
+        "text": "问题描述：测试车辆延长安街由东向西行驶，终端占用中华人民共和国科技部2（PCI=211）小区进行业务，车辆继续向西行驶，终端开始频繁上发测量报告，并没有网络侧下发的切换命令，导致UE掉话，终端掉话后重选至新兴宾馆1小区（PCI=201）。"
+      },
+      {
+        "id": "block-064",
+        "kind": "paragraph",
+        "order": 64,
+        "mediaRefs": [
+          "rId97"
+        ]
+      },
+      {
+        "id": "block-065",
+        "kind": "paragraph",
+        "order": 65,
+        "text": "图2-3-6 案例介绍"
+      },
+      {
+        "id": "block-066",
+        "kind": "paragraph",
+        "order": 66,
+        "text": "问题分析：终端由 中华人民共和国科技部2小区（PCI =211）开始正常业务，随后频繁上发测量报告，测量目标小区为海淀新兴宾馆1小区（PCI= 201），但始终没有收到网络侧下发的切换命令，最终导致UE拖死掉话。观察当时无线环境，掉话地点中华人民共和国科技部2小区（PCI =211）RSRP为-99dBm，测量目标小区为海淀新兴宾馆1小区（PCI =201）RSRP为-90dBm，两小区RSRP相差9dBm，以满足切换判决条件，但未发生切换关系。怀疑导致该现象发生的原因为中华人民共和国科技部2小区（PCI =211）并未添加海淀新兴宾馆1小区（PCI =201）的邻区关系。检查基站小区配置文件后，中华人民共和国科技部2小区（PCI =211）与海淀新兴宾馆1小区（PCI =201）并没有相互邻区关系，使终端无法切换导致掉话。"
+      },
+      {
+        "id": "block-067",
+        "kind": "paragraph",
+        "order": 67,
+        "text": "调整建议：添加中华人民共和国科技部2小区（PCI= 211）与海淀新兴宾馆1小区（PCI =201）双向邻区关系。"
+      },
+      {
+        "id": "block-068",
+        "kind": "paragraph",
+        "order": 68,
+        "text": "调整结果：调整后，中华人民共和国科技部2小区（PCI =211）与海淀新兴宾馆1小区（PCI= 201）顺利进行切换。"
+      },
+      {
+        "id": "block-069",
+        "kind": "paragraph",
+        "order": 69,
+        "text": "直击难点"
+      },
+      {
+        "id": "block-070",
+        "kind": "paragraph",
+        "order": 70,
+        "text": "本章节除了需要掌握软件测试数据的导入导出方法之外，还需要分析具体的测试数据所存在的问题。能够根据测试结果快速定位出问题类型，不同类型的问题，分析问题的思路和切入点也不同。所以，根据不同类型问题的要求，判断是否达标，并制定相应的整改解决方案。"
+      },
+      {
+        "id": "block-071",
+        "kind": "paragraph",
+        "order": 71,
+        "text": "二维码预留二维码预留"
+      },
+      {
+        "id": "block-072",
+        "kind": "paragraph",
+        "order": 72,
+        "text": "任务测评"
+      },
+      {
+        "id": "block-073",
+        "kind": "paragraph",
+        "order": 73,
+        "text": "如何根据测试结果判断问题类型？"
+      },
+      {
+        "id": "block-074",
+        "kind": "paragraph",
+        "order": 74,
+        "text": "网优趣味课堂"
+      },
+      {
+        "id": "block-075",
+        "kind": "paragraph",
+        "order": 75,
+        "text": "一、项目场景设定（NSA/SA,DT/CQT)"
+      },
+      {
+        "id": "block-076",
+        "kind": "paragraph",
+        "order": 76,
+        "text": "选定 SA 场景的DT 任务作为演练场景"
+      },
+      {
+        "id": "block-077",
+        "kind": "paragraph",
+        "order": 77,
+        "text": "需提供场景背景，需设定现网模拟站点信息，地图"
+      },
+      {
+        "id": "block-078",
+        "kind": "paragraph",
+        "order": 78,
+        "text": "二、项目角色划分（技术线）（随机抽取角色）"
+      },
+      {
+        "id": "block-079",
+        "kind": "paragraph",
+        "order": 79,
+        "mediaRefs": [
+          "rId98",
+          "rId98",
+          "rId98",
+          "rId98",
+          "rId98",
+          "rId99"
+        ]
+      },
+      {
+        "id": "block-080",
+        "kind": "paragraph",
+        "order": 80,
+        "text": "图2-3-7项目角色划分"
+      },
+      {
+        "id": "block-081",
+        "kind": "paragraph",
+        "order": 81,
+        "text": "三、各角色职责范围"
+      },
+      {
+        "id": "block-082",
+        "kind": "paragraph",
+        "order": 82,
+        "text": "项目经理：项目运作第一责任人，统筹管理项目日常运作，对项目主计划负责。客户接口人"
+      },
+      {
+        "id": "block-083",
+        "kind": "paragraph",
+        "order": 83,
+        "text": "RAN 侧负责人：负责无线网络设备整体部署、整网参数规划，推动技术侧跟进项目主计划"
+      },
+      {
+        "id": "block-084",
+        "kind": "paragraph",
+        "order": 84,
+        "text": "站点侧工程师：负责具体的站点安装和调通任务。并通过日报形式反馈给项目组完成进度"
+      },
+      {
+        "id": "block-085",
+        "kind": "paragraph",
+        "order": 85,
+        "text": "OMC网管工程师：负责后台远程监控站点运行状态，配合站点工程师完成站点开通任务，通过日报形式知会项目组及客户网络运行状态"
+      },
+      {
+        "id": "block-086",
+        "kind": "paragraph",
+        "order": 86,
+        "text": "网络性能负责人：负责整体网络的性能状态，通过组织前台硬件调整、后台参数调整，提升网络各项指标，满足客户要求"
+      },
+      {
+        "id": "block-087",
+        "kind": "paragraph",
+        "order": 87,
+        "text": "外场测试负责人：根据项目组工作安排，制定测试任务并指定测试人员，通知相关客户接口人以获取权限"
+      },
+      {
+        "id": "block-088",
+        "kind": "paragraph",
+        "order": 88,
+        "text": "路测工程师：承担具体的测试任务，任务开始前需要完成相关的信息收集任务，包括测试设备，规划表等数据"
+      },
+      {
+        "id": "block-089",
+        "kind": "paragraph",
+        "order": 89,
+        "text": "数据分析工程师：承担具体的参数分析任务，当前台测试结束后，会提交测试LOG,分析工程师需要针对测试LOG 进行分析，以发现网络中存在的问题，并根据具体的问题制定出整改方案提交给项目组进行相关的整改"
+      },
+      {
+        "id": "block-090",
+        "kind": "paragraph",
+        "order": 90,
+        "text": "客户侧接口人：作为甲方，对乙方提供的服务进行验收，并提供给乙方测试人员必要的协助"
+      },
+      {
+        "id": "block-091",
+        "kind": "paragraph",
+        "order": 91,
+        "text": "业主代表：主要和客户接口人对接，与客户接口完成场地租赁合同签订，监控付款进度"
+      },
+      {
+        "id": "block-092",
+        "kind": "paragraph",
+        "order": 92,
+        "text": "四、演练流程介绍"
+      },
+      {
+        "id": "block-093",
+        "kind": "paragraph",
+        "order": 93,
+        "mediaRefs": [
+          "rId100"
+        ]
+      },
+      {
+        "id": "block-094",
+        "kind": "paragraph",
+        "order": 94,
+        "text": "图2-3-8 工作流程"
+      },
+      {
+        "id": "block-095",
+        "kind": "paragraph",
+        "order": 95,
+        "text": "五、演练实施"
+      },
+      {
+        "id": "block-096",
+        "kind": "paragraph",
+        "order": 96,
+        "text": "按照角色不同分为1、2、3、4组，抽到相同组号的学员分为一组。各组人员按照角色职责准备相应的材料，并传递给上下游配合部门。网络性能负责人作为演练主体，负责拉通各个环节，保证顺利完成网络测试任务"
+      },
+      {
+        "id": "block-097",
+        "kind": "paragraph",
+        "order": 97,
+        "text": "（一）首先，网络性能责任人根据项目组主计划，确定网络测试从计划"
+      },
+      {
+        "id": "block-098",
+        "kind": "paragraph",
+        "order": 98,
+        "text": "（二）根据项目实施进度，从RAN侧负责人处获取待测站点列表，确定测试范围，区域划分及测试路线规划"
+      },
+      {
+        "id": "block-099",
+        "kind": "paragraph",
+        "order": 99,
+        "text": "（三）与客户接口人确定测试任务，并申请相关许可"
+      },
+      {
+        "id": "block-100",
+        "kind": "paragraph",
+        "order": 100,
+        "text": "（四）指派测试人员承担测试任务，整理站点列表，准备测试工具及软件安装，待测试结束后提交测试LOG 给后台测试分析人员进行分析"
+      },
+      {
+        "id": "block-101",
+        "kind": "paragraph",
+        "order": 101,
+        "text": "（五）指派分析人员负责测试LOG 的分析任务，负责输出网络中存在的问题并提出整改方案"
+      },
+      {
+        "id": "block-102",
+        "kind": "paragraph",
+        "order": 102,
+        "text": "（六）网络性能负责人将整改方案报告经项目组审批后，传递给工程测进行网络整改"
+      },
+      {
+        "id": "block-103",
+        "kind": "paragraph",
+        "order": 103,
+        "text": "（七）前台测试待整改后进行网络复测，要求测试范围和测试路线和整改前一致，并提交测试LOG 给后台测试分析人员"
+      },
+      {
+        "id": "block-104",
+        "kind": "paragraph",
+        "order": 104,
+        "text": "（八）后台测试分析人员对复测后的数据进行分析，输出网络提升对比报告"
+      },
+      {
+        "id": "block-105",
+        "kind": "paragraph",
+        "order": 105,
+        "text": "（九）网络性能负责人审核后提交项目组及客户"
+      },
+      {
+        "id": "block-106",
+        "kind": "paragraph",
+        "order": 106,
+        "text": "（十）客户认可后测试任务闭环"
+      }
+    ],
+    "storyboard": {
+      "schema": "lesson-storyboard/v1",
+      "learningGoal": "学完后能用 RSRP/PCI/SINR、掉线、切换和信令断点区分覆盖、干扰、参数、终端或业务侧问题。",
+      "summary": "本节讲测试 LOG 分析：先统一时间、坐标、工参和事件口径，再把覆盖图层、质量图层、业务动作和信令回放叠合定位。",
+      "knowledgeUnits": [
+        {
+          "id": "P06-ku-01",
+          "title": "数据口径",
+          "kind": "concept",
+          "shortText": "LOG、地图、工参和事件先对齐时间轴。",
+          "narrationText": "数据分析前先统一时间、坐标、工参版本和事件口径，保证地图轨迹、KPI 曲线和信令记录可互相定位。"
+        },
+        {
+          "id": "P06-ku-02",
+          "title": "覆盖图层",
+          "kind": "concept",
+          "shortText": "RSRP、PCI 和服务小区定位覆盖关系。",
+          "narrationText": "覆盖分析要同时看强弱分布、PCI、服务小区和邻区关系，区分弱覆盖、越区覆盖和重叠覆盖。"
+        },
+        {
+          "id": "P06-ku-03",
+          "title": "质量图层",
+          "kind": "criteria",
+          "shortText": "SINR、干扰、掉线和切换解释体验波动。",
+          "narrationText": "无线质量需联动 SINR、干扰源、切换事件、掉线点和业务速率，不能只凭颜色图下结论。"
+        },
+        {
+          "id": "P06-ku-04",
+          "title": "事件回放",
+          "kind": "evidence",
+          "shortText": "异常点、指标曲线和信令消息同步回放。",
+          "narrationText": "回放时将异常位置、KPI 曲线、信令事件和业务动作对齐，判断问题发生在无线、参数、终端还是业务侧。"
+        },
+        {
+          "id": "P06-ku-05",
+          "title": "异常定位",
+          "kind": "practice",
+          "shortText": "从字段缺失、事件突变和消息断点定位原因。",
+          "narrationText": "异常定位关注字段缺失、指标突变、切换失败、掉线事件和信令断点，逐步收敛到可验证原因。"
+        },
+        {
+          "id": "P06-ku-06",
+          "title": "建议固化",
+          "kind": "review",
+          "shortText": "形成问题点、证据链、原因和优化建议。",
+          "narrationText": "分析结论要保留问题点、证据链、原因判断、建议动作和复测口径，便于后续闭环。"
+        }
+      ],
+      "reviewSummary": "复盘时看异常点是否能在地图轨迹、KPI 曲线、信令消息和工参版本中互相定位，结论要带复测口径。"
+    }
+  },
+  "knowledge": {
+    "steps": [
+      {
+        "id": "P06-knowledge-01",
+        "label": "数据口径",
+        "description": "LOG、地图、工参和事件先对齐时间轴。"
+      },
+      {
+        "id": "P06-knowledge-02",
+        "label": "覆盖图层",
+        "description": "RSRP、PCI 和服务小区定位覆盖关系。"
+      },
+      {
+        "id": "P06-knowledge-03",
+        "label": "质量图层",
+        "description": "SINR、干扰、掉线和切换解释体验波动。"
+      },
+      {
+        "id": "P06-knowledge-04",
+        "label": "事件回放",
+        "description": "异常点、指标曲线和信令消息同步回放。"
+      },
+      {
+        "id": "P06-knowledge-05",
+        "label": "异常定位",
+        "description": "从字段缺失、事件突变和消息断点定位原因。"
+      },
+      {
+        "id": "P06-knowledge-06",
+        "label": "建议固化",
+        "description": "形成问题点、证据链、原因和优化建议。"
+      }
+    ],
+    "metrics": [
+      {
+        "label": "M1",
+        "value": "PM Co"
+      },
+      {
+        "label": "M2",
+        "value": "RSRP/"
+      },
+      {
+        "label": "M3",
+        "value": "Throu"
+      }
+    ]
+  },
+  "animation": {
+    "templateHint": "optimization-loop",
+    "durationMs": 610000,
+    "targets": [
+      {
+        "id": "P06-step-01",
+        "label": "数据口径",
+        "description": "LOG、地图、工参和事件先对齐时间轴。"
+      },
+      {
+        "id": "P06-step-02",
+        "label": "覆盖图层",
+        "description": "RSRP、PCI 和服务小区定位覆盖关系。"
+      },
+      {
+        "id": "P06-step-03",
+        "label": "质量图层",
+        "description": "SINR、干扰、掉线和切换解释体验波动。"
+      },
+      {
+        "id": "P06-step-04",
+        "label": "事件回放",
+        "description": "异常点、指标曲线和信令消息同步回放。"
+      },
+      {
+        "id": "P06-step-05",
+        "label": "异常定位",
+        "description": "从字段缺失、事件突变和消息断点定位原因。"
+      },
+      {
+        "id": "P06-step-06",
+        "label": "建议固化",
+        "description": "形成问题点、证据链、原因和优化建议。"
+      }
+    ]
+  },
+  "playback": {
+    "mode": "one-way",
+    "widgetId": "P06-lesson-animation-001"
+  }
+}

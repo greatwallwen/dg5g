@@ -1,0 +1,1469 @@
+{
+  "schema": "dgbook.lesson-ast/v1",
+  "source": {
+    "kind": "docx",
+    "path": "content/5g/5g.docx",
+    "importer": "scripts/import-5g-docx.py"
+  },
+  "project": {
+    "id": "P01",
+    "title": "室内环境信息采集",
+    "sourceNo": "1",
+    "chapterTitle": "5G网络信息采集",
+    "taskIndex": 1
+  },
+  "lesson": {
+    "id": "P01",
+    "title": "室内环境信息采集",
+    "widgetId": "P01-lesson-animation-001",
+    "scenario": "site-survey",
+    "scenarioLabel": "信息采集"
+  },
+  "content": {
+    "sections": [
+      {
+        "id": "sec-overview",
+        "title": "导学摘要",
+        "icon": "overview",
+        "texts": [
+          "本节把室内站点采集讲成一条资源链：从机房和机柜定位，到设备拓扑、配套条件和影像索引，最终支撑规划、排障和优化复核。"
+        ]
+      },
+      {
+        "id": "P01-ku-01",
+        "title": "概念与对象",
+        "icon": "radar",
+        "texts": [
+          "室内信息采集要先锁定资源边界：机房位置、机柜编号、BBU、AAU/RRU、电源、传输、接地和温控共同决定站点可用性。"
+        ]
+      },
+      {
+        "id": "P01-ku-02",
+        "title": "概念与对象",
+        "icon": "route",
+        "texts": [
+          "设备记录不止列型号，还要说明端口、光纤、电源线和传输承载的连接关系，后续定位才知道从哪一段查起。"
+        ]
+      },
+      {
+        "id": "P01-ku-03",
+        "title": "工程判读",
+        "icon": "chart",
+        "texts": [
+          "运行条件要和主设备一起记录：供电容量、接地状态、空调能力和传输可用性会直接影响告警、业务稳定和后续排障。"
+        ]
+      },
+      {
+        "id": "P01-ku-04",
+        "title": "数据与现场佐证",
+        "icon": "tool",
+        "texts": [
+          "现场证据要能对应机柜、端口和走线路径，表单字段要能追溯到实体对象，避免后续复核时只剩孤立图片。"
+        ]
+      },
+      {
+        "id": "P01-ku-05",
+        "title": "操作校验",
+        "icon": "search",
+        "texts": [
+          "完整性校验关注主设备、传输、电源、接地和温控是否形成闭合关系，缺一段都会影响后续规划、测试或故障定位。"
+        ]
+      },
+      {
+        "id": "P01-ku-06",
+        "title": "闭环复盘",
+        "icon": "check",
+        "texts": [
+          "室内资料归档要保留对象、位置、连接、运行条件和证据索引，为路测、参数核查和优化判断提供共同底座。"
+        ]
+      }
+    ],
+    "blocks": [
+      {
+        "id": "block-001",
+        "kind": "paragraph",
+        "order": 1,
+        "text": "项目概述"
+      },
+      {
+        "id": "block-002",
+        "kind": "paragraph",
+        "order": 2,
+        "text": "5G网络信息采集，是5G网络规划和优化工作必要的前置准备环节，是网络规划和优化的基础，本项目详细介绍了5G基站的室内环境信息采集、室外环境信息采集和客户投诉信息采集的过程和反馈。通过本项目的学习，可以明确网络规划和优化工作前需要采集的相关基础信息，掌握5G基站室内、室外环境和客户投诉等相关信息的收集方法和要点。"
+      },
+      {
+        "id": "block-003",
+        "kind": "paragraph",
+        "order": 3,
+        "text": "项目导学"
+      },
+      {
+        "id": "block-004",
+        "kind": "paragraph",
+        "order": 4,
+        "text": "本项目章节的知识结构如下："
+      },
+      {
+        "id": "block-005",
+        "kind": "paragraph",
+        "order": 5,
+        "mediaRefs": [
+          "rId8"
+        ]
+      },
+      {
+        "id": "block-006",
+        "kind": "paragraph",
+        "order": 6,
+        "text": "任务导入"
+      },
+      {
+        "id": "block-007",
+        "kind": "paragraph",
+        "order": 7,
+        "text": "在网络规划和优化工作之前，需要对网络基本信息有所了解，如网络组网、无线设备、机房内其他相关传输，电源设备运行和机柜安装情况等。这些信息的准确性和完整性，会直接影响网络规划和优化方法的选择和优化结果。"
+      },
+      {
+        "id": "block-008",
+        "kind": "paragraph",
+        "order": 8,
+        "text": "需要采集哪些室内信息呢？采集室内信息前有哪些准备工作？如何准确采集信息？需要使用哪些工具进行信息采集呢？"
+      },
+      {
+        "id": "block-009",
+        "kind": "paragraph",
+        "order": 9,
+        "text": "任务要求"
+      },
+      {
+        "id": "block-010",
+        "kind": "paragraph",
+        "order": 10,
+        "text": "本次任务需要完成室内环境信息的采集，具体包括以下任务模块："
+      },
+      {
+        "id": "block-011",
+        "kind": "paragraph",
+        "order": 11,
+        "text": "收集基站的位置信息；"
+      },
+      {
+        "id": "block-012",
+        "kind": "paragraph",
+        "order": 12,
+        "text": "收集基站机房配套基本信息；"
+      },
+      {
+        "id": "block-013",
+        "kind": "paragraph",
+        "order": 13,
+        "text": "收集基站主设备和安装方式信息；"
+      },
+      {
+        "id": "block-014",
+        "kind": "paragraph",
+        "order": 14,
+        "text": "收集基站电源和传输信息；"
+      },
+      {
+        "id": "block-015",
+        "kind": "paragraph",
+        "order": 15,
+        "text": "收集基站组网方式；"
+      },
+      {
+        "id": "block-016",
+        "kind": "paragraph",
+        "order": 16,
+        "text": "熟练使用GPS、坡度仪、卷尺等工具。"
+      },
+      {
+        "id": "block-017",
+        "kind": "paragraph",
+        "order": 17,
+        "text": "知识准备"
+      },
+      {
+        "id": "block-018",
+        "kind": "paragraph",
+        "order": 18,
+        "text": "无线网络是由许多无线站点组成的，无线网络要正常服务，需要每个无线站点和站点内的所有相关设备都要正常运行。不仅需要基站无线设备正常运行，同时站点机房内的配套设施，如：供电、照明、通风、温控、接地等状态正常。网优工程师在开始网络优化工作之前，需要准确获取站点相关信息，比如：机房地理信息、电源、传输、设备安装类型等，并记录下来,再综合网络情况，提出合适的可实施的网优解决方案,提升网络性能。"
+      },
+      {
+        "id": "block-019",
+        "kind": "paragraph",
+        "order": 19,
+        "text": "一、室内环境信息采集介绍"
+      },
+      {
+        "id": "block-020",
+        "kind": "paragraph",
+        "order": 20,
+        "text": "基站室内需要采集的信息，主要包括基站站址及相关地理信息、基站室内信息、基站安装信息、基站设备信息、电源和传输机房配套设施信息以及组网情况等。通过实地勘察采集这些信息，为后期网络问题的分析、定位、优化等操作，提供参考和依据。"
+      },
+      {
+        "id": "block-021",
+        "kind": "paragraph",
+        "order": 21,
+        "text": "二、室内环境信息采集要点"
+      },
+      {
+        "id": "block-022",
+        "kind": "paragraph",
+        "order": 22,
+        "text": "收集记录：根据测量工具准确采集信息，对比核实，并认真填写表格，做好记录。"
+      },
+      {
+        "id": "block-023",
+        "kind": "paragraph",
+        "order": 23,
+        "text": "拍照：除了信息采集报告要求的照片以外，应尽可能多方位地拍摄站点或周边环境照片，并主要记录拍照顺序，方便以后查验。"
+      },
+      {
+        "id": "block-024",
+        "kind": "paragraph",
+        "order": 24,
+        "text": "核查：信息采集完成后，在离开现场之前应核实记录表，保证记录的完整性、查漏补缺。"
+      },
+      {
+        "id": "block-025",
+        "kind": "paragraph",
+        "order": 25,
+        "text": "三、机柜安装要求"
+      },
+      {
+        "id": "block-026",
+        "kind": "paragraph",
+        "order": 26,
+        "text": "机房的布局包括走线架布置，BBU安装位置，机柜/机架的位置等，通过机房布局和位置信息判断机房是否满足设备扩容需要。机柜的布置采用一排还是多排（与其他设备放同一机房时），由机房的大小和机柜的数量来决定。"
+      },
+      {
+        "id": "block-027",
+        "kind": "paragraph",
+        "order": 27,
+        "text": "四、5G无线主设备介绍"
+      },
+      {
+        "id": "block-028",
+        "kind": "paragraph",
+        "order": 28,
+        "text": "5G基站普遍采用BBU+AAU的模式（有些场景采用BBU+RRU模式）。其中BBU为BaseBandUnit基带模块，负责基带信号处理；RRU为RemoteRadioUnit拉远射频单元，负责基带信号和射频信号的转换，及射频信号处理；AAU为ActiveAntennaUnit有源天线单元，为RRU和天线一体化设备。"
+      },
+      {
+        "id": "block-029",
+        "kind": "paragraph",
+        "order": 29,
+        "text": "（1）BBU单板性能：BBU是基带单元，可以集成在基带机柜内，连接外接分布式基站的RRU或AAU。BBU包括多个插槽，可以配置不同功能的单板,如图1-1。"
+      },
+      {
+        "id": "block-030",
+        "kind": "paragraph",
+        "order": 30,
+        "text": "（2）BBU插箱：基带柜中BBU插箱主要功能是为5G BBU提供放置空间，现阶段常见设备制造商5G BBU的高度均为2U，板卡配置如1-1-2，功能表1-1-1所示。"
+      },
+      {
+        "id": "block-031",
+        "kind": "paragraph",
+        "order": 31,
+        "mediaRefs": [
+          "rId9"
+        ]
+      },
+      {
+        "id": "block-032",
+        "kind": "paragraph",
+        "order": 32,
+        "text": "图1-1-1 BBU插箱"
+      },
+      {
+        "id": "block-033",
+        "kind": "paragraph",
+        "order": 33,
+        "mediaRefs": [
+          "rId10"
+        ]
+      },
+      {
+        "id": "block-034",
+        "kind": "paragraph",
+        "order": 34,
+        "text": "图1-1-2面板图"
+      },
+      {
+        "id": "block-035",
+        "kind": "paragraph",
+        "order": 35,
+        "text": "表1-1-1 BBU单板种类和功能"
+      },
+      {
+        "id": "block-036",
+        "kind": "table",
+        "order": 36,
+        "rows": [
+          [
+            "单板名称",
+            "功能"
+          ],
+          [
+            "主控板",
+            "完成配置管理、设备管理、性能监视、信令处理、主备切换功能实现对系统内部各单板的控制提供整个系统所需要的基准时钟提供以太网交换、传输接口处理"
+          ],
+          [
+            "基带板",
+            "处理上/下行基带信号提供和射频模块间的CPRI/eCPRI接口提供跨基带板互联共享资源能力实现MAC、RLC和PDCP协议"
+          ],
+          [
+            "环境监控板",
+            "管理BBU告警；并提供干接点接入完成环境监控功能"
+          ],
+          [
+            "电源模块",
+            "实现-48V直流输入电源的防护、滤波、防反接输出支持-48V主备功能支持欠压告警支持电压和电流监控支持温度监控"
+          ],
+          [
+            "风扇模块",
+            "监控进风口温度控制风扇转速风扇状态监测、控制与上报、散热"
+          ]
+        ]
+      },
+      {
+        "id": "block-037",
+        "kind": "paragraph",
+        "order": 37,
+        "text": "5G基站主设备常见安装场景"
+      },
+      {
+        "id": "block-038",
+        "kind": "paragraph",
+        "order": 38,
+        "mediaRefs": [
+          "rId11"
+        ]
+      },
+      {
+        "id": "block-039",
+        "kind": "paragraph",
+        "order": 39,
+        "text": "图1-1-３BBU安装方式"
+      },
+      {
+        "id": "block-040",
+        "kind": "paragraph",
+        "order": 40,
+        "text": "收集基站的主设备和安装方式信息包括：确认基站设备厂家、记录基站内机柜个数、每个机柜内载频数量、空余板位位置、BBU型号及数量、主控板及基带处理板型号及数量、其他单板类型及数量。"
+      },
+      {
+        "id": "block-041",
+        "kind": "paragraph",
+        "order": 41,
+        "text": "基站室内电源"
+      },
+      {
+        "id": "block-042",
+        "kind": "paragraph",
+        "order": 42,
+        "text": "基站系统电源电压要求如下："
+      },
+      {
+        "id": "block-043",
+        "kind": "paragraph",
+        "order": 43,
+        "text": "交流电供电设施除了有市电引入线外，可配备柴油机备用电源。交流电源单独供电，电压范围：220V±10%。"
+      },
+      {
+        "id": "block-044",
+        "kind": "paragraph",
+        "order": 44,
+        "text": "直流配电设备供电电压应稳定，BBU标称值为-48V（-57V～-40V），AAU标称值为-48V（-57V～-37V）；"
+      },
+      {
+        "id": "block-045",
+        "kind": "paragraph",
+        "order": 45,
+        "text": "六、基站传输设备"
+      },
+      {
+        "id": "block-046",
+        "kind": "paragraph",
+        "order": 46,
+        "text": "现阶段5G基站功耗很高，对传输资源要求也很高，现网站点的机房配套能力可能不匹配，需要进行评估，以及时改造升级。记录机房内光纤两端连接设备端口，比如：BBU和AAU间光纤连接，以及BBU和核心网（可能通过传输网络）间光纤连接设备及端口号，同时需要确认确认现有传输容量及能否保证将来新增设备的传输需求。可能使用的传输设备如表1-1-2所示: DDF、ODF、光端机、PTN。"
+      },
+      {
+        "id": "block-047",
+        "kind": "paragraph",
+        "order": 47,
+        "text": "表1-1-2 基站常用传输设备"
+      },
+      {
+        "id": "block-048",
+        "kind": "table",
+        "order": 48,
+        "rows": [
+          [
+            "光端机",
+            "DDF",
+            "ODF",
+            "PTN"
+          ],
+          [
+            "",
+            "",
+            "",
+            ""
+          ]
+        ]
+      },
+      {
+        "id": "block-049",
+        "kind": "paragraph",
+        "order": 49,
+        "text": "七、5G基站的组网方式"
+      },
+      {
+        "id": "block-050",
+        "kind": "paragraph",
+        "order": 50,
+        "text": "5G组网模式分为NSA和SA两种。"
+      },
+      {
+        "id": "block-051",
+        "kind": "paragraph",
+        "order": 51,
+        "text": "NSA非独立组网模式"
+      },
+      {
+        "id": "block-052",
+        "kind": "paragraph",
+        "order": 52,
+        "text": "NSA是指非独立组网模式（Non-Standalone），它通过整合5G基站和4G基站的方式组网。该组网方式投入小、部署快，能够快速推进5G网络覆盖范围。所以NSA也是目前绝大多数国家的主流商用5G的先行组网模式。"
+      },
+      {
+        "id": "block-053",
+        "kind": "paragraph",
+        "order": 53,
+        "text": "SA独立组网模式"
+      },
+      {
+        "id": "block-054",
+        "kind": "paragraph",
+        "order": 54,
+        "text": "SA是指独立组网模式（Standalone），它通过建设独立的5G基站方式组网，需要完全新建5G核心网才能投入使用。该组网方式投入更大，实现基本覆盖需要更长的时间。所以SA组网模式会在NSA 5G普及过程中逐步推进。"
+      },
+      {
+        "id": "block-055",
+        "kind": "paragraph",
+        "order": 55,
+        "text": "在3GPP的标准中，共列举了Option1、Option2 、Option3/3a/3X、Option 4/4a、Option 5、Option 6、Option 7/7a/7X、Option 8/8a等8种5G架构选项。其中，Option2和Option 5属于独立组网，其余都是非独立组网。"
+      },
+      {
+        "id": "block-056",
+        "kind": "paragraph",
+        "order": 56,
+        "text": "运营商如果采用NSA方式组网时，一般初期采用Option3/3a/3X，中期采用Option 7/7a/7X，长期采用Option 4/4a，如果采用SA组网时，一般初期采用Option2方式，长期采用Option2+Option 4/4a方式。"
+      },
+      {
+        "id": "block-057",
+        "kind": "paragraph",
+        "order": 57,
+        "text": "组网方式的不同，对网络优化采取的方法和手段也是不同的。"
+      },
+      {
+        "id": "block-058",
+        "kind": "paragraph",
+        "order": 58,
+        "text": "3GPP协议规定不同的组网方式，如下图1-1-4"
+      },
+      {
+        "id": "block-059",
+        "kind": "paragraph",
+        "order": 59,
+        "mediaRefs": [
+          "rId16",
+          "rId17",
+          "rId18",
+          "rId19"
+        ]
+      },
+      {
+        "id": "block-060",
+        "kind": "paragraph",
+        "order": 60,
+        "mediaRefs": [
+          "rId20"
+        ]
+      },
+      {
+        "id": "block-061",
+        "kind": "paragraph",
+        "order": 61,
+        "mediaRefs": [
+          "rId21"
+        ]
+      },
+      {
+        "id": "block-062",
+        "kind": "paragraph",
+        "order": 62,
+        "mediaRefs": [
+          "rId22"
+        ]
+      },
+      {
+        "id": "block-063",
+        "kind": "paragraph",
+        "order": 63,
+        "mediaRefs": [
+          "rId23"
+        ]
+      },
+      {
+        "id": "block-064",
+        "kind": "paragraph",
+        "order": 64,
+        "text": "图1-1-4 组网类型"
+      },
+      {
+        "id": "block-065",
+        "kind": "paragraph",
+        "order": 65,
+        "text": "任务实施"
+      },
+      {
+        "id": "block-066",
+        "kind": "paragraph",
+        "order": 66,
+        "text": "一、室内信息采集前准备"
+      },
+      {
+        "id": "block-067",
+        "kind": "paragraph",
+        "order": 67,
+        "text": "硬件工具、软件工具、车辆/人员包括："
+      },
+      {
+        "id": "block-068",
+        "kind": "paragraph",
+        "order": 68,
+        "text": "（一）硬件工具"
+      },
+      {
+        "id": "block-069",
+        "kind": "paragraph",
+        "order": 69,
+        "text": "表1-1-3专业工具"
+      },
+      {
+        "id": "block-070",
+        "kind": "table",
+        "order": 70,
+        "rows": [
+          [
+            "专用工具",
+            "数码相机",
+            "卷尺",
+            "便携电脑",
+            "万用表",
+            "坡度仪"
+          ],
+          [
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        ]
+      },
+      {
+        "id": "block-071",
+        "kind": "paragraph",
+        "order": 71,
+        "text": "数码相机：拍摄基站内无线、传输、电源、监控等设备以及运行状态信息。（可用智能手机代替）"
+      },
+      {
+        "id": "block-072",
+        "kind": "paragraph",
+        "order": 72,
+        "text": "卷尺：测量机柜设备长度、高度和宽度，室内线缆长度等。"
+      },
+      {
+        "id": "block-073",
+        "kind": "paragraph",
+        "order": 73,
+        "text": "坡度仪：测量设备安装水平度，垂直度。"
+      },
+      {
+        "id": "block-074",
+        "kind": "paragraph",
+        "order": 74,
+        "text": "便携电脑：记录、保存和输出数据。（可用纸笔代替）"
+      },
+      {
+        "id": "block-075",
+        "kind": "paragraph",
+        "order": 75,
+        "text": "万用表：测量站点设备电压，电流。"
+      },
+      {
+        "id": "block-076",
+        "kind": "paragraph",
+        "order": 76,
+        "text": "（二）软件工具"
+      },
+      {
+        "id": "block-077",
+        "kind": "paragraph",
+        "order": 77,
+        "text": "路测软件：用于基站寻址和导航，配合GPS使用可以确定基站经纬度。（可选）"
+      },
+      {
+        "id": "block-078",
+        "kind": "paragraph",
+        "order": 78,
+        "text": "Google Earth：查找基站位置信息，规划勘察站点顺序和路线。（可选搜狗、百度地图工具）"
+      },
+      {
+        "id": "block-079",
+        "kind": "paragraph",
+        "order": 79,
+        "text": "（三）信息准备"
+      },
+      {
+        "id": "block-080",
+        "kind": "paragraph",
+        "order": 80,
+        "text": "获取当地最新的工参信息，用于在基站信息采集过程中辅助环境信息搜集。信息准备主要包含：服务区域范围划定、站点信息表、地图等。"
+      },
+      {
+        "id": "block-081",
+        "kind": "paragraph",
+        "order": 81,
+        "text": "（四）车辆及人员准备"
+      },
+      {
+        "id": "block-082",
+        "kind": "paragraph",
+        "order": 82,
+        "text": "车辆准备：勘察用车（含司机）。"
+      },
+      {
+        "id": "block-083",
+        "kind": "paragraph",
+        "order": 83,
+        "text": "人员准备：网优工程师（现场），设计工程师、规划工程师、运维工程师等勘测支持（非现场）。"
+      },
+      {
+        "id": "block-084",
+        "kind": "paragraph",
+        "order": 84,
+        "text": "二、采集基站地理信息"
+      },
+      {
+        "id": "block-085",
+        "kind": "paragraph",
+        "order": 85,
+        "text": "1.使用GPS采集基站地理信息"
+      },
+      {
+        "id": "block-086",
+        "kind": "paragraph",
+        "order": 86,
+        "text": "（1）手持GPS：用来确定基站的经纬度。当GPS测量仪接收到3个及3个以上导航卫星信号时，就可以计算出测量仪（GPS接收机）所在的大地坐标的位置，接收到4个及4个以上卫星信号时，还可以计算出海拔高度。"
+      },
+      {
+        "id": "block-087",
+        "kind": "paragraph",
+        "order": 87,
+        "text": "（2）GPS使用注意事项：GPS中显示搜索到3颗以上卫星才可用，所处位置要求尽量开阔。建议经纬度格式按：“XXX.XXXXX度”格式记录，记录精度要达到小数点后第四位。在一个地区首次使用GPS要开机等待10分钟以上，这样才能保证精度。"
+      },
+      {
+        "id": "block-088",
+        "kind": "paragraph",
+        "order": 88,
+        "text": "2.使用仿真软件采集基站地理信息"
+      },
+      {
+        "id": "block-089",
+        "kind": "paragraph",
+        "order": 89,
+        "text": "（1）登录仿真软件，在仿真软件中操作如图1-1-5所示"
+      },
+      {
+        "id": "block-090",
+        "kind": "paragraph",
+        "order": 90,
+        "mediaRefs": [
+          "rId29"
+        ]
+      },
+      {
+        "id": "block-091",
+        "kind": "paragraph",
+        "order": 91,
+        "text": "图1-1-5 仿真软件登录界面"
+      },
+      {
+        "id": "block-092",
+        "kind": "paragraph",
+        "order": 92,
+        "text": "（2）登录后，进入任务，完成网络规划step1，如图1-1-6所示"
+      },
+      {
+        "id": "block-093",
+        "kind": "paragraph",
+        "order": 93,
+        "mediaRefs": [
+          "rId30"
+        ]
+      },
+      {
+        "id": "block-094",
+        "kind": "paragraph",
+        "order": 94,
+        "text": "图1-1-6 网络规划界面"
+      },
+      {
+        "id": "block-095",
+        "kind": "paragraph",
+        "order": 95,
+        "text": "（3）完成容量计算、覆盖计算和功率计算后，点击进入数据采集step2，如图1-1-7所示"
+      },
+      {
+        "id": "block-096",
+        "kind": "paragraph",
+        "order": 96,
+        "mediaRefs": [
+          "rId31"
+        ]
+      },
+      {
+        "id": "block-097",
+        "kind": "paragraph",
+        "order": 97,
+        "text": "图1-1-7数据采集界面"
+      },
+      {
+        "id": "block-098",
+        "kind": "paragraph",
+        "order": 98,
+        "text": "（4）点击选取工具，工具类别根据任务说明选取（根据教师端设置，可允许有冗余项），选取完点击保存。如图1-1-8所示选择工具"
+      },
+      {
+        "id": "block-099",
+        "kind": "paragraph",
+        "order": 99,
+        "mediaRefs": [
+          "rId32"
+        ]
+      },
+      {
+        "id": "block-100",
+        "kind": "paragraph",
+        "order": 100,
+        "text": "图1-1-8选取工具界面"
+      },
+      {
+        "id": "block-101",
+        "kind": "paragraph",
+        "order": 101,
+        "text": "（5）点击需要采集信息的站点，如图1-1-9所示"
+      },
+      {
+        "id": "block-102",
+        "kind": "paragraph",
+        "order": 102,
+        "mediaRefs": [
+          "rId33"
+        ]
+      },
+      {
+        "id": "block-103",
+        "kind": "paragraph",
+        "order": 103,
+        "text": "图1-1-9 数据采集"
+      },
+      {
+        "id": "block-104",
+        "kind": "paragraph",
+        "order": 104,
+        "text": "（6）点击站点后，显示如图1-1-10所示："
+      },
+      {
+        "id": "block-105",
+        "kind": "paragraph",
+        "order": 105,
+        "mediaRefs": [
+          "rId34"
+        ]
+      },
+      {
+        "id": "block-106",
+        "kind": "paragraph",
+        "order": 106,
+        "text": "图1-1-10 场景选择"
+      },
+      {
+        "id": "block-107",
+        "kind": "paragraph",
+        "order": 107,
+        "text": "点击需要采集信息的位置，采集室内机房位置时，点击机房图标进入，选择右侧GPS图标，待数据稳定后记录，具体如图1-1-11所示："
+      },
+      {
+        "id": "block-108",
+        "kind": "paragraph",
+        "order": 108,
+        "mediaRefs": [
+          "rId35"
+        ]
+      },
+      {
+        "id": "block-109",
+        "kind": "paragraph",
+        "order": 109,
+        "text": "图1-1-11 GPS信息"
+      },
+      {
+        "id": "block-110",
+        "kind": "paragraph",
+        "order": 110,
+        "text": "三、收集基站基本设施信息"
+      },
+      {
+        "id": "block-111",
+        "kind": "paragraph",
+        "order": 111,
+        "text": "1.收集基站基本信息"
+      },
+      {
+        "id": "block-112",
+        "kind": "paragraph",
+        "order": 112,
+        "text": "通过和运营商沟通需要获取以下基站基本信息，比如："
+      },
+      {
+        "id": "block-113",
+        "kind": "paragraph",
+        "order": 113,
+        "text": "（1）基站性质：新建站、扩容站、搬迁站"
+      },
+      {
+        "id": "block-114",
+        "kind": "paragraph",
+        "order": 114,
+        "text": "（2）站型：S111、S222、S333..."
+      },
+      {
+        "id": "block-115",
+        "kind": "paragraph",
+        "order": 115,
+        "text": "（3）扩容站重点关注机柜和天馈是否有变化"
+      },
+      {
+        "id": "block-116",
+        "kind": "paragraph",
+        "order": 116,
+        "text": "（4）如果是搬迁站重点关注天馈的变化、电源的配置、传输的变化等信息"
+      },
+      {
+        "id": "block-117",
+        "kind": "paragraph",
+        "order": 117,
+        "text": "2.信息收集工具及操作"
+      },
+      {
+        "id": "block-118",
+        "kind": "paragraph",
+        "order": 118,
+        "text": "坡度仪：多功能坡度测量仪通常用于测量设机柜安装水平情况和天线倾角。如图1-1-12："
+      },
+      {
+        "id": "block-119",
+        "kind": "paragraph",
+        "order": 119,
+        "mediaRefs": [
+          "rId36",
+          "rId37"
+        ]
+      },
+      {
+        "id": "block-120",
+        "kind": "paragraph",
+        "order": 120,
+        "text": "图1-1-12坡度议"
+      },
+      {
+        "id": "block-121",
+        "kind": "paragraph",
+        "order": 121,
+        "text": "用坡度仪测量天线倾角步骤如下："
+      },
+      {
+        "id": "block-122",
+        "kind": "paragraph",
+        "order": 122,
+        "text": "将坡度仪与测定对象接触，旋转刻度旋轮，直到水准管气泡居中即可（如图1-1-12）。"
+      },
+      {
+        "id": "block-123",
+        "kind": "paragraph",
+        "order": 123,
+        "text": "读取指针尖端对准刻度盘上的数字（如图1-1-13a）。"
+      },
+      {
+        "id": "block-124",
+        "kind": "paragraph",
+        "order": 124,
+        "text": "可向上、向下进行测量（如图1-1-13b,c）。"
+      },
+      {
+        "id": "block-125",
+        "kind": "paragraph",
+        "order": 125,
+        "text": "工程中需要测量边坡斜度时：请使用测量仪测定面（若要求角度，则使用测定面）（如图1-1-13d）。",
+        "mediaRefs": [
+          "rId38",
+          "rId39"
+        ]
+      },
+      {
+        "id": "block-126",
+        "kind": "paragraph",
+        "order": 126,
+        "mediaRefs": [
+          "rId40",
+          "rId41",
+          "rId42",
+          "rId43"
+        ]
+      },
+      {
+        "id": "block-127",
+        "kind": "paragraph",
+        "order": 127,
+        "text": "a b c d"
+      },
+      {
+        "id": "block-128",
+        "kind": "paragraph",
+        "order": 128,
+        "text": "图1-1-13 坡度仪使用"
+      },
+      {
+        "id": "block-129",
+        "kind": "paragraph",
+        "order": 129,
+        "text": "卷尺：使用卷尺获取基站机房的尺寸，并记录。一般要求机房主要通道门高大于2m，宽大于0.9m，以不妨碍设备的搬运为宜，室内净高至少2.5m。"
+      },
+      {
+        "id": "block-130",
+        "kind": "paragraph",
+        "order": 130,
+        "text": "水平仪：使用水平仪查看机房地面是否平整，一般要求机房地面每平方米水平差不大于2mm。"
+      },
+      {
+        "id": "block-131",
+        "kind": "paragraph",
+        "order": 131,
+        "text": "温度计/湿度计：为了设备长期正常稳定地工作，设备的运行环境的温湿度应满足一定要求。需使用温度计和湿度计获取机房温度、湿度，通常情况下，基站工作的室内机房的温度，湿度范围如下表1-1-4。"
+      },
+      {
+        "id": "block-132",
+        "kind": "paragraph",
+        "order": 132,
+        "text": "表1-1-4 机房温、湿度"
+      },
+      {
+        "id": "block-133",
+        "kind": "table",
+        "order": 133,
+        "rows": [
+          [
+            "序号",
+            "检查项目",
+            "机房"
+          ],
+          [
+            "1",
+            "温度（注1）",
+            "长期",
+            "－10℃~＋55℃"
+          ],
+          [
+            "2",
+            "湿度（注1）",
+            "长期",
+            "5%~95%"
+          ]
+        ]
+      },
+      {
+        "id": "block-134",
+        "kind": "paragraph",
+        "order": 134,
+        "text": "四、收集室内电源和传输设备信息"
+      },
+      {
+        "id": "block-135",
+        "kind": "paragraph",
+        "order": 135,
+        "text": "（一）测量基站设备电压"
+      },
+      {
+        "id": "block-136",
+        "kind": "paragraph",
+        "order": 136,
+        "text": "1.测量步骤"
+      },
+      {
+        "id": "block-137",
+        "kind": "paragraph",
+        "order": 137,
+        "text": "（1）关闭机架电源开关，再拔出电源模块插座；"
+      },
+      {
+        "id": "block-138",
+        "kind": "paragraph",
+        "order": 138,
+        "text": "（2）打开机架电源开关；"
+      },
+      {
+        "id": "block-139",
+        "kind": "paragraph",
+        "order": 139,
+        "text": "（3）用数字万用表测量供电电源接线端子的输入电压并记录；"
+      },
+      {
+        "id": "block-140",
+        "kind": "paragraph",
+        "order": 140,
+        "text": "（4）测试完毕后关闭机架电源开关，并插入电源模块插座。"
+      },
+      {
+        "id": "block-141",
+        "kind": "paragraph",
+        "order": 141,
+        "text": "2.合格标准"
+      },
+      {
+        "id": "block-142",
+        "kind": "paragraph",
+        "order": 142,
+        "text": "（1）电源工作稳定，用数字万用表测量的测量值在以下范围内："
+      },
+      {
+        "id": "block-143",
+        "kind": "paragraph",
+        "order": 143,
+        "text": "（2）直流电源输入：-48V DC（允许波动范围：-40V DC ~ -57V DC）"
+      },
+      {
+        "id": "block-144",
+        "kind": "paragraph",
+        "order": 144,
+        "text": "（3）交流电源输入：220V AC（允许波动范围：130V AC ~ 300V AC，45Hz~65Hz）"
+      },
+      {
+        "id": "block-145",
+        "kind": "paragraph",
+        "order": 145,
+        "text": "（4）风扇正常运转。"
+      },
+      {
+        "id": "block-146",
+        "kind": "paragraph",
+        "order": 146,
+        "text": "（二）使用仿真软件采集电压信息"
+      },
+      {
+        "id": "block-147",
+        "kind": "paragraph",
+        "order": 147,
+        "text": "在仿真软件中点击万用表图标，操作显示如图1-1-14（登录进入仿真软件过程，参考GPS信息采集过程）："
+      },
+      {
+        "id": "block-148",
+        "kind": "paragraph",
+        "order": 148,
+        "mediaRefs": [
+          "rId44"
+        ]
+      },
+      {
+        "id": "block-149",
+        "kind": "paragraph",
+        "order": 149,
+        "text": "图1-1-14"
+      },
+      {
+        "id": "block-150",
+        "kind": "paragraph",
+        "order": 150,
+        "text": "使用仿真软件采集传输信息"
+      },
+      {
+        "id": "block-151",
+        "kind": "paragraph",
+        "order": 151,
+        "text": "在仿真软件中点击传输机柜，操作显示如图1-1-15（登录进入仿真软件过程，参考GPS信息采集过程）："
+      },
+      {
+        "id": "block-152",
+        "kind": "paragraph",
+        "order": 152,
+        "mediaRefs": [
+          "rId45"
+        ]
+      },
+      {
+        "id": "block-153",
+        "kind": "paragraph",
+        "order": 153,
+        "text": "图1-1-15 传输速率"
+      },
+      {
+        "id": "block-154",
+        "kind": "paragraph",
+        "order": 154,
+        "text": "五、基站室内环境信息采集表"
+      },
+      {
+        "id": "block-155",
+        "kind": "paragraph",
+        "order": 155,
+        "text": "表1-1-5 室内信息采集表格示例"
+      },
+      {
+        "id": "block-156",
+        "kind": "table",
+        "order": 156,
+        "rows": [
+          [
+            "基站室内环境信息采集表"
+          ],
+          [
+            "基站名称",
+            "",
+            "机房编号",
+            ""
+          ],
+          [
+            "基站地址",
+            "",
+            "性质",
+            ""
+          ],
+          [
+            "物业业主名称",
+            "",
+            "电话",
+            ""
+          ],
+          [
+            "机房尺寸",
+            "",
+            "已有机柜数",
+            ""
+          ],
+          [
+            "机房位置（经纬度）",
+            "",
+            "可扩展机柜数",
+            ""
+          ],
+          [
+            "机房海拔",
+            "",
+            "机柜、机架类型",
+            ""
+          ],
+          [
+            "机房温度",
+            "",
+            "机房湿度",
+            ""
+          ],
+          [
+            "基站供电方式",
+            "",
+            "主控板数量",
+            ""
+          ],
+          [
+            "BBU电压值",
+            "",
+            "基带板数量",
+            ""
+          ],
+          [
+            "AAU电压值",
+            "",
+            "AAU数量",
+            ""
+          ],
+          [
+            "基站设备厂家",
+            "",
+            "BBU数量",
+            ""
+          ],
+          [
+            "主控板和传输网光纤根数",
+            "",
+            "基带板和AAU间光纤根数",
+            ""
+          ],
+          [
+            "主控板和传输网光纤连接端口",
+            "",
+            "基带板和AAU间光纤连接端口",
+            ""
+          ],
+          [
+            "传输方式",
+            "",
+            "ODF/光端机等传输设备使用端口",
+            ""
+          ],
+          [
+            "机房简图"
+          ],
+          [
+            ""
+          ],
+          [
+            ""
+          ],
+          [
+            ""
+          ],
+          [
+            ""
+          ]
+        ]
+      },
+      {
+        "id": "block-157",
+        "kind": "paragraph",
+        "order": 157,
+        "text": "随堂测试"
+      },
+      {
+        "id": "block-158",
+        "kind": "paragraph",
+        "order": 158,
+        "text": "登录仿真软件平台，练习站点经纬度、室内主设备、电源、传输、机柜高度等各项信息采集，完成后保存提交，交给老师课后检查。"
+      },
+      {
+        "id": "block-159",
+        "kind": "paragraph",
+        "order": 159,
+        "text": "直击难点"
+      },
+      {
+        "id": "block-160",
+        "kind": "paragraph",
+        "order": 160,
+        "text": "本节重点："
+      },
+      {
+        "id": "block-161",
+        "kind": "paragraph",
+        "order": 161,
+        "text": "基站室内都需要收集那些相关信息，练习仿真软件基本操作。"
+      },
+      {
+        "id": "block-162",
+        "kind": "paragraph",
+        "order": 162,
+        "text": "本节难点："
+      },
+      {
+        "id": "block-163",
+        "kind": "paragraph",
+        "order": 163,
+        "text": "GPS、坡度仪等测量工具使用。"
+      },
+      {
+        "id": "block-164",
+        "kind": "paragraph",
+        "order": 164,
+        "text": "二维码预留二维码预留"
+      },
+      {
+        "id": "block-165",
+        "kind": "paragraph",
+        "order": 165,
+        "text": "任务测评"
+      },
+      {
+        "id": "block-166",
+        "kind": "paragraph",
+        "order": 166,
+        "text": "1.基站室内需要采集那些信息？"
+      },
+      {
+        "id": "block-167",
+        "kind": "paragraph",
+        "order": 167,
+        "text": "2.GPS中显示搜索到几颗以上卫星才可用？GPS记录精度要求？"
+      },
+      {
+        "id": "block-168",
+        "kind": "paragraph",
+        "order": 168,
+        "text": "3.直流设备工作电压范围是多少？"
+      },
+      {
+        "id": "block-169",
+        "kind": "paragraph",
+        "order": 169,
+        "text": "4.在3GPP协议中规定的5G独立组网方式有那些？"
+      },
+      {
+        "id": "block-170",
+        "kind": "paragraph",
+        "order": 170,
+        "text": "5.运营商在初始部署5G网络时，一般选择的建设组网方式是_______。"
+      }
+    ],
+    "storyboard": {
+      "schema": "lesson-storyboard/v1",
+      "learningGoal": "学完后能用统一台账描述机房、BBU/AAU-RRU、端口、传输、电源、接地和温控关系，并判断资料是否可追溯。",
+      "summary": "本节把室内站点采集讲成一条资源链：从机房和机柜定位，到设备拓扑、配套条件和影像索引，最终支撑规划、排障和优化复核。",
+      "knowledgeUnits": [
+        {
+          "id": "P01-ku-01",
+          "title": "室内资源边界",
+          "kind": "concept",
+          "shortText": "机房、机柜、主设备和配套资源先建台账。",
+          "narrationText": "室内信息采集要先锁定资源边界：机房位置、机柜编号、BBU、AAU/RRU、电源、传输、接地和温控共同决定站点可用性。"
+        },
+        {
+          "id": "P01-ku-02",
+          "title": "设备拓扑",
+          "kind": "concept",
+          "shortText": "主设备、承载和走线关系要可追溯。",
+          "narrationText": "设备记录不止列型号，还要说明端口、光纤、电源线和传输承载的连接关系，后续定位才知道从哪一段查起。"
+        },
+        {
+          "id": "P01-ku-03",
+          "title": "运行条件",
+          "kind": "criteria",
+          "shortText": "供电、接地、温控和传输共同影响站点稳定性。",
+          "narrationText": "运行条件要和主设备一起记录：供电容量、接地状态、空调能力和传输可用性会直接影响告警、业务稳定和后续排障。"
+        },
+        {
+          "id": "P01-ku-04",
+          "title": "现场证据",
+          "kind": "evidence",
+          "shortText": "机柜、端口和走线路径应对应同一设备。",
+          "narrationText": "现场证据要能对应机柜、端口和走线路径，表单字段要能追溯到实体对象，避免后续复核时只剩孤立图片。"
+        },
+        {
+          "id": "P01-ku-05",
+          "title": "关系校验",
+          "kind": "practice",
+          "shortText": "用设备到配套的链路校验采集完整性。",
+          "narrationText": "完整性校验关注主设备、传输、电源、接地和温控是否形成闭合关系，缺一段都会影响后续规划、测试或故障定位。"
+        },
+        {
+          "id": "P01-ku-06",
+          "title": "资料归档",
+          "kind": "review",
+          "shortText": "形成可复核的室内站点基础资料。",
+          "narrationText": "室内资料归档要保留对象、位置、连接、运行条件和证据索引，为路测、参数核查和优化判断提供共同底座。"
+        }
+      ],
+      "reviewSummary": "复盘时检查资源对象、连接关系、运行条件和照片索引是否指向同一站点实体，缺口要回填到台账，而不是留在截图说明里。"
+    }
+  },
+  "knowledge": {
+    "steps": [
+      {
+        "id": "P01-knowledge-01",
+        "label": "室内资源边界",
+        "description": "机房、机柜、主设备和配套资源先建台账。"
+      },
+      {
+        "id": "P01-knowledge-02",
+        "label": "设备拓扑",
+        "description": "主设备、承载和走线关系要可追溯。"
+      },
+      {
+        "id": "P01-knowledge-03",
+        "label": "运行条件",
+        "description": "供电、接地、温控和传输共同影响站点稳定性。"
+      },
+      {
+        "id": "P01-knowledge-04",
+        "label": "现场证据",
+        "description": "机柜、端口和走线路径应对应同一设备。"
+      },
+      {
+        "id": "P01-knowledge-05",
+        "label": "关系校验",
+        "description": "用设备到配套的链路校验采集完整性。"
+      },
+      {
+        "id": "P01-knowledge-06",
+        "label": "资料归档",
+        "description": "形成可复核的室内站点基础资料。"
+      }
+    ],
+    "metrics": [
+      {
+        "label": "M1",
+        "value": "SS-RS"
+      },
+      {
+        "label": "M2",
+        "value": "SS-SI"
+      },
+      {
+        "label": "M3",
+        "value": "站点"
+      }
+    ]
+  },
+  "animation": {
+    "templateHint": "optimization-loop",
+    "durationMs": 610000,
+    "targets": [
+      {
+        "id": "P01-step-01",
+        "label": "室内资源边界",
+        "description": "机房、机柜、主设备和配套资源先建台账。"
+      },
+      {
+        "id": "P01-step-02",
+        "label": "设备拓扑",
+        "description": "主设备、承载和走线关系要可追溯。"
+      },
+      {
+        "id": "P01-step-03",
+        "label": "运行条件",
+        "description": "供电、接地、温控和传输共同影响站点稳定性。"
+      },
+      {
+        "id": "P01-step-04",
+        "label": "现场证据",
+        "description": "机柜、端口和走线路径应对应同一设备。"
+      },
+      {
+        "id": "P01-step-05",
+        "label": "关系校验",
+        "description": "用设备到配套的链路校验采集完整性。"
+      },
+      {
+        "id": "P01-step-06",
+        "label": "资料归档",
+        "description": "形成可复核的室内站点基础资料。"
+      }
+    ]
+  },
+  "playback": {
+    "mode": "one-way",
+    "widgetId": "P01-lesson-animation-001"
+  }
+}

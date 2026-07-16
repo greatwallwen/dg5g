@@ -1,0 +1,769 @@
+{
+  "id": "P15-edugame-interactive-001",
+  "widget": "edugame-pixi",
+  "version": "0.1.0",
+  "props": {
+    "title": "全网提升闸门",
+    "height": 720,
+    "gameConfig": {
+      "schema": "dgbook.edugame-pixi/v1",
+      "game_id": "rollout-governance-lab",
+      "game_type": "classification-run",
+      "lesson_id": "P15",
+      "duration": 68,
+      "difficulty": "normal",
+      "asset_pack": "dgbook-5g-v1",
+      "mistake_limit": 4,
+      "pass_score": 80,
+      "knowledge_points": [
+        {
+          "id": "t1",
+          "name": "范围控制",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t2",
+          "name": "安全阈值",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t3",
+          "name": "恢复能力",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t4",
+          "name": "变更合规",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t5",
+          "name": "风险观察",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t6",
+          "name": "经验沉淀",
+          "description": "证据门",
+          "weight": 1
+        }
+      ],
+      "levels": [
+        {
+          "level_id": "p15-level-01",
+          "type": "classification-run",
+          "goal": "在放量前判断风险闸门，保证优化动作可控。",
+          "time_limit": 68,
+          "mistake_limit": 4,
+          "items": [
+            {
+              "id": "i1",
+              "label": "灰度批次",
+              "text": "现场任务：试点优化效果不错，团队准备扩大到全网。",
+              "prompt": "判断“灰度批次”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "先小范围验证",
+              "target_id": "t1",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 先小范围验证",
+              "kp": "t1",
+              "order": 1,
+              "correct": true
+            },
+            {
+              "id": "i2",
+              "label": "红线 KPI",
+              "text": "交付要求：在放量前判断风险闸门，保证优化动作可控。",
+              "prompt": "判断“红线 KPI”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "触发暂停或回退",
+              "target_id": "t2",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 触发暂停或回退",
+              "kp": "t2",
+              "order": 2,
+              "correct": true
+            },
+            {
+              "id": "i3",
+              "label": "回退预案",
+              "text": "挑战约束：玩家要守住灰度、红线和回退三个闸门，不能因为试点成功就直接放量。",
+              "prompt": "判断“回退预案”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "保证异常可恢复",
+              "target_id": "t3",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 保证异常可恢复",
+              "kp": "t3",
+              "order": 3,
+              "correct": true
+            },
+            {
+              "id": "i4",
+              "label": "审批记录",
+              "text": "试点优化效果不错，团队准备扩大到全网。",
+              "prompt": "判断“审批记录”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "留存操作依据",
+              "target_id": "t4",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 留存操作依据",
+              "kp": "t4",
+              "order": 4,
+              "correct": true
+            },
+            {
+              "id": "i5",
+              "label": "监控窗口",
+              "text": "试点优化效果不错，团队准备扩大到全网。",
+              "prompt": "判断“监控窗口”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "持续跟踪指标",
+              "target_id": "t5",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 持续跟踪指标",
+              "kp": "t5",
+              "order": 5,
+              "correct": true
+            },
+            {
+              "id": "i6",
+              "label": "复盘报告",
+              "text": "试点优化效果不错，团队准备扩大到全网。",
+              "prompt": "判断“复盘报告”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "记录放量结果",
+              "target_id": "t6",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 记录放量结果",
+              "kp": "t6",
+              "order": 6,
+              "correct": true
+            },
+            {
+              "id": "d1",
+              "label": "只记录主观描述",
+              "text": "缺少可复核证据，无法支撑工程闭环。",
+              "prompt": "这是干扰信息，先判断它是否能直接支撑本关目标。",
+              "definition": "缺少可复核证据，无法支撑工程闭环。",
+              "target_id": "t1",
+              "explanation": "缺少可复核证据，无法支撑工程闭环。",
+              "kp": "t1",
+              "correct": false
+            },
+            {
+              "id": "d2",
+              "label": "跳过时间和对象边界",
+              "text": "查询窗口不清会放大排查范围。",
+              "prompt": "这是干扰信息，先判断它是否能直接支撑本关目标。",
+              "definition": "查询窗口不清会放大排查范围。",
+              "target_id": "t2",
+              "explanation": "查询窗口不清会放大排查范围。",
+              "kp": "t2",
+              "correct": false
+            },
+            {
+              "id": "d3",
+              "label": "直接给经验结论",
+              "text": "没有证据链的结论不能作为派单依据。",
+              "prompt": "这是干扰信息，先判断它是否能直接支撑本关目标。",
+              "definition": "没有证据链的结论不能作为派单依据。",
+              "target_id": "t3",
+              "explanation": "没有证据链的结论不能作为派单依据。",
+              "kp": "t3",
+              "correct": false
+            }
+          ]
+        }
+      ],
+      "score_rule": {
+        "base": 0,
+        "correct": 12,
+        "wrong_penalty": 6,
+        "combo_bonus": true,
+        "time_bonus": true
+      },
+      "reward_rule": {
+        "stars": [
+          60,
+          75,
+          90
+        ],
+        "badges": [
+          "风险拦截",
+          "回退可控",
+          "变更合规",
+          "闸门通过"
+        ]
+      },
+      "ui": {
+        "arenaLabel": "5G 训练场",
+        "cardMark": "5G",
+        "scenario": "试点优化效果不错，团队准备扩大到全网。",
+        "instruction": "判断每个差异或动作应该进入哪个风险闸门，错误放行会扣分。",
+        "actionLabel": "开始挑战",
+        "feedbackHint": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+        "onboarding": [
+          "先识别参数差异影响的对象。",
+          "不能把覆盖、切换、识别和触发风险混放。",
+          "错误放行会把参数风险带入现网。",
+          "把所有差异和动作拦到正确风险门。"
+        ]
+      },
+      "interaction": {
+        "actionLabel": "开始挑战",
+        "ruleChecks": [
+          "先识别参数差异影响的对象。",
+          "不能把覆盖、切换、识别和触发风险混放。",
+          "错放风险门会降低通关余量。"
+        ],
+        "errorFeedback": [
+          "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+          "先核对对象、证据门和干扰项边界，再重新选择。"
+        ],
+        "replayPrompts": [
+          "先识别 2 个高优先级证据卡。",
+          "在限定时间内完成全部证据链并达到交付分。"
+        ]
+      },
+      "ruleChecks": [
+        "先识别参数差异影响的对象。",
+        "不能把覆盖、切换、识别和触发风险混放。",
+        "错放风险门会降低通关余量。"
+      ],
+      "errorFeedback": [
+        "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+        "先核对对象、证据门和干扰项边界，再重新选择。"
+      ],
+      "replayPrompts": [
+        "先识别 2 个高优先级证据卡。",
+        "在限定时间内完成全部证据链并达到交付分。"
+      ],
+      "successCriteria": [
+        "把所有差异和动作拦到正确风险门。",
+        "达到 80 分，且错误不超过 4 次。"
+      ],
+      "actionLabel": "开始挑战",
+      "template": "edugamekit.risk-gate/v2",
+      "templateId": "risk-gate",
+      "mechanicFamily": "drag-match",
+      "id": "rollout-governance-lab",
+      "projectId": "P15",
+      "title": "全网提升闸门",
+      "gameType": "risk-gate",
+      "objective": "在放量前判断风险闸门，保证优化动作可控。",
+      "scenario": "试点优化效果不错，团队准备扩大到全网。",
+      "challenge": "玩家要守住灰度、红线和回退三个闸门，不能因为试点成功就直接放量。",
+      "instruction": "判断每个差异或动作应该进入哪个风险闸门，错误放行会扣分。",
+      "challengeMode": "gate",
+      "winCondition": "把所有差异和动作拦到正确风险门。",
+      "pressureModel": {
+        "label": "错误放行会把参数风险带入现网。",
+        "failureBudget": 4,
+        "timeBudgetSec": 68
+      },
+      "mechanicRules": [
+        "先识别参数差异影响的对象。",
+        "不能把覆盖、切换、识别和触发风险混放。",
+        "错放风险门会降低通关余量。"
+      ],
+      "timeLimitSec": 68,
+      "mistakeLimit": 4,
+      "passScore": 80,
+      "totalPoints": 100,
+      "caseFacts": [
+        "现场任务：试点优化效果不错，团队准备扩大到全网。",
+        "交付要求：在放量前判断风险闸门，保证优化动作可控。",
+        "挑战约束：玩家要守住灰度、红线和回退三个闸门，不能因为试点成功就直接放量。"
+      ],
+      "evidenceTokens": [
+        {
+          "id": "i1",
+          "label": "灰度批次",
+          "role": "先小范围验证",
+          "severity": "critical",
+          "expectedTargetId": "t1",
+          "hint": "关键点：先小范围验证",
+          "caseFact": "现场任务：试点优化效果不错，团队准备扩大到全网。",
+          "challenge": "判断“灰度批次”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 先小范围验证",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 先小范围验证",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i2",
+          "label": "红线 KPI",
+          "role": "触发暂停或回退",
+          "severity": "critical",
+          "expectedTargetId": "t2",
+          "hint": "关键点：触发暂停或回退",
+          "caseFact": "交付要求：在放量前判断风险闸门，保证优化动作可控。",
+          "challenge": "判断“红线 KPI”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 触发暂停或回退",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 触发暂停或回退",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i3",
+          "label": "回退预案",
+          "role": "保证异常可恢复",
+          "severity": "high",
+          "expectedTargetId": "t3",
+          "hint": "关键点：保证异常可恢复",
+          "caseFact": "挑战约束：玩家要守住灰度、红线和回退三个闸门，不能因为试点成功就直接放量。",
+          "challenge": "判断“回退预案”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 保证异常可恢复",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 保证异常可恢复",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i4",
+          "label": "审批记录",
+          "role": "留存操作依据",
+          "severity": "high",
+          "expectedTargetId": "t4",
+          "hint": "关键点：留存操作依据",
+          "caseFact": "试点优化效果不错，团队准备扩大到全网。",
+          "challenge": "判断“审批记录”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 留存操作依据",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 留存操作依据",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i5",
+          "label": "监控窗口",
+          "role": "持续跟踪指标",
+          "severity": "normal",
+          "expectedTargetId": "t5",
+          "hint": "关键点：持续跟踪指标",
+          "caseFact": "试点优化效果不错，团队准备扩大到全网。",
+          "challenge": "判断“监控窗口”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 持续跟踪指标",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 持续跟踪指标",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i6",
+          "label": "复盘报告",
+          "role": "记录放量结果",
+          "severity": "normal",
+          "expectedTargetId": "t6",
+          "hint": "关键点：记录放量结果",
+          "caseFact": "试点优化效果不错，团队准备扩大到全网。",
+          "challenge": "判断“复盘报告”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 记录放量结果",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 记录放量结果",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        }
+      ],
+      "targetGates": [
+        {
+          "id": "t1",
+          "label": "范围控制",
+          "role": "证据门",
+          "accepts": "先小范围验证"
+        },
+        {
+          "id": "t2",
+          "label": "安全阈值",
+          "role": "证据门",
+          "accepts": "触发暂停或回退"
+        },
+        {
+          "id": "t3",
+          "label": "恢复能力",
+          "role": "证据门",
+          "accepts": "保证异常可恢复"
+        },
+        {
+          "id": "t4",
+          "label": "变更合规",
+          "role": "证据门",
+          "accepts": "留存操作依据"
+        },
+        {
+          "id": "t5",
+          "label": "风险观察",
+          "role": "证据门",
+          "accepts": "持续跟踪指标"
+        },
+        {
+          "id": "t6",
+          "label": "经验沉淀",
+          "role": "证据门",
+          "accepts": "记录放量结果"
+        }
+      ],
+      "distractors": [
+        {
+          "id": "d1",
+          "label": "只记录主观描述",
+          "whyWrong": "缺少可复核证据，无法支撑工程闭环。"
+        },
+        {
+          "id": "d2",
+          "label": "跳过时间和对象边界",
+          "whyWrong": "查询窗口不清会放大排查范围。"
+        },
+        {
+          "id": "d3",
+          "label": "直接给经验结论",
+          "whyWrong": "没有证据链的结论不能作为派单依据。"
+        }
+      ],
+      "levelGoals": [
+        "先识别 2 个高优先级证据卡。",
+        "连续完成 3 次正确归门，建立稳定判断。",
+        "在限定时间内完成全部证据链并达到交付分。"
+      ],
+      "failureConditions": [
+        "关键证据门缺失导致链路不可复核。",
+        "错把干扰项当作证据导致扣分超过上限。",
+        "超时仍未完成全部目标门匹配。"
+      ],
+      "feedback": {
+        "correct": "证据有效：这张证据卡能直接支撑当前工程判断。",
+        "wrong": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+        "nearMiss": "方向接近，但证据粒度还不够支撑交付结论。",
+        "complete": "证据链闭合，可以进入复盘或派单。"
+      },
+      "inputModel": {
+        "kind": "risk-gate",
+        "group": "gate",
+        "template": "edugamekit.risk-gate/v2",
+        "templateId": "risk-gate",
+        "mechanicFamily": "drag-match",
+        "gameClass": "全网提升闸门",
+        "mechanicLabel": "风险闸门挑战",
+        "challengeMode": "gate",
+        "visualMetaphor": "风险闸门",
+        "instruction": "判断每个差异或动作应该进入哪个风险闸门，错误放行会扣分。",
+        "minActions": 6,
+        "caseFacts": [
+          "现场任务：试点优化效果不错，团队准备扩大到全网。",
+          "交付要求：在放量前判断风险闸门，保证优化动作可控。",
+          "挑战约束：玩家要守住灰度、红线和回退三个闸门，不能因为试点成功就直接放量。"
+        ],
+        "options": [
+          {
+            "id": "i1",
+            "label": "灰度批次",
+            "role": "先小范围验证",
+            "severity": "critical",
+            "expectedTargetId": "t1",
+            "hint": "关键点：先小范围验证",
+            "caseFact": "现场任务：试点优化效果不错，团队准备扩大到全网。",
+            "challenge": "判断“灰度批次”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 先小范围验证",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 先小范围验证",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i2",
+            "label": "红线 KPI",
+            "role": "触发暂停或回退",
+            "severity": "critical",
+            "expectedTargetId": "t2",
+            "hint": "关键点：触发暂停或回退",
+            "caseFact": "交付要求：在放量前判断风险闸门，保证优化动作可控。",
+            "challenge": "判断“红线 KPI”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 触发暂停或回退",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 触发暂停或回退",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i3",
+            "label": "回退预案",
+            "role": "保证异常可恢复",
+            "severity": "high",
+            "expectedTargetId": "t3",
+            "hint": "关键点：保证异常可恢复",
+            "caseFact": "挑战约束：玩家要守住灰度、红线和回退三个闸门，不能因为试点成功就直接放量。",
+            "challenge": "判断“回退预案”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 保证异常可恢复",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 保证异常可恢复",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i4",
+            "label": "审批记录",
+            "role": "留存操作依据",
+            "severity": "high",
+            "expectedTargetId": "t4",
+            "hint": "关键点：留存操作依据",
+            "caseFact": "试点优化效果不错，团队准备扩大到全网。",
+            "challenge": "判断“审批记录”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 留存操作依据",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 留存操作依据",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i5",
+            "label": "监控窗口",
+            "role": "持续跟踪指标",
+            "severity": "normal",
+            "expectedTargetId": "t5",
+            "hint": "关键点：持续跟踪指标",
+            "caseFact": "试点优化效果不错，团队准备扩大到全网。",
+            "challenge": "判断“监控窗口”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 持续跟踪指标",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 持续跟踪指标",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i6",
+            "label": "复盘报告",
+            "role": "记录放量结果",
+            "severity": "normal",
+            "expectedTargetId": "t6",
+            "hint": "关键点：记录放量结果",
+            "caseFact": "试点优化效果不错，团队准备扩大到全网。",
+            "challenge": "判断“复盘报告”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 记录放量结果",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 记录放量结果",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          }
+        ],
+        "targets": [
+          {
+            "id": "t1",
+            "label": "范围控制",
+            "role": "证据门",
+            "accepts": "先小范围验证"
+          },
+          {
+            "id": "t2",
+            "label": "安全阈值",
+            "role": "证据门",
+            "accepts": "触发暂停或回退"
+          },
+          {
+            "id": "t3",
+            "label": "恢复能力",
+            "role": "证据门",
+            "accepts": "保证异常可恢复"
+          },
+          {
+            "id": "t4",
+            "label": "变更合规",
+            "role": "证据门",
+            "accepts": "留存操作依据"
+          },
+          {
+            "id": "t5",
+            "label": "风险观察",
+            "role": "证据门",
+            "accepts": "持续跟踪指标"
+          },
+          {
+            "id": "t6",
+            "label": "经验沉淀",
+            "role": "证据门",
+            "accepts": "记录放量结果"
+          }
+        ],
+        "distractors": [
+          {
+            "id": "d1",
+            "label": "只记录主观描述",
+            "whyWrong": "缺少可复核证据，无法支撑工程闭环。"
+          },
+          {
+            "id": "d2",
+            "label": "跳过时间和对象边界",
+            "whyWrong": "查询窗口不清会放大排查范围。"
+          },
+          {
+            "id": "d3",
+            "label": "直接给经验结论",
+            "whyWrong": "没有证据链的结论不能作为派单依据。"
+          }
+        ],
+        "onboardingPath": [
+          {
+            "title": "看目标",
+            "body": "先识别参数差异影响的对象。"
+          },
+          {
+            "title": "做判断",
+            "body": "不能把覆盖、切换、识别和触发风险混放。"
+          },
+          {
+            "title": "控风险",
+            "body": "错误放行会把参数风险带入现网。"
+          },
+          {
+            "title": "达成交付",
+            "body": "把所有差异和动作拦到正确风险门。"
+          }
+        ],
+        "mechanicRules": [
+          "先识别参数差异影响的对象。",
+          "不能把覆盖、切换、识别和触发风险混放。",
+          "错放风险门会降低通关余量。"
+        ],
+        "winCondition": "把所有差异和动作拦到正确风险门。",
+        "levelGoals": [
+          "先识别 2 个高优先级证据卡。",
+          "连续完成 3 次正确归门，建立稳定判断。",
+          "在限定时间内完成全部证据链并达到交付分。"
+        ],
+        "failureConditions": [
+          "关键证据门缺失导致链路不可复核。",
+          "错把干扰项当作证据导致扣分超过上限。",
+          "超时仍未完成全部目标门匹配。"
+        ]
+      },
+      "answerModel": {
+        "kind": "risk-gate",
+        "group": "gate",
+        "pairs": {
+          "i1": "t1",
+          "i2": "t2",
+          "i3": "t3",
+          "i4": "t4",
+          "i5": "t5",
+          "i6": "t6"
+        },
+        "targetIds": [
+          "t1",
+          "t2",
+          "t3",
+          "t4",
+          "t5",
+          "t6"
+        ],
+        "requiredEvidenceCount": 6,
+        "distractorIds": [
+          "d1",
+          "d2",
+          "d3"
+        ],
+        "winCondition": "把所有差异和动作拦到正确风险门。",
+        "rationale": "每个判断必须回到工程证据，不能只凭描述、情绪或经验结论。"
+      },
+      "challengeLevels": [
+        {
+          "id": "level-1",
+          "label": "识别",
+          "goal": "先识别 2 个高优先级证据卡。",
+          "constraint": "允许查看提示，但连续命中才加分。"
+        },
+        {
+          "id": "level-2",
+          "label": "抗干扰",
+          "goal": "连续完成 3 次正确归门，建立稳定判断。",
+          "constraint": "干扰项会扣分并清空连击。"
+        },
+        {
+          "id": "level-3",
+          "label": "交付",
+          "goal": "在限定时间内完成全部证据链并达到交付分。",
+          "constraint": "68 秒内达到 80 分，最多 4 次失误。"
+        }
+      ],
+      "gameExperience": {
+        "onboardingPath": [
+          {
+            "title": "看目标",
+            "body": "先识别参数差异影响的对象。"
+          },
+          {
+            "title": "做判断",
+            "body": "不能把覆盖、切换、识别和触发风险混放。"
+          },
+          {
+            "title": "控风险",
+            "body": "错误放行会把参数风险带入现网。"
+          },
+          {
+            "title": "达成交付",
+            "body": "把所有差异和动作拦到正确风险门。"
+          }
+        ],
+        "mechanicRules": [
+          "先识别参数差异影响的对象。",
+          "不能把覆盖、切换、识别和触发风险混放。",
+          "错放风险门会降低通关余量。"
+        ],
+        "challengeMode": "gate",
+        "winCondition": "把所有差异和动作拦到正确风险门。",
+        "levelGoals": [
+          "先识别 2 个高优先级证据卡。",
+          "连续完成 3 次正确归门，建立稳定判断。",
+          "在限定时间内完成全部证据链并达到交付分。"
+        ],
+        "failureConditions": [
+          "关键证据门缺失导致链路不可复核。",
+          "错把干扰项当作证据导致扣分超过上限。",
+          "超时仍未完成全部目标门匹配。"
+        ],
+        "rewardModel": {
+          "badges": [
+            "风险拦截",
+            "回退可控",
+            "变更合规",
+            "闸门通过"
+          ]
+        },
+        "scoreMoments": [
+          {
+            "id": "first-critical",
+            "label": "首个关键证据归门",
+            "points": 10
+          },
+          {
+            "id": "streak-3",
+            "label": "三连击",
+            "points": 15
+          },
+          {
+            "id": "no-distractor",
+            "label": "避开干扰项",
+            "points": 15
+          },
+          {
+            "id": "chain-complete",
+            "label": "证据链闭合",
+            "points": 30
+          }
+        ]
+      },
+      "scoringRubric": {
+        "totalPoints": 100,
+        "passScore": 80,
+        "dimensions": [
+          {
+            "id": "accuracy",
+            "label": "风险闸门准确",
+            "points": 50
+          },
+          {
+            "id": "distractorControl",
+            "label": "干扰项识别",
+            "points": 20
+          },
+          {
+            "id": "speed",
+            "label": "限时完成",
+            "points": 15
+          },
+          {
+            "id": "streak",
+            "label": "连续命中",
+            "points": 15
+          }
+        ]
+      },
+      "feedbackHint": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+      "reviewSummary": {
+        "pass": "全网提升闸门已达标：证据链完整，可以进入案例复盘或工程交付。",
+        "fail": "全网提升闸门未达标：请回到缺失目标门，重新确认证据卡、证据门和干扰项边界。"
+      },
+      "legacyManifestId": "rollout-governance-lab"
+    }
+  },
+  "project": "P15",
+  "status": "published",
+  "history": [
+    {
+      "status": "published",
+      "at": "2026-05-22T00:00:00.000Z",
+      "by": "docx-importer",
+      "comment": "Published by the DGBook importer."
+    }
+  ]
+}

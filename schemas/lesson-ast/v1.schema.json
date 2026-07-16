@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dgbook.lesson-ast.v1",
+  "title": "DGBook Normalized Lesson AST",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema", "source", "project", "lesson", "content", "knowledge", "animation", "playback"],
+  "properties": {
+    "schema": { "const": "dgbook.lesson-ast/v1" },
+    "source": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["kind", "path", "importer"],
+      "properties": {
+        "kind": { "enum": ["docx", "markdown", "dsl", "pdf", "outline"] },
+        "path": { "type": "string" },
+        "importer": { "type": "string" }
+      }
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "title"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "sourceNo": { "type": "string" },
+        "chapterTitle": { "type": "string" },
+        "taskIndex": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "lesson": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "title", "widgetId", "scenario", "scenarioLabel"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "widgetId": { "type": "string" },
+        "scenario": { "type": "string" },
+        "scenarioLabel": { "type": "string" }
+      }
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["sections", "blocks"],
+      "properties": {
+        "sections": { "type": "array", "items": { "$ref": "#/$defs/section" } },
+        "blocks": { "type": "array", "items": { "$ref": "#/$defs/block" } }
+      }
+    },
+    "knowledge": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["steps", "metrics"],
+      "properties": {
+        "steps": { "type": "array", "items": { "$ref": "#/$defs/step" } },
+        "metrics": { "type": "array", "items": { "$ref": "#/$defs/metric" } }
+      }
+    },
+    "animation": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["templateHint", "durationMs", "targets"],
+      "properties": {
+        "templateHint": { "type": "string" },
+        "durationMs": { "type": "integer", "minimum": 1 },
+        "targets": { "type": "array", "items": { "$ref": "#/$defs/step" } }
+      }
+    },
+    "playback": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["mode", "widgetId"],
+      "properties": {
+        "mode": { "const": "one-way" },
+        "widgetId": { "type": "string" }
+      }
+    }
+  },
+  "$defs": {
+    "section": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "title", "texts"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "icon": { "type": "string" },
+        "texts": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "block": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "kind", "order"],
+      "properties": {
+        "id": { "type": "string" },
+        "kind": { "type": "string" },
+        "order": { "type": "integer", "minimum": 1 },
+        "text": { "type": "string" },
+        "rows": {
+          "type": "array",
+          "items": { "type": "array", "items": { "type": "string" } }
+        },
+        "mediaRefs": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "label", "description"],
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "description": { "type": "string" }
+      }
+    },
+    "metric": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["label", "value"],
+      "properties": {
+        "label": { "type": "string" },
+        "value": { "type": "string" }
+      }
+    }
+  }
+}

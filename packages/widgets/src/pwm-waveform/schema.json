@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dgbook/widgets/pwm-waveform/schema.json",
+  "title": "PWM 波形交互器",
+  "description": "拖滑块改占空比/频率,实时绘方波,联动 LED 亮度与蜂鸣器发声",
+  "type": "object",
+  "properties": {
+    "frequency": {
+      "type": "number",
+      "title": "频率 (Hz)",
+      "description": "PWM 信号频率,1Hz 看得见 LED 闪烁,>20Hz 进入连续亮,>500Hz 蜂鸣可听",
+      "minimum": 1,
+      "maximum": 5000,
+      "default": 1
+    },
+    "dutyCycle": {
+      "type": "number",
+      "title": "占空比 (%)",
+      "description": "高电平时间占总周期的百分比",
+      "minimum": 0,
+      "maximum": 100,
+      "default": 50
+    },
+    "ledLink": {
+      "type": "boolean",
+      "title": "联动 LED 亮度",
+      "default": true
+    },
+    "buzzerLink": {
+      "type": "boolean",
+      "title": "联动蜂鸣器音调",
+      "default": false
+    }
+  },
+  "required": []
+}

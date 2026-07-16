@@ -1,0 +1,651 @@
+.learning-phase-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 14px 0 18px;
+}
+
+.learning-phase-strip div {
+  min-height: 82px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 10px;
+  align-content: center;
+  border: 1px solid #d8e3f3;
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #fff, #f6fbff);
+}
+
+.learning-phase-strip span {
+  grid-row: 1 / span 2;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #0c58d9;
+  background: #eaf2ff;
+  font-weight: 950;
+}
+
+.learning-phase-strip strong {
+  color: #0b1d3d;
+  font-size: 15px;
+}
+
+.learning-phase-strip small {
+  color: #5a6d86;
+  line-height: 1.45;
+}
+
+.learning-phase-strip .is-active {
+  border-color: #8db0ff;
+  box-shadow: 0 12px 26px rgba(12, 88, 217, .12);
+}
+
+.graph-filter button span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  text-align: left;
+}
+
+.graph-filter button small {
+  color: #6f819c;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.graph-chapter-rail {
+  margin-top: 22px;
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+}
+
+.graph-chapter-rail strong {
+  display: block;
+  margin-bottom: 10px;
+  color: #0b1d3d;
+}
+
+.graph-chapter-rail ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.graph-chapter-rail li {
+  border: 1px solid #d9e5f3;
+  border-radius: 10px;
+  padding: 9px 10px;
+  color: #35506f;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.graph-chapter-rail li.is-current {
+  color: #0c58d9;
+  border-color: #9cb8ff;
+  background: #eef4ff;
+}
+
+.role-entry-page {
+  width: min(1420px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 34px 0 52px;
+}
+
+.role-entry-hero,
+.role-entry-panel {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .96);
+  box-shadow: var(--shadow);
+}
+
+.role-entry-hero {
+  min-height: 280px;
+  display: grid;
+  align-content: center;
+  padding: 42px;
+  overflow: hidden;
+  position: relative;
+}
+
+.role-entry-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 -120px auto;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(20, 120, 255, .16), transparent 70%);
+  pointer-events: none;
+}
+
+.role-kicker {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 7px 13px;
+  color: #0756cc;
+  background: #edf4ff;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.role-entry-hero h1 {
+  max-width: 840px;
+  margin: 16px 0 10px;
+  font-size: 42px;
+  line-height: 1.15;
+}
+
+.role-entry-hero p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.role-entry-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.role-entry-panel {
+  margin-top: 20px;
+  padding: 24px;
+}
+
+.role-entry-heading {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.role-entry-heading span {
+  color: #008ba8;
+  font-weight: 950;
+}
+
+.role-entry-heading h2,
+.role-entry-heading p {
+  margin: 0;
+}
+
+.role-entry-heading p {
+  color: var(--muted);
+}
+
+.role-session-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.role-session-card {
+  min-height: 170px;
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  border: 1px solid #d9e5f3;
+  border-radius: 14px;
+  padding: 18px;
+  background: linear-gradient(135deg, #fff, #f7fbff);
+}
+
+.role-session-card span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #0c58d9;
+  font-weight: 950;
+}
+
+.role-session-card strong {
+  color: #07162f;
+  font-size: 18px;
+}
+
+.role-session-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.role-session-card small {
+  color: #0c58d9;
+  font-weight: 950;
+}
+
+.role-session-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.role-session-actions a {
+  min-height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #bfd2e8;
+  border-radius: 10px;
+  color: #0c58d9;
+  background: #f5f8ff;
+  font-weight: 950;
+}
+
+.teacher-entry-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #eef6ff, #f7fbff);
+}
+
+.role-entry-page.is-teacher .role-entry-hero {
+  color: #fff;
+  border-color: rgba(125, 216, 255, .28);
+  background:
+    radial-gradient(circle at 82% 18%, rgba(88, 112, 255, .32), transparent 28%),
+    linear-gradient(135deg, #06183c, #092a60);
+}
+
+.role-entry-page.is-teacher .role-entry-hero p {
+  color: #cfe0f8;
+}
+
+.graph-stage {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  min-height: 560px;
+  margin-top: 22px;
+  padding: 10px 0 4px;
+  isolation: isolate;
+}
+
+.graph-stage .graph-main-line,
+.graph-stage .graph-task-row,
+.graph-stage .graph-node-row,
+.graph-stage .graph-resource-row,
+.graph-stage .graph-lane-label {
+  z-index: 1;
+}
+
+.graph-edge-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: none;
+}
+
+.graph-edge {
+  fill: none;
+  stroke: #b4c3d8;
+  stroke-width: 3;
+}
+
+.graph-edge.is-active {
+  stroke: #0c58d9;
+  stroke-width: 4;
+}
+
+.graph-edge.is-resource {
+  stroke: #7b61ff;
+  stroke-dasharray: 8 9;
+  stroke-width: 2.2;
+}
+
+.graph-edge-label {
+  fill: #0c58d9;
+  font-size: 15px;
+  font-weight: 900;
+  text-anchor: middle;
+}
+
+.graph-lane-label {
+  width: max-content;
+  border-radius: 999px;
+  padding: 5px 10px;
+  color: #0c58d9;
+  background: #eef4ff;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.graph-stage .graph-main-line,
+.graph-stage .graph-task-row,
+.graph-stage .graph-node-row,
+.graph-stage .graph-resource-row {
+  margin-top: 0;
+  margin-bottom: 18px;
+}
+
+.graph-canvas {
+  overflow-x: hidden;
+}
+
+.graph-stage .graph-node-row {
+  grid-template-columns: repeat(4, minmax(130px, 1fr));
+}
+
+.graph-stage .graph-node {
+  display: flex;
+  min-height: 92px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 18px;
+  padding: 12px 10px;
+}
+
+.graph-stage .graph-node span {
+  display: inline-grid;
+  min-width: 42px;
+  height: 24px;
+  place-items: center;
+  border-radius: 999px;
+  color: #0c58d9;
+  background: #eef4ff;
+  font-size: 12px;
+}
+
+.graph-stage .graph-node strong {
+  max-width: 128px;
+  line-height: 1.2;
+}
+
+.path-card.is-disabled,
+.project-rail-item.is-disabled,
+.task-step.is-disabled,
+.ability-tile.is-disabled,
+.node-nav-item.is-disabled,
+.step-card.is-disabled,
+.graph-node.is-disabled {
+  cursor: not-allowed;
+  opacity: .76;
+  filter: grayscale(.18);
+}
+
+.path-card.is-disabled,
+.task-step.is-disabled,
+.ability-tile.is-disabled,
+.node-nav-item.is-disabled,
+.step-card.is-disabled,
+.graph-node.is-disabled {
+  border-style: dashed;
+  background: linear-gradient(135deg, #ffffff, #f4f8fd);
+}
+
+.self-study-shell {
+  grid-template-columns: 220px minmax(0, 1fr) 320px;
+  padding-bottom: 148px;
+}
+
+.self-task-panel {
+  max-height: calc(100dvh - 118px);
+  overflow: auto;
+}
+
+.self-main {
+  min-width: 0;
+}
+
+.self-content-stack {
+  display: grid;
+  gap: 14px;
+  border: 1px solid rgba(14, 165, 233, .12);
+  border-radius: 18px;
+  padding: 14px;
+  background: linear-gradient(180deg, rgba(248, 252, 255, .95), rgba(255, 255, 255, .92));
+}
+
+.self-practice-stack {
+  margin-top: 18px;
+}
+
+.self-practice-stack .step-strip {
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.self-practice-stack .step-card {
+  min-height: 180px;
+  display: grid;
+  align-content: start;
+  text-align: left;
+}
+
+.self-practice-stack .step-card strong {
+  line-height: 1.45;
+}
+
+.self-practice-stack .step-card small {
+  line-height: 1.55;
+}
+
+.learning-phase-strip {
+  position: sticky;
+  top: 76px;
+  z-index: 8;
+  min-height: 54px;
+  align-items: stretch;
+  padding: 8px;
+  border: 1px solid rgba(14, 165, 233, .16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .9);
+  backdrop-filter: blur(14px);
+}
+
+.learning-phase-strip > div {
+  min-height: 42px;
+  padding: 7px 10px;
+}
+
+.learning-phase-strip small {
+  display: block;
+  max-width: 20ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.self-content-stack .study-card {
+  margin-bottom: 0;
+  padding: 16px 18px;
+}
+
+.self-content-stack .study-card h1 {
+  font-size: 30px;
+}
+
+.self-content-stack .study-card p,
+.self-content-stack .clean-list {
+  line-height: 1.62;
+}
+
+.feedback-row {
+  gap: 10px;
+}
+
+.feedback-row div {
+  padding: 12px 14px;
+}
+
+.answer-prompt {
+  margin-bottom: 10px;
+  padding: 12px;
+}
+
+.self-record-status {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  margin: 10px 0 14px;
+  border: 1px solid rgba(14, 165, 233, .18);
+  border-radius: 14px;
+  padding: 12px;
+  background: linear-gradient(135deg, #effcff, #fff);
+}
+
+.self-record-status strong {
+  color: #075985;
+}
+
+.self-record-status span {
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: #064e3b;
+  background: #dcfce7;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.self-study-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.teacher-self-study-snapshot {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  border: 1px solid rgba(34, 197, 94, .22);
+  border-radius: 14px;
+  padding: 12px;
+  background: linear-gradient(135deg, #f0fdf4, #ffffff);
+}
+
+.teacher-self-study-snapshot span {
+  color: #047857;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.teacher-self-study-snapshot p {
+  margin: 0;
+  color: #24415c;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.edugame-practice-card .practice-heading {
+  border-bottom-color: #143b59;
+  color: #eaffff;
+  background: linear-gradient(135deg, #06283d, #084e64 60%, #0b7185);
+}
+
+.edugame-practice-card .practice-heading span {
+  color: #67e8f9;
+}
+
+.edugame-practice-card .practice-heading h2,
+.edugame-practice-card .practice-heading p {
+  color: #f0fdff;
+}
+
+.practice-coach {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px 18px 0;
+}
+
+.practice-coach div {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 4px 10px;
+  min-height: 78px;
+  border: 1px solid rgba(14, 165, 233, .16);
+  border-radius: 14px;
+  padding: 12px;
+  background: linear-gradient(135deg, #ffffff, #eefbff);
+}
+
+.practice-coach span {
+  grid-row: 1 / span 2;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #062235;
+  background: #7df4ff;
+  font-weight: 950;
+}
+
+.practice-coach strong {
+  color: #062235;
+  font-size: 14px;
+}
+
+.practice-coach p {
+  margin: 0;
+  color: #416075;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.edugame-practice-card .eg-stage-wrap {
+  height: clamp(440px, 34vw, 540px);
+}
+
+.game-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 14px;
+  padding: 0 18px 18px;
+}
+
+.game-workbench .dg-edugame-interactive {
+  min-width: 0;
+}
+
+.game-record-strip {
+  position: sticky;
+  top: 96px;
+  min-height: 220px;
+}
+
+.game-record-guide {
+  display: grid;
+  gap: 12px;
+}
+
+.game-record-guide ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.game-record-guide li {
+  border: 1px solid #d9e5f1;
+  border-radius: 10px;
+  padding: 10px;
+  color: #263a57;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.game-record-metrics div {
+  min-height: 58px;
+}

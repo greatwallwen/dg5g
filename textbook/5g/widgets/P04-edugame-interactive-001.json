@@ -1,0 +1,769 @@
+{
+  "id": "P04-edugame-interactive-001",
+  "widget": "edugame-pixi",
+  "version": "0.1.0",
+  "props": {
+    "title": "DT/CQT 路线挑战",
+    "height": 720,
+    "gameConfig": {
+      "schema": "dgbook.edugame-pixi/v1",
+      "game_id": "route-planning-lab",
+      "game_type": "quiz-rush",
+      "lesson_id": "P04",
+      "duration": 68,
+      "difficulty": "normal",
+      "asset_pack": "dgbook-5g-v1",
+      "mistake_limit": 4,
+      "pass_score": 80,
+      "knowledge_points": [
+        {
+          "id": "t1",
+          "name": "连续覆盖",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t2",
+          "name": "热点体验",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t3",
+          "name": "数据密度",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t4",
+          "name": "体验口径",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t5",
+          "name": "复盘入口",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t6",
+          "name": "闭环验证",
+          "description": "证据门",
+          "weight": 1
+        }
+      ],
+      "levels": [
+        {
+          "level_id": "p04-level-01",
+          "type": "quiz-rush",
+          "goal": "区分 DT 连续路测和 CQT 定点测试，选择正确采样策略。",
+          "time_limit": 68,
+          "mistake_limit": 4,
+          "items": [
+            {
+              "id": "i1",
+              "label": "DT 路线",
+              "text": "现场任务：优化前需要同时覆盖主干道路和商圈热点。",
+              "prompt": "判断“DT 路线”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "沿道路观察覆盖和切换变化",
+              "target_id": "t1",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 沿道路观察覆盖和切换变化",
+              "kp": "t1",
+              "order": 1,
+              "correct": true
+            },
+            {
+              "id": "i2",
+              "label": "CQT 点位",
+              "text": "交付要求：区分 DT 连续路测和 CQT 定点测试，选择正确采样策略。",
+              "prompt": "判断“CQT 点位”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "在固定场景复现业务",
+              "target_id": "t2",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 在固定场景复现业务",
+              "kp": "t2",
+              "order": 2,
+              "correct": true
+            },
+            {
+              "id": "i3",
+              "label": "采样间隔",
+              "text": "挑战约束：玩家要判断连续采样和定点复现的边界，避免用一种路线解决所有问题。",
+              "prompt": "判断“采样间隔”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "决定轨迹颗粒度和漏采风险",
+              "target_id": "t3",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 决定轨迹颗粒度和漏采风险",
+              "kp": "t3",
+              "order": 3,
+              "correct": true
+            },
+            {
+              "id": "i4",
+              "label": "业务脚本",
+              "text": "优化前需要同时覆盖主干道路和商圈热点。",
+              "prompt": "判断“业务脚本”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "统一测试业务类型和时长",
+              "target_id": "t4",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 统一测试业务类型和时长",
+              "kp": "t4",
+              "order": 4,
+              "correct": true
+            },
+            {
+              "id": "i5",
+              "label": "异常标记",
+              "text": "优化前需要同时覆盖主干道路和商圈热点。",
+              "prompt": "判断“异常标记”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "记录问题发生位置与现象",
+              "target_id": "t5",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 记录问题发生位置与现象",
+              "kp": "t5",
+              "order": 5,
+              "correct": true
+            },
+            {
+              "id": "i6",
+              "label": "复测路线",
+              "text": "优化前需要同时覆盖主干道路和商圈热点。",
+              "prompt": "判断“复测路线”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "检验优化动作是否有效",
+              "target_id": "t6",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 检验优化动作是否有效",
+              "kp": "t6",
+              "order": 6,
+              "correct": true
+            },
+            {
+              "id": "d1",
+              "label": "只记录主观描述",
+              "text": "缺少可复核证据，无法支撑工程闭环。",
+              "prompt": "这是干扰信息，先判断它是否能直接支撑本关目标。",
+              "definition": "缺少可复核证据，无法支撑工程闭环。",
+              "target_id": "t1",
+              "explanation": "缺少可复核证据，无法支撑工程闭环。",
+              "kp": "t1",
+              "correct": false
+            },
+            {
+              "id": "d2",
+              "label": "跳过时间和对象边界",
+              "text": "查询窗口不清会放大排查范围。",
+              "prompt": "这是干扰信息，先判断它是否能直接支撑本关目标。",
+              "definition": "查询窗口不清会放大排查范围。",
+              "target_id": "t2",
+              "explanation": "查询窗口不清会放大排查范围。",
+              "kp": "t2",
+              "correct": false
+            },
+            {
+              "id": "d3",
+              "label": "直接给经验结论",
+              "text": "没有证据链的结论不能作为派单依据。",
+              "prompt": "这是干扰信息，先判断它是否能直接支撑本关目标。",
+              "definition": "没有证据链的结论不能作为派单依据。",
+              "target_id": "t3",
+              "explanation": "没有证据链的结论不能作为派单依据。",
+              "kp": "t3",
+              "correct": false
+            }
+          ]
+        }
+      ],
+      "score_rule": {
+        "base": 0,
+        "correct": 12,
+        "wrong_penalty": 6,
+        "combo_bonus": true,
+        "time_bonus": true
+      },
+      "reward_rule": {
+        "stars": [
+          60,
+          75,
+          90
+        ],
+        "badges": [
+          "路线成形",
+          "点位命中",
+          "采样连续",
+          "复测可用"
+        ]
+      },
+      "ui": {
+        "arenaLabel": "5G 训练场",
+        "cardMark": "5G",
+        "scenario": "优化前需要同时覆盖主干道路和商圈热点。",
+        "instruction": "按测试场景选择正确路线、点位和采样策略，避免用一种测试覆盖所有问题。",
+        "actionLabel": "开始挑战",
+        "feedbackHint": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+        "onboarding": [
+          "先区分连续道路测试和定点质量测试。",
+          "每个检查点只能放入能解释该场景的策略。",
+          "路线策略错误会造成覆盖盲区或样本偏差。",
+          "按 DT/CQT 场景完成路线、点位和采样策略选择。"
+        ]
+      },
+      "interaction": {
+        "actionLabel": "开始挑战",
+        "ruleChecks": [
+          "先区分连续道路测试和定点质量测试。",
+          "每个检查点只能放入能解释该场景的策略。",
+          "采样密度和业务脚本必须与测试目的一致。"
+        ],
+        "errorFeedback": [
+          "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+          "先核对对象、证据门和干扰项边界，再重新选择。"
+        ],
+        "replayPrompts": [
+          "先识别 2 个高优先级证据卡。",
+          "在限定时间内完成全部证据链并达到交付分。"
+        ]
+      },
+      "ruleChecks": [
+        "先区分连续道路测试和定点质量测试。",
+        "每个检查点只能放入能解释该场景的策略。",
+        "采样密度和业务脚本必须与测试目的一致。"
+      ],
+      "errorFeedback": [
+        "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+        "先核对对象、证据门和干扰项边界，再重新选择。"
+      ],
+      "replayPrompts": [
+        "先识别 2 个高优先级证据卡。",
+        "在限定时间内完成全部证据链并达到交付分。"
+      ],
+      "successCriteria": [
+        "按 DT/CQT 场景完成路线、点位和采样策略选择。",
+        "达到 80 分，且错误不超过 4 次。"
+      ],
+      "actionLabel": "开始挑战",
+      "template": "edugamekit.route-runner/v2",
+      "templateId": "route-runner",
+      "mechanicFamily": "quiz-rush",
+      "id": "route-planning-lab",
+      "projectId": "P04",
+      "title": "DT/CQT 路线挑战",
+      "gameType": "route-runner",
+      "objective": "区分 DT 连续路测和 CQT 定点测试，选择正确采样策略。",
+      "scenario": "优化前需要同时覆盖主干道路和商圈热点。",
+      "challenge": "玩家要判断连续采样和定点复现的边界，避免用一种路线解决所有问题。",
+      "instruction": "按测试场景选择正确路线、点位和采样策略，避免用一种测试覆盖所有问题。",
+      "challengeMode": "route",
+      "winCondition": "按 DT/CQT 场景完成路线、点位和采样策略选择。",
+      "pressureModel": {
+        "label": "路线策略错误会造成覆盖盲区或样本偏差。",
+        "failureBudget": 4,
+        "timeBudgetSec": 68
+      },
+      "mechanicRules": [
+        "先区分连续道路测试和定点质量测试。",
+        "每个检查点只能放入能解释该场景的策略。",
+        "采样密度和业务脚本必须与测试目的一致。"
+      ],
+      "timeLimitSec": 68,
+      "mistakeLimit": 4,
+      "passScore": 80,
+      "totalPoints": 100,
+      "caseFacts": [
+        "现场任务：优化前需要同时覆盖主干道路和商圈热点。",
+        "交付要求：区分 DT 连续路测和 CQT 定点测试，选择正确采样策略。",
+        "挑战约束：玩家要判断连续采样和定点复现的边界，避免用一种路线解决所有问题。"
+      ],
+      "evidenceTokens": [
+        {
+          "id": "i1",
+          "label": "DT 路线",
+          "role": "沿道路观察覆盖和切换变化",
+          "severity": "critical",
+          "expectedTargetId": "t1",
+          "hint": "关键点：沿道路观察覆盖和切换变化",
+          "caseFact": "现场任务：优化前需要同时覆盖主干道路和商圈热点。",
+          "challenge": "判断“DT 路线”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 沿道路观察覆盖和切换变化",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 沿道路观察覆盖和切换变化",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i2",
+          "label": "CQT 点位",
+          "role": "在固定场景复现业务",
+          "severity": "critical",
+          "expectedTargetId": "t2",
+          "hint": "关键点：在固定场景复现业务",
+          "caseFact": "交付要求：区分 DT 连续路测和 CQT 定点测试，选择正确采样策略。",
+          "challenge": "判断“CQT 点位”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 在固定场景复现业务",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 在固定场景复现业务",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i3",
+          "label": "采样间隔",
+          "role": "决定轨迹颗粒度和漏采风险",
+          "severity": "high",
+          "expectedTargetId": "t3",
+          "hint": "关键点：决定轨迹颗粒度和漏采风险",
+          "caseFact": "挑战约束：玩家要判断连续采样和定点复现的边界，避免用一种路线解决所有问题。",
+          "challenge": "判断“采样间隔”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 决定轨迹颗粒度和漏采风险",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 决定轨迹颗粒度和漏采风险",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i4",
+          "label": "业务脚本",
+          "role": "统一测试业务类型和时长",
+          "severity": "high",
+          "expectedTargetId": "t4",
+          "hint": "关键点：统一测试业务类型和时长",
+          "caseFact": "优化前需要同时覆盖主干道路和商圈热点。",
+          "challenge": "判断“业务脚本”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 统一测试业务类型和时长",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 统一测试业务类型和时长",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i5",
+          "label": "异常标记",
+          "role": "记录问题发生位置与现象",
+          "severity": "normal",
+          "expectedTargetId": "t5",
+          "hint": "关键点：记录问题发生位置与现象",
+          "caseFact": "优化前需要同时覆盖主干道路和商圈热点。",
+          "challenge": "判断“异常标记”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 记录问题发生位置与现象",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 记录问题发生位置与现象",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i6",
+          "label": "复测路线",
+          "role": "检验优化动作是否有效",
+          "severity": "normal",
+          "expectedTargetId": "t6",
+          "hint": "关键点：检验优化动作是否有效",
+          "caseFact": "优化前需要同时覆盖主干道路和商圈热点。",
+          "challenge": "判断“复测路线”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 检验优化动作是否有效",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 检验优化动作是否有效",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        }
+      ],
+      "targetGates": [
+        {
+          "id": "t1",
+          "label": "连续覆盖",
+          "role": "证据门",
+          "accepts": "沿道路观察覆盖和切换变化"
+        },
+        {
+          "id": "t2",
+          "label": "热点体验",
+          "role": "证据门",
+          "accepts": "在固定场景复现业务"
+        },
+        {
+          "id": "t3",
+          "label": "数据密度",
+          "role": "证据门",
+          "accepts": "决定轨迹颗粒度和漏采风险"
+        },
+        {
+          "id": "t4",
+          "label": "体验口径",
+          "role": "证据门",
+          "accepts": "统一测试业务类型和时长"
+        },
+        {
+          "id": "t5",
+          "label": "复盘入口",
+          "role": "证据门",
+          "accepts": "记录问题发生位置与现象"
+        },
+        {
+          "id": "t6",
+          "label": "闭环验证",
+          "role": "证据门",
+          "accepts": "检验优化动作是否有效"
+        }
+      ],
+      "distractors": [
+        {
+          "id": "d1",
+          "label": "只记录主观描述",
+          "whyWrong": "缺少可复核证据，无法支撑工程闭环。"
+        },
+        {
+          "id": "d2",
+          "label": "跳过时间和对象边界",
+          "whyWrong": "查询窗口不清会放大排查范围。"
+        },
+        {
+          "id": "d3",
+          "label": "直接给经验结论",
+          "whyWrong": "没有证据链的结论不能作为派单依据。"
+        }
+      ],
+      "levelGoals": [
+        "先识别 2 个高优先级证据卡。",
+        "连续完成 3 次正确归门，建立稳定判断。",
+        "在限定时间内完成全部证据链并达到交付分。"
+      ],
+      "failureConditions": [
+        "关键证据门缺失导致链路不可复核。",
+        "错把干扰项当作证据导致扣分超过上限。",
+        "超时仍未完成全部目标门匹配。"
+      ],
+      "feedback": {
+        "correct": "证据有效：这张证据卡能直接支撑当前工程判断。",
+        "wrong": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+        "nearMiss": "方向接近，但证据粒度还不够支撑交付结论。",
+        "complete": "证据链闭合，可以进入复盘或派单。"
+      },
+      "inputModel": {
+        "kind": "route-runner",
+        "group": "route",
+        "template": "edugamekit.route-runner/v2",
+        "templateId": "route-runner",
+        "mechanicFamily": "quiz-rush",
+        "gameClass": "DT/CQT 路线挑战",
+        "mechanicLabel": "路线策略挑战",
+        "challengeMode": "route",
+        "visualMetaphor": "测试路线跑道",
+        "instruction": "按测试场景选择正确路线、点位和采样策略，避免用一种测试覆盖所有问题。",
+        "minActions": 6,
+        "caseFacts": [
+          "现场任务：优化前需要同时覆盖主干道路和商圈热点。",
+          "交付要求：区分 DT 连续路测和 CQT 定点测试，选择正确采样策略。",
+          "挑战约束：玩家要判断连续采样和定点复现的边界，避免用一种路线解决所有问题。"
+        ],
+        "options": [
+          {
+            "id": "i1",
+            "label": "DT 路线",
+            "role": "沿道路观察覆盖和切换变化",
+            "severity": "critical",
+            "expectedTargetId": "t1",
+            "hint": "关键点：沿道路观察覆盖和切换变化",
+            "caseFact": "现场任务：优化前需要同时覆盖主干道路和商圈热点。",
+            "challenge": "判断“DT 路线”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 沿道路观察覆盖和切换变化",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 沿道路观察覆盖和切换变化",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i2",
+            "label": "CQT 点位",
+            "role": "在固定场景复现业务",
+            "severity": "critical",
+            "expectedTargetId": "t2",
+            "hint": "关键点：在固定场景复现业务",
+            "caseFact": "交付要求：区分 DT 连续路测和 CQT 定点测试，选择正确采样策略。",
+            "challenge": "判断“CQT 点位”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 在固定场景复现业务",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 在固定场景复现业务",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i3",
+            "label": "采样间隔",
+            "role": "决定轨迹颗粒度和漏采风险",
+            "severity": "high",
+            "expectedTargetId": "t3",
+            "hint": "关键点：决定轨迹颗粒度和漏采风险",
+            "caseFact": "挑战约束：玩家要判断连续采样和定点复现的边界，避免用一种路线解决所有问题。",
+            "challenge": "判断“采样间隔”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 决定轨迹颗粒度和漏采风险",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 决定轨迹颗粒度和漏采风险",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i4",
+            "label": "业务脚本",
+            "role": "统一测试业务类型和时长",
+            "severity": "high",
+            "expectedTargetId": "t4",
+            "hint": "关键点：统一测试业务类型和时长",
+            "caseFact": "优化前需要同时覆盖主干道路和商圈热点。",
+            "challenge": "判断“业务脚本”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 统一测试业务类型和时长",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 统一测试业务类型和时长",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i5",
+            "label": "异常标记",
+            "role": "记录问题发生位置与现象",
+            "severity": "normal",
+            "expectedTargetId": "t5",
+            "hint": "关键点：记录问题发生位置与现象",
+            "caseFact": "优化前需要同时覆盖主干道路和商圈热点。",
+            "challenge": "判断“异常标记”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 记录问题发生位置与现象",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 记录问题发生位置与现象",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i6",
+            "label": "复测路线",
+            "role": "检验优化动作是否有效",
+            "severity": "normal",
+            "expectedTargetId": "t6",
+            "hint": "关键点：检验优化动作是否有效",
+            "caseFact": "优化前需要同时覆盖主干道路和商圈热点。",
+            "challenge": "判断“复测路线”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 检验优化动作是否有效",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 检验优化动作是否有效",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          }
+        ],
+        "targets": [
+          {
+            "id": "t1",
+            "label": "连续覆盖",
+            "role": "证据门",
+            "accepts": "沿道路观察覆盖和切换变化"
+          },
+          {
+            "id": "t2",
+            "label": "热点体验",
+            "role": "证据门",
+            "accepts": "在固定场景复现业务"
+          },
+          {
+            "id": "t3",
+            "label": "数据密度",
+            "role": "证据门",
+            "accepts": "决定轨迹颗粒度和漏采风险"
+          },
+          {
+            "id": "t4",
+            "label": "体验口径",
+            "role": "证据门",
+            "accepts": "统一测试业务类型和时长"
+          },
+          {
+            "id": "t5",
+            "label": "复盘入口",
+            "role": "证据门",
+            "accepts": "记录问题发生位置与现象"
+          },
+          {
+            "id": "t6",
+            "label": "闭环验证",
+            "role": "证据门",
+            "accepts": "检验优化动作是否有效"
+          }
+        ],
+        "distractors": [
+          {
+            "id": "d1",
+            "label": "只记录主观描述",
+            "whyWrong": "缺少可复核证据，无法支撑工程闭环。"
+          },
+          {
+            "id": "d2",
+            "label": "跳过时间和对象边界",
+            "whyWrong": "查询窗口不清会放大排查范围。"
+          },
+          {
+            "id": "d3",
+            "label": "直接给经验结论",
+            "whyWrong": "没有证据链的结论不能作为派单依据。"
+          }
+        ],
+        "onboardingPath": [
+          {
+            "title": "看目标",
+            "body": "先区分连续道路测试和定点质量测试。"
+          },
+          {
+            "title": "做判断",
+            "body": "每个检查点只能放入能解释该场景的策略。"
+          },
+          {
+            "title": "控风险",
+            "body": "路线策略错误会造成覆盖盲区或样本偏差。"
+          },
+          {
+            "title": "达成交付",
+            "body": "按 DT/CQT 场景完成路线、点位和采样策略选择。"
+          }
+        ],
+        "mechanicRules": [
+          "先区分连续道路测试和定点质量测试。",
+          "每个检查点只能放入能解释该场景的策略。",
+          "采样密度和业务脚本必须与测试目的一致。"
+        ],
+        "winCondition": "按 DT/CQT 场景完成路线、点位和采样策略选择。",
+        "levelGoals": [
+          "先识别 2 个高优先级证据卡。",
+          "连续完成 3 次正确归门，建立稳定判断。",
+          "在限定时间内完成全部证据链并达到交付分。"
+        ],
+        "failureConditions": [
+          "关键证据门缺失导致链路不可复核。",
+          "错把干扰项当作证据导致扣分超过上限。",
+          "超时仍未完成全部目标门匹配。"
+        ]
+      },
+      "answerModel": {
+        "kind": "route-runner",
+        "group": "route",
+        "pairs": {
+          "i1": "t1",
+          "i2": "t2",
+          "i3": "t3",
+          "i4": "t4",
+          "i5": "t5",
+          "i6": "t6"
+        },
+        "targetIds": [
+          "t1",
+          "t2",
+          "t3",
+          "t4",
+          "t5",
+          "t6"
+        ],
+        "requiredEvidenceCount": 6,
+        "distractorIds": [
+          "d1",
+          "d2",
+          "d3"
+        ],
+        "winCondition": "按 DT/CQT 场景完成路线、点位和采样策略选择。",
+        "rationale": "每个判断必须回到工程证据，不能只凭描述、情绪或经验结论。"
+      },
+      "challengeLevels": [
+        {
+          "id": "level-1",
+          "label": "识别",
+          "goal": "先识别 2 个高优先级证据卡。",
+          "constraint": "允许查看提示，但连续命中才加分。"
+        },
+        {
+          "id": "level-2",
+          "label": "抗干扰",
+          "goal": "连续完成 3 次正确归门，建立稳定判断。",
+          "constraint": "干扰项会扣分并清空连击。"
+        },
+        {
+          "id": "level-3",
+          "label": "交付",
+          "goal": "在限定时间内完成全部证据链并达到交付分。",
+          "constraint": "68 秒内达到 80 分，最多 4 次失误。"
+        }
+      ],
+      "gameExperience": {
+        "onboardingPath": [
+          {
+            "title": "看目标",
+            "body": "先区分连续道路测试和定点质量测试。"
+          },
+          {
+            "title": "做判断",
+            "body": "每个检查点只能放入能解释该场景的策略。"
+          },
+          {
+            "title": "控风险",
+            "body": "路线策略错误会造成覆盖盲区或样本偏差。"
+          },
+          {
+            "title": "达成交付",
+            "body": "按 DT/CQT 场景完成路线、点位和采样策略选择。"
+          }
+        ],
+        "mechanicRules": [
+          "先区分连续道路测试和定点质量测试。",
+          "每个检查点只能放入能解释该场景的策略。",
+          "采样密度和业务脚本必须与测试目的一致。"
+        ],
+        "challengeMode": "route",
+        "winCondition": "按 DT/CQT 场景完成路线、点位和采样策略选择。",
+        "levelGoals": [
+          "先识别 2 个高优先级证据卡。",
+          "连续完成 3 次正确归门，建立稳定判断。",
+          "在限定时间内完成全部证据链并达到交付分。"
+        ],
+        "failureConditions": [
+          "关键证据门缺失导致链路不可复核。",
+          "错把干扰项当作证据导致扣分超过上限。",
+          "超时仍未完成全部目标门匹配。"
+        ],
+        "rewardModel": {
+          "badges": [
+            "路线成形",
+            "点位命中",
+            "采样连续",
+            "复测可用"
+          ]
+        },
+        "scoreMoments": [
+          {
+            "id": "first-critical",
+            "label": "首个关键证据归门",
+            "points": 10
+          },
+          {
+            "id": "streak-3",
+            "label": "三连击",
+            "points": 15
+          },
+          {
+            "id": "no-distractor",
+            "label": "避开干扰项",
+            "points": 15
+          },
+          {
+            "id": "chain-complete",
+            "label": "证据链闭合",
+            "points": 30
+          }
+        ]
+      },
+      "scoringRubric": {
+        "totalPoints": 100,
+        "passScore": 80,
+        "dimensions": [
+          {
+            "id": "accuracy",
+            "label": "路线策略准确",
+            "points": 50
+          },
+          {
+            "id": "distractorControl",
+            "label": "干扰项识别",
+            "points": 20
+          },
+          {
+            "id": "speed",
+            "label": "限时完成",
+            "points": 15
+          },
+          {
+            "id": "streak",
+            "label": "连续命中",
+            "points": 15
+          }
+        ]
+      },
+      "feedbackHint": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+      "reviewSummary": {
+        "pass": "DT/CQT 路线挑战已达标：证据链完整，可以进入案例复盘或工程交付。",
+        "fail": "DT/CQT 路线挑战未达标：请回到缺失目标门，重新确认证据卡、证据门和干扰项边界。"
+      },
+      "legacyManifestId": "route-planning-lab"
+    }
+  },
+  "project": "P04",
+  "status": "published",
+  "history": [
+    {
+      "status": "published",
+      "at": "2026-05-22T00:00:00.000Z",
+      "by": "docx-importer",
+      "comment": "Published by the DGBook importer."
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dgbook.asset.text.v1",
+  "title": "DGBook Text Asset",
+  "type": "object",
+  "required": ["schema", "id", "title", "blocks"],
+  "properties": {
+    "schema": { "const": "dgbook.asset.text/v1" },
+    "id": { "type": "string" },
+    "title": { "type": "string" },
+    "blocks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "kind"],
+        "properties": {
+          "id": { "type": "string" },
+          "kind": { "enum": ["heading", "paragraph", "callout", "formula", "code", "table"] },
+          "level": { "type": "number", "minimum": 1, "maximum": 6 },
+          "content": { "type": "string" },
+          "richText": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["text"],
+              "properties": {
+                "text": { "type": "string" },
+                "marks": {
+                  "type": "array",
+                  "items": { "enum": ["bold", "italic", "code"] }
+                }
+              }
+            }
+          },
+          "latex": { "type": "string" }
+        }
+      }
+    }
+  }
+}

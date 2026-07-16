@@ -1,0 +1,795 @@
+:root {
+  --dg-bg: #03111e;
+  --dg-surface: #071b2f;
+  --dg-surface-raised: #0a243b;
+  --dg-surface-strong: #0d2d48;
+  --dg-surface-soft: #10283d;
+  --dg-paper: #f3f6f7;
+  --dg-text: #eaf4f8;
+  --dg-text-strong: #ffffff;
+  --dg-muted: #9bb2c2;
+  --dg-line: #294a60;
+  --dg-line-strong: #3d647b;
+  --dg-current: #2dd4d0;
+  --dg-mastered: #39c98b;
+  --dg-verified: #efc75e;
+  --dg-returned: #e9a33d;
+  --dg-error: #ef6672;
+  --dg-info: #4b9df5;
+  --dg-font-body: 16px;
+  --dg-font-small: 12px;
+  --dg-font-label: 13px;
+  --dg-font-control: 14px;
+  --dg-font-title: 28px;
+  --dg-control-height: 44px;
+  --dg-narration-height: 104px;
+  --dg-radius: 6px;
+  --dg-shadow: 0 18px 44px rgba(0, 0, 0, .28);
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  color: var(--dg-text);
+  background: var(--dg-bg);
+  font-family: Inter, "Noto Sans SC", "Source Han Sans SC", "Microsoft YaHei", sans-serif;
+  font-size: var(--dg-font-body);
+  letter-spacing: 0;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+  letter-spacing: 0;
+}
+
+button,
+a[role="button"] {
+  min-height: var(--dg-control-height);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--dg-verified);
+  outline-offset: 2px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+[data-ui-surface="dark"] {
+  color: var(--dg-text);
+  background: var(--dg-bg);
+}
+
+/* Login: one visual field and one clear action. */
+.login-page-v3 {
+  height: 100dvh;
+  min-height: 720px;
+  grid-template-columns: minmax(0, 1fr) minmax(420px, 31vw);
+  background: var(--dg-bg);
+}
+
+.login-scene {
+  min-height: 0;
+  border-color: var(--dg-line);
+  background-color: #041524;
+  background-image:
+    linear-gradient(rgba(45, 212, 208, .05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(45, 212, 208, .05) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.login-message {
+  top: clamp(150px, 20vh, 208px);
+}
+
+.login-message h1 {
+  max-width: 760px;
+  font-size: clamp(46px, 4vw, 68px);
+}
+
+.login-message p,
+.login-brand-v3 small,
+.signal-label small,
+.login-form-v3 > header small {
+  color: var(--dg-muted);
+}
+
+.signal-label {
+  border: 1px solid rgba(61, 100, 123, .78);
+  border-left: 3px solid var(--dg-current);
+  border-radius: 4px;
+  background: rgba(5, 24, 40, .9);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .2);
+}
+
+.login-form-v3 {
+  border-color: var(--dg-line-strong);
+  border-radius: var(--dg-radius);
+  background: var(--dg-surface);
+  box-shadow: var(--dg-shadow);
+}
+
+.login-form-v3 input {
+  border-color: var(--dg-line);
+  border-radius: 5px;
+  background: var(--dg-surface-raised);
+}
+
+.login-submit {
+  font-size: var(--dg-font-control);
+}
+
+@media (max-width: 520px) {
+  .login-page-v3 { height: auto; min-height: 100dvh; grid-template-columns: minmax(0, 1fr); }
+  .login-scene { min-height: 280px; }
+  .login-form-v3 { min-width: 0; }
+}
+
+/* Course graph: dense source model, quiet default path. */
+.course-overview {
+  height: 100dvh;
+  min-height: 720px;
+  grid-template-rows: 68px minmax(0, 1fr);
+  background: var(--dg-bg);
+}
+
+.overview-topbar,
+.scene-topbar,
+.scene-classroom-topbar {
+  border-color: var(--dg-line);
+  color: var(--dg-text);
+  background: #061827;
+}
+
+.overview-topbar {
+  padding: 0 22px;
+}
+
+.overview-breadcrumb small,
+.overview-topbar nav > span,
+.scene-brand small,
+.scene-location > small {
+  color: var(--dg-muted);
+  font-size: var(--dg-font-label);
+}
+
+.overview-logout,
+.scene-icon-button {
+  min-width: var(--dg-control-height);
+  min-height: var(--dg-control-height);
+  border-color: var(--dg-line-strong);
+  color: var(--dg-text);
+  background: var(--dg-surface-raised);
+}
+
+.semantic-graph-shell {
+  grid-template-columns: 98px minmax(0, 1fr) 320px;
+  background: var(--dg-bg);
+}
+
+.graph-mode-rail,
+.semantic-graph-main,
+.semantic-graph-svg {
+  border-color: var(--dg-line);
+  background-color: var(--dg-bg);
+}
+
+.graph-mode-rail {
+  background: var(--dg-surface);
+}
+
+.graph-mode-rail > strong,
+.graph-mode-rail button,
+.graph-search input,
+.graph-zoom-controls,
+.graph-legend {
+  font-size: var(--dg-font-label);
+}
+
+.graph-mode-rail button[aria-pressed="true"] {
+  border-left-color: var(--dg-current);
+  color: var(--dg-current);
+  background: rgba(45, 212, 208, .09);
+}
+
+.graph-search,
+.graph-zoom-controls {
+  border-color: var(--dg-line-strong);
+  border-radius: var(--dg-radius);
+  color: var(--dg-text);
+  background: rgba(6, 24, 39, .96);
+}
+
+.graph-search button,
+.graph-zoom-controls button,
+.graph-zoom-controls span,
+.graph-expert-reference {
+  min-height: var(--dg-control-height);
+  font-size: var(--dg-font-control);
+}
+
+.graph-expert-reference {
+  display: inline-flex;
+  align-items: center;
+  border-left: 1px solid var(--dg-line-strong);
+  padding: 0 14px;
+  color: var(--dg-verified);
+  white-space: nowrap;
+}
+
+.graph-detail-panel {
+  border-color: var(--dg-line);
+  color: var(--dg-text);
+  background: var(--dg-surface);
+  scrollbar-color: var(--dg-line-strong) transparent;
+}
+
+.graph-detail-panel header,
+.graph-detail-panel dl > div {
+  border-color: var(--dg-line);
+}
+
+.graph-detail-panel h2,
+.graph-detail-panel dd {
+  color: var(--dg-text-strong);
+}
+
+.graph-detail-panel header span,
+.graph-detail-score strong {
+  color: var(--dg-current);
+}
+
+.graph-detail-panel header small,
+.graph-detail-panel dt,
+.graph-detail-score span {
+  color: var(--dg-muted);
+  font-size: var(--dg-font-label);
+}
+
+.graph-detail-panel > button {
+  border-color: var(--dg-current);
+  color: #031c24;
+  background: var(--dg-current);
+  font-size: var(--dg-font-control);
+}
+
+.curriculum-node .node-title,
+.curriculum-node .node-subtitle,
+.curriculum-node .node-lock-label,
+.semantic-edge text {
+  font-size: 12px;
+}
+
+.curriculum-node.is-verified > rect:not(.node-verified-ring) {
+  stroke: var(--dg-verified);
+}
+
+/* Student textbook: one stage, one optional path, one optional context drawer. */
+.textbook-scene-shell {
+  height: 100dvh;
+  min-height: 720px;
+  grid-template-rows: 68px minmax(0, 1fr);
+  background: var(--dg-bg);
+}
+
+.textbook-scene-shell.is-learning.has-open-narration {
+  grid-template-rows: 68px minmax(0, 1fr) var(--dg-narration-height);
+}
+
+.textbook-scene-shell.is-learning:not(.has-open-narration) {
+  grid-template-rows: 68px minmax(0, 1fr) 52px;
+}
+
+.scene-topbar {
+  padding: 0 22px;
+}
+
+.scene-brand strong,
+.scene-location > span {
+  color: var(--dg-text-strong);
+  font-size: var(--dg-font-control);
+}
+
+.scene-main {
+  position: relative;
+  background: var(--dg-bg);
+}
+
+.learning-workspace {
+  position: relative;
+  height: 100%;
+  grid-template-columns: 224px minmax(0, 1fr);
+  overflow: hidden;
+  color: var(--dg-text);
+  background: var(--dg-bg);
+  transition: grid-template-columns .22s ease;
+}
+
+.learning-workspace.is-path-closed {
+  grid-template-columns: 0 minmax(0, 1fr);
+}
+
+.scene-rail {
+  min-width: 0;
+  overflow: hidden;
+  border-color: var(--dg-line);
+  padding: 18px 12px;
+  color: var(--dg-text);
+  background: var(--dg-surface);
+  transition: opacity .18s ease, transform .22s ease;
+}
+
+.is-path-closed .scene-rail {
+  opacity: 0;
+  transform: translateX(-100%);
+  pointer-events: none;
+}
+
+.scene-rail header > span,
+.scene-context > header span,
+.scene-context section > span,
+.learning-scene-head > div:first-child > span,
+.learning-stage-panel > header > span,
+.learning-stage-panel > div > span,
+.learning-stage-panel > span {
+  color: var(--dg-current);
+  font-size: var(--dg-font-label);
+}
+
+.scene-rail header strong,
+.scene-rail li button strong,
+.scene-context > header strong {
+  color: var(--dg-text-strong);
+  font-size: var(--dg-font-control);
+}
+
+.scene-rail header small,
+.scene-rail li button small,
+.scene-context small {
+  color: var(--dg-muted);
+  font-size: var(--dg-font-small);
+}
+
+.scene-rail li button {
+  min-height: 66px;
+  border-radius: 5px;
+  color: var(--dg-muted);
+}
+
+.scene-rail li button.is-active {
+  border-color: var(--dg-current);
+  color: var(--dg-text-strong);
+  background: rgba(45, 212, 208, .09);
+}
+
+.scene-rail li button.is-active > span {
+  color: #04222c;
+  background: var(--dg-current);
+}
+
+.scene-rail li button.is-mastered > span {
+  background: var(--dg-mastered);
+}
+
+.rail-map-button {
+  border-color: var(--dg-line-strong);
+  color: var(--dg-current);
+  background: var(--dg-surface-raised);
+  font-size: var(--dg-font-control);
+}
+
+.learning-scroll {
+  min-width: 0;
+  overflow: hidden;
+  padding: 14px;
+  background: var(--dg-bg);
+}
+
+.learning-scene {
+  height: 100%;
+  grid-template-rows: 92px minmax(0, 1fr) 64px;
+  overflow: hidden;
+  border-color: var(--dg-line);
+  border-radius: var(--dg-radius);
+  color: var(--dg-text);
+  background: var(--dg-surface);
+  box-shadow: var(--dg-shadow);
+}
+
+.learning-scene-head {
+  grid-template-columns: minmax(190px, .68fr) minmax(520px, 1.6fr) minmax(170px, .6fr);
+  border-color: var(--dg-line);
+  padding: 12px 18px;
+}
+
+.learning-scene-head h1,
+.learning-stage-panel h2,
+.learning-output-hero h2 {
+  color: var(--dg-text-strong);
+}
+
+.learning-scene-head h1 {
+  font-size: var(--dg-font-title);
+}
+
+.learning-scene-head nav button {
+  min-height: 52px;
+  border-color: var(--dg-line);
+  color: var(--dg-muted);
+  background: var(--dg-surface-raised);
+  font-size: var(--dg-font-label);
+}
+
+.learning-scene-head nav button i {
+  color: var(--dg-muted);
+  background: var(--dg-surface-strong);
+  font-size: var(--dg-font-small);
+}
+
+.learning-scene-head nav button.is-active {
+  border-color: var(--dg-current);
+  color: var(--dg-text-strong);
+  background: rgba(45, 212, 208, .1);
+  box-shadow: inset 0 -2px var(--dg-current);
+}
+
+.learning-scene-head nav button.is-active i {
+  color: #03232a;
+  background: var(--dg-current);
+}
+
+.learning-unit-output {
+  border-color: var(--dg-mastered);
+  background: rgba(57, 201, 139, .08);
+}
+
+.learning-unit-output small,
+.learning-unit-output strong {
+  color: var(--dg-text);
+  font-size: var(--dg-font-small);
+}
+
+.learning-stage-panels,
+.learning-stage-panel {
+  color: var(--dg-text);
+  background: var(--dg-bg);
+}
+
+.learning-stage-panel.is-case {
+  background: var(--dg-bg);
+}
+
+.learning-case-visual,
+.learning-visual-wrap {
+  border-color: var(--dg-line-strong);
+  background: #04192b;
+}
+
+.learning-case-copy,
+.learning-stage-panel.is-case aside,
+.learning-stage-panel.is-visual .learning-explain,
+.learning-stage-panel.is-procedure .learning-procedure > div,
+.micro-choice > div button,
+.connection-board,
+.connection-column button,
+.card-front,
+.card-back,
+.micro-ordering > ol li,
+.micro-ordering > div button,
+.learning-resource-strip article {
+  border-color: var(--dg-line);
+  color: var(--dg-text);
+  background: var(--dg-surface-raised);
+  box-shadow: none;
+}
+
+.learning-case-copy p,
+.learning-explain p,
+.learning-explain li,
+.learning-stage-panel.is-procedure header p,
+.learning-stage-panel.is-procedure .learning-procedure small,
+.learning-correction-grid p,
+.learning-output-hero p,
+.micro-choice > p,
+.micro-choice > small,
+.micro-connection > footer span,
+.micro-cards > footer span,
+.micro-ordering > footer span {
+  color: var(--dg-muted);
+  font-size: var(--dg-font-label);
+}
+
+.learning-stage-panel.is-case .learning-case-copy p {
+  color: var(--dg-text);
+}
+
+.learning-stage-panel.is-case aside {
+  border-left-color: var(--dg-current);
+}
+
+.learning-stage-panel.is-case aside small,
+.learning-stage-panel.is-case aside em {
+  color: var(--dg-muted);
+  font-size: var(--dg-font-small);
+}
+
+.learning-stage-panel.is-case aside strong,
+.learning-stage-panel.is-procedure .learning-procedure strong,
+.micro-choice > header strong,
+.micro-connection > header strong,
+.micro-cards > header strong,
+.micro-ordering > header strong,
+.card-front strong,
+.card-back strong,
+.micro-ordering > ol li strong,
+.learning-resource-strip strong {
+  color: var(--dg-text-strong);
+  font-size: var(--dg-font-body);
+}
+
+.learning-correction-grid article,
+.learning-stage-panel.is-correction .learning-correction-grid article {
+  border-color: rgba(239, 102, 114, .6);
+  border-left-color: var(--dg-error);
+  background: rgba(239, 102, 114, .08);
+}
+
+.learning-correction-grid article.is-correction,
+.learning-stage-panel.is-correction .learning-correction-grid article.is-correction {
+  border-color: rgba(57, 201, 139, .6);
+  border-left-color: var(--dg-mastered);
+  background: rgba(57, 201, 139, .08);
+}
+
+.learning-resource-strip {
+  border-color: var(--dg-line);
+  background: transparent;
+}
+
+.learning-resource-strip small,
+.learning-resource-strip em {
+  color: var(--dg-muted);
+  font-size: var(--dg-font-small);
+}
+
+.learning-scene-footer {
+  border-color: var(--dg-line);
+  color: var(--dg-muted);
+  background: #061827;
+}
+
+.learning-scene-footer button,
+.micro-connection > footer button,
+.micro-cards > footer button,
+.micro-ordering > footer button {
+  min-height: var(--dg-control-height);
+  border-color: var(--dg-current);
+  color: #03232b;
+  background: var(--dg-current);
+  font-size: var(--dg-font-control);
+}
+
+.learning-scene-footer > span,
+.learning-scene-footer > div span {
+  color: var(--dg-muted);
+  font-size: var(--dg-font-label);
+}
+
+.scene-context {
+  position: absolute;
+  z-index: 28;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  width: 350px;
+  overflow-y: auto;
+  border: 1px solid var(--dg-line-strong);
+  border-radius: var(--dg-radius);
+  padding: 18px;
+  color: var(--dg-text);
+  background: rgba(7, 27, 47, .98);
+  box-shadow: var(--dg-shadow);
+  right: -374px;
+  visibility: hidden;
+  transform: none;
+  transition: right .24s ease, visibility .24s ease;
+  pointer-events: none;
+}
+
+.learning-workspace.is-context-open .scene-context {
+  right: 12px;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.scene-context > header {
+  grid-template-columns: 1fr auto;
+  border-color: var(--dg-line);
+}
+
+.scene-context > header strong,
+.scene-context > header small {
+  grid-column: 1 / -1;
+}
+
+.scene-context > header button {
+  width: var(--dg-control-height);
+  min-height: var(--dg-control-height);
+  border: 1px solid var(--dg-line);
+  border-radius: 5px;
+  color: var(--dg-muted);
+  background: var(--dg-surface-raised);
+}
+
+.scene-context section {
+  border-color: var(--dg-line);
+}
+
+.scene-context p {
+  color: var(--dg-text);
+  font-size: var(--dg-font-control);
+}
+
+.context-mastery strong {
+  color: var(--dg-mastered);
+}
+
+/* Formal challenge: game owns the stage; evidence is a compact instrument panel. */
+.challenge-scene {
+  height: 100%;
+  overflow: hidden;
+  padding: 14px 18px;
+  color: var(--dg-text);
+  background: var(--dg-bg);
+}
+
+.challenge-scene-head {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.challenge-scene-head h1,
+.challenge-evidence-panel h2,
+.challenge-score strong,
+.formal-score-grid strong {
+  color: var(--dg-text-strong);
+}
+
+.challenge-scene-head p,
+.challenge-evidence-panel > p,
+.challenge-score small,
+.formal-attempt-list,
+.formal-attempt-list li small {
+  color: var(--dg-muted);
+  font-size: var(--dg-font-label);
+}
+
+.challenge-layout {
+  width: 100%;
+  min-height: calc(100% - 80px);
+  grid-template-columns: minmax(0, 1fr) 330px;
+}
+
+.challenge-game-stage,
+.challenge-evidence-panel,
+.formal-score-grid > div,
+.challenge-gate-list > div,
+.skill-game-progress-loading,
+.skill-game-replay-frame,
+.skill-game-fail-summary {
+  border-color: var(--dg-line);
+  color: var(--dg-text);
+  background: var(--dg-surface);
+}
+
+.challenge-game-stage {
+  padding: 0;
+}
+
+.challenge-evidence-panel {
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.challenge-evidence-panel textarea,
+.student-evidence-workspace textarea,
+.teacher-review-panel textarea {
+  color: #142638;
+  background: var(--dg-paper);
+  font-size: var(--dg-font-control);
+}
+
+.challenge-evidence-panel > button,
+.challenge-evidence-review button {
+  min-height: var(--dg-control-height);
+  font-size: var(--dg-font-control);
+}
+
+.challenge-evidence-panel > button.is-secondary {
+  border: 1px solid var(--dg-line-strong);
+  color: var(--dg-current);
+  background: var(--dg-surface-raised);
+}
+
+.challenge-gate-list > div.is-done {
+  border-color: rgba(57, 201, 139, .55);
+  color: var(--dg-mastered);
+  background: rgba(57, 201, 139, .08);
+}
+
+.challenge-gate-list > div.is-done strong,
+.challenge-gate-list > div.is-done small {
+  color: #bdf1d6;
+}
+
+.challenge-game-stage .dg-edugame-pixi,
+.student-formal-test-workspace .dg-edugame-pixi {
+  border: 0;
+  border-radius: 0;
+  color: var(--dg-text);
+  background: var(--dg-surface);
+}
+
+.challenge-game-stage .eg-topbar h3,
+.student-formal-test-workspace .eg-topbar h3,
+.challenge-game-stage .eg-stat strong,
+.student-formal-test-workspace .eg-stat strong {
+  color: var(--dg-text-strong);
+}
+
+.challenge-game-stage .eg-topbar p,
+.student-formal-test-workspace .eg-topbar p,
+.challenge-game-stage .eg-stat span,
+.student-formal-test-workspace .eg-stat span,
+.challenge-game-stage .eg-mission p,
+.student-formal-test-workspace .eg-mission p {
+  color: var(--dg-muted);
+}
+
+.challenge-game-stage .eg-stat,
+.student-formal-test-workspace .eg-stat,
+.challenge-game-stage .eg-mission,
+.student-formal-test-workspace .eg-mission,
+.challenge-game-stage .eg-guide,
+.student-formal-test-workspace .eg-guide,
+.challenge-game-stage .eg-feedback,
+.student-formal-test-workspace .eg-feedback,
+.challenge-game-stage .eg-stage-milestones li,
+.student-formal-test-workspace .eg-stage-milestones li,
+.challenge-game-stage .eg-badge-track li,
+.student-formal-test-workspace .eg-badge-track li,
+.challenge-game-stage .eg-card-grid button,
+.student-formal-test-workspace .eg-card-grid button,
+.challenge-game-stage .eg-memory button,
+.student-formal-test-workspace .eg-memory button,
+.challenge-game-stage .eg-quiz button,
+.student-formal-test-workspace .eg-quiz button,
+.challenge-game-stage .eg-drag button,
+.student-formal-test-workspace .eg-drag button {
+  border-color: var(--dg-line-strong);
+  color: var(--dg-text);
+  background: var(--dg-surface-raised);
+}
+
+.challenge-game-stage .eg-review,
+.student-formal-test-workspace .eg-review {
+  border-color: var(--dg-line-strong);
+  color: var(--dg-text);
+  background: rgba(7, 27, 47, .98);
+}
+
+@media (max-width: 760px) {
+  .semantic-graph-shell { width: 100%; max-width: 100%; min-width: 0; grid-template-columns: minmax(0, 1fr); } .graph-expert-reference { display: none; } .graph-detail-panel { width: 100%; max-width: 100%; min-width: 0; } .graph-detail-panel > button { max-width: 100%; }
+  .challenge-layout { grid-template-columns: minmax(0, 1fr); }
+  .challenge-game-stage { min-width: 0; }
+}
+

@@ -1,0 +1,429 @@
+/* Task 8C: one contextual teacher action, private mobile inspector, and calm projector hierarchy. */
+.teacher-inspector-backdrop {
+  display: none;
+}
+
+.scene-teacher-controls {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(230px, auto) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  overflow: visible;
+}
+
+.teacher-primary-control,
+.teacher-primary-control > button {
+  min-width: 0;
+}
+
+.teacher-primary-control > button {
+  width: 100%;
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 18px;
+  white-space: nowrap;
+}
+
+.teacher-more-actions {
+  position: relative;
+}
+
+.teacher-more-actions > summary {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--dg-line-strong);
+  border-radius: 5px;
+  padding: 0 15px;
+  color: var(--dg-text);
+  background: var(--dg-surface-raised);
+  cursor: pointer;
+  font-size: var(--dg-font-control);
+  font-weight: 850;
+  list-style: none;
+}
+
+.teacher-more-actions > summary::-webkit-details-marker {
+  display: none;
+}
+
+.teacher-more-actions[open] > summary {
+  border-color: var(--dg-current);
+  color: var(--dg-current);
+}
+
+.teacher-more-actions > div {
+  position: absolute;
+  z-index: 72;
+  right: 0;
+  bottom: calc(100% + 10px);
+  width: min(520px, 72vw);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  border: 1px solid var(--dg-line-strong);
+  border-radius: 7px;
+  padding: 9px;
+  background: rgba(5, 24, 39, .98);
+  box-shadow: 0 18px 48px rgba(0, 5, 14, .4);
+}
+
+.teacher-more-actions:not([open]) > div {
+  display: none;
+}
+
+.teacher-more-actions > div button {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.scene-teacher-controls > span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--dg-muted);
+  font-size: var(--dg-font-label);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scene-teacher-stage > .p01n02-lesson-stage.is-teacher .p01n02-topology-figure {
+  isolation: isolate;
+}
+
+.scene-projector-app {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: clip;
+}
+
+.scene-projector-topbar,
+.scene-projector-footer {
+  min-width: 0;
+}
+
+.scene-projector-footer > strong {
+  font-size: clamp(16px, 1.35vw, 22px);
+}
+
+.scene-projector-footer > small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .scene-teacher-console {
+    height: 100dvh;
+    min-height: 620px;
+    grid-template-rows: 56px minmax(0, 1fr) 64px;
+    overflow: hidden;
+  }
+
+  .scene-teacher-console.has-open-narration {
+    grid-template-rows: 56px minmax(0, 1fr) 0 64px;
+  }
+
+  .scene-teacher-grid,
+  .scene-teacher-grid.is-inspector-closed {
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 62px minmax(0, 1fr);
+  }
+
+  .scene-slide-rail {
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-right: 0;
+    border-bottom: 1px solid var(--dg-line);
+    padding: 7px 8px;
+    scroll-snap-type: x proximity;
+  }
+
+  .scene-slide-rail > header {
+    display: none;
+  }
+
+  .scene-slide-rail > button {
+    min-width: 144px;
+    min-height: 46px;
+    margin: 0;
+    padding: 5px 7px;
+    scroll-snap-align: start;
+  }
+
+  .scene-slide-rail > button small {
+    display: none;
+  }
+
+  .scene-teacher-stage {
+    min-height: 0;
+    padding: 7px;
+  }
+
+  .scene-teacher-stage .stage-header {
+    display: none;
+  }
+
+  .scene-teacher-playback {
+    position: fixed;
+    z-index: 78;
+    right: 8px;
+    bottom: 72px;
+    left: 8px;
+    width: auto;
+    height: 144px;
+    border: 1px solid var(--dg-line-strong);
+    border-radius: 7px;
+    overflow: hidden;
+    box-shadow: var(--dg-shadow);
+  }
+
+  .teacher-inspector-backdrop {
+    position: fixed;
+    z-index: 88;
+    inset: 0;
+    display: block;
+    border: 0;
+    background: rgba(0, 8, 18, .7);
+    backdrop-filter: blur(2px);
+  }
+
+  .scene-teacher-inspector {
+    position: fixed;
+    z-index: 89;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(360px, calc(100vw - 24px));
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    border: 0;
+    border-left: 1px solid var(--dg-line-strong);
+    border-radius: 0;
+    padding: 12px;
+    color: var(--dg-text);
+    background: #071c2d;
+    box-shadow: -18px 0 56px rgba(0, 5, 14, .52);
+  }
+
+  .scene-teacher-controls {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 7px;
+    min-width: 0;
+    padding: 8px;
+    overflow: visible;
+  }
+
+  .teacher-primary-control > button {
+    min-height: 46px;
+    padding-inline: 10px;
+    font-size: 13px;
+  }
+
+  .teacher-more-actions > summary {
+    width: 48px;
+    min-height: 46px;
+    justify-content: center;
+    padding: 0;
+    font-size: 0;
+  }
+
+  .teacher-more-actions > div {
+    right: 0;
+    width: min(350px, calc(100vw - 16px));
+    grid-template-columns: minmax(0, 1fr);
+    max-height: 56dvh;
+    overflow-y: auto;
+  }
+
+  .scene-teacher-controls > span {
+    display: none;
+  }
+
+  .scene-teacher-console .p01n02-stage-header {
+    min-height: 66px;
+    padding: 8px 10px;
+  }
+
+  .scene-teacher-console .p01n02-stage-header p,
+  .scene-teacher-console .p01n02-stage-header > strong {
+    display: none;
+  }
+
+  .scene-teacher-console .p01n02-stage-header h1 {
+    font-size: 22px;
+  }
+
+  .scene-teacher-console .p01n02-segment-track {
+    display: flex;
+    gap: 5px;
+    overflow-x: auto;
+  }
+
+  .scene-teacher-console .p01n02-segment-track span {
+    min-width: 88px;
+  }
+
+  .scene-teacher-console .p01n02-object-label {
+    min-width: 82px;
+    padding: 5px 7px;
+  }
+
+  .scene-projector-app {
+    height: 100dvh;
+    min-height: 620px;
+    grid-template-rows: 56px minmax(0, 1fr) 56px;
+    overflow: hidden;
+  }
+
+  .scene-projector-topbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 0 9px;
+  }
+
+  .scene-projector-topbar > span {
+    display: none;
+  }
+
+  .scene-projector-topbar > strong {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 15px;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .scene-projector-stage {
+    min-width: 0;
+    min-height: 0;
+    padding: 7px;
+  }
+
+  .scene-projector-footer {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 8px;
+    padding: 0 9px;
+  }
+
+  .scene-projector-footer > strong {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 13px;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .scene-projector-footer > span:last-of-type,
+  .scene-projector-footer > small {
+    display: none;
+  }
+
+  .scene-projector-stage .p01n02-stage-header {
+    min-height: 66px;
+    padding: 8px 10px;
+  }
+
+  .scene-projector-stage .p01n02-stage-header h1 {
+    font-size: 22px;
+  }
+
+  .scene-projector-stage .p01n02-stage-header p,
+  .scene-projector-stage .p01n02-stage-header > strong {
+    display: none;
+  }
+
+  .scene-projector-stage .p01n02-segment-track {
+    display: flex;
+    gap: 5px;
+    overflow-x: auto;
+  }
+
+  .scene-projector-stage .p01n02-segment-track span {
+    min-width: 88px;
+  }
+
+  .scene-projector-stage .p01n02-object-label {
+    min-width: 78px;
+    padding: 4px 6px;
+  }
+
+  .scene-projector-stage .p01n02-projector-caption {
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+    grid-template-columns: 1fr;
+    gap: 3px;
+    padding: 8px 10px;
+  }
+
+  .scene-projector-stage .p01n02-projector-caption strong {
+    font-size: 14px;
+  }
+
+  .scene-projector-stage .p01n02-projector-caption p {
+    grid-column: 1;
+    font-size: 12px;
+  }
+
+  .projector-formal-test {
+    height: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto;
+    gap: 10px;
+    overflow-x: visible;
+    overflow-y: auto;
+    padding: 16px 14px;
+  }
+
+  .projector-formal-test h1 {
+    font-size: 28px;
+  }
+
+  .projector-test-clock {
+    grid-column: 1;
+    grid-row: auto;
+    grid-template-columns: auto 1fr auto;
+    justify-items: start;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .projector-test-clock strong {
+    font-size: 30px;
+  }
+
+  .projector-test-progress > strong {
+    font-size: 54px;
+  }
+
+  .projector-test-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .projector-test-stats article {
+    min-height: 68px;
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 8px;
+  }
+
+  .projector-formal-test > footer {
+    grid-column: 1;
+    flex-wrap: wrap;
+  }
+}

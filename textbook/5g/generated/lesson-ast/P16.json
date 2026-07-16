@@ -1,0 +1,1160 @@
+{
+  "schema": "dgbook.lesson-ast/v1",
+  "source": {
+    "kind": "docx",
+    "path": "content/5g/5g.docx",
+    "importer": "scripts/import-5g-docx.py"
+  },
+  "project": {
+    "id": "P16",
+    "title": "5G全网性能提升验证",
+    "sourceNo": "3",
+    "chapterTitle": "5G全网性能提升",
+    "taskIndex": 3
+  },
+  "lesson": {
+    "id": "P16",
+    "title": "5G全网性能提升验证",
+    "widgetId": "P16-lesson-animation-001",
+    "scenario": "kpi",
+    "scenarioLabel": "指标分析"
+  },
+  "content": {
+    "sections": [
+      {
+        "id": "sec-overview",
+        "title": "导学摘要",
+        "icon": "overview",
+        "texts": [
+          "本节讲全网提升验证：锁定前值快照、范围、周期和数据源，用目标线、TOPN 收敛、分位数和高风险区域判断提升是否稳固。"
+        ]
+      },
+      {
+        "id": "P16-ku-01",
+        "title": "概念与对象",
+        "icon": "radar",
+        "texts": [
+          "全网提升验证先固定前值和统计口径，防止样本范围、周期或数据源变化造成假改善。"
+        ]
+      },
+      {
+        "id": "P16-ku-02",
+        "title": "概念与对象",
+        "icon": "route",
+        "texts": [
+          "验证目标应可计算、可复查，明确阈值、样本量、统计周期、业务场景和通过条件。"
+        ]
+      },
+      {
+        "id": "P16-ku-03",
+        "title": "工程判读",
+        "icon": "chart",
+        "texts": [
+          "全网验证不只看平均值，还要看趋势曲线、TOPN 收敛、分位数变化和高风险区域是否改善。"
+        ]
+      },
+      {
+        "id": "P16-ku-04",
+        "title": "数据与现场佐证",
+        "icon": "tool",
+        "texts": [
+          "未达标区域要回看工参、告警、容量负荷、测试轨迹和变更记录，判断是残余问题还是口径偏差。"
+        ]
+      },
+      {
+        "id": "P16-ku-05",
+        "title": "操作校验",
+        "icon": "search",
+        "texts": [
+          "验证结果要分层标注：已通过指标、待优化指标、需继续观察指标，以及对应证据。"
+        ]
+      },
+      {
+        "id": "P16-ku-06",
+        "title": "闭环复盘",
+        "icon": "check",
+        "texts": [
+          "验证通过后固化参数版本、策略经验、适用限制和后续观察周期，保证提升效果持续。"
+        ]
+      }
+    ],
+    "blocks": [
+      {
+        "id": "block-001",
+        "kind": "paragraph",
+        "order": 1,
+        "text": "任务导入"
+      },
+      {
+        "id": "block-002",
+        "kind": "paragraph",
+        "order": 2,
+        "text": "在上一节5G全网性能提升实施的内容中，学习了通过对采集的性能指标进行分析，制定性能指标提升方案。请大家思考当性能提升方案制定完成后，如何验证性能提升方案的有效性。"
+      },
+      {
+        "id": "block-003",
+        "kind": "paragraph",
+        "order": 3,
+        "text": "任务要求"
+      },
+      {
+        "id": "block-004",
+        "kind": "paragraph",
+        "order": 4,
+        "text": "完成5G接入类性能提升方案的验证；"
+      },
+      {
+        "id": "block-005",
+        "kind": "paragraph",
+        "order": 5,
+        "text": "完成5G保持类性能提升方案的验证；"
+      },
+      {
+        "id": "block-006",
+        "kind": "paragraph",
+        "order": 6,
+        "text": "完成5G移动性类性能提升方案的验证；"
+      },
+      {
+        "id": "block-007",
+        "kind": "paragraph",
+        "order": 7,
+        "text": "完成5G资源类性能提升方案的验证；"
+      },
+      {
+        "id": "block-008",
+        "kind": "paragraph",
+        "order": 8,
+        "text": "完成5G可用类性能提升方案的验证；"
+      },
+      {
+        "id": "block-009",
+        "kind": "paragraph",
+        "order": 9,
+        "text": "知识准备"
+      },
+      {
+        "id": "block-010",
+        "kind": "paragraph",
+        "order": 10,
+        "text": "一、5G全网性能提升验证方法"
+      },
+      {
+        "id": "block-011",
+        "kind": "paragraph",
+        "order": 11,
+        "text": "性能指标提升方案制定完成后，需要对性能指标提升方案的效果进行验证。如果验证效果不满足要求，需要对性能提升后的验证数据再次进行分析，并制定新的性能指标提升方案，直至性能指标满足要求。"
+      },
+      {
+        "id": "block-012",
+        "kind": "paragraph",
+        "order": 12,
+        "text": "性能指标提升方案验证方法有："
+      },
+      {
+        "id": "block-013",
+        "kind": "paragraph",
+        "order": 13,
+        "text": "1.网管平台"
+      },
+      {
+        "id": "block-014",
+        "kind": "paragraph",
+        "order": 14,
+        "text": "使用网管平台可以采集全网、指定区域、单小区的KPI指标，例如接通、切换、掉线、等指标历史数据。可以采集实时干扰、历史干扰、硬件CPU利用率、PRB利用率；可以采集实时用户数、历史用户数；实现告警信息的实时监控和历史告警信息采集；实现信令跟踪和追溯；实现参数的核查、修改及版本回退和升级。是后台系统工程师进行性能指标对比验证最常用的方法之一。网管平台的使用可以参考项目三5G网络信息管理内容。"
+      },
+      {
+        "id": "block-015",
+        "kind": "paragraph",
+        "order": 15,
+        "text": "2.大数据平台"
+      },
+      {
+        "id": "block-016",
+        "kind": "paragraph",
+        "order": 16,
+        "text": "使用大数据平台可以采集全网的MR数据、接通、切换、掉线、速率、MOS值端到端时延等指标；也可以采集单个用户在5G网络中的感知情况，数据采集粒度更小、数据维度更丰富；还可以输出对性能指标提升的改进意见。因此大数据平台相比其他验证方法更智能、更精细、更准确、更节约人力。可以参考项目四5G端到端网络优化内容。"
+      },
+      {
+        "id": "block-017",
+        "kind": "paragraph",
+        "order": 17,
+        "text": "3.测试软件路测"
+      },
+      {
+        "id": "block-018",
+        "kind": "paragraph",
+        "order": 18,
+        "text": "使用路测软件对性能指标提升区域进行CQT或DT复测验证，采用路测软件可以采集测试区域的MR数据、接通、切换、掉线、速率、无线侧时延等指标。是外场测试工程师对性能指标验证使用最广泛的方法。测试软件路测可以参考项目二5G网络测试内容。"
+      },
+      {
+        "id": "block-019",
+        "kind": "paragraph",
+        "order": 19,
+        "text": "4.用户回访"
+      },
+      {
+        "id": "block-020",
+        "kind": "paragraph",
+        "order": 20,
+        "text": "性能指标方案实施后，通过用户回访的方式可以捕获用户真实用户感知，验证用户投诉的问题是否解决或改善。用户投诉和用户回访可以参考项目一5G网络信息采集内容。"
+      },
+      {
+        "id": "block-021",
+        "kind": "paragraph",
+        "order": 21,
+        "mediaRefs": [
+          "rId340"
+        ]
+      },
+      {
+        "id": "block-022",
+        "kind": "paragraph",
+        "order": 22,
+        "text": "图5-3-1 性能验证数据源"
+      },
+      {
+        "id": "block-023",
+        "kind": "paragraph",
+        "order": 23,
+        "text": "任务实施"
+      },
+      {
+        "id": "block-024",
+        "kind": "paragraph",
+        "order": 24,
+        "text": "通过仿真软件进行指标验证，通过前期针对接通率进行参数调整后，通过数据中心界面进行全网性能指标验证，方法如下："
+      },
+      {
+        "id": "block-025",
+        "kind": "paragraph",
+        "order": 25,
+        "text": "一、 登陆数据采集界面，提取相应的数据进行优化前后的指标对比；"
+      },
+      {
+        "id": "block-026",
+        "kind": "paragraph",
+        "order": 26,
+        "mediaRefs": [
+          "rId341"
+        ]
+      },
+      {
+        "id": "block-027",
+        "kind": "paragraph",
+        "order": 27,
+        "text": "图5-3-2 网优仿真实训系统-全网性能指标提取"
+      },
+      {
+        "id": "block-028",
+        "kind": "paragraph",
+        "order": 28,
+        "text": "二、 导出指标数据，通过图表形式进行优化效果呈现；"
+      },
+      {
+        "id": "block-029",
+        "kind": "paragraph",
+        "order": 29,
+        "text": "随堂测试"
+      },
+      {
+        "id": "block-030",
+        "kind": "paragraph",
+        "order": 30,
+        "text": "1.提取优化前后的掉线率指标，并进行优化效果对比。"
+      },
+      {
+        "id": "block-031",
+        "kind": "paragraph",
+        "order": 31,
+        "text": "2.提取优化前后的接通率指标，并进行优化效果对比。"
+      },
+      {
+        "id": "block-032",
+        "kind": "paragraph",
+        "order": 32,
+        "text": "经典案例"
+      },
+      {
+        "id": "block-033",
+        "kind": "paragraph",
+        "order": 33,
+        "text": "一、验证5G接入类性能提升案例"
+      },
+      {
+        "id": "block-034",
+        "kind": "paragraph",
+        "order": 34,
+        "text": "（一）参数设置验证"
+      },
+      {
+        "id": "block-035",
+        "kind": "paragraph",
+        "order": 35,
+        "text": "案例-NSA 5G邻区频点数据未添加导致不下发A2测量控制"
+      },
+      {
+        "id": "block-036",
+        "kind": "paragraph",
+        "order": 36,
+        "text": "问题描述"
+      },
+      {
+        "id": "block-037",
+        "kind": "paragraph",
+        "order": 37,
+        "text": "XX站点下5G接入后不下发A2事件的重配置消息，多次测试现象都一样。问题"
+      },
+      {
+        "id": "block-038",
+        "kind": "paragraph",
+        "order": 38,
+        "text": "测试截图如下："
+      },
+      {
+        "id": "block-039",
+        "kind": "paragraph",
+        "order": 39,
+        "mediaRefs": [
+          "rId342"
+        ]
+      },
+      {
+        "id": "block-040",
+        "kind": "paragraph",
+        "order": 40,
+        "text": "图5-3-3 接入后未下发A2重配"
+      },
+      {
+        "id": "block-041",
+        "kind": "paragraph",
+        "order": 41,
+        "text": "问题分析"
+      },
+      {
+        "id": "block-042",
+        "kind": "paragraph",
+        "order": 42,
+        "text": "初步怀疑邻区配置参数不正确，在检查之后未发现异常，随后对频点参数进行了检查，发现网管侧NR频点有636680的频点记录，但小区配置菜单的频点关系未添加引用NR频点。"
+      },
+      {
+        "id": "block-043",
+        "kind": "paragraph",
+        "order": 43,
+        "mediaRefs": [
+          "rId343"
+        ]
+      },
+      {
+        "id": "block-044",
+        "kind": "paragraph",
+        "order": 44,
+        "text": "图5-3-4 参数核查"
+      },
+      {
+        "id": "block-045",
+        "kind": "paragraph",
+        "order": 45,
+        "text": "优化措施"
+      },
+      {
+        "id": "block-046",
+        "kind": "paragraph",
+        "order": 46,
+        "text": "为该站点小区配置频点关系添加引用5G频点。"
+      },
+      {
+        "id": "block-047",
+        "kind": "paragraph",
+        "order": 47,
+        "text": "优化方案验证"
+      },
+      {
+        "id": "block-048",
+        "kind": "paragraph",
+        "order": 48,
+        "text": "复测信令正常，在MSG2后有下发携带A2事件的重配置信令。"
+      },
+      {
+        "id": "block-049",
+        "kind": "paragraph",
+        "order": 49,
+        "mediaRefs": [
+          "rId344"
+        ]
+      },
+      {
+        "id": "block-050",
+        "kind": "paragraph",
+        "order": 50,
+        "text": "图5-3-5 接入后正常下发A2重配"
+      },
+      {
+        "id": "block-051",
+        "kind": "paragraph",
+        "order": 51,
+        "text": "核心网配置问题导致用户无法上网"
+      },
+      {
+        "id": "block-052",
+        "kind": "paragraph",
+        "order": 52,
+        "text": "案例-UPF地址配置错误"
+      },
+      {
+        "id": "block-053",
+        "kind": "paragraph",
+        "order": 53,
+        "text": "问题描述"
+      },
+      {
+        "id": "block-054",
+        "kind": "paragraph",
+        "order": 54,
+        "text": "5G试点SA基站开通后出现无法上网问题"
+      },
+      {
+        "id": "block-055",
+        "kind": "paragraph",
+        "order": 55,
+        "text": "问题分析"
+      },
+      {
+        "id": "block-056",
+        "kind": "paragraph",
+        "order": 56,
+        "text": "（1）检查gNODEB小区状态正常"
+      },
+      {
+        "id": "block-057",
+        "kind": "paragraph",
+        "order": 57,
+        "text": "（2）查看用户接入的NG和UU口信令发现，PDU SESSION承载建立后，出现传输资源不可用；说明PDU会话没有完全建立成功；"
+      },
+      {
+        "id": "block-058",
+        "kind": "paragraph",
+        "order": 58,
+        "mediaRefs": [
+          "rId345"
+        ]
+      },
+      {
+        "id": "block-059",
+        "kind": "paragraph",
+        "order": 59,
+        "text": "图5-3-6 PDU会话未完全建立"
+      },
+      {
+        "id": "block-060",
+        "kind": "paragraph",
+        "order": 60,
+        "text": "（3）通过DSP EPGROUP命令查询NG-U用户面状态，发现用户面NG-U底层链路故障"
+      },
+      {
+        "id": "block-061",
+        "kind": "paragraph",
+        "order": 61,
+        "mediaRefs": [
+          "rId346"
+        ]
+      },
+      {
+        "id": "block-062",
+        "kind": "paragraph",
+        "order": 62,
+        "text": "图5-3-7 NG-U底层链路故障"
+      },
+      {
+        "id": "block-063",
+        "kind": "paragraph",
+        "order": 63,
+        "text": "（4）从5G基站可以ping通基站下一跳，但无法ping通核心网UPF地址；"
+      },
+      {
+        "id": "block-064",
+        "kind": "paragraph",
+        "order": 64,
+        "text": "（5）检查基站配置发现：NG-U自动生成的UPF地址10.186.191.x不是客户提供本地市的UPF地址，而是邻市的UPF地址；"
+      },
+      {
+        "id": "block-065",
+        "kind": "paragraph",
+        "order": 65,
+        "mediaRefs": [
+          "rId347"
+        ]
+      },
+      {
+        "id": "block-066",
+        "kind": "paragraph",
+        "order": 66,
+        "text": "图5-3-8 gNB获取UPF地址获取流程"
+      },
+      {
+        "id": "block-067",
+        "kind": "paragraph",
+        "order": 67,
+        "text": "从如上信令流程里可以看到，UPF地址是AMF带给gNodeB的，说明AMF把UPF的地址携带错了，需要核心网检查。"
+      },
+      {
+        "id": "block-068",
+        "kind": "paragraph",
+        "order": 68,
+        "text": "（6）通过核心网侧的检查NG接口配置发现，本地市核心网配置的TAC和邻市冲突了，导致AMF携带的是邻市的UPF地址；修改邻市的TAC值后，DSP EPGROUP检查NG-U状态恢复正常。"
+      },
+      {
+        "id": "block-069",
+        "kind": "paragraph",
+        "order": 69,
+        "mediaRefs": [
+          "rId348"
+        ]
+      },
+      {
+        "id": "block-070",
+        "kind": "paragraph",
+        "order": 70,
+        "text": "图5-3-9 NG-U底层链路故障恢复"
+      },
+      {
+        "id": "block-071",
+        "kind": "paragraph",
+        "order": 71,
+        "text": "（7）用户接入后PDU会话承载建立成功，上网正常，问题得到解决。"
+      },
+      {
+        "id": "block-072",
+        "kind": "paragraph",
+        "order": 72,
+        "mediaRefs": [
+          "rId349"
+        ]
+      },
+      {
+        "id": "block-073",
+        "kind": "paragraph",
+        "order": 73,
+        "text": "图5-3-10 PDU会话建立正常"
+      },
+      {
+        "id": "block-074",
+        "kind": "paragraph",
+        "order": 74,
+        "text": "优化措施"
+      },
+      {
+        "id": "block-075",
+        "kind": "paragraph",
+        "order": 75,
+        "text": "本地AMF的TAC保持不变，修改邻市的TAC为其他值。"
+      },
+      {
+        "id": "block-076",
+        "kind": "paragraph",
+        "order": 76,
+        "text": "优化方案验证"
+      },
+      {
+        "id": "block-077",
+        "kind": "paragraph",
+        "order": 77,
+        "text": "用户上网问题得到解决，接入正常。"
+      },
+      {
+        "id": "block-078",
+        "kind": "paragraph",
+        "order": 78,
+        "text": "二、验证5G保持类性能提升案例"
+      },
+      {
+        "id": "block-079",
+        "kind": "paragraph",
+        "order": 79,
+        "text": "（一）掉线验证案例"
+      },
+      {
+        "id": "block-080",
+        "kind": "paragraph",
+        "order": 80,
+        "text": "弱覆盖导致5G脱网"
+      },
+      {
+        "id": "block-081",
+        "kind": "paragraph",
+        "order": 81,
+        "text": "问题描述"
+      },
+      {
+        "id": "block-082",
+        "kind": "paragraph",
+        "order": 82,
+        "text": "测试车辆在景西路上由南往北向北环路行驶，UE占用300m外的A2_SQ道头村北DRD_H-3小区，之后NR SS RSRP值持续变弱，均值低于-100dBm，NR SS SINR值为3dB，无主覆盖小区，切换至A2_SQ西上庄DRD_H-3，之后信号陡降，RSRP低于-110dBm后SCG Failure，5G脱网，FTP下载失败，速率掉零。直到重新附着A2_SQ城西加油站DRD_H-2小区。"
+      },
+      {
+        "id": "block-083",
+        "kind": "paragraph",
+        "order": 83,
+        "text": "测试截图如下："
+      },
+      {
+        "id": "block-084",
+        "kind": "paragraph",
+        "order": 84,
+        "mediaRefs": [
+          "rId350"
+        ]
+      },
+      {
+        "id": "block-085",
+        "kind": "paragraph",
+        "order": 85,
+        "text": "图5-3-11 弱覆盖导致掉线"
+      },
+      {
+        "id": "block-086",
+        "kind": "paragraph",
+        "order": 86,
+        "text": "问题分析"
+      },
+      {
+        "id": "block-087",
+        "kind": "paragraph",
+        "order": 87,
+        "text": "该路段为两侧有高楼的巷道，靠近道理的A2_SQ西上庄DRD_H站点受建筑物遮挡影响，无法覆盖问题区域；占用道路东北方向的A2_SQ道头村北DRD_H-3小区信号弱，容易因无覆盖产生乒乓切换问题，且容易因无线环境快速恶化导致5G脱网。"
+      },
+      {
+        "id": "block-088",
+        "kind": "paragraph",
+        "order": 88,
+        "text": "优化措施"
+      },
+      {
+        "id": "block-089",
+        "kind": "paragraph",
+        "order": 89,
+        "text": "该路段由于无合理站址导致的道路深度覆盖不足，短期内无法通过规划新站解决，只能通过优化手段改善，因此优化措施如下："
+      },
+      {
+        "id": "block-090",
+        "kind": "paragraph",
+        "order": 90,
+        "text": "（1）天馈调整A2_SQ西上庄DRD_H-3小区：方位角330°调整到290°，机械下倾角5°调整到7°，减少对问题路段的干扰。"
+      },
+      {
+        "id": "block-091",
+        "kind": "paragraph",
+        "order": 91,
+        "text": "（2）天馈调整A2_SQ道头村北DRD_H-3小区：方位角200°调整到220°，机械下倾角5°调整到2°，增强在问题路段覆盖。"
+      },
+      {
+        "id": "block-092",
+        "kind": "paragraph",
+        "order": 92,
+        "text": "（3）参数修改：A2_SQ道头村北DRD_H-2单波束修改为8波束小区。"
+      },
+      {
+        "id": "block-093",
+        "kind": "paragraph",
+        "order": 93,
+        "text": "优化方案验证"
+      },
+      {
+        "id": "block-094",
+        "kind": "paragraph",
+        "order": 94,
+        "text": "优化措施实施后，问题路段弱覆盖引起的乒乓切换造成终端脱网的问题解决，道路复测5G平均RSRP大于-95dBm，SINR大于9dBm，脱网问题得到解决，平均FTP下载速率高于500Mbps。复测结果如下："
+      },
+      {
+        "id": "block-095",
+        "kind": "paragraph",
+        "order": 95,
+        "mediaRefs": [
+          "rId351"
+        ]
+      },
+      {
+        "id": "block-096",
+        "kind": "paragraph",
+        "order": 96,
+        "text": "图5-3-12 弱覆盖导致掉线效果验证"
+      },
+      {
+        "id": "block-097",
+        "kind": "paragraph",
+        "order": 97,
+        "text": "三、验证5G移动性类性能提升案例"
+      },
+      {
+        "id": "block-098",
+        "kind": "paragraph",
+        "order": 98,
+        "text": "（一）乒乓切换验证案例"
+      },
+      {
+        "id": "block-099",
+        "kind": "paragraph",
+        "order": 99,
+        "text": "问题描述"
+      },
+      {
+        "id": "block-100",
+        "kind": "paragraph",
+        "order": 100,
+        "text": "测试车辆在西环路上由北往南行驶，UE在锚点小区：A2_SQ豪德建材市场二期DLS_H-111、A2_SQ苗匠物流园DLS_H-42间乒乓切换，全路段平均SINR低于5，直至占上岗头村北。问题路段测试截图如下："
+      },
+      {
+        "id": "block-101",
+        "kind": "paragraph",
+        "order": 101,
+        "mediaRefs": [
+          "rId352"
+        ]
+      },
+      {
+        "id": "block-102",
+        "kind": "paragraph",
+        "order": 102,
+        "text": "图5-3-13 乒乓切换测试图示"
+      },
+      {
+        "id": "block-103",
+        "kind": "paragraph",
+        "order": 103,
+        "text": "问题分析"
+      },
+      {
+        "id": "block-104",
+        "kind": "paragraph",
+        "order": 104,
+        "text": "主覆盖该路段的A2_SQ豪德建材市场二期DLS_H-111小区因站高不够，受路边建筑物遮挡严重，导致在该路段RSRP值更低。在更远处的A2_SQ苗匠物流园DLS_H-42小区信号接近，无主控小区导致两者乒乓，且信号重叠，SINR值受影响。"
+      },
+      {
+        "id": "block-105",
+        "kind": "paragraph",
+        "order": 105,
+        "text": "优化方案"
+      },
+      {
+        "id": "block-106",
+        "kind": "paragraph",
+        "order": 106,
+        "text": "（1）天馈调整A2_SQ豪德建材市场二期DLS_H-111小区：机械下倾角下压2°，增强近处覆盖。"
+      },
+      {
+        "id": "block-107",
+        "kind": "paragraph",
+        "order": 107,
+        "text": "（2）天馈调整A2_SQ苗匠物流园DLS_H-42小区：方位角50°调整到80°，机械下倾角3°调整到6°，增加该站站下路段覆盖，避免越区覆盖。"
+      },
+      {
+        "id": "block-108",
+        "kind": "paragraph",
+        "order": 108,
+        "text": "（3）个性化设置A2_SQ豪德建材市场二期DLS_H-111小区、A2_SQ苗匠物流园DLS_H-42小区对的CIO参数，抑制乒乓切换。"
+      },
+      {
+        "id": "block-109",
+        "kind": "paragraph",
+        "order": 109,
+        "text": "优化方案验证"
+      },
+      {
+        "id": "block-110",
+        "kind": "paragraph",
+        "order": 110,
+        "text": "按照优化方案调整后，对问题路段进行复测验证，A2_SQ苗匠物流园DLS_H-42小区和A2_SQ豪德建材市场二期DLS_H-111小区小区之间的乒乓切换得到明显改善。复测结果如下图所示。"
+      },
+      {
+        "id": "block-111",
+        "kind": "paragraph",
+        "order": 111,
+        "mediaRefs": [
+          "rId353"
+        ]
+      },
+      {
+        "id": "block-112",
+        "kind": "paragraph",
+        "order": 112,
+        "text": "图5-3-14 乒乓切换测试效果验证"
+      },
+      {
+        "id": "block-113",
+        "kind": "paragraph",
+        "order": 113,
+        "text": "四、验证5G资源类性能提升案例"
+      },
+      {
+        "id": "block-114",
+        "kind": "paragraph",
+        "order": 114,
+        "text": "（一）低速率验证案例"
+      },
+      {
+        "id": "block-115",
+        "kind": "paragraph",
+        "order": 115,
+        "text": "问题描述"
+      },
+      {
+        "id": "block-116",
+        "kind": "paragraph",
+        "order": 116,
+        "text": "测试车辆在晋春街自西向东往西环行驶，UE占用550m外的A2_SQ岗头村北DRD_H-1小区，NR SS RSRP均值低于-95dBm，NR SS SINR值为6dB，之后切换至540m外的A1_SQ西环高速口DRD_H-2小区，与占用岗头村北DRD_H-1小区的RSRP和SINR值差不多。此时FTP平均下载速率低于350Mbps，直至在西环路占用上A1_SQ苗匠物流园DRD_H站点，FTP下载速率才恢复正常。问题路段测试截图如下："
+      },
+      {
+        "id": "block-117",
+        "kind": "paragraph",
+        "order": 117,
+        "mediaRefs": [
+          "rId354"
+        ]
+      },
+      {
+        "id": "block-118",
+        "kind": "paragraph",
+        "order": 118,
+        "text": "图5-3-15 下载速率低试测试图"
+      },
+      {
+        "id": "block-119",
+        "kind": "paragraph",
+        "order": 119,
+        "text": "问题分析"
+      },
+      {
+        "id": "block-120",
+        "kind": "paragraph",
+        "order": 120,
+        "text": "该路段为三岔路口，距离周边站点距离均超过500m，前期已规划5G站点：A2_SQ豪德建材市场二期DRD_H，但由于传输光缆未能及时布放，导致站点一直未能开通。"
+      },
+      {
+        "id": "block-121",
+        "kind": "paragraph",
+        "order": 121,
+        "text": "优化方案"
+      },
+      {
+        "id": "block-122",
+        "kind": "paragraph",
+        "order": 122,
+        "text": "该路段是工程建设进度慢导致弱覆盖从而引起低速率，推动工程建设部门新站开通速度。"
+      },
+      {
+        "id": "block-123",
+        "kind": "paragraph",
+        "order": 123,
+        "text": "优化方案验证"
+      },
+      {
+        "id": "block-124",
+        "kind": "paragraph",
+        "order": 124,
+        "text": "5G站点：A2_SQ豪德建材市场二期DRD_H开通入网并完成RF优化后，对该问题区域进行复测，DT测试平均RSRP值为-85dBm，平均SINR值为25dBm，下载速率高于600Mbps。复测结果如下图所示："
+      },
+      {
+        "id": "block-125",
+        "kind": "paragraph",
+        "order": 125,
+        "mediaRefs": [
+          "rId355"
+        ]
+      },
+      {
+        "id": "block-126",
+        "kind": "paragraph",
+        "order": 126,
+        "text": "图5-3-16 下载速率优化效果图"
+      },
+      {
+        "id": "block-127",
+        "kind": "paragraph",
+        "order": 127,
+        "text": "五、验证5G可用类性能提升案例"
+      },
+      {
+        "id": "block-128",
+        "kind": "paragraph",
+        "order": 128,
+        "text": "（一）故障处理验证案例"
+      },
+      {
+        "id": "block-129",
+        "kind": "paragraph",
+        "order": 129,
+        "text": "问题描述"
+      },
+      {
+        "id": "block-130",
+        "kind": "paragraph",
+        "order": 130,
+        "text": "测试车辆在书院西街上自东向西行驶，UE占用100m内的：A2_SQ西吕匠西DRD_H-1小区，NR SS RSRP值-93dBm，NR SS SINR值为9dB。此时同站邻区：A2_SQ西吕匠西DRD_H-3的RSRP值为-87dBm，UE发起A3切换，但切换至A2_SQ西吕匠西DRD_H-3小区后，持续msg1，5G接入失败，FTP速率掉零，直至行驶300m后占用信号更强的A2_SQ北岩DRD_H-1小区。问题路段测试如下图所示："
+      },
+      {
+        "id": "block-131",
+        "kind": "paragraph",
+        "order": 131,
+        "mediaRefs": [
+          "rId356"
+        ]
+      },
+      {
+        "id": "block-132",
+        "kind": "paragraph",
+        "order": 132,
+        "text": "图5-3-17 小区下载速率降为0测试图"
+      },
+      {
+        "id": "block-133",
+        "kind": "paragraph",
+        "order": 133,
+        "text": "问题分析"
+      },
+      {
+        "id": "block-134",
+        "kind": "paragraph",
+        "order": 134,
+        "text": "A2_SQ西吕匠西DRD_H-3小区后，持续msg1，5G接入失败。从信令分析看，终端持续上报Msg1，基站未下发Msg2，之后触发SCG Failure，原因是同步失败。查询小区状态正常，但是BBU侧收光较弱，值为1；分析为光路故障导致Msg1接入异常，需要排查BBU-AAU光链路。"
+      },
+      {
+        "id": "block-135",
+        "kind": "paragraph",
+        "order": 135,
+        "mediaRefs": [
+          "rId357"
+        ]
+      },
+      {
+        "id": "block-136",
+        "kind": "paragraph",
+        "order": 136,
+        "text": "图5-3-18 SCG Failure测试图"
+      },
+      {
+        "id": "block-137",
+        "kind": "paragraph",
+        "order": 137,
+        "text": "优化方案"
+      },
+      {
+        "id": "block-138",
+        "kind": "paragraph",
+        "order": 138,
+        "text": "光链路故障排查处理。"
+      },
+      {
+        "id": "block-139",
+        "kind": "paragraph",
+        "order": 139,
+        "text": "优化方案验证"
+      },
+      {
+        "id": "block-140",
+        "kind": "paragraph",
+        "order": 140,
+        "text": "更换BBU侧光模块后，收发光恢复正常，复测小区5G接入正常，问题路段下载速率高于400M，复测结果如下："
+      },
+      {
+        "id": "block-141",
+        "kind": "paragraph",
+        "order": 141,
+        "mediaRefs": [
+          "rId358"
+        ]
+      },
+      {
+        "id": "block-142",
+        "kind": "paragraph",
+        "order": 142,
+        "text": "图5-3-19 速率优化测试图"
+      },
+      {
+        "id": "block-143",
+        "kind": "paragraph",
+        "order": 143,
+        "text": "直击难点"
+      },
+      {
+        "id": "block-144",
+        "kind": "paragraph",
+        "order": 144,
+        "text": "重点掌握接入全网性能提升方案验证的总体方法，熟悉方案验证途径，清楚验证报告的结构和呈现方式。"
+      },
+      {
+        "id": "block-145",
+        "kind": "paragraph",
+        "order": 145,
+        "text": "二维码预留二维码预留"
+      },
+      {
+        "id": "block-146",
+        "kind": "paragraph",
+        "order": 146,
+        "text": "任务测评"
+      },
+      {
+        "id": "block-147",
+        "kind": "paragraph",
+        "order": 147,
+        "text": "1.分析当5G最小接入电平-110dBm和-97dBm时，5G基站覆盖半径变化情况。"
+      },
+      {
+        "id": "block-148",
+        "kind": "paragraph",
+        "order": 148,
+        "text": "2.分析5G站内任意两个邻小区CIO从0修改为6时，小区切换指标的变化情况。"
+      },
+      {
+        "id": "block-149",
+        "kind": "paragraph",
+        "order": 149,
+        "text": "网优趣味课堂"
+      },
+      {
+        "id": "block-150",
+        "kind": "paragraph",
+        "order": 150,
+        "text": "按照集中优化的模式进行全网指标提升训练，内容包括网络指标提取、短板指标原因分析，制定优化方案、方案实施和验证共4个环节，根据项目要求将人员分为总体组、专项组、前台测试组，总体组负责全网指标监控分析，找出网络短板，制定短板提升方案并拟定计划，专项组负责方案的具体落实，前台测试组负责天线调整和验证。可以按照接通率指标提升、掉线率指标提升的课题进行实施。"
+      }
+    ],
+    "storyboard": {
+      "schema": "lesson-storyboard/v1",
+      "learningGoal": "学完后能定义全网验证口径，标注通过、待优化、需观察指标，并固化参数版本、策略经验和观察周期。",
+      "summary": "本节讲全网提升验证：锁定前值快照、范围、周期和数据源，用目标线、TOPN 收敛、分位数和高风险区域判断提升是否稳固。",
+      "knowledgeUnits": [
+        {
+          "id": "P16-ku-01",
+          "title": "前值锁定",
+          "kind": "concept",
+          "shortText": "优化前快照、范围、周期和统计口径先锁定。",
+          "narrationText": "全网提升验证先固定前值和统计口径，防止样本范围、周期或数据源变化造成假改善。"
+        },
+        {
+          "id": "P16-ku-02",
+          "title": "目标线",
+          "kind": "concept",
+          "shortText": "目标线包含阈值、样本量和业务场景。",
+          "narrationText": "验证目标应可计算、可复查，明确阈值、样本量、统计周期、业务场景和通过条件。"
+        },
+        {
+          "id": "P16-ku-03",
+          "title": "趋势判定",
+          "kind": "criteria",
+          "shortText": "前后曲线、TOPN 变化和分位数共同判定效果。",
+          "narrationText": "全网验证不只看平均值，还要看趋势曲线、TOPN 收敛、分位数变化和高风险区域是否改善。"
+        },
+        {
+          "id": "P16-ku-04",
+          "title": "异常回看",
+          "kind": "evidence",
+          "shortText": "未达标区域回看工参、告警、容量和测试证据。",
+          "narrationText": "未达标区域要回看工参、告警、容量负荷、测试轨迹和变更记录，判断是残余问题还是口径偏差。"
+        },
+        {
+          "id": "P16-ku-05",
+          "title": "通过判据",
+          "kind": "practice",
+          "shortText": "通过、待优化和需观察指标分层标注。",
+          "narrationText": "验证结果要分层标注：已通过指标、待优化指标、需继续观察指标，以及对应证据。"
+        },
+        {
+          "id": "P16-ku-06",
+          "title": "配置固化",
+          "kind": "review",
+          "shortText": "通过后固化配置、经验、限制和观察周期。",
+          "narrationText": "验证通过后固化参数版本、策略经验、适用限制和后续观察周期，保证提升效果持续。"
+        }
+      ],
+      "reviewSummary": "复盘时检查前值、目标线、趋势曲线、异常回看、通过判定和配置固化是否闭合。"
+    }
+  },
+  "knowledge": {
+    "steps": [
+      {
+        "id": "P16-knowledge-01",
+        "label": "前值锁定",
+        "description": "优化前快照、范围、周期和统计口径先锁定。"
+      },
+      {
+        "id": "P16-knowledge-02",
+        "label": "目标线",
+        "description": "目标线包含阈值、样本量和业务场景。"
+      },
+      {
+        "id": "P16-knowledge-03",
+        "label": "趋势判定",
+        "description": "前后曲线、TOPN 变化和分位数共同判定效果。"
+      },
+      {
+        "id": "P16-knowledge-04",
+        "label": "异常回看",
+        "description": "未达标区域回看工参、告警、容量和测试证据。"
+      },
+      {
+        "id": "P16-knowledge-05",
+        "label": "通过判据",
+        "description": "通过、待优化和需观察指标分层标注。"
+      },
+      {
+        "id": "P16-knowledge-06",
+        "label": "配置固化",
+        "description": "通过后固化配置、经验、限制和观察周期。"
+      }
+    ],
+    "metrics": [
+      {
+        "label": "M1",
+        "value": "PM Co"
+      },
+      {
+        "label": "M2",
+        "value": "RSRP/"
+      },
+      {
+        "label": "M3",
+        "value": "Throu"
+      }
+    ]
+  },
+  "animation": {
+    "templateHint": "optimization-loop",
+    "durationMs": 610000,
+    "targets": [
+      {
+        "id": "P16-step-01",
+        "label": "前值锁定",
+        "description": "优化前快照、范围、周期和统计口径先锁定。"
+      },
+      {
+        "id": "P16-step-02",
+        "label": "目标线",
+        "description": "目标线包含阈值、样本量和业务场景。"
+      },
+      {
+        "id": "P16-step-03",
+        "label": "趋势判定",
+        "description": "前后曲线、TOPN 变化和分位数共同判定效果。"
+      },
+      {
+        "id": "P16-step-04",
+        "label": "异常回看",
+        "description": "未达标区域回看工参、告警、容量和测试证据。"
+      },
+      {
+        "id": "P16-step-05",
+        "label": "通过判据",
+        "description": "通过、待优化和需观察指标分层标注。"
+      },
+      {
+        "id": "P16-step-06",
+        "label": "配置固化",
+        "description": "通过后固化配置、经验、限制和观察周期。"
+      }
+    ]
+  },
+  "playback": {
+    "mode": "one-way",
+    "widgetId": "P16-lesson-animation-001"
+  }
+}

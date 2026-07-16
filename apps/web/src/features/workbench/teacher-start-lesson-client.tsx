@@ -1,0 +1,122 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { Icon } from '../../ui/foundation/icons.tsx';
+
+type RequestLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+
+export interface StartTeacherLessonInput {
+  sessionId: string;
+  nodeId: string;
+  expectedRevision: number;
+  navigate: (href: string) => void;
+  request?: RequestLike;
+}
+
+export type StartTeacherLessonResult =
+  | { status: 'started' }
+  | { status: 'conflict'; currentRevision: number };
+
+export async function startTeacherLesson({
+  sessionId,
+  nodeId,
+  expectedRevision,
+  navigate,
+  request = fetch,
+}: StartTeacherLessonInput): Promise<StartTeacherLessonResult> {
+  const response = await request(
+    `/api/class-sessions/${encodeURIComponent(sessionId)}/lesson`,
+    {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ nodeId, expectedRevision }),
+    },
+  );
+  const body = await response.json().catch(() => ({})) as {
+    error?: string;
+    currentRevision?: number;
+    session?: {
+      sessionStatus?: string;
+      activeNodeId?: string;
+      activeUnitId?: string;
+    };
+  };
+  if (response.status === 409
+    && Number.isInteger(body.currentRevision)
+    && Number(body.currentRevision) >= 0) {
+    return { status: 'conflict', currentRevision: Number(body.currentRevision) };
+  }
+  if (!response.ok) {
+    throw new Error(body.error ?? `开始新课失败（${response.status}）`);
+  }
+  if (body.session?.sessionStatus !== 'active' || body.session.activeNodeId !== nodeId) {
+    throw new Error('Start lesson did not activate the selected node.');
+  }
+  navigate(`/teacher/sessions/${sessionId}`);
+  return { status: 'started' };
+}
+
+export function TeacherStartLessonClient({
+  sessionId,
+  expectedRevision,
+  options,
+  triggerLabel,
+}: {
+  sessionId: string;
+  expectedRevision: number;
+  options: Array<{ nodeId: string; title: string }>;
+  triggerLabel: string;
+}) {
+  const router = useRouter();
+  const [revision, setRevision] = useState(expectedRevision);
+  const [pendingNodeId, setPendingNodeId] = useState<string>();
+  const [message, setMessage] = useState('');
+
+  async function chooseLesson(nodeId: string) {
+    setPendingNodeId(nodeId);
+    setMessage('');
+    try {
+      const result = await startTeacherLesson({
+        sessionId,
+        nodeId,
+        expectedRevision: revision,
+        navigate: (href) => router.push(href),
+      });
+      if (result.status === 'conflict') {
+        setRevision(result.currentRevision);
+        setMessage('状态已刷新，请再次点击');
+        setPendingNodeId(undefined);
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : '开始新课失败，请刷新后重试。');
+      setPendingNodeId(undefined);
+    }
+  }
+
+  return (
+    <details aria-busy={pendingNodeId ? 'true' : 'false'} className="teacher-new-lesson">
+      <summary aria-label="开始新课">
+        <Icon name="layers" size={19} />{triggerLabel}<Icon name="arrow" size={17} />
+      </summary>
+      <div>
+        <span>第二次点击后先写入课堂状态，再进入授课节点</span>
+        {options.map((option) => (
+          <button
+            data-start-lesson-node={option.nodeId}
+            disabled={Boolean(pendingNodeId)}
+            key={option.nodeId}
+            onClick={() => void chooseLesson(option.nodeId)}
+            type="button"
+          >
+            <strong>{option.nodeId}</strong>
+            <small>{pendingNodeId === option.nodeId ? '正在开始课堂…' : option.title}</small>
+            <Icon name="arrow" size={16} />
+          </button>
+        ))}
+        {message ? <p aria-live="polite" className="teacher-new-lesson-message">{message}</p> : null}
+      </div>
+    </details>
+  );
+}

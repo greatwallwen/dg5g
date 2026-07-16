@@ -1,0 +1,1259 @@
+{
+  "schema": "dgbook.lesson-ast/v1",
+  "source": {
+    "kind": "docx",
+    "path": "content/5g/5g.docx",
+    "importer": "scripts/import-5g-docx.py"
+  },
+  "project": {
+    "id": "P02",
+    "title": "室外环境信息采集",
+    "sourceNo": "2",
+    "chapterTitle": "5G网络信息采集",
+    "taskIndex": 2
+  },
+  "lesson": {
+    "id": "P02",
+    "title": "室外环境信息采集",
+    "widgetId": "P02-lesson-animation-001",
+    "scenario": "site-survey",
+    "scenarioLabel": "信息采集"
+  },
+  "content": {
+    "sections": [
+      {
+        "id": "sec-overview",
+        "title": "导学摘要",
+        "icon": "overview",
+        "texts": [
+          "本节围绕室外覆盖环境，把地形、站向、邻区、道路热点和遮挡照片串成覆盖风险图层，用于解释弱覆盖、越区和重叠覆盖。"
+        ]
+      },
+      {
+        "id": "P02-ku-01",
+        "title": "概念与对象",
+        "icon": "radar",
+        "texts": [
+          "室外采集先描述无线信号面对的空间条件，楼宇、道路、站向、邻区和遮挡决定覆盖边界与风险位置。"
+        ]
+      },
+      {
+        "id": "P02-ku-02",
+        "title": "概念与对象",
+        "icon": "route",
+        "texts": [
+          "天线姿态要把方位角、机械下倾、电下倾和挂高放在同一口径下记录，才能解释弱覆盖、越区覆盖和重叠覆盖。"
+        ]
+      },
+      {
+        "id": "P02-ku-03",
+        "title": "工程判读",
+        "icon": "chart",
+        "texts": [
+          "外场证据应沿道路、热点、投诉点和疑似遮挡区布点，每个点都保留位置、朝向和关联小区。"
+        ]
+      },
+      {
+        "id": "P02-ku-04",
+        "title": "数据与现场佐证",
+        "icon": "tool",
+        "texts": [
+          "照片不是装饰材料，要用参照物说明拍摄方向、遮挡高度、距离关系和关联扇区，支撑后续覆盖判断。"
+        ]
+      },
+      {
+        "id": "P02-ku-05",
+        "title": "操作校验",
+        "icon": "search",
+        "texts": [
+          "字段核验关注站点编号、扇区方向、邻区关系、遮挡描述和照片标签是否一致，避免空间证据断链。"
+        ]
+      },
+      {
+        "id": "P02-ku-06",
+        "title": "闭环复盘",
+        "icon": "check",
+        "texts": [
+          "室外资料最终应形成可复查的风险图层，明确覆盖方向、遮挡位置、热点区域和邻区边界。"
+        ]
+      }
+    ],
+    "blocks": [
+      {
+        "id": "block-001",
+        "kind": "paragraph",
+        "order": 1,
+        "text": "任务导入"
+      },
+      {
+        "id": "block-002",
+        "kind": "paragraph",
+        "order": 2,
+        "text": "站点室外信息是无线网络覆盖直接要面对的客观存在的信息，是网络优化工作的重要依据判断。站点室内信息获取后，在开始网络优化工作前，还需要收集那些室外信息？怎么收集记录？要用到那些工具仪器？"
+      },
+      {
+        "id": "block-003",
+        "kind": "paragraph",
+        "order": 3,
+        "text": "任务要求"
+      },
+      {
+        "id": "block-004",
+        "kind": "paragraph",
+        "order": 4,
+        "text": "在网络优化工作开始前，需要对基站室外信息进行采集。本次任务完成基站室外信息采集，具体包括以下几个任务模块："
+      },
+      {
+        "id": "block-005",
+        "kind": "paragraph",
+        "order": 5,
+        "text": "采集室外天馈信息；"
+      },
+      {
+        "id": "block-006",
+        "kind": "paragraph",
+        "order": 6,
+        "text": "采集基站覆盖区域地形地貌等室外环境信息；"
+      },
+      {
+        "id": "block-007",
+        "kind": "paragraph",
+        "order": 7,
+        "text": "采集覆盖区域人口分布、环境信息；"
+      },
+      {
+        "id": "block-008",
+        "kind": "paragraph",
+        "order": 8,
+        "text": "熟练使用指南针、水平仪等工具。"
+      },
+      {
+        "id": "block-009",
+        "kind": "paragraph",
+        "order": 9,
+        "text": "知识准备"
+      },
+      {
+        "id": "block-010",
+        "kind": "paragraph",
+        "order": 10,
+        "text": "无线网络要做到更好的覆盖，不仅需要室内主设备及配套设备运行正常，同时也要考虑室外等环境因素，如覆盖区域的地形地貌，环境信息，人口分布，其他异频无线系统等。网络优化工作中应通过站址实地察看,采集站点室外各种信息(比如：机房地理信息、电磁背景等)并记录下来,再综合业务模型，人口覆盖，地形地貌，天馈特性等信息综合考虑，提出合适的可实施的网优方案,从而有针对性的提升无线网络性能。"
+      },
+      {
+        "id": "block-011",
+        "kind": "paragraph",
+        "order": 11,
+        "text": "一、室外铁塔类型"
+      },
+      {
+        "id": "block-012",
+        "kind": "paragraph",
+        "order": 12,
+        "text": "（一）常见铁塔类型：角钢塔、钢管塔、桅杆、拉线塔、楼面抱杆塔、灯杆塔、仿生树等"
+      },
+      {
+        "id": "block-013",
+        "kind": "paragraph",
+        "order": 13,
+        "text": "（1）角钢塔，主材及腹杆主要采用角钢制作的铁塔。根据截面变数不同有三角塔、四角塔、五角塔、六角塔、八角塔。通信最常用的为四角塔和三角塔"
+      },
+      {
+        "id": "block-014",
+        "kind": "paragraph",
+        "order": 14,
+        "text": "（2）钢管塔，主材采用钢管，斜材等采用角钢或者钢管制作的铁塔，根据截面形状分类同角钢塔，通信使用最多的是三管塔和四管塔"
+      },
+      {
+        "id": "block-015",
+        "kind": "paragraph",
+        "order": 15,
+        "text": "（3）单管塔（独管塔），整个塔身采用单根大直径钢管制作的悬臂式构筑物"
+      },
+      {
+        "id": "block-016",
+        "kind": "paragraph",
+        "order": 16,
+        "text": "（4）桅杆或拉线塔，由中央立柱和纤绳（或拉索）构成的高耸钢结构"
+      },
+      {
+        "id": "block-017",
+        "kind": "paragraph",
+        "order": 17,
+        "text": "（5）仿生树，仿生树是一种特殊的景观塔，在景区、公园、广场等应用较多，其景观造型为树木造型。"
+      },
+      {
+        "id": "block-018",
+        "kind": "paragraph",
+        "order": 18,
+        "mediaRefs": [
+          "rId46",
+          "rId47"
+        ]
+      },
+      {
+        "id": "block-019",
+        "kind": "paragraph",
+        "order": 19,
+        "text": "图1-2-1角钢塔 图1-2-2单管塔"
+      },
+      {
+        "id": "block-020",
+        "kind": "paragraph",
+        "order": 20,
+        "mediaRefs": [
+          "rId48",
+          "rId49"
+        ]
+      },
+      {
+        "id": "block-021",
+        "kind": "paragraph",
+        "order": 21,
+        "text": "图1-2-3三管塔 图1-2-4美化灯杆塔"
+      },
+      {
+        "id": "block-022",
+        "kind": "paragraph",
+        "order": 22,
+        "mediaRefs": [
+          "rId50",
+          "rId51"
+        ]
+      },
+      {
+        "id": "block-023",
+        "kind": "paragraph",
+        "order": 23,
+        "text": "图1-2-5景观塔 图1-2-6楼顶桅杆"
+      },
+      {
+        "id": "block-024",
+        "kind": "paragraph",
+        "order": 24,
+        "mediaRefs": [
+          "rId52",
+          "rId53"
+        ]
+      },
+      {
+        "id": "block-025",
+        "kind": "paragraph",
+        "order": 25,
+        "text": "图1-2-7塔房一体化 图1-2-8美化树塔"
+      },
+      {
+        "id": "block-026",
+        "kind": "paragraph",
+        "order": 26,
+        "mediaRefs": [
+          "rId54",
+          "rId55"
+        ]
+      },
+      {
+        "id": "block-027",
+        "kind": "paragraph",
+        "order": 27,
+        "text": "图1-2-9拉线塔 图1-2-10楼顶增高架"
+      },
+      {
+        "id": "block-028",
+        "kind": "paragraph",
+        "order": 28,
+        "mediaRefs": [
+          "rId56",
+          "rId57"
+        ]
+      },
+      {
+        "id": "block-029",
+        "kind": "paragraph",
+        "order": 29,
+        "text": "图1-2-11楼顶桅杆1 图1-2-12 楼顶桅杆2"
+      },
+      {
+        "id": "block-030",
+        "kind": "paragraph",
+        "order": 30,
+        "mediaRefs": [
+          "rId58",
+          "rId59"
+        ]
+      },
+      {
+        "id": "block-031",
+        "kind": "paragraph",
+        "order": 31,
+        "text": "图1-2-13楼顶美化天线1 图1-2-14 楼顶美化天线2"
+      },
+      {
+        "id": "block-032",
+        "kind": "paragraph",
+        "order": 32,
+        "text": "（二）塔型区分小窍门"
+      },
+      {
+        "id": "block-033",
+        "kind": "paragraph",
+        "order": 33,
+        "text": "角钢塔与钢管塔的区别：角钢塔是角钢(三角钢)；管塔是管状钢,圆管钢"
+      },
+      {
+        "id": "block-034",
+        "kind": "paragraph",
+        "order": 34,
+        "text": "桅杆与塔的区别：通常20m以下的为杆，20m以上的为塔；屋面的为杆，地面的为塔。"
+      },
+      {
+        "id": "block-035",
+        "kind": "paragraph",
+        "order": 35,
+        "text": "增高架为格构式的高耸钢结构，高度一般不是太高（10m—20m），截面一般为正多边形截面。地面的为地面增高架，屋面的为屋面增高架。"
+      },
+      {
+        "id": "block-036",
+        "kind": "paragraph",
+        "order": 36,
+        "text": "二、天馈设备信息"
+      },
+      {
+        "id": "block-037",
+        "kind": "paragraph",
+        "order": 37,
+        "text": "AAU是集成天线、射频的一体化形态的设备，与BBU一起构成5G NR基站。AAU外观如图1-2-15所示。"
+      },
+      {
+        "id": "block-038",
+        "kind": "table",
+        "order": 38,
+        "rows": [
+          [
+            "图中1/2标识指示：光信号接口，为AAU和BBU系统之间的光信号提供物理传输"
+          ],
+          [
+            "图中3标识指示：-48V直流电源接口"
+          ]
+        ]
+      },
+      {
+        "id": "block-039",
+        "kind": "paragraph",
+        "order": 39,
+        "mediaRefs": [
+          "rId60"
+        ]
+      },
+      {
+        "id": "block-040",
+        "kind": "paragraph",
+        "order": 40,
+        "text": "图1-2-15 AAU外观"
+      },
+      {
+        "id": "block-041",
+        "kind": "paragraph",
+        "order": 41,
+        "text": "AAU由天线、滤波器、射频模块和电源模块组成，各部分功能如下："
+      },
+      {
+        "id": "block-042",
+        "kind": "paragraph",
+        "order": 42,
+        "text": "天线：多个天线端口，多个天线振子。"
+      },
+      {
+        "id": "block-043",
+        "kind": "paragraph",
+        "order": 43,
+        "text": "滤波器：与每个收发通道对应，为满足基站射频指标提供抑制。"
+      },
+      {
+        "id": "block-044",
+        "kind": "paragraph",
+        "order": 44,
+        "text": "射频模块：多个收发通道，功率放大，低噪声放大，输出功率管理，模块温度监控。"
+      },
+      {
+        "id": "block-045",
+        "kind": "paragraph",
+        "order": 45,
+        "text": "电源模块：提供整机所需电源，电源控制，电源告警，功耗上报，防雷功能。"
+      },
+      {
+        "id": "block-046",
+        "kind": "paragraph",
+        "order": 46,
+        "text": "三、基站天馈设备挂高标准"
+      },
+      {
+        "id": "block-047",
+        "kind": "paragraph",
+        "order": 47,
+        "text": "（1）基站天线高度满足覆盖目标，一般要求天线主瓣方向100米范围内无明显阻挡；同时天线不宜过高，避免小区越区重叠，影响网络容量和质量。基站所在建筑物高度、天线挂高要求如下表1-2-1所示，实际工程中应根据具体情况作适当调整。"
+      },
+      {
+        "id": "block-048",
+        "kind": "paragraph",
+        "order": 48,
+        "text": "表1-2-1"
+      },
+      {
+        "id": "block-049",
+        "kind": "paragraph",
+        "order": 49,
+        "mediaRefs": [
+          "rId61"
+        ]
+      },
+      {
+        "id": "block-050",
+        "kind": "paragraph",
+        "order": 50,
+        "text": "（2）城区天馈设备挂高应比周围平均高度高10~15米，郊区及农村应超出15米以上。要求站点天馈挂高和规划所得高度比较接近，对于可以采用增高方式的站点，楼高度可以低于规划所得高度，但不能高于规划高度30%，如果楼顶有塔，规划所得高度最好位于楼面到塔的顶层平台之间。"
+      },
+      {
+        "id": "block-051",
+        "kind": "paragraph",
+        "order": 51,
+        "text": "（3）同一基站几个扇区天馈设备高度差别不能太大，对于建筑天面较大的站点，为保证后续覆盖评估的准确性，需求采集各个扇区的经纬度信息。"
+      },
+      {
+        "id": "block-052",
+        "kind": "paragraph",
+        "order": 52,
+        "text": "四、天面信息采集要点"
+      },
+      {
+        "id": "block-053",
+        "kind": "paragraph",
+        "order": 53,
+        "text": "采集记录站点室外天馈设备经纬度，并对GPS数值进行拍照。"
+      },
+      {
+        "id": "block-054",
+        "kind": "paragraph",
+        "order": 54,
+        "text": "定好天线抱杆的位置，并站在楼房边缘的位置拍360度环境照片，每45度照一张，共8张。"
+      },
+      {
+        "id": "block-055",
+        "kind": "paragraph",
+        "order": 55,
+        "text": "确定天馈设备的方向角以及下倾角，覆盖目标的距离。"
+      },
+      {
+        "id": "block-056",
+        "kind": "paragraph",
+        "order": 56,
+        "text": "对站点天面进行拍照，要求站在天面的四个角落对天面进行全面无死角的拍照，如果天面过大，则还需要站在天面中央对天面四周进行拍照。并对要立抱杆的位置进行重点拍照。"
+      },
+      {
+        "id": "block-057",
+        "kind": "paragraph",
+        "order": 57,
+        "text": "绘制天面草图，草图上标注尺寸要精准，将天面周边的能占用天面的物件进行详细测量并记录，草图内容必须要能反映出楼宇天面所有物件。如果站点天面存在共站点天线或者其他运营商，需要对其天线与设备的位置，挂高，走线等进行拍摄记录，并在草图上体现。"
+      },
+      {
+        "id": "block-058",
+        "kind": "paragraph",
+        "order": 58,
+        "text": "（6）核查：信息采集完成后，在离开现场之前应核实记录表，保证记录的完整性、查漏补缺。"
+      },
+      {
+        "id": "block-059",
+        "kind": "paragraph",
+        "order": 59,
+        "text": "五、基站周围地形、地貌和环境信息"
+      },
+      {
+        "id": "block-060",
+        "kind": "paragraph",
+        "order": 60,
+        "text": "地形地貌，是指地势高低起伏的变化，即地表的形态。可分为：高原、山地、平原、丘陵、盆地五大基本地形、地貌形态。基站所在位置的地形、地貌等周围环境，会直接影响站点信号的覆盖好坏，是后期网络优化会重要的考虑因素，所以在信息采集时，必须详细记录。"
+      },
+      {
+        "id": "block-061",
+        "kind": "paragraph",
+        "order": 61,
+        "text": "在网络优化时，地形地貌等信息是对天线方位角、下倾角的调整需要依据该信息，同时对于外部干扰的了解有助于分析、定位，如语音质量差，用户接入小区困难，用户和小区吞吐率提升等方面，有重要参考价值。需观察基站所在机房和天线室外周围环境，记录获取周边环境，地貌等环境信息。"
+      },
+      {
+        "id": "block-062",
+        "kind": "paragraph",
+        "order": 62,
+        "text": "站点周围是否有高大障碍物的阻挡，即使有阻挡，阻挡夹角（站点与阻挡障碍物两侧连线的夹角）应不大于20度。"
+      },
+      {
+        "id": "block-063",
+        "kind": "paragraph",
+        "order": 63,
+        "text": "基站所在楼房高度是否超过规划高度的1/2倍以上（密集城区和一般城区均避免选择50米以上的高楼）。"
+      },
+      {
+        "id": "block-064",
+        "kind": "paragraph",
+        "order": 64,
+        "text": "基站是否在树林中，或高山上（广域覆盖除外）。是否在孤立的高楼上选站（限密集城区和一般城区，高出周围建筑物20m以上者）。"
+      },
+      {
+        "id": "block-065",
+        "kind": "paragraph",
+        "order": 65,
+        "text": "站点所在区域是繁华城区应，或是地广人稀的平原，海域，盆地，水域，地势起伏不大的风景休闲度假区等。"
+      },
+      {
+        "id": "block-066",
+        "kind": "paragraph",
+        "order": 66,
+        "text": "是否是高速公路、铁路等呈带状分布需加大定向覆盖效果区域。"
+      },
+      {
+        "id": "block-067",
+        "kind": "paragraph",
+        "order": 67,
+        "text": "复杂地形地貌、公路沿线分布的散落村镇等，距基站较远，覆盖差的居民点。"
+      },
+      {
+        "id": "block-068",
+        "kind": "paragraph",
+        "order": 68,
+        "text": "一般要求基站站址分布与标准蜂窝结构的偏差应小于站间距的1/4，在密集覆盖区域应小于站间距的1/8。"
+      },
+      {
+        "id": "block-069",
+        "kind": "paragraph",
+        "order": 69,
+        "text": "六、基站覆盖区域人口分布信息"
+      },
+      {
+        "id": "block-070",
+        "kind": "paragraph",
+        "order": 70,
+        "text": "基站覆盖区域，按地理位置一般可分为密集城区 、 一般城区 、 郊区 、 农村、交通干道、重要旅游区等，通过获取基站覆盖区域掌握基站覆盖区域的人口分布，人口流动特点，为网络优化提供业务模型、系统容量、参数优化等参考依据。"
+      },
+      {
+        "id": "block-071",
+        "kind": "paragraph",
+        "order": 71,
+        "text": "表1-2-2 覆盖类型表"
+      },
+      {
+        "id": "block-072",
+        "kind": "paragraph",
+        "order": 72,
+        "mediaRefs": [
+          "rId62"
+        ]
+      },
+      {
+        "id": "block-073",
+        "kind": "paragraph",
+        "order": 73,
+        "text": "七、常见异频系统频段使用情况"
+      },
+      {
+        "id": "block-074",
+        "kind": "paragraph",
+        "order": 74,
+        "text": "基站覆盖区域异系统等其他电磁环境系统，对5G无线网络会有影响，在进行网络优化前，应在现场测试调查，防止与其他异系统造成频率干扰。需注意以下情况"
+      },
+      {
+        "id": "block-075",
+        "kind": "paragraph",
+        "order": 75,
+        "text": "基站周围是否有大功率无线电台、雷达站、卫星地面站等强干扰源附近选站；"
+      },
+      {
+        "id": "block-076",
+        "kind": "paragraph",
+        "order": 76,
+        "text": "与异系统共址时，天面上是否有足够的垂直隔离空间。"
+      },
+      {
+        "id": "block-077",
+        "kind": "paragraph",
+        "order": 77,
+        "text": "同一覆盖区域同一运营商其他2、3、4G网络部署情况；"
+      },
+      {
+        "id": "block-078",
+        "kind": "paragraph",
+        "order": 78,
+        "text": "同一覆盖区域不同运营商2、3、4G网络覆盖情况。"
+      },
+      {
+        "id": "block-079",
+        "kind": "paragraph",
+        "order": 79,
+        "text": "表1-2-3 移动通信系统频率使用情况"
+      },
+      {
+        "id": "block-080",
+        "kind": "paragraph",
+        "order": 80,
+        "mediaRefs": [
+          "rId63"
+        ]
+      },
+      {
+        "id": "block-081",
+        "kind": "paragraph",
+        "order": 81,
+        "text": "表1-2-4其他无线频谱分配表"
+      },
+      {
+        "id": "block-082",
+        "kind": "paragraph",
+        "order": 82,
+        "mediaRefs": [
+          "rId64"
+        ]
+      },
+      {
+        "id": "block-083",
+        "kind": "paragraph",
+        "order": 83,
+        "text": "任务实施"
+      },
+      {
+        "id": "block-084",
+        "kind": "paragraph",
+        "order": 84,
+        "text": "一、室外环境信息采集前准备"
+      },
+      {
+        "id": "block-085",
+        "kind": "paragraph",
+        "order": 85,
+        "text": "室外信息采集前需要准备硬件工具、软件工具、车辆/人员包括："
+      },
+      {
+        "id": "block-086",
+        "kind": "paragraph",
+        "order": 86,
+        "text": "硬件工具，如下表1-2-5"
+      },
+      {
+        "id": "block-087",
+        "kind": "paragraph",
+        "order": 87,
+        "text": "表1-2-5 工具表"
+      },
+      {
+        "id": "block-088",
+        "kind": "table",
+        "order": 88,
+        "rows": [
+          [
+            "专用工具",
+            "数码相机",
+            "卷尺",
+            "便携电脑",
+            "GPS",
+            "测距仪",
+            "指南针",
+            "坡度仪"
+          ],
+          [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ]
+        ]
+      },
+      {
+        "id": "block-089",
+        "kind": "paragraph",
+        "order": 89,
+        "text": "数码相机：拍摄基站周围无线传播环境、天面信息以及共站址信息。（可用智能手机代替）"
+      },
+      {
+        "id": "block-090",
+        "kind": "paragraph",
+        "order": 90,
+        "text": "卷尺：测量长度、高度和宽度。"
+      },
+      {
+        "id": "block-091",
+        "kind": "paragraph",
+        "order": 91,
+        "text": "GPS：确定基站的经纬度。"
+      },
+      {
+        "id": "block-092",
+        "kind": "paragraph",
+        "order": 92,
+        "text": "便携电脑：记录、保存和输出数据。（可用纸笔代替）"
+      },
+      {
+        "id": "block-093",
+        "kind": "paragraph",
+        "order": 93,
+        "text": "测距仪：测量建筑物高度、天线、天馈设备挂高等。"
+      },
+      {
+        "id": "block-094",
+        "kind": "paragraph",
+        "order": 94,
+        "text": "指南针：确定天线方位角。"
+      },
+      {
+        "id": "block-095",
+        "kind": "paragraph",
+        "order": 95,
+        "text": "坡度仪：测量天馈设备倾角。"
+      },
+      {
+        "id": "block-096",
+        "kind": "paragraph",
+        "order": 96,
+        "text": "2.软件工具"
+      },
+      {
+        "id": "block-097",
+        "kind": "paragraph",
+        "order": 97,
+        "text": "路测软件：用于基站寻址和导航，配合GPS使用可以确定基站经纬度。（可选）"
+      },
+      {
+        "id": "block-098",
+        "kind": "paragraph",
+        "order": 98,
+        "text": "Google Earth：查找基站位置，规划勘察站点顺序和路线。（可选搜狗、百度等地图工具）"
+      },
+      {
+        "id": "block-099",
+        "kind": "paragraph",
+        "order": 99,
+        "text": "3.信息准备"
+      },
+      {
+        "id": "block-100",
+        "kind": "paragraph",
+        "order": 100,
+        "text": "室外信息主要包含服务区域范围划定、可选站点信息表、地图等，采集前可以根据已经确定的站点分布，结合GoogleEarth、搜狗地图、百度地图等工具手段，熟悉需要采集站点周边的无线环境和建筑分布，对采集站点初步选择合适的建筑或者位置点，制定采集计划和路线，从而可以使实际信息采集过程中，任务目标更明确、采集效率更高。"
+      },
+      {
+        "id": "block-101",
+        "kind": "paragraph",
+        "order": 101,
+        "text": "4.车辆及人员准备"
+      },
+      {
+        "id": "block-102",
+        "kind": "paragraph",
+        "order": 102,
+        "text": "车辆准备：勘察用车（含司机）。"
+      },
+      {
+        "id": "block-103",
+        "kind": "paragraph",
+        "order": 103,
+        "text": "人员准备：网优工程师（现场）、设计工程师、规划工程师、运维工程师等（非现场支持）。"
+      },
+      {
+        "id": "block-104",
+        "kind": "paragraph",
+        "order": 104,
+        "text": "二、采集室外天馈系统信息"
+      },
+      {
+        "id": "block-105",
+        "kind": "paragraph",
+        "order": 105,
+        "text": "1.使用指南针测量天线的方位角"
+      },
+      {
+        "id": "block-106",
+        "kind": "paragraph",
+        "order": 106,
+        "text": "指南针：用来测量天线的方位角，（方位角可以理解为正北方向的平面顺时针旋转到和天线所在平面重合所经历的角度）。通常所使用的指南针如图1-2-16所示，由罗盘、照门与准星等组成。方位分划外圈为360°分划制，最小格值1°,测量精度：±5度。"
+      },
+      {
+        "id": "block-107",
+        "kind": "paragraph",
+        "order": 107,
+        "mediaRefs": [
+          "rId68",
+          "rId69",
+          "rId70"
+        ]
+      },
+      {
+        "id": "block-108",
+        "kind": "paragraph",
+        "order": 108,
+        "text": "图1-2-16 指南针示意图"
+      },
+      {
+        "id": "block-109",
+        "kind": "paragraph",
+        "order": 109,
+        "text": "2.在仿真软件中采集室外天馈信息"
+      },
+      {
+        "id": "block-110",
+        "kind": "paragraph",
+        "order": 110,
+        "text": "在仿真软件中点击罗盘（指南针）图标，操作显示如下图1-2-17（登录进入仿真软件过程，参照GPS信息采集过程）。首先点击罗盘图标，切换选取准确的罗盘，根据罗盘放置方向和镜片内天线正反面，判断读取南针还是北针的读数；"
+      },
+      {
+        "id": "block-111",
+        "kind": "paragraph",
+        "order": 111,
+        "mediaRefs": [
+          "rId71"
+        ]
+      },
+      {
+        "id": "block-112",
+        "kind": "paragraph",
+        "order": 112,
+        "text": "图1-2-17 方位角采集"
+      },
+      {
+        "id": "block-113",
+        "kind": "paragraph",
+        "order": 113,
+        "text": "3.测量天线的下倾角"
+      },
+      {
+        "id": "block-114",
+        "kind": "paragraph",
+        "order": 114,
+        "text": "使用坡度仪测量天线倾角"
+      },
+      {
+        "id": "block-115",
+        "kind": "paragraph",
+        "order": 115,
+        "text": "将坡度仪与测定天馈设备接触，旋转刻度旋轮，直到水准管气泡居中即。"
+      },
+      {
+        "id": "block-116",
+        "kind": "paragraph",
+        "order": 116,
+        "text": "读取指针尖端对准刻度盘上的数字。"
+      },
+      {
+        "id": "block-117",
+        "kind": "paragraph",
+        "order": 117,
+        "text": "4.在仿真软件中采集机械下倾角"
+      },
+      {
+        "id": "block-118",
+        "kind": "paragraph",
+        "order": 118,
+        "text": "在仿真软件中点击坡度仪图标，操作显示如下图1-2-18（登录进入仿真软件过程，参考GPS信息采集过程）："
+      },
+      {
+        "id": "block-119",
+        "kind": "paragraph",
+        "order": 119,
+        "mediaRefs": [
+          "rId72"
+        ]
+      },
+      {
+        "id": "block-120",
+        "kind": "paragraph",
+        "order": 120,
+        "text": "图1-2-18 下倾角采集"
+      },
+      {
+        "id": "block-121",
+        "kind": "paragraph",
+        "order": 121,
+        "text": "5.测量天馈挂高"
+      },
+      {
+        "id": "block-122",
+        "kind": "paragraph",
+        "order": 122,
+        "text": "激光测距仪:是利用调制激光的某个参数实现对目标的距离测量的仪器，天线挂高的测量可以使用激光测距仪。如图1-2-19"
+      },
+      {
+        "id": "block-123",
+        "kind": "paragraph",
+        "order": 123,
+        "mediaRefs": [
+          "rId73"
+        ]
+      },
+      {
+        "id": "block-124",
+        "kind": "paragraph",
+        "order": 124,
+        "text": "图1-2-19 测距仪"
+      },
+      {
+        "id": "block-125",
+        "kind": "paragraph",
+        "order": 125,
+        "text": "6.在仿真软件中采集高度信息"
+      },
+      {
+        "id": "block-126",
+        "kind": "paragraph",
+        "order": 126,
+        "text": "在仿真软件中点击测距仪图标，操作显示如下图1-2-20（登录进入仿真软件过程，参考GPS信息采集过程）："
+      },
+      {
+        "id": "block-127",
+        "kind": "paragraph",
+        "order": 127,
+        "mediaRefs": [
+          "rId74"
+        ]
+      },
+      {
+        "id": "block-128",
+        "kind": "paragraph",
+        "order": 128,
+        "text": "图1-2-20 天馈高度采集"
+      },
+      {
+        "id": "block-129",
+        "kind": "paragraph",
+        "order": 129,
+        "text": "三、异频系统信息采集"
+      },
+      {
+        "id": "block-130",
+        "kind": "paragraph",
+        "order": 130,
+        "text": "在仿真软件中点击扫频仪，操作显示如下图1-2-21（登录进入仿真软件过程，参考GPS信息采集过程）："
+      },
+      {
+        "id": "block-131",
+        "kind": "paragraph",
+        "order": 131,
+        "mediaRefs": [
+          "rId75"
+        ]
+      },
+      {
+        "id": "block-132",
+        "kind": "paragraph",
+        "order": 132,
+        "text": "图1-2-21 异频系统采集"
+      },
+      {
+        "id": "block-133",
+        "kind": "paragraph",
+        "order": 133,
+        "text": "结构验收"
+      },
+      {
+        "id": "block-134",
+        "kind": "paragraph",
+        "order": 134,
+        "text": "室外信息采集，除了挂高，方位角，倾角等采集外，也包括使用测试手机或者软件对室外无线信号参数进行采集，获取小区PCI,PSPR,SINR频段，异常信令等信息，通过这些参数判断扇区是否有接反，是否有接入，切换，掉线等异常事件，进而进行本站结构验收。"
+      },
+      {
+        "id": "block-135",
+        "kind": "paragraph",
+        "order": 135,
+        "text": "无线参数信息采集"
+      },
+      {
+        "id": "block-136",
+        "kind": "paragraph",
+        "order": 136,
+        "text": "在仿真软件中，点击读取参数，可看到参数名称和参数值以及异常信令显示，按照要求读取参数进行填写，扇区接反可通过读取PCI和规划表中PCI进行比对。操作显示如下图1-2-22."
+      },
+      {
+        "id": "block-137",
+        "kind": "paragraph",
+        "order": 137,
+        "mediaRefs": [
+          "rId76"
+        ]
+      },
+      {
+        "id": "block-138",
+        "kind": "paragraph",
+        "order": 138,
+        "text": "图1-2-22 无线参数读取"
+      },
+      {
+        "id": "block-139",
+        "kind": "paragraph",
+        "order": 139,
+        "text": "结构验证"
+      },
+      {
+        "id": "block-140",
+        "kind": "paragraph",
+        "order": 140,
+        "text": "通过站间距，判断是否有超远，超近现象；通过站高，判断是否有超高，超低现象（表1-2-6 结构验收判断标准）；通过PCI比对，判断是否扇区接反（判断标准比对规划表）；所有项都合格，本站结构验收结果为：通过；否则为不通过。操作显示如下图1-2-23."
+      },
+      {
+        "id": "block-141",
+        "kind": "paragraph",
+        "order": 141,
+        "text": "表1-2-6 结构验收判断标准"
+      },
+      {
+        "id": "block-142",
+        "kind": "table",
+        "order": 142,
+        "rows": [
+          [
+            "场景",
+            "超高站标准",
+            "超低站标准",
+            "超远站间距",
+            "超近站间距"
+          ],
+          [
+            "城区",
+            "大于50米",
+            "小于15米",
+            "大于300米",
+            "小于150米"
+          ],
+          [
+            "郊区",
+            "大于60米",
+            "小于25米",
+            "大于400米",
+            "小于150米"
+          ]
+        ]
+      },
+      {
+        "id": "block-143",
+        "kind": "paragraph",
+        "order": 143,
+        "mediaRefs": [
+          "rId77"
+        ]
+      },
+      {
+        "id": "block-144",
+        "kind": "paragraph",
+        "order": 144,
+        "text": "图1-2-23 结构验收"
+      },
+      {
+        "id": "block-145",
+        "kind": "paragraph",
+        "order": 145,
+        "text": "五、基站室外环境信息采集表"
+      },
+      {
+        "id": "block-146",
+        "kind": "paragraph",
+        "order": 146,
+        "text": "表1-2-7 室外环境信息采集表示例"
+      },
+      {
+        "id": "block-147",
+        "kind": "paragraph",
+        "order": 147,
+        "mediaRefs": [
+          "rId78"
+        ]
+      },
+      {
+        "id": "block-148",
+        "kind": "paragraph",
+        "order": 148,
+        "text": "随堂测试"
+      },
+      {
+        "id": "block-149",
+        "kind": "paragraph",
+        "order": 149,
+        "text": "登录仿真软件平台，练习完成站点室外天馈高度、方位角，下倾角、室外异频系统等信息采集，完成后保存提交。"
+      },
+      {
+        "id": "block-150",
+        "kind": "paragraph",
+        "order": 150,
+        "text": "直击难点"
+      },
+      {
+        "id": "block-151",
+        "kind": "paragraph",
+        "order": 151,
+        "text": "本节重点：基站室外都需要收集那些相关信息；练习仿真软件基本操作。"
+      },
+      {
+        "id": "block-152",
+        "kind": "paragraph",
+        "order": 152,
+        "text": "本节难点：指南针、测距仪等测量工具使用。"
+      },
+      {
+        "id": "block-153",
+        "kind": "paragraph",
+        "order": 153,
+        "text": "二维码预留二维码预留"
+      },
+      {
+        "id": "block-154",
+        "kind": "paragraph",
+        "order": 154,
+        "text": "任务测评"
+      },
+      {
+        "id": "block-155",
+        "kind": "paragraph",
+        "order": 155,
+        "text": "1.基站室外需要采集那些信息？"
+      },
+      {
+        "id": "block-156",
+        "kind": "paragraph",
+        "order": 156,
+        "text": "2.指南针（罗盘）在采集那些信息时使用？"
+      }
+    ],
+    "storyboard": {
+      "schema": "lesson-storyboard/v1",
+      "learningGoal": "学完后能从方位角、下倾角、挂高、遮挡体和邻区边界判断覆盖空间，并把外场照片转成可定位的风险证据。",
+      "summary": "本节围绕室外覆盖环境，把地形、站向、邻区、道路热点和遮挡照片串成覆盖风险图层，用于解释弱覆盖、越区和重叠覆盖。",
+      "knowledgeUnits": [
+        {
+          "id": "P02-ku-01",
+          "title": "室外覆盖边界",
+          "kind": "concept",
+          "shortText": "地形、站向、邻区和遮挡共同定义覆盖空间。",
+          "narrationText": "室外采集先描述无线信号面对的空间条件，楼宇、道路、站向、邻区和遮挡决定覆盖边界与风险位置。"
+        },
+        {
+          "id": "P02-ku-02",
+          "title": "天线姿态",
+          "kind": "concept",
+          "shortText": "方位角、下倾角和挂高决定扇区指向。",
+          "narrationText": "天线姿态要把方位角、机械下倾、电下倾和挂高放在同一口径下记录，才能解释弱覆盖、越区覆盖和重叠覆盖。"
+        },
+        {
+          "id": "P02-ku-03",
+          "title": "场景落点",
+          "kind": "criteria",
+          "shortText": "主干道、热点和投诉点要落到地图。",
+          "narrationText": "外场证据应沿道路、热点、投诉点和疑似遮挡区布点，每个点都保留位置、朝向和关联小区。"
+        },
+        {
+          "id": "P02-ku-04",
+          "title": "遮挡证据",
+          "kind": "evidence",
+          "shortText": "照片标注位置、朝向、参照物和遮挡类型。",
+          "narrationText": "照片不是装饰材料，要用参照物说明拍摄方向、遮挡高度、距离关系和关联扇区，支撑后续覆盖判断。"
+        },
+        {
+          "id": "P02-ku-05",
+          "title": "字段核验",
+          "kind": "practice",
+          "shortText": "站点、环境、扇区和风险字段保持一致。",
+          "narrationText": "字段核验关注站点编号、扇区方向、邻区关系、遮挡描述和照片标签是否一致，避免空间证据断链。"
+        },
+        {
+          "id": "P02-ku-06",
+          "title": "风险成图",
+          "kind": "review",
+          "shortText": "沉淀覆盖方向、遮挡点和邻区风险图。",
+          "narrationText": "室外资料最终应形成可复查的风险图层，明确覆盖方向、遮挡位置、热点区域和邻区边界。"
+        }
+      ],
+      "reviewSummary": "复盘时把站向、道路热点、遮挡点和邻区边界放到同一地图口径下，看每张照片是否能说明位置、朝向、距离和关联扇区。"
+    }
+  },
+  "knowledge": {
+    "steps": [
+      {
+        "id": "P02-knowledge-01",
+        "label": "室外覆盖边界",
+        "description": "地形、站向、邻区和遮挡共同定义覆盖空间。"
+      },
+      {
+        "id": "P02-knowledge-02",
+        "label": "天线姿态",
+        "description": "方位角、下倾角和挂高决定扇区指向。"
+      },
+      {
+        "id": "P02-knowledge-03",
+        "label": "场景落点",
+        "description": "主干道、热点和投诉点要落到地图。"
+      },
+      {
+        "id": "P02-knowledge-04",
+        "label": "遮挡证据",
+        "description": "照片标注位置、朝向、参照物和遮挡类型。"
+      },
+      {
+        "id": "P02-knowledge-05",
+        "label": "字段核验",
+        "description": "站点、环境、扇区和风险字段保持一致。"
+      },
+      {
+        "id": "P02-knowledge-06",
+        "label": "风险成图",
+        "description": "沉淀覆盖方向、遮挡点和邻区风险图。"
+      }
+    ],
+    "metrics": [
+      {
+        "label": "M1",
+        "value": "SS-RS"
+      },
+      {
+        "label": "M2",
+        "value": "SS-SI"
+      },
+      {
+        "label": "M3",
+        "value": "站点"
+      }
+    ]
+  },
+  "animation": {
+    "templateHint": "optimization-loop",
+    "durationMs": 610000,
+    "targets": [
+      {
+        "id": "P02-step-01",
+        "label": "室外覆盖边界",
+        "description": "地形、站向、邻区和遮挡共同定义覆盖空间。"
+      },
+      {
+        "id": "P02-step-02",
+        "label": "天线姿态",
+        "description": "方位角、下倾角和挂高决定扇区指向。"
+      },
+      {
+        "id": "P02-step-03",
+        "label": "场景落点",
+        "description": "主干道、热点和投诉点要落到地图。"
+      },
+      {
+        "id": "P02-step-04",
+        "label": "遮挡证据",
+        "description": "照片标注位置、朝向、参照物和遮挡类型。"
+      },
+      {
+        "id": "P02-step-05",
+        "label": "字段核验",
+        "description": "站点、环境、扇区和风险字段保持一致。"
+      },
+      {
+        "id": "P02-step-06",
+        "label": "风险成图",
+        "description": "沉淀覆盖方向、遮挡点和邻区风险图。"
+      }
+    ]
+  },
+  "playback": {
+    "mode": "one-way",
+    "widgetId": "P02-lesson-animation-001"
+  }
+}

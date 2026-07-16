@@ -1,0 +1,14 @@
+{
+  "项目概述": ["sec-project-overview", "项目概览", "pin"],
+  "项目导学": ["sec-project-guide", "学习路径", "guide"],
+  "任务导入": ["sec-task-intro", "情境问题", "intro"],
+  "任务要求": ["sec-task-requirements", "学习目标", "target"],
+  "知识准备": ["sec-knowledge", "知识准备", "book"],
+  "任务实施": ["sec-implementation", "工程演练", "tool"],
+  "随堂测试": ["sec-quiz", "即时巩固", "check"],
+  "直击难点": ["sec-hard-points", "直击难点", "bolt"],
+  "重点难点": ["sec-hard-points", "重点难点", "bolt"],
+  "任务测评": ["sec-assessment", "能力复盘", "list"],
+  "经典案例": ["sec-case", "经典案例", "case"],
+  "网优趣味课堂": ["sec-fun-class", "网优趣味课堂", "idea"]
+}

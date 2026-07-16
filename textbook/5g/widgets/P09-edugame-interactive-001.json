@@ -1,0 +1,769 @@
+{
+  "id": "P09-edugame-interactive-001",
+  "widget": "edugame-pixi",
+  "version": "0.1.0",
+  "props": {
+    "title": "参数风险稽核",
+    "height": 720,
+    "gameConfig": {
+      "schema": "dgbook.edugame-pixi/v1",
+      "game_id": "parameter-audit-lab",
+      "game_type": "classification-run",
+      "lesson_id": "P09",
+      "duration": 68,
+      "difficulty": "normal",
+      "asset_pack": "dgbook-5g-v1",
+      "mistake_limit": 4,
+      "pass_score": 80,
+      "knowledge_points": [
+        {
+          "id": "t1",
+          "name": "覆盖风险",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t2",
+          "name": "切换风险",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t3",
+          "name": "识别风险",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t4",
+          "name": "触发风险",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t5",
+          "name": "基线风险",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t6",
+          "name": "安全闸门",
+          "description": "证据门",
+          "weight": 1
+        }
+      ],
+      "levels": [
+        {
+          "level_id": "p09-level-01",
+          "type": "classification-run",
+          "goal": "把参数差异归入风险类型，判断是否需要回退或复核。",
+          "time_limit": 68,
+          "mistake_limit": 4,
+          "items": [
+            {
+              "id": "i1",
+              "label": "功率偏差",
+              "text": "现场任务：批量参数变更前发现多处与基线不一致。",
+              "prompt": "判断“功率偏差”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "影响边缘覆盖和越区",
+              "target_id": "t1",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 影响边缘覆盖和越区",
+              "kp": "t1",
+              "order": 1,
+              "correct": true
+            },
+            {
+              "id": "i2",
+              "label": "邻区缺失",
+              "text": "交付要求：把参数差异归入风险类型，判断是否需要回退或复核。",
+              "prompt": "判断“邻区缺失”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "容易造成切换失败和掉线",
+              "target_id": "t2",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 容易造成切换失败和掉线",
+              "kp": "t2",
+              "order": 2,
+              "correct": true
+            },
+            {
+              "id": "i3",
+              "label": "PCI 冲突",
+              "text": "挑战约束：玩家要把差异放进风险桶，并判断哪些必须先卡住发布。",
+              "prompt": "判断“PCI 冲突”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "导致小区混淆和接入异常",
+              "target_id": "t3",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 导致小区混淆和接入异常",
+              "kp": "t3",
+              "order": 3,
+              "correct": true
+            },
+            {
+              "id": "i4",
+              "label": "门限异常",
+              "text": "批量参数变更前发现多处与基线不一致。",
+              "prompt": "判断“门限异常”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "影响事件判定和重选",
+              "target_id": "t4",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 影响事件判定和重选",
+              "kp": "t4",
+              "order": 4,
+              "correct": true
+            },
+            {
+              "id": "i5",
+              "label": "版本不一致",
+              "text": "批量参数变更前发现多处与基线不一致。",
+              "prompt": "判断“版本不一致”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "需要核对变更单和模板",
+              "target_id": "t5",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 需要核对变更单和模板",
+              "kp": "t5",
+              "order": 5,
+              "correct": true
+            },
+            {
+              "id": "i6",
+              "label": "回退条件",
+              "text": "批量参数变更前发现多处与基线不一致。",
+              "prompt": "判断“回退条件”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "保留可恢复路径",
+              "target_id": "t6",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 保留可恢复路径",
+              "kp": "t6",
+              "order": 6,
+              "correct": true
+            },
+            {
+              "id": "d1",
+              "label": "只记录主观描述",
+              "text": "缺少可复核证据，无法支撑工程闭环。",
+              "prompt": "这是干扰信息，先判断它是否能直接支撑本关目标。",
+              "definition": "缺少可复核证据，无法支撑工程闭环。",
+              "target_id": "t1",
+              "explanation": "缺少可复核证据，无法支撑工程闭环。",
+              "kp": "t1",
+              "correct": false
+            },
+            {
+              "id": "d2",
+              "label": "跳过时间和对象边界",
+              "text": "查询窗口不清会放大排查范围。",
+              "prompt": "这是干扰信息，先判断它是否能直接支撑本关目标。",
+              "definition": "查询窗口不清会放大排查范围。",
+              "target_id": "t2",
+              "explanation": "查询窗口不清会放大排查范围。",
+              "kp": "t2",
+              "correct": false
+            },
+            {
+              "id": "d3",
+              "label": "直接给经验结论",
+              "text": "没有证据链的结论不能作为派单依据。",
+              "prompt": "这是干扰信息，先判断它是否能直接支撑本关目标。",
+              "definition": "没有证据链的结论不能作为派单依据。",
+              "target_id": "t3",
+              "explanation": "没有证据链的结论不能作为派单依据。",
+              "kp": "t3",
+              "correct": false
+            }
+          ]
+        }
+      ],
+      "score_rule": {
+        "base": 0,
+        "correct": 12,
+        "wrong_penalty": 6,
+        "combo_bonus": true,
+        "time_bonus": true
+      },
+      "reward_rule": {
+        "stars": [
+          60,
+          75,
+          90
+        ],
+        "badges": [
+          "风险拦截",
+          "回退可控",
+          "变更合规",
+          "闸门通过"
+        ]
+      },
+      "ui": {
+        "arenaLabel": "5G 训练场",
+        "cardMark": "5G",
+        "scenario": "批量参数变更前发现多处与基线不一致。",
+        "instruction": "判断每个差异或动作应该进入哪个风险闸门，错误放行会扣分。",
+        "actionLabel": "开始挑战",
+        "feedbackHint": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+        "onboarding": [
+          "先识别参数差异影响的对象。",
+          "不能把覆盖、切换、识别和触发风险混放。",
+          "错误放行会把参数风险带入现网。",
+          "把所有差异和动作拦到正确风险门。"
+        ]
+      },
+      "interaction": {
+        "actionLabel": "开始挑战",
+        "ruleChecks": [
+          "先识别参数差异影响的对象。",
+          "不能把覆盖、切换、识别和触发风险混放。",
+          "错放风险门会降低通关余量。"
+        ],
+        "errorFeedback": [
+          "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+          "先核对对象、证据门和干扰项边界，再重新选择。"
+        ],
+        "replayPrompts": [
+          "先识别 2 个高优先级证据卡。",
+          "在限定时间内完成全部证据链并达到交付分。"
+        ]
+      },
+      "ruleChecks": [
+        "先识别参数差异影响的对象。",
+        "不能把覆盖、切换、识别和触发风险混放。",
+        "错放风险门会降低通关余量。"
+      ],
+      "errorFeedback": [
+        "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+        "先核对对象、证据门和干扰项边界，再重新选择。"
+      ],
+      "replayPrompts": [
+        "先识别 2 个高优先级证据卡。",
+        "在限定时间内完成全部证据链并达到交付分。"
+      ],
+      "successCriteria": [
+        "把所有差异和动作拦到正确风险门。",
+        "达到 80 分，且错误不超过 4 次。"
+      ],
+      "actionLabel": "开始挑战",
+      "template": "edugamekit.risk-gate/v2",
+      "templateId": "risk-gate",
+      "mechanicFamily": "drag-match",
+      "id": "parameter-audit-lab",
+      "projectId": "P09",
+      "title": "参数风险稽核",
+      "gameType": "risk-gate",
+      "objective": "把参数差异归入风险类型，判断是否需要回退或复核。",
+      "scenario": "批量参数变更前发现多处与基线不一致。",
+      "challenge": "玩家要把差异放进风险桶，并判断哪些必须先卡住发布。",
+      "instruction": "判断每个差异或动作应该进入哪个风险闸门，错误放行会扣分。",
+      "challengeMode": "gate",
+      "winCondition": "把所有差异和动作拦到正确风险门。",
+      "pressureModel": {
+        "label": "错误放行会把参数风险带入现网。",
+        "failureBudget": 4,
+        "timeBudgetSec": 68
+      },
+      "mechanicRules": [
+        "先识别参数差异影响的对象。",
+        "不能把覆盖、切换、识别和触发风险混放。",
+        "错放风险门会降低通关余量。"
+      ],
+      "timeLimitSec": 68,
+      "mistakeLimit": 4,
+      "passScore": 80,
+      "totalPoints": 100,
+      "caseFacts": [
+        "现场任务：批量参数变更前发现多处与基线不一致。",
+        "交付要求：把参数差异归入风险类型，判断是否需要回退或复核。",
+        "挑战约束：玩家要把差异放进风险桶，并判断哪些必须先卡住发布。"
+      ],
+      "evidenceTokens": [
+        {
+          "id": "i1",
+          "label": "功率偏差",
+          "role": "影响边缘覆盖和越区",
+          "severity": "critical",
+          "expectedTargetId": "t1",
+          "hint": "关键点：影响边缘覆盖和越区",
+          "caseFact": "现场任务：批量参数变更前发现多处与基线不一致。",
+          "challenge": "判断“功率偏差”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 影响边缘覆盖和越区",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 影响边缘覆盖和越区",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i2",
+          "label": "邻区缺失",
+          "role": "容易造成切换失败和掉线",
+          "severity": "critical",
+          "expectedTargetId": "t2",
+          "hint": "关键点：容易造成切换失败和掉线",
+          "caseFact": "交付要求：把参数差异归入风险类型，判断是否需要回退或复核。",
+          "challenge": "判断“邻区缺失”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 容易造成切换失败和掉线",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 容易造成切换失败和掉线",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i3",
+          "label": "PCI 冲突",
+          "role": "导致小区混淆和接入异常",
+          "severity": "high",
+          "expectedTargetId": "t3",
+          "hint": "关键点：导致小区混淆和接入异常",
+          "caseFact": "挑战约束：玩家要把差异放进风险桶，并判断哪些必须先卡住发布。",
+          "challenge": "判断“PCI 冲突”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 导致小区混淆和接入异常",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 导致小区混淆和接入异常",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i4",
+          "label": "门限异常",
+          "role": "影响事件判定和重选",
+          "severity": "high",
+          "expectedTargetId": "t4",
+          "hint": "关键点：影响事件判定和重选",
+          "caseFact": "批量参数变更前发现多处与基线不一致。",
+          "challenge": "判断“门限异常”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 影响事件判定和重选",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 影响事件判定和重选",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i5",
+          "label": "版本不一致",
+          "role": "需要核对变更单和模板",
+          "severity": "normal",
+          "expectedTargetId": "t5",
+          "hint": "关键点：需要核对变更单和模板",
+          "caseFact": "批量参数变更前发现多处与基线不一致。",
+          "challenge": "判断“版本不一致”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 需要核对变更单和模板",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 需要核对变更单和模板",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i6",
+          "label": "回退条件",
+          "role": "保留可恢复路径",
+          "severity": "normal",
+          "expectedTargetId": "t6",
+          "hint": "关键点：保留可恢复路径",
+          "caseFact": "批量参数变更前发现多处与基线不一致。",
+          "challenge": "判断“回退条件”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 保留可恢复路径",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 保留可恢复路径",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        }
+      ],
+      "targetGates": [
+        {
+          "id": "t1",
+          "label": "覆盖风险",
+          "role": "证据门",
+          "accepts": "影响边缘覆盖和越区"
+        },
+        {
+          "id": "t2",
+          "label": "切换风险",
+          "role": "证据门",
+          "accepts": "容易造成切换失败和掉线"
+        },
+        {
+          "id": "t3",
+          "label": "识别风险",
+          "role": "证据门",
+          "accepts": "导致小区混淆和接入异常"
+        },
+        {
+          "id": "t4",
+          "label": "触发风险",
+          "role": "证据门",
+          "accepts": "影响事件判定和重选"
+        },
+        {
+          "id": "t5",
+          "label": "基线风险",
+          "role": "证据门",
+          "accepts": "需要核对变更单和模板"
+        },
+        {
+          "id": "t6",
+          "label": "安全闸门",
+          "role": "证据门",
+          "accepts": "保留可恢复路径"
+        }
+      ],
+      "distractors": [
+        {
+          "id": "d1",
+          "label": "只记录主观描述",
+          "whyWrong": "缺少可复核证据，无法支撑工程闭环。"
+        },
+        {
+          "id": "d2",
+          "label": "跳过时间和对象边界",
+          "whyWrong": "查询窗口不清会放大排查范围。"
+        },
+        {
+          "id": "d3",
+          "label": "直接给经验结论",
+          "whyWrong": "没有证据链的结论不能作为派单依据。"
+        }
+      ],
+      "levelGoals": [
+        "先识别 2 个高优先级证据卡。",
+        "连续完成 3 次正确归门，建立稳定判断。",
+        "在限定时间内完成全部证据链并达到交付分。"
+      ],
+      "failureConditions": [
+        "关键证据门缺失导致链路不可复核。",
+        "错把干扰项当作证据导致扣分超过上限。",
+        "超时仍未完成全部目标门匹配。"
+      ],
+      "feedback": {
+        "correct": "证据有效：这张证据卡能直接支撑当前工程判断。",
+        "wrong": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+        "nearMiss": "方向接近，但证据粒度还不够支撑交付结论。",
+        "complete": "证据链闭合，可以进入复盘或派单。"
+      },
+      "inputModel": {
+        "kind": "risk-gate",
+        "group": "gate",
+        "template": "edugamekit.risk-gate/v2",
+        "templateId": "risk-gate",
+        "mechanicFamily": "drag-match",
+        "gameClass": "参数风险稽核",
+        "mechanicLabel": "风险闸门挑战",
+        "challengeMode": "gate",
+        "visualMetaphor": "风险闸门",
+        "instruction": "判断每个差异或动作应该进入哪个风险闸门，错误放行会扣分。",
+        "minActions": 6,
+        "caseFacts": [
+          "现场任务：批量参数变更前发现多处与基线不一致。",
+          "交付要求：把参数差异归入风险类型，判断是否需要回退或复核。",
+          "挑战约束：玩家要把差异放进风险桶，并判断哪些必须先卡住发布。"
+        ],
+        "options": [
+          {
+            "id": "i1",
+            "label": "功率偏差",
+            "role": "影响边缘覆盖和越区",
+            "severity": "critical",
+            "expectedTargetId": "t1",
+            "hint": "关键点：影响边缘覆盖和越区",
+            "caseFact": "现场任务：批量参数变更前发现多处与基线不一致。",
+            "challenge": "判断“功率偏差”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 影响边缘覆盖和越区",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 影响边缘覆盖和越区",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i2",
+            "label": "邻区缺失",
+            "role": "容易造成切换失败和掉线",
+            "severity": "critical",
+            "expectedTargetId": "t2",
+            "hint": "关键点：容易造成切换失败和掉线",
+            "caseFact": "交付要求：把参数差异归入风险类型，判断是否需要回退或复核。",
+            "challenge": "判断“邻区缺失”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 容易造成切换失败和掉线",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 容易造成切换失败和掉线",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i3",
+            "label": "PCI 冲突",
+            "role": "导致小区混淆和接入异常",
+            "severity": "high",
+            "expectedTargetId": "t3",
+            "hint": "关键点：导致小区混淆和接入异常",
+            "caseFact": "挑战约束：玩家要把差异放进风险桶，并判断哪些必须先卡住发布。",
+            "challenge": "判断“PCI 冲突”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 导致小区混淆和接入异常",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 导致小区混淆和接入异常",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i4",
+            "label": "门限异常",
+            "role": "影响事件判定和重选",
+            "severity": "high",
+            "expectedTargetId": "t4",
+            "hint": "关键点：影响事件判定和重选",
+            "caseFact": "批量参数变更前发现多处与基线不一致。",
+            "challenge": "判断“门限异常”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 影响事件判定和重选",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 影响事件判定和重选",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i5",
+            "label": "版本不一致",
+            "role": "需要核对变更单和模板",
+            "severity": "normal",
+            "expectedTargetId": "t5",
+            "hint": "关键点：需要核对变更单和模板",
+            "caseFact": "批量参数变更前发现多处与基线不一致。",
+            "challenge": "判断“版本不一致”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 需要核对变更单和模板",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 需要核对变更单和模板",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i6",
+            "label": "回退条件",
+            "role": "保留可恢复路径",
+            "severity": "normal",
+            "expectedTargetId": "t6",
+            "hint": "关键点：保留可恢复路径",
+            "caseFact": "批量参数变更前发现多处与基线不一致。",
+            "challenge": "判断“回退条件”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 保留可恢复路径",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 保留可恢复路径",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          }
+        ],
+        "targets": [
+          {
+            "id": "t1",
+            "label": "覆盖风险",
+            "role": "证据门",
+            "accepts": "影响边缘覆盖和越区"
+          },
+          {
+            "id": "t2",
+            "label": "切换风险",
+            "role": "证据门",
+            "accepts": "容易造成切换失败和掉线"
+          },
+          {
+            "id": "t3",
+            "label": "识别风险",
+            "role": "证据门",
+            "accepts": "导致小区混淆和接入异常"
+          },
+          {
+            "id": "t4",
+            "label": "触发风险",
+            "role": "证据门",
+            "accepts": "影响事件判定和重选"
+          },
+          {
+            "id": "t5",
+            "label": "基线风险",
+            "role": "证据门",
+            "accepts": "需要核对变更单和模板"
+          },
+          {
+            "id": "t6",
+            "label": "安全闸门",
+            "role": "证据门",
+            "accepts": "保留可恢复路径"
+          }
+        ],
+        "distractors": [
+          {
+            "id": "d1",
+            "label": "只记录主观描述",
+            "whyWrong": "缺少可复核证据，无法支撑工程闭环。"
+          },
+          {
+            "id": "d2",
+            "label": "跳过时间和对象边界",
+            "whyWrong": "查询窗口不清会放大排查范围。"
+          },
+          {
+            "id": "d3",
+            "label": "直接给经验结论",
+            "whyWrong": "没有证据链的结论不能作为派单依据。"
+          }
+        ],
+        "onboardingPath": [
+          {
+            "title": "看目标",
+            "body": "先识别参数差异影响的对象。"
+          },
+          {
+            "title": "做判断",
+            "body": "不能把覆盖、切换、识别和触发风险混放。"
+          },
+          {
+            "title": "控风险",
+            "body": "错误放行会把参数风险带入现网。"
+          },
+          {
+            "title": "达成交付",
+            "body": "把所有差异和动作拦到正确风险门。"
+          }
+        ],
+        "mechanicRules": [
+          "先识别参数差异影响的对象。",
+          "不能把覆盖、切换、识别和触发风险混放。",
+          "错放风险门会降低通关余量。"
+        ],
+        "winCondition": "把所有差异和动作拦到正确风险门。",
+        "levelGoals": [
+          "先识别 2 个高优先级证据卡。",
+          "连续完成 3 次正确归门，建立稳定判断。",
+          "在限定时间内完成全部证据链并达到交付分。"
+        ],
+        "failureConditions": [
+          "关键证据门缺失导致链路不可复核。",
+          "错把干扰项当作证据导致扣分超过上限。",
+          "超时仍未完成全部目标门匹配。"
+        ]
+      },
+      "answerModel": {
+        "kind": "risk-gate",
+        "group": "gate",
+        "pairs": {
+          "i1": "t1",
+          "i2": "t2",
+          "i3": "t3",
+          "i4": "t4",
+          "i5": "t5",
+          "i6": "t6"
+        },
+        "targetIds": [
+          "t1",
+          "t2",
+          "t3",
+          "t4",
+          "t5",
+          "t6"
+        ],
+        "requiredEvidenceCount": 6,
+        "distractorIds": [
+          "d1",
+          "d2",
+          "d3"
+        ],
+        "winCondition": "把所有差异和动作拦到正确风险门。",
+        "rationale": "每个判断必须回到工程证据，不能只凭描述、情绪或经验结论。"
+      },
+      "challengeLevels": [
+        {
+          "id": "level-1",
+          "label": "识别",
+          "goal": "先识别 2 个高优先级证据卡。",
+          "constraint": "允许查看提示，但连续命中才加分。"
+        },
+        {
+          "id": "level-2",
+          "label": "抗干扰",
+          "goal": "连续完成 3 次正确归门，建立稳定判断。",
+          "constraint": "干扰项会扣分并清空连击。"
+        },
+        {
+          "id": "level-3",
+          "label": "交付",
+          "goal": "在限定时间内完成全部证据链并达到交付分。",
+          "constraint": "68 秒内达到 80 分，最多 4 次失误。"
+        }
+      ],
+      "gameExperience": {
+        "onboardingPath": [
+          {
+            "title": "看目标",
+            "body": "先识别参数差异影响的对象。"
+          },
+          {
+            "title": "做判断",
+            "body": "不能把覆盖、切换、识别和触发风险混放。"
+          },
+          {
+            "title": "控风险",
+            "body": "错误放行会把参数风险带入现网。"
+          },
+          {
+            "title": "达成交付",
+            "body": "把所有差异和动作拦到正确风险门。"
+          }
+        ],
+        "mechanicRules": [
+          "先识别参数差异影响的对象。",
+          "不能把覆盖、切换、识别和触发风险混放。",
+          "错放风险门会降低通关余量。"
+        ],
+        "challengeMode": "gate",
+        "winCondition": "把所有差异和动作拦到正确风险门。",
+        "levelGoals": [
+          "先识别 2 个高优先级证据卡。",
+          "连续完成 3 次正确归门，建立稳定判断。",
+          "在限定时间内完成全部证据链并达到交付分。"
+        ],
+        "failureConditions": [
+          "关键证据门缺失导致链路不可复核。",
+          "错把干扰项当作证据导致扣分超过上限。",
+          "超时仍未完成全部目标门匹配。"
+        ],
+        "rewardModel": {
+          "badges": [
+            "风险拦截",
+            "回退可控",
+            "变更合规",
+            "闸门通过"
+          ]
+        },
+        "scoreMoments": [
+          {
+            "id": "first-critical",
+            "label": "首个关键证据归门",
+            "points": 10
+          },
+          {
+            "id": "streak-3",
+            "label": "三连击",
+            "points": 15
+          },
+          {
+            "id": "no-distractor",
+            "label": "避开干扰项",
+            "points": 15
+          },
+          {
+            "id": "chain-complete",
+            "label": "证据链闭合",
+            "points": 30
+          }
+        ]
+      },
+      "scoringRubric": {
+        "totalPoints": 100,
+        "passScore": 80,
+        "dimensions": [
+          {
+            "id": "accuracy",
+            "label": "风险闸门准确",
+            "points": 50
+          },
+          {
+            "id": "distractorControl",
+            "label": "干扰项识别",
+            "points": 20
+          },
+          {
+            "id": "speed",
+            "label": "限时完成",
+            "points": 15
+          },
+          {
+            "id": "streak",
+            "label": "连续命中",
+            "points": 15
+          }
+        ]
+      },
+      "feedbackHint": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+      "reviewSummary": {
+        "pass": "参数风险稽核已达标：证据链完整，可以进入案例复盘或工程交付。",
+        "fail": "参数风险稽核未达标：请回到缺失目标门，重新确认证据卡、证据门和干扰项边界。"
+      },
+      "legacyManifestId": "parameter-audit-lab"
+    }
+  },
+  "project": "P09",
+  "status": "published",
+  "history": [
+    {
+      "status": "published",
+      "at": "2026-05-22T00:00:00.000Z",
+      "by": "docx-importer",
+      "comment": "Published by the DGBook importer."
+    }
+  ]
+}

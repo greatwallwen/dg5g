@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dgbook/widgets/edugame-pixi/schema.json",
+  "title": "教材游戏化互动",
+  "type": "object",
+  "properties": {
+    "configUrl": {
+      "type": "string",
+      "title": "游戏配置"
+    },
+    "manifestUrl": {
+      "type": "string",
+      "title": "兼容规则清单"
+    },
+    "title": {
+      "type": "string",
+      "default": "工程挑战"
+    },
+    "height": {
+      "type": "number",
+      "minimum": 520,
+      "maximum": 1100,
+      "default": 680
+    }
+  }
+}

@@ -1,0 +1,12 @@
+export { registry, list, get } from './registry';
+export type { WidgetMeta, WidgetEntry } from './registry';
+export { PwmWaveform, meta as pwmWaveformMeta } from './pwm-waveform';
+export type { PwmWaveformProps } from './pwm-waveform';
+export { VideoLesson, meta as videoLessonMeta } from './video-lesson';
+export type { VideoLessonProps } from './video-lesson';
+export { EduGameInteractive, meta as eduGamePixiMeta } from './edugame-pixi';
+export type { EduGameInteractiveProps, EduGameModel } from './edugame-pixi';
+export { LessonAnimation, meta as lessonAnimationMeta } from './lesson-animation';
+export type { LessonAnimationProps } from './lesson-animation';
+export { TeachingDock, teachingDockStyles } from './teaching-dock';
+export type { TeachingDockProps, TeachingDockMode, TeachingDockVoiceOption } from './teaching-dock';

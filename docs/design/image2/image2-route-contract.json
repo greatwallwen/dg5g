@@ -1,0 +1,564 @@
+{
+  "version": 2,
+  "referenceSet": "image2-v4",
+  "viewportProfiles": {
+    "desktop-1440": { "width": 1440, "height": 900, "coverage": "full" },
+    "desktop-1920": { "width": 1920, "height": 1080, "coverage": "full" },
+    "mobile-390": { "width": 390, "height": 844, "coverage": "full" }
+  },
+  "interactionPolicies": {
+    "primaryAction": {
+      "selector": "[data-primary-action]",
+      "allowedPolicies": ["exactly-one", "at-most-one", "none"]
+    },
+    "overflow": {
+      "documentTolerancePx": 1,
+      "hideDocumentOverflowAllowed": false,
+      "clickableIntersectionRequired": true,
+      "stickyContentGapPx": 16
+    },
+    "keyboard": {
+      "focusVisibleRequired": true,
+      "focusReturnRequired": true,
+      "activationKeys": ["Enter", "Space"],
+      "drawerCloseKey": "Escape",
+      "skipLinkRequired": true
+    },
+    "reducedMotion": {
+      "mediaQuery": "(prefers-reduced-motion: reduce)",
+      "requiredSelector": "[data-motion]",
+      "allowedValues": ["paused", "reduced"],
+      "nonEssentialMotion": "disabled"
+    }
+  },
+  "capturePolicy": {
+    "fileNameTemplate": "<surface>--<state>--<actor>--<viewport>.png",
+    "requiredReportFields": [
+      "contractVersion", "setup", "screenshotSha256", "actualUrl", "actor", "state", "revision", "snapshotVersion"
+    ],
+    "stabilityWaits": ["fonts", "images", "critical-api", "state-selector", "motion-paused"]
+  },
+  "surfaces": [
+    {
+      "id": "login",
+      "states": [
+        {
+          "id": "student",
+          "route": "/",
+          "query": "",
+          "actor": "anonymous-student",
+          "setup": { "fixture": "demo-seed", "loginRole": "student" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "reference": "docs/design/image2/dgbook-image2-login-dark-v4.png",
+          "primaryActionPolicy": "exactly-one",
+          "allowedInternalScrollers": [],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport"], "mobile": "full" },
+          "requiredSelectors": [".login-page-v3", ".login-scene", ".login-form-v3", "[data-login-role-option=\"student\"]", "[data-primary-action]"],
+          "regions": [
+            { "name": "course-context", "selector": ".login-scene" },
+            { "name": "role-login", "selector": ".login-form-v3" }
+          ]
+        },
+        {
+          "id": "teacher",
+          "route": "/",
+          "query": "",
+          "actor": "anonymous-teacher",
+          "setup": { "fixture": "demo-seed", "loginRole": "teacher" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "derivedFrom": ["login/student"],
+          "primaryActionPolicy": "exactly-one",
+          "allowedInternalScrollers": [],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport"], "mobile": "full" },
+          "requiredSelectors": [".login-page-v3", ".login-scene", ".login-form-v3", "[data-login-role-option=\"teacher\"]", "[data-primary-action]"],
+          "regions": [
+            { "name": "course-context", "selector": ".login-scene" },
+            { "name": "role-login", "selector": ".login-form-v3" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "student-home",
+      "states": [
+        {
+          "id": "P01-current",
+          "route": "/student/home",
+          "query": "",
+          "actor": "stu-01",
+          "setup": { "fixture": "demo-seed", "currentTask": "P01" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "derivedFrom": ["course-graph/P1-current", "n02-p01/figure"],
+          "primaryActionPolicy": "exactly-one",
+          "allowedInternalScrollers": [],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport"], "mobile": "full" },
+          "requiredSelectors": ["[data-student-home]", "[data-student-current-task=\"P01\"]", "[data-student-home-primary-path]", "[data-student-home-progress]", "[data-student-home-recommendations]", "[data-primary-action]"],
+          "regions": [
+            { "name": "four-question-path", "selector": "[data-student-home-primary-path]" },
+            { "name": "learning-progress", "selector": "[data-student-home-progress]" },
+            { "name": "secondary-entry", "selector": "[data-student-home-recommendations]" }
+          ]
+        },
+        {
+          "id": "P02-current",
+          "route": "/student/home",
+          "query": "",
+          "actor": "stu-02",
+          "setup": { "fixture": "demo-seed", "currentTask": "P02" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "derivedFrom": ["course-graph/P1-current", "n02-p01/figure"],
+          "primaryActionPolicy": "exactly-one",
+          "allowedInternalScrollers": [],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport"], "mobile": "full" },
+          "requiredSelectors": ["[data-student-home]", "[data-student-current-task=\"P02\"]", "[data-student-home-primary-path]", "[data-student-home-progress]", "[data-student-home-recommendations]", "[data-primary-action]"],
+          "regions": [
+            { "name": "four-question-path", "selector": "[data-student-home-primary-path]" },
+            { "name": "learning-progress", "selector": "[data-student-home-progress]" }
+          ]
+        },
+        {
+          "id": "P03-current",
+          "route": "/student/home",
+          "query": "",
+          "actor": "stu-03",
+          "setup": { "fixture": "demo-seed", "currentTask": "P03" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "derivedFrom": ["course-graph/P1-current", "n02-p01/figure"],
+          "primaryActionPolicy": "exactly-one",
+          "allowedInternalScrollers": [],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport"], "mobile": "full" },
+          "requiredSelectors": ["[data-student-home]", "[data-student-current-task=\"P03\"]", "[data-student-home-primary-path]", "[data-student-home-progress]", "[data-student-home-recommendations]", "[data-primary-action]"],
+          "regions": [
+            { "name": "four-question-path", "selector": "[data-student-home-primary-path]" },
+            { "name": "learning-progress", "selector": "[data-student-home-progress]" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "teacher-workbench",
+      "states": [
+        {
+          "id": "current",
+          "route": "/teacher/workbench",
+          "query": "",
+          "actor": "teacher01",
+          "setup": { "fixture": "demo-seed", "sessionId": "demo-class" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "derivedFrom": ["teacher-session/teaching"],
+          "primaryActionPolicy": "exactly-one",
+          "allowedInternalScrollers": ["[data-teacher-session-list]"],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport"], "mobile": "full" },
+          "requiredSelectors": ["[data-teacher-workbench]", "[data-teacher-session-list]", "[data-teacher-workbench-progress]", "[data-teacher-workbench-actions]", "[data-primary-action]"],
+          "regions": [
+            { "name": "current-session", "selector": "[data-teacher-session-list]" },
+            { "name": "teaching-actions", "selector": "[data-teacher-workbench-actions]" },
+            { "name": "class-progress", "selector": "[data-teacher-workbench-progress]" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "p1-project",
+      "states": [
+        {
+          "id": "P01-current",
+          "route": "/student/projects/p1",
+          "query": "",
+          "actor": "stu-01",
+          "setup": { "fixture": "demo-seed", "currentTask": "P01" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "derivedFrom": ["course-graph/P1-current", "n02-p01/figure"],
+          "primaryActionPolicy": "exactly-one",
+          "allowedInternalScrollers": [],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport", "full-page", "bottom"], "mobile": "full" },
+          "requiredSelectors": ["[data-p1-project=\"P1\"]", "[data-p1-current-task=\"P01\"]", "[data-p1-task=\"P03\"]", "[data-p1-portfolio-link]", "[data-primary-action]"],
+          "regions": [
+            { "name": "current-task", "selector": "[data-p1-current-task=\"P01\"]" },
+            { "name": "p03-successor", "selector": "[data-p1-task=\"P03\"]" },
+            { "name": "portfolio-entry", "selector": "[data-p1-portfolio-link]" }
+          ]
+        },
+        {
+          "id": "P02-current",
+          "route": "/student/projects/p1",
+          "query": "",
+          "actor": "stu-02",
+          "setup": { "fixture": "demo-seed", "currentTask": "P02" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "derivedFrom": ["course-graph/P1-current", "n02-p01/figure"],
+          "primaryActionPolicy": "exactly-one",
+          "allowedInternalScrollers": [],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport", "full-page", "bottom"], "mobile": "full" },
+          "requiredSelectors": ["[data-p1-project=\"P1\"]", "[data-p1-current-task=\"P02\"]", "[data-p1-task=\"P01\"]", "[data-p1-task=\"P03\"]", "[data-primary-action]"],
+          "regions": [
+            { "name": "current-task", "selector": "[data-p1-current-task=\"P02\"]" },
+            { "name": "previous-task", "selector": "[data-p1-task=\"P01\"]" },
+            { "name": "next-task", "selector": "[data-p1-task=\"P03\"]" }
+          ]
+        },
+        {
+          "id": "P03-current",
+          "route": "/student/projects/p1",
+          "query": "",
+          "actor": "stu-03",
+          "setup": { "fixture": "demo-seed", "currentTask": "P03" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "derivedFrom": ["course-graph/P1-current", "n02-p01/figure"],
+          "primaryActionPolicy": "exactly-one",
+          "allowedInternalScrollers": [],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport", "full-page", "bottom"], "mobile": "full" },
+          "requiredSelectors": ["[data-p1-project=\"P1\"]", "[data-p1-current-task=\"P03\"]", "[data-p1-task=\"P03\"]", "[data-p1-portfolio-link]", "[data-primary-action]"],
+          "regions": [
+            { "name": "current-task", "selector": "[data-p1-current-task=\"P03\"]" },
+            { "name": "p03-task", "selector": "[data-p1-task=\"P03\"]" },
+            { "name": "project-outcome", "selector": "[data-p1-portfolio-link]" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n02-p01",
+      "states": [
+        {
+          "id": "figure",
+          "route": "/learn/P1T1-N02",
+          "query": "",
+          "actor": "stu-01",
+          "setup": { "fixture": "demo-seed", "section": "figure" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "reference": "docs/design/image2/dgbook-image2-learning-dark-v4.png",
+          "primaryActionPolicy": "exactly-one",
+          "allowedInternalScrollers": [".self-study-textbook-body", ".self-study-head nav", ".scene-rail"],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport"], "mobile": "full" },
+          "requiredSelectors": ["[data-self-study-node=\"P1T1-N02\"]", "[data-self-study-section=\"figure\"]", "[data-self-study-figure=\"topology\"]", "[data-self-study-glossary]", "[data-primary-action]"],
+          "regions": [
+            { "name": "figure-section", "selector": "[data-self-study-section=\"figure\"]" },
+            { "name": "annotated-equipment", "selector": "[data-self-study-figure=\"topology\"]" },
+            { "name": "terminology", "selector": "[data-self-study-glossary]" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n02-p02",
+      "states": [
+        {
+          "id": "figure",
+          "route": "/learn/P1T2-N02",
+          "query": "",
+          "actor": "stu-02",
+          "setup": { "fixture": "demo-seed", "section": "figure" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "derivedFrom": ["n02-p01/figure"],
+          "primaryActionPolicy": "exactly-one",
+          "allowedInternalScrollers": [".self-study-textbook-body", ".self-study-head nav", ".scene-rail"],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport"], "mobile": "full" },
+          "requiredSelectors": ["[data-self-study-node=\"P1T2-N02\"]", "[data-self-study-section=\"figure\"]", "[data-self-study-figure=\"antenna\"]", "[data-primary-action]"],
+          "regions": [
+            { "name": "figure-section", "selector": "[data-self-study-section=\"figure\"]" },
+            { "name": "antenna-evidence", "selector": "[data-self-study-figure=\"antenna\"]" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n02-p03",
+      "states": [
+        {
+          "id": "figure",
+          "route": "/learn/P1T3-N02",
+          "query": "",
+          "actor": "stu-03",
+          "setup": { "fixture": "demo-seed", "section": "figure" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "derivedFrom": ["n02-p01/figure"],
+          "primaryActionPolicy": "exactly-one",
+          "allowedInternalScrollers": [".self-study-textbook-body", ".self-study-head nav", ".scene-rail"],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport"], "mobile": "full" },
+          "requiredSelectors": ["[data-self-study-node=\"P1T3-N02\"]", "[data-self-study-section=\"figure\"]", "[data-self-study-figure=\"complaint\"]", "[data-primary-action]"],
+          "regions": [
+            { "name": "figure-section", "selector": "[data-self-study-section=\"figure\"]" },
+            { "name": "complaint-evidence", "selector": "[data-self-study-figure=\"complaint\"]" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "formal-test",
+      "states": [
+        {
+          "id": "open",
+          "route": "/learn/P1T1-N02",
+          "query": "?mode=challenge",
+          "actor": "stu-01",
+          "setup": { "fixture": "demo-seed", "challenge": "open" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "reference": "docs/design/image2/dgbook-image2-pixi-dark-v4.png",
+          "primaryActionPolicy": "exactly-one",
+          "allowedInternalScrollers": [".challenge-game-stage"],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport"], "mobile": "full" },
+          "requiredSelectors": ["[data-scene-surface=\"student\"][data-scene-mode=\"challenge\"]", ".challenge-scene", ".challenge-game-stage", "[data-formal-test=\"true\"][data-skill-game=\"P1T1-N02\"]", "[data-primary-action]"],
+          "regions": [
+            { "name": "formal-test", "selector": ".challenge-scene" },
+            { "name": "pixi-stage", "selector": ".challenge-game-stage" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n04-p01",
+      "states": [
+        {
+          "id": "returned",
+          "route": "/learn/P1T1-N04",
+          "query": "?mode=challenge",
+          "actor": "stu-01",
+          "setup": { "fixture": "demo-seed", "outputStatus": "returned" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "derivedFrom": ["n02-p01/figure", "formal-test/open"],
+          "primaryActionPolicy": "exactly-one",
+          "allowedInternalScrollers": [".professional-output-body"],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport", "full-page", "bottom"], "mobile": "top-and-bottom" },
+          "requiredSelectors": ["[data-professional-output=\"P01\"]", "[data-output-status=\"returned\"]", "[data-output-field]", ".professional-output-actions", "[data-primary-action]"],
+          "regions": [
+            { "name": "output-form", "selector": "[data-professional-output=\"P01\"]" },
+            { "name": "output-actions", "selector": ".professional-output-actions" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n04-p02",
+      "states": [
+        {
+          "id": "draft",
+          "route": "/learn/P1T2-N04",
+          "query": "?mode=challenge",
+          "actor": "stu-02",
+          "setup": { "fixture": "demo-seed", "outputStatus": "draft-restored" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "derivedFrom": ["n02-p01/figure", "formal-test/open"],
+          "primaryActionPolicy": "exactly-one",
+          "allowedInternalScrollers": [".professional-output-body"],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport", "full-page", "bottom"], "mobile": "top-and-bottom" },
+          "requiredSelectors": ["[data-professional-output=\"P02\"]", "[data-output-status=\"draft\"]", "[data-output-field]", ".professional-output-actions", "[data-primary-action]"],
+          "regions": [
+            { "name": "output-form", "selector": "[data-professional-output=\"P02\"]" },
+            { "name": "output-actions", "selector": ".professional-output-actions" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "n04-p03",
+      "states": [
+        {
+          "id": "submitted",
+          "route": "/learn/P1T3-N04",
+          "query": "?mode=challenge",
+          "actor": "stu-03",
+          "setup": { "fixture": "demo-seed", "outputStatus": "submitted" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "derivedFrom": ["n02-p01/figure", "formal-test/open"],
+          "primaryActionPolicy": "none",
+          "allowedInternalScrollers": [".professional-output-body"],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport", "full-page", "bottom"], "mobile": "top-and-bottom" },
+          "requiredSelectors": ["[data-professional-output=\"P03\"]", "[data-output-status=\"submitted\"]", "[data-output-readonly=\"true\"]", "[data-output-version]"],
+          "regions": [
+            { "name": "submitted-output", "selector": "[data-professional-output=\"P03\"]" },
+            { "name": "immutable-version", "selector": "[data-output-version]" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "portfolio",
+      "states": [
+        {
+          "id": "incomplete",
+          "route": "/student/projects/p1/portfolio",
+          "query": "",
+          "actor": "stu-01",
+          "setup": { "fixture": "demo-seed", "packageStatus": "not-formed" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "derivedFrom": ["course-graph/P1-current", "n02-p01/figure"],
+          "primaryActionPolicy": "none",
+          "allowedInternalScrollers": [],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport", "full-page", "bottom"], "mobile": "full" },
+          "requiredSelectors": ["[data-p1-portfolio=\"not-formed\"]", "[data-p1-package-unformed]", "[data-p1-portfolio-item=\"P01\"]", "[data-p1-portfolio-item=\"P03\"]"],
+          "regions": [
+            { "name": "portfolio-status", "selector": "[data-p1-package-unformed]" },
+            { "name": "p01-output", "selector": "[data-p1-portfolio-item=\"P01\"]" },
+            { "name": "p03-output", "selector": "[data-p1-portfolio-item=\"P03\"]" }
+          ]
+        },
+        {
+          "id": "complete",
+          "route": "/student/projects/p1/portfolio",
+          "query": "",
+          "actor": "stu-03",
+          "setup": { "fixture": "complete-portfolio", "packageStatus": "complete" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "derivedFrom": ["course-graph/P1-current", "n02-p01/figure"],
+          "primaryActionPolicy": "none",
+          "allowedInternalScrollers": [],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport", "full-page", "bottom"], "mobile": "full" },
+          "requiredSelectors": ["[data-p1-portfolio=\"complete\"]", "[data-p1-package-reference]", "[data-p1-portfolio-item=\"P01\"]", "[data-p1-portfolio-item=\"P02\"]", "[data-p1-portfolio-item=\"P03\"]"],
+          "regions": [
+            { "name": "complete-package", "selector": "[data-p1-portfolio=\"complete\"]" },
+            { "name": "immutable-references", "selector": "[data-p1-package-reference]" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "teacher-session",
+      "states": [
+        {
+          "id": "teaching",
+          "route": "/teacher/sessions/demo-class",
+          "query": "",
+          "actor": "teacher01",
+          "setup": { "fixture": "demo-seed", "activeNodeId": "P1T1-N02", "phase": "lecture" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "reference": "docs/design/image2/dgbook-image2-teacher-dark-v4.png",
+          "primaryActionPolicy": "exactly-one",
+          "allowedInternalScrollers": [".scene-slide-rail", ".scene-teacher-inspector"],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport"], "mobile": "operable" },
+          "requiredSelectors": [".scene-teacher-console", "[data-role-scope=\"teacher\"]", ".scene-teacher-stage", ".scene-teacher-inspector", ".scene-teacher-controls", "[data-primary-action]"],
+          "regions": [
+            { "name": "shared-stage", "selector": ".scene-teacher-stage" },
+            { "name": "private-inspector", "selector": ".scene-teacher-inspector" },
+            { "name": "teaching-action", "selector": ".scene-teacher-controls" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "student-follow",
+      "states": [
+        {
+          "id": "follow",
+          "route": "/classroom/demo-class",
+          "query": "",
+          "actor": "stu-01",
+          "setup": { "fixture": "demo-seed", "participation": "joined-follow" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "reference": "docs/design/image2/dgbook-image2-student-follow-dark-v4.png",
+          "primaryActionPolicy": "exactly-one",
+          "allowedInternalScrollers": ["[data-classroom-activity]"],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport"], "mobile": "full" },
+          "requiredSelectors": ["[data-classroom-follow-renderer]", "[data-classroom-current-unit]", "[data-teacher-task]", "[data-classroom-activity]", "[data-return-self-study]", "[data-primary-action]"],
+          "regions": [
+            { "name": "current-unit", "selector": "[data-classroom-current-unit]" },
+            { "name": "teacher-task", "selector": "[data-teacher-task]" },
+            { "name": "classroom-activity", "selector": "[data-classroom-activity]" },
+            { "name": "return-self-study", "selector": "[data-return-self-study]" }
+          ]
+        },
+        {
+          "id": "self",
+          "route": "/classroom/demo-class",
+          "query": "",
+          "actor": "stu-02",
+          "setup": { "fixture": "demo-seed", "participation": "joined-self", "teacherRevisionAhead": true },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "derivedFrom": ["student-follow/follow"],
+          "primaryActionPolicy": "exactly-one",
+          "allowedInternalScrollers": [],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport"], "mobile": "full" },
+          "requiredSelectors": ["[data-classroom-self-status]", "[data-return-to-teacher]", "[data-primary-action]"],
+          "regions": [
+            { "name": "self-status", "selector": "[data-classroom-self-status]" },
+            { "name": "return-teacher", "selector": "[data-return-to-teacher]" }
+          ]
+        },
+        {
+          "id": "entry-or-left",
+          "route": "/classroom/demo-class",
+          "query": "",
+          "actor": "stu-03",
+          "setup": { "fixture": "demo-seed", "participation": "left" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "derivedFrom": ["student-follow/follow"],
+          "primaryActionPolicy": "exactly-one",
+          "allowedInternalScrollers": [],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport"], "mobile": "full" },
+          "requiredSelectors": ["[data-classroom-entry-status]", "[data-primary-action]"],
+          "regions": [
+            { "name": "entry-status", "selector": "[data-classroom-entry-status]" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "projector",
+      "states": [
+        {
+          "id": "active",
+          "route": "/present/demo-class",
+          "query": "",
+          "actor": "teacher01",
+          "setup": { "fixture": "demo-seed", "sessionId": "demo-class", "readOnly": true },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "derivedFrom": ["teacher-session/teaching", "student-follow/follow"],
+          "primaryActionPolicy": "none",
+          "allowedInternalScrollers": [],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport"], "mobile": "responsive-smoke" },
+          "requiredSelectors": [".scene-projector-app", "[data-role-scope=\"projector\"]", ".scene-projector-stage", ".scene-projector-footer"],
+          "regions": [
+            { "name": "shared-stage", "selector": ".scene-projector-stage" },
+            { "name": "read-only-status", "selector": ".scene-projector-footer" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "course-graph",
+      "states": [
+        {
+          "id": "P1-current",
+          "route": "/course",
+          "query": "",
+          "actor": "stu-03",
+          "setup": { "fixture": "complete-portfolio", "focusProject": "P1" },
+          "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
+          "reference": "docs/design/image2/dgbook-image2-capability-graph-dark-v4.png",
+          "primaryActionPolicy": "exactly-one",
+          "allowedInternalScrollers": ["[data-semantic-course-graph]", ".graph-detail-panel"],
+          "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
+          "screenshotPolicy": { "captures": ["viewport"], "mobile": "full" },
+          "requiredSelectors": [".course-overview[data-course-home]", "[data-semantic-course-graph]", ".semantic-graph-svg", ".graph-detail-panel", "[data-primary-action]"],
+          "regions": [
+            { "name": "capability-graph", "selector": "[data-semantic-course-graph]" },
+            { "name": "node-detail", "selector": ".graph-detail-panel" }
+          ]
+        }
+      ]
+    }
+  ]
+}

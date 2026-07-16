@@ -1,0 +1,769 @@
+{
+  "id": "P01-edugame-interactive-001",
+  "widget": "edugame-pixi",
+  "version": "0.1.0",
+  "props": {
+    "title": "采集设备连线",
+    "height": 720,
+    "gameConfig": {
+      "schema": "dgbook.edugame-pixi/v1",
+      "game_id": "device-wiring-lab",
+      "game_type": "pipe-connect",
+      "lesson_id": "P01",
+      "duration": 82,
+      "difficulty": "normal",
+      "asset_pack": "dgbook-5g-v1",
+      "mistake_limit": 4,
+      "pass_score": 80,
+      "knowledge_points": [
+        {
+          "id": "t1",
+          "name": "业务脚本",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t2",
+          "name": "位置时间",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t3",
+          "name": "频谱证据",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t4",
+          "name": "用户体验",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t5",
+          "name": "同步约束",
+          "description": "证据门",
+          "weight": 1
+        },
+        {
+          "id": "t6",
+          "name": "环境证据",
+          "description": "证据门",
+          "weight": 1
+        }
+      ],
+      "levels": [
+        {
+          "level_id": "p01-level-01",
+          "type": "pipe-connect",
+          "goal": "在限定时间内把采集对象接入正确证据门，形成可交付的数据链。",
+          "time_limit": 82,
+          "mistake_limit": 4,
+          "items": [
+            {
+              "id": "i1",
+              "label": "采集电脑",
+              "text": "现场任务：外场小组出发前要完成采集设备闭环检查。",
+              "prompt": "判断“采集电脑”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "承载测试软件、账号和自动化业务脚本",
+              "target_id": "t1",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 承载测试软件、账号和自动化业务脚本",
+              "kp": "t1",
+              "order": 1,
+              "correct": true
+            },
+            {
+              "id": "i2",
+              "label": "GPS 天线",
+              "text": "交付要求：在限定时间内把采集对象接入正确证据门，形成可交付的数据链。",
+              "prompt": "判断“GPS 天线”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "提供轨迹、速度和统一时间戳",
+              "target_id": "t2",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 提供轨迹、速度和统一时间戳",
+              "kp": "t2",
+              "order": 2,
+              "correct": true
+            },
+            {
+              "id": "i3",
+              "label": "扫频仪",
+              "text": "挑战约束：有两个证据看似都能证明现场状态，但只有一个能支撑后续数据复核。",
+              "prompt": "判断“扫频仪”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "定位外部干扰、频点占用和异常噪声",
+              "target_id": "t3",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 定位外部干扰、频点占用和异常噪声",
+              "kp": "t3",
+              "order": 3,
+              "correct": true
+            },
+            {
+              "id": "i4",
+              "label": "测试终端",
+              "text": "外场小组出发前要完成采集设备闭环检查。",
+              "prompt": "判断“测试终端”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "复现真实语音、视频和下载感知",
+              "target_id": "t4",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 复现真实语音、视频和下载感知",
+              "kp": "t4",
+              "order": 4,
+              "correct": true
+            },
+            {
+              "id": "i5",
+              "label": "供电时钟",
+              "text": "外场小组出发前要完成采集设备闭环检查。",
+              "prompt": "判断“供电时钟”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "保证设备不断电且稳定采样",
+              "target_id": "t5",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 保证设备不断电且稳定采样",
+              "kp": "t5",
+              "order": 5,
+              "correct": true
+            },
+            {
+              "id": "i6",
+              "label": "现场照片",
+              "text": "外场小组出发前要完成采集设备闭环检查。",
+              "prompt": "判断“现场照片”应进入哪个目标门，并避开相似干扰项。",
+              "definition": "证明站址、接线和设备状态",
+              "target_id": "t6",
+              "explanation": "证据有效：这张证据卡能直接支撑当前工程判断。 证明站址、接线和设备状态",
+              "kp": "t6",
+              "order": 6,
+              "correct": true
+            },
+            {
+              "id": "d1",
+              "label": "只记录主观描述",
+              "text": "缺少可复核证据，无法支撑工程闭环。",
+              "prompt": "这是干扰信息，先判断它是否能直接支撑本关目标。",
+              "definition": "缺少可复核证据，无法支撑工程闭环。",
+              "target_id": "t1",
+              "explanation": "缺少可复核证据，无法支撑工程闭环。",
+              "kp": "t1",
+              "correct": false
+            },
+            {
+              "id": "d2",
+              "label": "跳过时间和对象边界",
+              "text": "查询窗口不清会放大排查范围。",
+              "prompt": "这是干扰信息，先判断它是否能直接支撑本关目标。",
+              "definition": "查询窗口不清会放大排查范围。",
+              "target_id": "t2",
+              "explanation": "查询窗口不清会放大排查范围。",
+              "kp": "t2",
+              "correct": false
+            },
+            {
+              "id": "d3",
+              "label": "直接给经验结论",
+              "text": "没有证据链的结论不能作为派单依据。",
+              "prompt": "这是干扰信息，先判断它是否能直接支撑本关目标。",
+              "definition": "没有证据链的结论不能作为派单依据。",
+              "target_id": "t3",
+              "explanation": "没有证据链的结论不能作为派单依据。",
+              "kp": "t3",
+              "correct": false
+            }
+          ]
+        }
+      ],
+      "score_rule": {
+        "base": 0,
+        "correct": 12,
+        "wrong_penalty": 6,
+        "combo_bonus": true,
+        "time_bonus": true
+      },
+      "reward_rule": {
+        "stars": [
+          60,
+          75,
+          90
+        ],
+        "badges": [
+          "连线闭合",
+          "接口准确",
+          "采集就绪",
+          "零误接"
+        ]
+      },
+      "ui": {
+        "arenaLabel": "5G 训练场",
+        "cardMark": "5G",
+        "scenario": "外场小组出发前要完成采集设备闭环检查。",
+        "instruction": "把工程对象接入正确接口槽，形成可采集、可复核的数据链。",
+        "actionLabel": "开始挑战",
+        "feedbackHint": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+        "onboarding": [
+          "先选择设备卡，再选择对应接口槽。",
+          "接错接口会断开连击并扣除交付分。",
+          "链路未闭合会导致采集数据不可复核。",
+          "全部设备接入正确接口槽，且失误不超过上限。"
+        ]
+      },
+      "interaction": {
+        "actionLabel": "开始挑战",
+        "ruleChecks": [
+          "先选择设备卡，再选择对应接口槽。",
+          "接错接口会断开连击并扣除交付分。",
+          "全部接口闭合后形成可交付采集链路。"
+        ],
+        "errorFeedback": [
+          "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+          "先核对对象、证据门和干扰项边界，再重新选择。"
+        ],
+        "replayPrompts": [
+          "先识别 2 个高优先级证据卡。",
+          "在限定时间内完成全部证据链并达到交付分。"
+        ]
+      },
+      "ruleChecks": [
+        "先选择设备卡，再选择对应接口槽。",
+        "接错接口会断开连击并扣除交付分。",
+        "全部接口闭合后形成可交付采集链路。"
+      ],
+      "errorFeedback": [
+        "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+        "先核对对象、证据门和干扰项边界，再重新选择。"
+      ],
+      "replayPrompts": [
+        "先识别 2 个高优先级证据卡。",
+        "在限定时间内完成全部证据链并达到交付分。"
+      ],
+      "successCriteria": [
+        "全部设备接入正确接口槽，且失误不超过上限。",
+        "达到 80 分，且错误不超过 4 次。"
+      ],
+      "actionLabel": "开始挑战",
+      "template": "edugamekit.device-connect/v2",
+      "templateId": "device-connect",
+      "mechanicFamily": "drag-match",
+      "id": "device-wiring-lab",
+      "projectId": "P01",
+      "title": "采集设备连线",
+      "gameType": "drag-match",
+      "objective": "在限定时间内把采集对象接入正确证据门，形成可交付的数据链。",
+      "scenario": "外场小组出发前要完成采集设备闭环检查。",
+      "challenge": "有两个证据看似都能证明现场状态，但只有一个能支撑后续数据复核。",
+      "instruction": "把工程对象接入正确接口槽，形成可采集、可复核的数据链。",
+      "challengeMode": "connect",
+      "winCondition": "全部设备接入正确接口槽，且失误不超过上限。",
+      "pressureModel": {
+        "label": "链路未闭合会导致采集数据不可复核。",
+        "failureBudget": 4,
+        "timeBudgetSec": 82
+      },
+      "mechanicRules": [
+        "先选择设备卡，再选择对应接口槽。",
+        "接错接口会断开连击并扣除交付分。",
+        "全部接口闭合后形成可交付采集链路。"
+      ],
+      "timeLimitSec": 82,
+      "mistakeLimit": 4,
+      "passScore": 80,
+      "totalPoints": 100,
+      "caseFacts": [
+        "现场任务：外场小组出发前要完成采集设备闭环检查。",
+        "交付要求：在限定时间内把采集对象接入正确证据门，形成可交付的数据链。",
+        "挑战约束：有两个证据看似都能证明现场状态，但只有一个能支撑后续数据复核。"
+      ],
+      "evidenceTokens": [
+        {
+          "id": "i1",
+          "label": "采集电脑",
+          "role": "承载测试软件、账号和自动化业务脚本",
+          "severity": "critical",
+          "expectedTargetId": "t1",
+          "hint": "关键点：承载测试软件、账号和自动化业务脚本",
+          "caseFact": "现场任务：外场小组出发前要完成采集设备闭环检查。",
+          "challenge": "判断“采集电脑”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 承载测试软件、账号和自动化业务脚本",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 承载测试软件、账号和自动化业务脚本",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i2",
+          "label": "GPS 天线",
+          "role": "提供轨迹、速度和统一时间戳",
+          "severity": "critical",
+          "expectedTargetId": "t2",
+          "hint": "关键点：提供轨迹、速度和统一时间戳",
+          "caseFact": "交付要求：在限定时间内把采集对象接入正确证据门，形成可交付的数据链。",
+          "challenge": "判断“GPS 天线”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 提供轨迹、速度和统一时间戳",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 提供轨迹、速度和统一时间戳",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i3",
+          "label": "扫频仪",
+          "role": "定位外部干扰、频点占用和异常噪声",
+          "severity": "high",
+          "expectedTargetId": "t3",
+          "hint": "关键点：定位外部干扰、频点占用和异常噪声",
+          "caseFact": "挑战约束：有两个证据看似都能证明现场状态，但只有一个能支撑后续数据复核。",
+          "challenge": "判断“扫频仪”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 定位外部干扰、频点占用和异常噪声",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 定位外部干扰、频点占用和异常噪声",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i4",
+          "label": "测试终端",
+          "role": "复现真实语音、视频和下载感知",
+          "severity": "high",
+          "expectedTargetId": "t4",
+          "hint": "关键点：复现真实语音、视频和下载感知",
+          "caseFact": "外场小组出发前要完成采集设备闭环检查。",
+          "challenge": "判断“测试终端”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 复现真实语音、视频和下载感知",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 复现真实语音、视频和下载感知",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i5",
+          "label": "供电时钟",
+          "role": "保证设备不断电且稳定采样",
+          "severity": "normal",
+          "expectedTargetId": "t5",
+          "hint": "关键点：保证设备不断电且稳定采样",
+          "caseFact": "外场小组出发前要完成采集设备闭环检查。",
+          "challenge": "判断“供电时钟”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 保证设备不断电且稳定采样",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 保证设备不断电且稳定采样",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        },
+        {
+          "id": "i6",
+          "label": "现场照片",
+          "role": "证明站址、接线和设备状态",
+          "severity": "normal",
+          "expectedTargetId": "t6",
+          "hint": "关键点：证明站址、接线和设备状态",
+          "caseFact": "外场小组出发前要完成采集设备闭环检查。",
+          "challenge": "判断“现场照片”应进入哪个目标门，并避开相似干扰项。",
+          "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 证明站址、接线和设备状态",
+          "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 证明站址、接线和设备状态",
+          "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+        }
+      ],
+      "targetGates": [
+        {
+          "id": "t1",
+          "label": "业务脚本",
+          "role": "证据门",
+          "accepts": "承载测试软件、账号和自动化业务脚本"
+        },
+        {
+          "id": "t2",
+          "label": "位置时间",
+          "role": "证据门",
+          "accepts": "提供轨迹、速度和统一时间戳"
+        },
+        {
+          "id": "t3",
+          "label": "频谱证据",
+          "role": "证据门",
+          "accepts": "定位外部干扰、频点占用和异常噪声"
+        },
+        {
+          "id": "t4",
+          "label": "用户体验",
+          "role": "证据门",
+          "accepts": "复现真实语音、视频和下载感知"
+        },
+        {
+          "id": "t5",
+          "label": "同步约束",
+          "role": "证据门",
+          "accepts": "保证设备不断电且稳定采样"
+        },
+        {
+          "id": "t6",
+          "label": "环境证据",
+          "role": "证据门",
+          "accepts": "证明站址、接线和设备状态"
+        }
+      ],
+      "distractors": [
+        {
+          "id": "d1",
+          "label": "只记录主观描述",
+          "whyWrong": "缺少可复核证据，无法支撑工程闭环。"
+        },
+        {
+          "id": "d2",
+          "label": "跳过时间和对象边界",
+          "whyWrong": "查询窗口不清会放大排查范围。"
+        },
+        {
+          "id": "d3",
+          "label": "直接给经验结论",
+          "whyWrong": "没有证据链的结论不能作为派单依据。"
+        }
+      ],
+      "levelGoals": [
+        "先识别 2 个高优先级证据卡。",
+        "连续完成 3 次正确归门，建立稳定判断。",
+        "在限定时间内完成全部证据链并达到交付分。"
+      ],
+      "failureConditions": [
+        "关键证据门缺失导致链路不可复核。",
+        "错把干扰项当作证据导致扣分超过上限。",
+        "超时仍未完成全部目标门匹配。"
+      ],
+      "feedback": {
+        "correct": "证据有效：这张证据卡能直接支撑当前工程判断。",
+        "wrong": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+        "nearMiss": "方向接近，但证据粒度还不够支撑交付结论。",
+        "complete": "证据链闭合，可以进入复盘或派单。"
+      },
+      "inputModel": {
+        "kind": "drag-match",
+        "group": "connection",
+        "template": "edugamekit.device-connect/v2",
+        "templateId": "device-connect",
+        "mechanicFamily": "drag-match",
+        "gameClass": "采集设备连线",
+        "mechanicLabel": "设备连线挑战",
+        "challengeMode": "connect",
+        "visualMetaphor": "设备端口连线",
+        "instruction": "把工程对象接入正确接口槽，形成可采集、可复核的数据链。",
+        "minActions": 6,
+        "caseFacts": [
+          "现场任务：外场小组出发前要完成采集设备闭环检查。",
+          "交付要求：在限定时间内把采集对象接入正确证据门，形成可交付的数据链。",
+          "挑战约束：有两个证据看似都能证明现场状态，但只有一个能支撑后续数据复核。"
+        ],
+        "options": [
+          {
+            "id": "i1",
+            "label": "采集电脑",
+            "role": "承载测试软件、账号和自动化业务脚本",
+            "severity": "critical",
+            "expectedTargetId": "t1",
+            "hint": "关键点：承载测试软件、账号和自动化业务脚本",
+            "caseFact": "现场任务：外场小组出发前要完成采集设备闭环检查。",
+            "challenge": "判断“采集电脑”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 承载测试软件、账号和自动化业务脚本",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 承载测试软件、账号和自动化业务脚本",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i2",
+            "label": "GPS 天线",
+            "role": "提供轨迹、速度和统一时间戳",
+            "severity": "critical",
+            "expectedTargetId": "t2",
+            "hint": "关键点：提供轨迹、速度和统一时间戳",
+            "caseFact": "交付要求：在限定时间内把采集对象接入正确证据门，形成可交付的数据链。",
+            "challenge": "判断“GPS 天线”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 提供轨迹、速度和统一时间戳",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 提供轨迹、速度和统一时间戳",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i3",
+            "label": "扫频仪",
+            "role": "定位外部干扰、频点占用和异常噪声",
+            "severity": "high",
+            "expectedTargetId": "t3",
+            "hint": "关键点：定位外部干扰、频点占用和异常噪声",
+            "caseFact": "挑战约束：有两个证据看似都能证明现场状态，但只有一个能支撑后续数据复核。",
+            "challenge": "判断“扫频仪”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 定位外部干扰、频点占用和异常噪声",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 定位外部干扰、频点占用和异常噪声",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i4",
+            "label": "测试终端",
+            "role": "复现真实语音、视频和下载感知",
+            "severity": "high",
+            "expectedTargetId": "t4",
+            "hint": "关键点：复现真实语音、视频和下载感知",
+            "caseFact": "外场小组出发前要完成采集设备闭环检查。",
+            "challenge": "判断“测试终端”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 复现真实语音、视频和下载感知",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 复现真实语音、视频和下载感知",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i5",
+            "label": "供电时钟",
+            "role": "保证设备不断电且稳定采样",
+            "severity": "normal",
+            "expectedTargetId": "t5",
+            "hint": "关键点：保证设备不断电且稳定采样",
+            "caseFact": "外场小组出发前要完成采集设备闭环检查。",
+            "challenge": "判断“供电时钟”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 保证设备不断电且稳定采样",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 保证设备不断电且稳定采样",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          },
+          {
+            "id": "i6",
+            "label": "现场照片",
+            "role": "证明站址、接线和设备状态",
+            "severity": "normal",
+            "expectedTargetId": "t6",
+            "hint": "关键点：证明站址、接线和设备状态",
+            "caseFact": "外场小组出发前要完成采集设备闭环检查。",
+            "challenge": "判断“现场照片”应进入哪个目标门，并避开相似干扰项。",
+            "feedback": "证据有效：这张证据卡能直接支撑当前工程判断。 证明站址、接线和设备状态",
+            "successFeedback": "证据有效：这张证据卡能直接支撑当前工程判断。 证明站址、接线和设备状态",
+            "errorFeedback": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。"
+          }
+        ],
+        "targets": [
+          {
+            "id": "t1",
+            "label": "业务脚本",
+            "role": "证据门",
+            "accepts": "承载测试软件、账号和自动化业务脚本"
+          },
+          {
+            "id": "t2",
+            "label": "位置时间",
+            "role": "证据门",
+            "accepts": "提供轨迹、速度和统一时间戳"
+          },
+          {
+            "id": "t3",
+            "label": "频谱证据",
+            "role": "证据门",
+            "accepts": "定位外部干扰、频点占用和异常噪声"
+          },
+          {
+            "id": "t4",
+            "label": "用户体验",
+            "role": "证据门",
+            "accepts": "复现真实语音、视频和下载感知"
+          },
+          {
+            "id": "t5",
+            "label": "同步约束",
+            "role": "证据门",
+            "accepts": "保证设备不断电且稳定采样"
+          },
+          {
+            "id": "t6",
+            "label": "环境证据",
+            "role": "证据门",
+            "accepts": "证明站址、接线和设备状态"
+          }
+        ],
+        "distractors": [
+          {
+            "id": "d1",
+            "label": "只记录主观描述",
+            "whyWrong": "缺少可复核证据，无法支撑工程闭环。"
+          },
+          {
+            "id": "d2",
+            "label": "跳过时间和对象边界",
+            "whyWrong": "查询窗口不清会放大排查范围。"
+          },
+          {
+            "id": "d3",
+            "label": "直接给经验结论",
+            "whyWrong": "没有证据链的结论不能作为派单依据。"
+          }
+        ],
+        "onboardingPath": [
+          {
+            "title": "看目标",
+            "body": "先选择设备卡，再选择对应接口槽。"
+          },
+          {
+            "title": "做判断",
+            "body": "接错接口会断开连击并扣除交付分。"
+          },
+          {
+            "title": "控风险",
+            "body": "链路未闭合会导致采集数据不可复核。"
+          },
+          {
+            "title": "达成交付",
+            "body": "全部设备接入正确接口槽，且失误不超过上限。"
+          }
+        ],
+        "mechanicRules": [
+          "先选择设备卡，再选择对应接口槽。",
+          "接错接口会断开连击并扣除交付分。",
+          "全部接口闭合后形成可交付采集链路。"
+        ],
+        "winCondition": "全部设备接入正确接口槽，且失误不超过上限。",
+        "levelGoals": [
+          "先识别 2 个高优先级证据卡。",
+          "连续完成 3 次正确归门，建立稳定判断。",
+          "在限定时间内完成全部证据链并达到交付分。"
+        ],
+        "failureConditions": [
+          "关键证据门缺失导致链路不可复核。",
+          "错把干扰项当作证据导致扣分超过上限。",
+          "超时仍未完成全部目标门匹配。"
+        ]
+      },
+      "answerModel": {
+        "kind": "drag-match",
+        "group": "connection",
+        "pairs": {
+          "i1": "t1",
+          "i2": "t2",
+          "i3": "t3",
+          "i4": "t4",
+          "i5": "t5",
+          "i6": "t6"
+        },
+        "targetIds": [
+          "t1",
+          "t2",
+          "t3",
+          "t4",
+          "t5",
+          "t6"
+        ],
+        "requiredEvidenceCount": 6,
+        "distractorIds": [
+          "d1",
+          "d2",
+          "d3"
+        ],
+        "winCondition": "全部设备接入正确接口槽，且失误不超过上限。",
+        "rationale": "每个判断必须回到工程证据，不能只凭描述、情绪或经验结论。"
+      },
+      "challengeLevels": [
+        {
+          "id": "level-1",
+          "label": "识别",
+          "goal": "先识别 2 个高优先级证据卡。",
+          "constraint": "允许查看提示，但连续命中才加分。"
+        },
+        {
+          "id": "level-2",
+          "label": "抗干扰",
+          "goal": "连续完成 3 次正确归门，建立稳定判断。",
+          "constraint": "干扰项会扣分并清空连击。"
+        },
+        {
+          "id": "level-3",
+          "label": "交付",
+          "goal": "在限定时间内完成全部证据链并达到交付分。",
+          "constraint": "82 秒内达到 80 分，最多 4 次失误。"
+        }
+      ],
+      "gameExperience": {
+        "onboardingPath": [
+          {
+            "title": "看目标",
+            "body": "先选择设备卡，再选择对应接口槽。"
+          },
+          {
+            "title": "做判断",
+            "body": "接错接口会断开连击并扣除交付分。"
+          },
+          {
+            "title": "控风险",
+            "body": "链路未闭合会导致采集数据不可复核。"
+          },
+          {
+            "title": "达成交付",
+            "body": "全部设备接入正确接口槽，且失误不超过上限。"
+          }
+        ],
+        "mechanicRules": [
+          "先选择设备卡，再选择对应接口槽。",
+          "接错接口会断开连击并扣除交付分。",
+          "全部接口闭合后形成可交付采集链路。"
+        ],
+        "challengeMode": "connect",
+        "winCondition": "全部设备接入正确接口槽，且失误不超过上限。",
+        "levelGoals": [
+          "先识别 2 个高优先级证据卡。",
+          "连续完成 3 次正确归门，建立稳定判断。",
+          "在限定时间内完成全部证据链并达到交付分。"
+        ],
+        "failureConditions": [
+          "关键证据门缺失导致链路不可复核。",
+          "错把干扰项当作证据导致扣分超过上限。",
+          "超时仍未完成全部目标门匹配。"
+        ],
+        "rewardModel": {
+          "badges": [
+            "连线闭合",
+            "接口准确",
+            "采集就绪",
+            "零误接"
+          ]
+        },
+        "scoreMoments": [
+          {
+            "id": "first-critical",
+            "label": "首个关键证据归门",
+            "points": 10
+          },
+          {
+            "id": "streak-3",
+            "label": "三连击",
+            "points": 15
+          },
+          {
+            "id": "no-distractor",
+            "label": "避开干扰项",
+            "points": 15
+          },
+          {
+            "id": "chain-complete",
+            "label": "证据链闭合",
+            "points": 30
+          }
+        ]
+      },
+      "scoringRubric": {
+        "totalPoints": 100,
+        "passScore": 80,
+        "dimensions": [
+          {
+            "id": "accuracy",
+            "label": "接口匹配准确",
+            "points": 50
+          },
+          {
+            "id": "distractorControl",
+            "label": "干扰项识别",
+            "points": 20
+          },
+          {
+            "id": "speed",
+            "label": "限时完成",
+            "points": 15
+          },
+          {
+            "id": "streak",
+            "label": "连续命中",
+            "points": 15
+          }
+        ]
+      },
+      "feedbackHint": "先回到任务对象，判断它究竟要证明时间、位置、业务、网络还是复核动作。",
+      "reviewSummary": {
+        "pass": "采集设备连线已达标：证据链完整，可以进入案例复盘或工程交付。",
+        "fail": "采集设备连线未达标：请回到缺失目标门，重新确认证据卡、证据门和干扰项边界。"
+      },
+      "legacyManifestId": "device-wiring-lab"
+    }
+  },
+  "project": "P01",
+  "status": "published",
+  "history": [
+    {
+      "status": "published",
+      "at": "2026-05-22T00:00:00.000Z",
+      "by": "docx-importer",
+      "comment": "Published by the DGBook importer."
+    }
+  ]
+}

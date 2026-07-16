@@ -1,0 +1,230 @@
+---
+project_id: "P18"
+title: "5G信令问题分析及优化"
+chapter: "ch6"
+unit: "u6"
+icon: "chart-no-axes-combined"
+chip: "5G网优"
+threads: ["5g-network-optimization"]
+estimatedPages: 5
+widgets: ["P18-lesson-animation-001", "P18-edugame-interactive-001"]
+status: "draft"
+playbackScenes: [{"id": "P18-storyboard", "title": "教材讲授", "type": "content", "order": 1, "stageId": "P18", "description": "围绕5G信令问题分析及优化建立对象、证据、判据和复测结论。", "actions": [{"id": "P18-story-action-001", "type": "spotlight", "title": "导学摘要", "elementId": "sec-overview-summary", "content": "本节讲 5G 信令故障分析：按接入、注册、会话、切换和业务面失败分类，重建 RRC、NAS、NGAP、PFCP 与用户面链路。"}, {"id": "P18-story-action-002", "type": "speech", "title": "导学摘要", "text": "本节讲 5G 信令故障分析：按接入、注册、会话、切换和业务面失败分类，重建 RRC、NAS、NGAP、PFCP 与用户面链路。", "elementId": "sec-overview-summary", "spokenText": "本节讲 5G 信令故障分析：按接入、注册、会话、切换和业务面失败分类，重建 RRC、NAS、NGAP、PFCP 与用户面链路。", "audioId": "P18-story-speech-002", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "本节讲 5G 信令故障分析：按接入、注册、会话、切换和业务面失败分类，重建 RRC...", "displayText": "本节讲 5G 信令故障分析：按接入、注册、会话、切换和业务面失败分类，重建 RRC...", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-002.wav"}, {"id": "P18-story-action-003", "type": "spotlight", "title": "学习目标", "elementId": "sec-learning-goal", "content": "学完后能用 Cause/Timer、消息方向、重传、N2/N3 和节点责任域区分无线、核心网、传输、参数或终端问题。"}, {"id": "P18-story-action-004", "type": "speech", "title": "学习目标", "text": "学完后能用 Cause/Timer、消息方向、重传、N2/N3 和节点责任域区分无线、核心网、传输、参数或终端问题。", "elementId": "sec-learning-goal", "spokenText": "学完后能用 Cause/Timer、消息方向、重传、N2/N3 和节点责任域区分无线、核心网、传输、参数或终端问题。", "audioId": "P18-story-speech-004", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "学完后能用 Cause/Timer、消息方向、重传、N2/N3 和节点责任域区分无...", "displayText": "学完后能用 Cause/Timer、消息方向、重传、N2/N3 和节点责任域区分无...", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-004.wav"}, {"id": "P18-story-action-005", "type": "spotlight", "title": "概念与对象：故障现象", "elementId": "P18-ku-01-body", "content": "接入、注册、会话、切换和业务失败先分类。"}, {"id": "P18-story-action-006", "type": "speech", "title": "故障现象：讲解", "text": "信令故障分析先按现象分类：RRC 接入失败、NAS 注册失败、PDU Session 失败、切换失败和业务面失败对应不同链路。", "elementId": "P18-ku-01-body", "spokenText": "信令故障分析先按现象分类：RRC 接入失败、NAS 注册失败、PDU Session 失败、切换失败和业务面失败对应不同链路。", "audioId": "P18-story-speech-006", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "信令故障分析先按现象分类：RRC 接入失败、NAS 注册失败、PDU Sessio...", "displayText": "信令故障分析先按现象分类：RRC 接入失败、NAS 注册失败、PDU Sessio...", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-006.wav"}, {"id": "P18-story-focus-action-story-action-007", "type": "spotlight", "title": "故障现象：工程语境", "elementId": "P18-ku-01-body", "target": "P18-ku-01-body", "content": "故障现象先界定观察对象；接入失败、注册失败、会话失败、切换失败用于确定本段的范围...", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P18-story-action-007", "type": "speech", "title": "故障现象：工程语境", "text": "故障现象先界定观察对象；接入失败、注册失败、会话失败、切换失败用于确定本段的范围、入口和主要证据。", "elementId": "P18-ku-01-body", "spokenText": "故障现象先界定观察对象；接入失败、注册失败、会话失败、切换失败用于确定本段的范围、入口和主要证据。", "audioId": "P18-story-speech-007", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "故障现象先界定观察对象；接入失败、注册失败、会话失败、切换失败用于确定本段的范围...", "displayText": "故障现象先界定观察对象；接入失败、注册失败、会话失败、切换失败用于确定本段的范围...", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-007.wav"}, {"id": "P18-story-focus-action-story-action-008", "type": "spotlight", "title": "故障现象：判断依据", "elementId": "P18-ku-01-body", "target": "P18-ku-01-body", "content": "先核对故障现象的对象范围，再看接入失败、注册失败、会话失败、切换失败是否和现场记录...", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P18-story-action-008", "type": "speech", "title": "故障现象：判断依据", "text": "先核对故障现象的对象范围，再看接入失败、注册失败、会话失败、切换失败是否和现场记录、指标口径保持一致。", "elementId": "P18-ku-01-body", "spokenText": "先核对故障现象的对象范围，再看接入失败、注册失败、会话失败、切换失败是否和现场记录、指标口径保持一致。", "audioId": "P18-story-speech-008", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "先核对故障现象的对象范围，再看接入失败、注册失败、会话失败、切换失败是否和现场记录...", "displayText": "先核对故障现象的对象范围，再看接入失败、注册失败、会话失败、切换失败是否和现场记录...", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-008.wav"}, {"id": "P18-story-focus-action-story-action-009", "type": "spotlight", "title": "故障现象：常见误区", "elementId": "P18-ku-01-body", "target": "P18-ku-01-body", "content": "不要在故障现象阶段过早下结论；对象范围不清时，后续数据再多也难以复核。", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P18-story-action-009", "type": "speech", "title": "故障现象：常见误区", "text": "不要在故障现象阶段过早下结论；对象范围不清时，后续数据再多也难以复核。", "elementId": "P18-ku-01-body", "spokenText": "不要在故障现象阶段过早下结论；对象范围不清时，后续数据再多也难以复核。", "audioId": "P18-story-speech-009", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "不要在故障现象阶段过早下结论；对象范围不清时，后续数据再多也难以复核。", "displayText": "不要在故障现象阶段过早下结论；对象范围不清时，后续数据再多也难以复核。", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-009.wav"}, {"id": "P18-story-action-010", "type": "spotlight", "title": "概念与对象：消息时序", "elementId": "P18-ku-02-body", "content": "按 RRC、NAS、NGAP、PFCP 和 PDU Session 重建时序。"}, {"id": "P18-story-action-011", "type": "speech", "title": "消息时序：讲解", "text": "消息链路要按时间重建，串起 UE、gNB、AMF、SMF 和 UPF 之间的方向、响应、重传和缺失消息。", "elementId": "P18-ku-02-body", "spokenText": "消息链路要按时间重建，串起 UE、gNB、AMF、SMF 和 UPF 之间的方向、响应、重传和缺失消息。", "audioId": "P18-story-speech-011", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "消息链路要按时间重建，串起 UE、gNB、AMF、SMF 和 UPF 之间的方向...", "displayText": "消息链路要按时间重建，串起 UE、gNB、AMF、SMF 和 UPF 之间的方向...", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-011.wav"}, {"id": "P18-story-focus-action-story-action-012", "type": "spotlight", "title": "消息时序：工程语境", "elementId": "P18-ku-02-body", "target": "P18-ku-02-body", "content": "消息时序说明链路走到哪一步；UE、gNB、AMF、SMF/UPF分别对应角色、接口...", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P18-story-action-012", "type": "speech", "title": "消息时序：工程语境", "text": "消息时序说明链路走到哪一步；UE、gNB、AMF、SMF/UPF分别对应角色、接口、状态和约束。", "elementId": "P18-ku-02-body", "spokenText": "消息时序说明链路走到哪一步；UE、gNB、AMF、SMF/UPF分别对应角色、接口、状态和约束。", "audioId": "P18-story-speech-012", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "消息时序说明链路走到哪一步；UE、gNB、AMF、SMF/UPF分别对应角色、接口...", "displayText": "消息时序说明链路走到哪一步；UE、gNB、AMF、SMF/UPF分别对应角色、接口...", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-012.wav"}, {"id": "P18-story-focus-action-story-action-013", "type": "spotlight", "title": "消息时序：判断依据", "elementId": "P18-ku-02-body", "target": "P18-ku-02-body", "content": "沿时间顺序检查UE、gNB、AMF、SMF/UPF的先后关系，确认缺失、超时或状态...", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P18-story-action-013", "type": "speech", "title": "消息时序：判断依据", "text": "沿时间顺序检查UE、gNB、AMF、SMF/UPF的先后关系，确认缺失、超时或状态跳变发生在哪一段。", "elementId": "P18-ku-02-body", "spokenText": "沿时间顺序检查UE、gNB、AMF、SMF/UPF的先后关系，确认缺失、超时或状态跳变发生在哪一段。", "audioId": "P18-story-speech-013", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "沿时间顺序检查UE、gNB、AMF、SMF/UPF的先后关系，确认缺失、超时或状态...", "displayText": "沿时间顺序检查UE、gNB、AMF、SMF/UPF的先后关系，确认缺失、超时或状态...", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-013.wav"}, {"id": "P18-story-focus-action-story-action-014", "type": "spotlight", "title": "消息时序：常见误区", "elementId": "P18-ku-02-body", "target": "P18-ku-02-body", "content": "不要把UE、gNB、AMF、SMF/UPF中的单个事件当作完整流程；缺少前后文会误...", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P18-story-action-014", "type": "speech", "title": "消息时序：常见误区", "text": "不要把UE、gNB、AMF、SMF/UPF中的单个事件当作完整流程；缺少前后文会误判断点。", "elementId": "P18-ku-02-body", "spokenText": "不要把UE、gNB、AMF、SMF/UPF中的单个事件当作完整流程；缺少前后文会误判断点。", "audioId": "P18-story-speech-014", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "不要把UE、gNB、AMF、SMF/UPF中的单个事件当作完整流程；缺少前后文会误...", "displayText": "不要把UE、gNB、AMF、SMF/UPF中的单个事件当作完整流程；缺少前后文会误...", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-014.wav"}, {"id": "P18-story-action-015", "type": "spotlight", "title": "工程判读：Cause/Timer", "elementId": "P18-ku-03-body", "content": "Cause、定时器、重传和上下文共同锁定断点。"}, {"id": "P18-story-action-016", "type": "speech", "title": "Cause/Timer：讲解", "text": "Cause 值只能提供线索，必须结合 T300/T3510 等定时器、重传、消息方向和上下文判断真实断点。", "elementId": "P18-ku-03-body", "spokenText": "Cause 值只能提供线索，必须结合 T300/T3510 等定时器、重传、消息方向和上下文判断真实断点。", "audioId": "P18-story-speech-016", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "Cause 值只能提供线索，必须结合 T300/T3510 等定时器、重传、消息方...", "displayText": "Cause 值只能提供线索，必须结合 T300/T3510 等定时器、重传、消息方...", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-016.wav"}, {"id": "P18-story-focus-action-story-action-017", "type": "spotlight", "title": "Cause/Timer：工程语境", "elementId": "P18-ku-03-body", "target": "P18-ku-03-body", "content": "Cause/Timer用于建立判据；Cause、T300、T3510、重传要放进同...", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P18-story-action-017", "type": "speech", "title": "Cause/Timer：工程语境", "text": "Cause/Timer用于建立判据；Cause、T300、T3510、重传要放进同一时间窗和同一对象范围比较。", "elementId": "P18-ku-03-body", "spokenText": "Cause/Timer用于建立判据；Cause、T300、T3510、重传要放进同一时间窗和同一对象范围比较。", "audioId": "P18-story-speech-017", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "Cause/Timer用于建立判据；Cause、T300、T3510、重传要放进同...", "displayText": "Cause/Timer用于建立判据；Cause、T300、T3510、重传要放进同...", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-017.wav"}, {"id": "P18-story-focus-action-story-action-018", "type": "spotlight", "title": "Cause/Timer：判断依据", "elementId": "P18-ku-03-body", "target": "P18-ku-03-body", "content": "把Cause、T300、T3510、重传与阈值、趋势、样本量和对照对象一起比较，避...", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P18-story-action-018", "type": "speech", "title": "Cause/Timer：判断依据", "text": "把Cause、T300、T3510、重传与阈值、趋势、样本量和对照对象一起比较，避免只看单点结果。", "elementId": "P18-ku-03-body", "spokenText": "把Cause、T300、T3510、重传与阈值、趋势、样本量和对照对象一起比较，避免只看单点结果。", "audioId": "P18-story-speech-018", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "把Cause、T300、T3510、重传与阈值、趋势、样本量和对照对象一起比较，避...", "displayText": "把Cause、T300、T3510、重传与阈值、趋势、样本量和对照对象一起比较，避...", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-018.wav"}, {"id": "P18-story-focus-action-story-action-019", "type": "spotlight", "title": "Cause/Timer：常见误区", "elementId": "P18-ku-03-body", "target": "P18-ku-03-body", "content": "不要只看平均值或单次采样；Cause/Timer需要趋势、样本和对照条件共同支撑。", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P18-story-action-019", "type": "speech", "title": "Cause/Timer：常见误区", "text": "不要只看平均值或单次采样；Cause/Timer需要趋势、样本和对照条件共同支撑。", "elementId": "P18-ku-03-body", "spokenText": "不要只看平均值或单次采样；Cause/Timer需要趋势、样本和对照条件共同支撑。", "audioId": "P18-story-speech-019", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "不要只看平均值或单次采样；Cause/Timer需要趋势、样本和对照条件共同支撑。", "displayText": "不要只看平均值或单次采样；Cause/Timer需要趋势、样本和对照条件共同支撑。", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-019.wav"}, {"id": "P18-story-action-020", "type": "spotlight", "title": "数据与现场佐证：故障链分支", "elementId": "P18-ku-04-body", "content": "无线、核心网、参数、传输和终端分支逐层排除。"}, {"id": "P18-story-action-021", "type": "speech", "title": "故障链分支：讲解", "text": "故障链要分支排除：无线侧看覆盖与 RRC，核心网看注册与会话，传输看 N2/N3，终端看能力和配置。", "elementId": "P18-ku-04-body", "spokenText": "故障链要分支排除：无线侧看覆盖与 RRC，核心网看注册与会话，传输看 N2/N3，终端看能力和配置。", "audioId": "P18-story-speech-021", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "故障链要分支排除：无线侧看覆盖与 RRC，核心网看注册与会话，传输看 N2/N3...", "displayText": "故障链要分支排除：无线侧看覆盖与 RRC，核心网看注册与会话，传输看 N2/N3...", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-021.wav"}, {"id": "P18-story-focus-action-story-action-022", "type": "spotlight", "title": "故障链分支：工程语境", "elementId": "P18-ku-04-body", "target": "P18-ku-04-body", "content": "故障链分支强调证据来源；无线、核心网、N2/N3、终端必须能互相印证，不能只作为孤...", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P18-story-action-022", "type": "speech", "title": "故障链分支：工程语境", "text": "故障链分支强调证据来源；无线、核心网、N2/N3、终端必须能互相印证，不能只作为孤立标签出现。", "elementId": "P18-ku-04-body", "spokenText": "故障链分支强调证据来源；无线、核心网、N2/N3、终端必须能互相印证，不能只作为孤立标签出现。", "audioId": "P18-story-speech-022", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "故障链分支强调证据来源；无线、核心网、N2/N3、终端必须能互相印证，不能只作为孤...", "displayText": "故障链分支强调证据来源；无线、核心网、N2/N3、终端必须能互相印证，不能只作为孤...", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-022.wav"}, {"id": "P18-story-focus-action-story-action-023", "type": "spotlight", "title": "故障链分支：判断依据", "elementId": "P18-ku-04-body", "target": "P18-ku-04-body", "content": "把无线、核心网、N2/N3、终端回连到照片、日志、表单或网管记录，确认每个结论都有...", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P18-story-action-023", "type": "speech", "title": "故障链分支：判断依据", "text": "把无线、核心网、N2/N3、终端回连到照片、日志、表单或网管记录，确认每个结论都有来源。", "elementId": "P18-ku-04-body", "spokenText": "把无线、核心网、N2/N3、终端回连到照片、日志、表单或网管记录，确认每个结论都有来源。", "audioId": "P18-story-speech-023", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "把无线、核心网、N2/N3、终端回连到照片、日志、表单或网管记录，确认每个结论都有...", "displayText": "把无线、核心网、N2/N3、终端回连到照片、日志、表单或网管记录，确认每个结论都有...", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-023.wav"}, {"id": "P18-story-focus-action-story-action-024", "type": "spotlight", "title": "故障链分支：常见误区", "elementId": "P18-ku-04-body", "target": "P18-ku-04-body", "content": "不要把证据图、口述或孤立日志直接写成结论；无线、核心网、N2/N3、终端必须落到证...", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P18-story-action-024", "type": "speech", "title": "故障链分支：常见误区", "text": "不要把证据图、口述或孤立日志直接写成结论；无线、核心网、N2/N3、终端必须落到证据链。", "elementId": "P18-ku-04-body", "spokenText": "不要把证据图、口述或孤立日志直接写成结论；无线、核心网、N2/N3、终端必须落到证据链。", "audioId": "P18-story-speech-024", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "不要把证据图、口述或孤立日志直接写成结论；无线、核心网、N2/N3、终端必须落到证...", "displayText": "不要把证据图、口述或孤立日志直接写成结论；无线、核心网、N2/N3、终端必须落到证...", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-024.wav"}, {"id": "P18-story-action-025", "type": "spotlight", "title": "操作校验：责任边界", "elementId": "P18-ku-05-body", "content": "用证据链标定责任域、处理动作和协同接口。"}, {"id": "P18-story-action-026", "type": "speech", "title": "责任边界：讲解", "text": "责任边界必须由证据链支撑，明确无线、核心网、参数、传输或终端责任域，并给出协同接口。", "elementId": "P18-ku-05-body", "spokenText": "责任边界必须由证据链支撑，明确无线、核心网、参数、传输或终端责任域，并给出协同接口。", "audioId": "P18-story-speech-026", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "责任边界必须由证据链支撑，明确无线、核心网、参数、传输或终端责任域，并给出协同接口。", "displayText": "责任边界必须由证据链支撑，明确无线、核心网、参数、传输或终端责任域，并给出协同接口。", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-026.wav"}, {"id": "P18-story-focus-action-story-action-027", "type": "spotlight", "title": "责任边界：工程语境", "elementId": "P18-ku-05-body", "target": "P18-ku-05-body", "content": "责任边界进入处置决策；证据链、责任域、协同接口、动作决定动作顺序、影响面和回退边界。", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P18-story-action-027", "type": "speech", "title": "责任边界：工程语境", "text": "责任边界进入处置决策；证据链、责任域、协同接口、动作决定动作顺序、影响面和回退边界。", "elementId": "P18-ku-05-body", "spokenText": "责任边界进入处置决策；证据链、责任域、协同接口、动作决定动作顺序、影响面和回退边界。", "audioId": "P18-story-speech-027", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "责任边界进入处置决策；证据链、责任域、协同接口、动作决定动作顺序、影响面和回退边界。", "displayText": "责任边界进入处置决策；证据链、责任域、协同接口、动作决定动作顺序、影响面和回退边界。", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-027.wav"}, {"id": "P18-story-focus-action-story-action-028", "type": "spotlight", "title": "责任边界：判断依据", "elementId": "P18-ku-05-body", "target": "P18-ku-05-body", "content": "根据证据链、责任域、协同接口、动作拆分可执行动作，并标出责任对象、观察窗口和回退条...", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P18-story-action-028", "type": "speech", "title": "责任边界：判断依据", "text": "根据证据链、责任域、协同接口、动作拆分可执行动作，并标出责任对象、观察窗口和回退条件。", "elementId": "P18-ku-05-body", "spokenText": "根据证据链、责任域、协同接口、动作拆分可执行动作，并标出责任对象、观察窗口和回退条件。", "audioId": "P18-story-speech-028", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "根据证据链、责任域、协同接口、动作拆分可执行动作，并标出责任对象、观察窗口和回退条...", "displayText": "根据证据链、责任域、协同接口、动作拆分可执行动作，并标出责任对象、观察窗口和回退条...", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-028.wav"}, {"id": "P18-story-focus-action-story-action-029", "type": "spotlight", "title": "责任边界：常见误区", "elementId": "P18-ku-05-body", "target": "P18-ku-05-body", "content": "不要把多个动作混在一起验证；否则无法判断责任边界到底由哪项动作改善。", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P18-story-action-029", "type": "speech", "title": "责任边界：常见误区", "text": "不要把多个动作混在一起验证；否则无法判断责任边界到底由哪项动作改善。", "elementId": "P18-ku-05-body", "spokenText": "不要把多个动作混在一起验证；否则无法判断责任边界到底由哪项动作改善。", "audioId": "P18-story-speech-029", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "不要把多个动作混在一起验证；否则无法判断责任边界到底由哪项动作改善。", "displayText": "不要把多个动作混在一起验证；否则无法判断责任边界到底由哪项动作改善。", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-029.wav"}, {"id": "P18-story-action-030", "type": "spotlight", "title": "闭环复盘：闭环验证", "elementId": "P18-ku-06-body", "content": "处理后用同场景信令、KPI 和业务复测确认。"}, {"id": "P18-story-action-031", "type": "speech", "title": "闭环验证：讲解", "text": "信令故障闭环要回到同场景复测，确认消息时序恢复、KPI 回稳、业务可达，并记录遗留风险。", "elementId": "P18-ku-06-body", "spokenText": "信令故障闭环要回到同场景复测，确认消息时序恢复、KPI 回稳、业务可达，并记录遗留风险。", "audioId": "P18-story-speech-031", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "信令故障闭环要回到同场景复测，确认消息时序恢复、KPI 回稳、业务可达，并记录遗留...", "displayText": "信令故障闭环要回到同场景复测，确认消息时序恢复、KPI 回稳、业务可达，并记录遗留...", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-031.wav"}, {"id": "P18-story-focus-action-story-action-032", "type": "spotlight", "title": "闭环验证：工程语境", "elementId": "P18-ku-06-body", "target": "P18-ku-06-body", "content": "闭环验证服务复盘归档；信令复测、KPI、业务可达、遗留风险要支撑结论、遗留项和下一...", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P18-story-action-032", "type": "speech", "title": "闭环验证：工程语境", "text": "闭环验证服务复盘归档；信令复测、KPI、业务可达、遗留风险要支撑结论、遗留项和下一次复测入口。", "elementId": "P18-ku-06-body", "spokenText": "闭环验证服务复盘归档；信令复测、KPI、业务可达、遗留风险要支撑结论、遗留项和下一次复测入口。", "audioId": "P18-story-speech-032", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "闭环验证服务复盘归档；信令复测、KPI、业务可达、遗留风险要支撑结论、遗留项和下一...", "displayText": "闭环验证服务复盘归档；信令复测、KPI、业务可达、遗留风险要支撑结论、遗留项和下一...", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-032.wav"}, {"id": "P18-story-focus-action-story-action-033", "type": "spotlight", "title": "闭环验证：判断依据", "elementId": "P18-ku-06-body", "target": "P18-ku-06-body", "content": "复盘信令复测、KPI、业务可达、遗留风险是否闭合：现象、证据、判断、动作和验证结果...", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P18-story-action-033", "type": "speech", "title": "闭环验证：判断依据", "text": "复盘信令复测、KPI、业务可达、遗留风险是否闭合：现象、证据、判断、动作和验证结果必须能互相追溯。", "elementId": "P18-ku-06-body", "spokenText": "复盘信令复测、KPI、业务可达、遗留风险是否闭合：现象、证据、判断、动作和验证结果必须能互相追溯。", "audioId": "P18-story-speech-033", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "复盘信令复测、KPI、业务可达、遗留风险是否闭合：现象、证据、判断、动作和验证结果...", "displayText": "复盘信令复测、KPI、业务可达、遗留风险是否闭合：现象、证据、判断、动作和验证结果...", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-033.wav"}, {"id": "P18-story-focus-action-story-action-034", "type": "spotlight", "title": "闭环验证：常见误区", "elementId": "P18-ku-06-body", "target": "P18-ku-06-body", "content": "不要只写通过或失败；闭环验证还要说明遗留风险、适用边界和后续观察。", "dimOpacity": 0.008, "focusPolicy": "hold", "clearFocusOnEnd": false}, {"id": "P18-story-action-034", "type": "speech", "title": "闭环验证：常见误区", "text": "不要只写通过或失败；闭环验证还要说明遗留风险、适用边界和后续观察。", "elementId": "P18-ku-06-body", "spokenText": "不要只写通过或失败；闭环验证还要说明遗留风险、适用边界和后续观察。", "audioId": "P18-story-speech-034", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "不要只写通过或失败；闭环验证还要说明遗留风险、适用边界和后续观察。", "displayText": "不要只写通过或失败；闭环验证还要说明遗留风险、适用边界和后续观察。", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-034.wav"}, {"id": "P18-story-action-035", "type": "spotlight", "title": "复盘", "elementId": "sec-review", "content": "复盘时检查故障现象、消息时序、分支排除、责任边界和闭环复测是否连成一条可审计链路。"}, {"id": "P18-story-action-036", "type": "speech", "title": "复盘", "text": "复盘时检查故障现象、消息时序、分支排除、责任边界和闭环复测是否连成一条可审计链路。", "elementId": "sec-review", "spokenText": "复盘时检查故障现象、消息时序、分支排除、责任边界和闭环复测是否连成一条可审计链路。", "audioId": "P18-story-speech-036", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "caption": "复盘时检查故障现象、消息时序、分支排除、责任边界和闭环复测是否连成一条可审计链路。", "displayText": "复盘时检查故障现象、消息时序、分支排除、责任边界和闭环复测是否连成一条可审计链路。", "audioUrl": "/media/tts/qwen-cherry/p18-story-speech-036.wav"}]}, {"id": "P18-concept-figure", "title": "核心机理图", "type": "animation", "order": 2, "stageId": "P18", "description": "把5G信令问题分析及优化的关键对象、指标关系和处置边界画成可读模型。", "actions": [{"id": "P18-animation-action-001", "type": "widget_highlight", "title": "查看核心图", "widgetId": "P18-lesson-animation-001", "target": "P18-lesson-animation-001"}, {"id": "P18-animation-action-002", "type": "widget_setState", "title": "回到起点", "widgetId": "P18-lesson-animation-001", "state": {"activeStep": 0, "currentTimeMs": 0}}, {"id": "P18-animation-action-003", "type": "spotlight", "title": "RRC", "content": "RRC阶段关注无线接入建立断点，先看对象，再看证据，最后形成可复核的工程判断。", "caption": "RRC阶段关注无线接入建立断点，先看对象，再看证据，最后形成可复核的工程判断。", "displayText": "RRC", "widgetId": "P18-lesson-animation-001", "elementId": "P18-step-01", "target": "P18-step-01", "dimOpacity": 0.008, "focusPolicy": "hold", "currentTimeMs": 1300, "durationMs": 99846}, {"id": "P18-animation-action-004", "type": "speech", "title": "RRC讲解", "text": "RRC阶段关注无线接入建立断点，先看对象，再看证据，最后形成可复核的工程判断。", "spokenText": "RRC阶段关注无线接入建立断点，先看对象，再看证据，最后形成可复核的工程判断。 这里聚焦“RRC”这个判断点。重点看先后顺序，以及这一步输出给下一步的对象。学习时把它落成三件事：看哪个对象，用哪条证据，得到什么工程结论。", "caption": "RRC阶段关注无线接入建立断点，先看对象，再看证据，最后形成可复核的工程判断。", "widgetId": "P18-lesson-animation-001", "elementId": "P18-step-01", "target": "P18-step-01", "dimOpacity": 0.008, "focusPolicy": "hold", "currentTimeMs": 1460, "durationMs": 3600, "audioId": "P18-animation-speech-004", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "displayText": "RRC阶段关注无线接入建立断点，先看对象，再看证据，最后形成可复核的工程判断。", "audioUrl": "/media/tts/qwen-cherry/p18-animation-speech-004.wav"}, {"id": "P18-animation-action-005", "type": "widget_timelineCue", "title": "RRC关系", "widgetId": "P18-lesson-animation-001", "target": "P18-line-1", "content": "flow", "state": {"targets": ["P18-line-1"], "phase": 1, "caption": "RRC", "speechId": "P18-animation-action-004", "currentTimeMs": 2600, "holdMs": 350, "semantic": "process", "relationType": "process"}, "currentTimeMs": 2600, "durationMs": 1000, "holdMs": 350}, {"id": "P18-animation-action-006", "type": "widget_timelineCue", "title": "RRC要点", "widgetId": "P18-lesson-animation-001", "target": "P18-caption-text", "content": "captionUpdate", "state": {"targets": ["P18-caption-text"], "phase": 1, "caption": "RRC阶段关注无线接入建立断点，先看对象，再看证据，最后形成可复核的工程判断。", "phaseLabel": "RRC", "currentTimeMs": 3500, "holdMs": 96796}, "currentTimeMs": 3500, "durationMs": 850, "holdMs": 96796}, {"id": "P18-animation-action-007", "type": "widget_setState", "title": "准备NAS", "widgetId": "P18-lesson-animation-001", "state": {"activeStep": 0, "currentTimeMs": 101146}}, {"id": "P18-animation-action-008", "type": "widget_timelineCue", "title": "NAS切换", "widgetId": "P18-lesson-animation-001", "target": "P18-top-band", "content": "sceneTransition", "state": {"targets": ["P18-top-band"], "phase": 2, "phaseLabel": "NAS", "currentTimeMs": 101146}, "currentTimeMs": 101146, "durationMs": 1080}, {"id": "P18-animation-action-009", "type": "widget_setState", "title": "进入NAS", "widgetId": "P18-lesson-animation-001", "state": {"activeStep": 1, "currentTimeMs": 101666}}, {"id": "P18-animation-action-010", "type": "laser", "title": "NAS", "content": "NAS阶段关注注册、鉴权、安全流程，先看对象，再看证据，最后形成可复核的工程判断。", "caption": "NAS阶段关注注册、鉴权、安全流程，先看对象，再看证据，最后形成可复核的工程判断。", "displayText": "NAS", "widgetId": "P18-lesson-animation-001", "elementId": "P18-step-02", "target": "P18-step-02", "dimOpacity": 0.008, "focusPolicy": "hold", "currentTimeMs": 102966, "durationMs": 99846}, {"id": "P18-animation-action-011", "type": "speech", "title": "NAS讲解", "text": "NAS阶段关注注册、鉴权、安全流程，先看对象，再看证据，最后形成可复核的工程判断。", "spokenText": "NAS阶段关注注册、鉴权、安全流程，先看对象，再看证据，最后形成可复核的工程判断。 这里聚焦“NAS”这个判断点。重点看前置条件，少一个条件就不能进入下一步。学习时把它落成三件事：看哪个对象，用哪条证据，得到什么工程结论。", "caption": "NAS阶段关注注册、鉴权、安全流程，先看对象，再看证据，最后形成可复核的工程判断。", "widgetId": "P18-lesson-animation-001", "elementId": "P18-step-02", "target": "P18-step-02", "dimOpacity": 0.008, "focusPolicy": "hold", "currentTimeMs": 103126, "durationMs": 3600, "audioId": "P18-animation-speech-011", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "displayText": "NAS阶段关注注册、鉴权、安全流程，先看对象，再看证据，最后形成可复核的工程判断。", "audioUrl": "/media/tts/qwen-cherry/p18-animation-speech-011.wav"}, {"id": "P18-animation-action-012", "type": "widget_timelineCue", "title": "NAS关系", "widgetId": "P18-lesson-animation-001", "target": "P18-line-2", "content": "draw", "state": {"targets": ["P18-line-2"], "phase": 2, "caption": "NAS", "speechId": "P18-animation-action-011", "currentTimeMs": 104266, "holdMs": 350, "semantic": "dependency", "relationType": "dependency"}, "currentTimeMs": 104266, "durationMs": 1000, "holdMs": 350}, {"id": "P18-animation-action-013", "type": "widget_timelineCue", "title": "NAS要点", "widgetId": "P18-lesson-animation-001", "target": "P18-caption-text", "content": "captionUpdate", "state": {"targets": ["P18-caption-text"], "phase": 2, "caption": "NAS阶段关注注册、鉴权、安全流程，先看对象，再看证据，最后形成可复核的工程判断。", "phaseLabel": "NAS", "currentTimeMs": 105166, "holdMs": 96796}, "currentTimeMs": 105166, "durationMs": 850, "holdMs": 96796}, {"id": "P18-animation-action-014", "type": "widget_setState", "title": "准备PDU", "widgetId": "P18-lesson-animation-001", "state": {"activeStep": 1, "currentTimeMs": 202812}}, {"id": "P18-animation-action-015", "type": "widget_timelineCue", "title": "PDU切换", "widgetId": "P18-lesson-animation-001", "target": "P18-top-band", "content": "sceneTransition", "state": {"targets": ["P18-top-band"], "phase": 3, "phaseLabel": "PDU", "currentTimeMs": 202812}, "currentTimeMs": 202812, "durationMs": 1080}, {"id": "P18-animation-action-016", "type": "widget_setState", "title": "进入PDU", "widgetId": "P18-lesson-animation-001", "state": {"activeStep": 2, "currentTimeMs": 203332}}, {"id": "P18-animation-action-017", "type": "spotlight", "title": "PDU", "content": "PDU阶段关注会话建立与承载路径，先看对象，再看证据，最后形成可复核的工程判断。", "caption": "PDU阶段关注会话建立与承载路径，先看对象，再看证据，最后形成可复核的工程判断。", "displayText": "PDU", "widgetId": "P18-lesson-animation-001", "elementId": "P18-step-03", "target": "P18-step-03", "dimOpacity": 0.008, "focusPolicy": "hold", "currentTimeMs": 204632, "durationMs": 99846}, {"id": "P18-animation-action-018", "type": "speech", "title": "PDU讲解", "text": "PDU阶段关注会话建立与承载路径，先看对象，再看证据，最后形成可复核的工程判断。", "spokenText": "PDU阶段关注会话建立与承载路径，先看对象，再看证据，最后形成可复核的工程判断。 这里聚焦“PDU”这个判断点。重点看数据从哪里来、经过哪里、沉淀成哪类证据。学习时把它落成三件事：看哪个对象，用哪条证据，得到什么工程结论。", "caption": "PDU阶段关注会话建立与承载路径，先看对象，再看证据，最后形成可复核的工程判断。", "widgetId": "P18-lesson-animation-001", "elementId": "P18-step-03", "target": "P18-step-03", "dimOpacity": 0.008, "focusPolicy": "hold", "currentTimeMs": 204792, "durationMs": 3600, "audioId": "P18-animation-speech-018", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "displayText": "PDU阶段关注会话建立与承载路径，先看对象，再看证据，最后形成可复核的工程判断。", "audioUrl": "/media/tts/qwen-cherry/p18-animation-speech-018.wav"}, {"id": "P18-animation-action-019", "type": "widget_timelineCue", "title": "PDU关系", "widgetId": "P18-lesson-animation-001", "target": "P18-line-3", "content": "packetMove", "state": {"targets": ["P18-line-3"], "phase": 3, "caption": "PDU", "speechId": "P18-animation-action-018", "currentTimeMs": 205932, "holdMs": 350, "semantic": "data-flow", "relationType": "data-flow"}, "currentTimeMs": 205932, "durationMs": 1000, "holdMs": 350}, {"id": "P18-animation-action-020", "type": "widget_timelineCue", "title": "PDU要点", "widgetId": "P18-lesson-animation-001", "target": "P18-caption-text", "content": "captionUpdate", "state": {"targets": ["P18-caption-text"], "phase": 3, "caption": "PDU阶段关注会话建立与承载路径，先看对象，再看证据，最后形成可复核的工程判断。", "phaseLabel": "PDU", "currentTimeMs": 206832, "holdMs": 96796}, "currentTimeMs": 206832, "durationMs": 850, "holdMs": 96796}, {"id": "P18-animation-action-021", "type": "widget_setState", "title": "准备Cause", "widgetId": "P18-lesson-animation-001", "state": {"activeStep": 2, "currentTimeMs": 304478}}, {"id": "P18-animation-action-022", "type": "widget_timelineCue", "title": "Cause切换", "widgetId": "P18-lesson-animation-001", "target": "P18-top-band", "content": "sceneTransition", "state": {"targets": ["P18-top-band"], "phase": 4, "phaseLabel": "Cause", "currentTimeMs": 304478}, "currentTimeMs": 304478, "durationMs": 1080}, {"id": "P18-animation-action-023", "type": "widget_setState", "title": "进入Cause", "widgetId": "P18-lesson-animation-001", "state": {"activeStep": 3, "currentTimeMs": 304998}}, {"id": "P18-animation-action-024", "type": "laser", "title": "Cause", "content": "Cause阶段关注失败码、定时器、方向，先看对象，再看证据，最后形成可复核的工程判断。", "caption": "Cause阶段关注失败码、定时器、方向，先看对象，再看证据，最后形成可复核的工程判断。", "displayText": "Cause", "widgetId": "P18-lesson-animation-001", "elementId": "P18-step-04", "target": "P18-step-04", "dimOpacity": 0.008, "focusPolicy": "hold", "currentTimeMs": 306298, "durationMs": 99846}, {"id": "P18-animation-action-025", "type": "speech", "title": "Cause讲解", "text": "Cause阶段关注失败码、定时器、方向，先看对象，再看证据，最后形成可复核的工程判断。", "spokenText": "Cause阶段关注失败码、定时器、方向，先看对象，再看证据，最后形成可复核的工程判断。 这里聚焦“Cause”这个判断点。重点看现象、证据和原因之间是否能互相印证。学习时把它落成三件事：看哪个对象，用哪条证据，得到什么工程结论。", "caption": "Cause阶段关注失败码、定时器、方向，先看对象，再看证据，最后形成可复核的工程判断。", "widgetId": "P18-lesson-animation-001", "elementId": "P18-step-04", "target": "P18-step-04", "dimOpacity": 0.008, "focusPolicy": "hold", "currentTimeMs": 306458, "durationMs": 3600, "audioId": "P18-animation-speech-025", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "displayText": "Cause阶段关注失败码、定时器、方向，先看对象，再看证据，最后形成可复核的工程判断。", "audioUrl": "/media/tts/qwen-cherry/p18-animation-speech-025.wav"}, {"id": "P18-animation-action-026", "type": "widget_timelineCue", "title": "Cause关系", "widgetId": "P18-lesson-animation-001", "target": "P18-line-4", "content": "draw", "state": {"targets": ["P18-line-4"], "phase": 4, "caption": "Cause", "speechId": "P18-animation-action-025", "currentTimeMs": 307598, "holdMs": 350, "semantic": "cause", "relationType": "cause"}, "currentTimeMs": 307598, "durationMs": 1000, "holdMs": 350}, {"id": "P18-animation-action-027", "type": "widget_timelineCue", "title": "Cause要点", "widgetId": "P18-lesson-animation-001", "target": "P18-caption-text", "content": "captionUpdate", "state": {"targets": ["P18-caption-text"], "phase": 4, "caption": "Cause阶段关注失败码、定时器、方向，先看对象，再看证据，最后形成可复核的工程判断。", "phaseLabel": "Cause", "currentTimeMs": 308498, "holdMs": 96796}, "currentTimeMs": 308498, "durationMs": 850, "holdMs": 96796}, {"id": "P18-animation-action-028", "type": "widget_setState", "title": "准备边界", "widgetId": "P18-lesson-animation-001", "state": {"activeStep": 3, "currentTimeMs": 406144}}, {"id": "P18-animation-action-029", "type": "widget_timelineCue", "title": "边界切换", "widgetId": "P18-lesson-animation-001", "target": "P18-top-band", "content": "sceneTransition", "state": {"targets": ["P18-top-band"], "phase": 5, "phaseLabel": "边界", "currentTimeMs": 406144}, "currentTimeMs": 406144, "durationMs": 1080}, {"id": "P18-animation-action-030", "type": "widget_setState", "title": "进入边界", "widgetId": "P18-lesson-animation-001", "state": {"activeStep": 4, "currentTimeMs": 406664}}, {"id": "P18-animation-action-031", "type": "spotlight", "title": "边界", "content": "边界阶段关注无线、核心网、参数归属，先看对象，再看证据，最后形成可复核的工程判断。", "caption": "边界阶段关注无线、核心网、参数归属，先看对象，再看证据，最后形成可复核的工程判断。", "displayText": "边界", "widgetId": "P18-lesson-animation-001", "elementId": "P18-step-05", "target": "P18-step-05", "dimOpacity": 0.008, "focusPolicy": "hold", "currentTimeMs": 407964, "durationMs": 99846}, {"id": "P18-animation-action-032", "type": "speech", "title": "边界讲解", "text": "边界阶段关注无线、核心网、参数归属，先看对象，再看证据，最后形成可复核的工程判断。", "spokenText": "边界阶段关注无线、核心网、参数归属，先看对象，再看证据，最后形成可复核的工程判断。 这里聚焦“边界”这个判断点。重点看先后顺序，以及这一步输出给下一步的对象。学习时把它落成三件事：看哪个对象，用哪条证据，得到什么工程结论。", "caption": "边界阶段关注无线、核心网、参数归属，先看对象，再看证据，最后形成可复核的工程判断。", "widgetId": "P18-lesson-animation-001", "elementId": "P18-step-05", "target": "P18-step-05", "dimOpacity": 0.008, "focusPolicy": "hold", "currentTimeMs": 408124, "durationMs": 3600, "audioId": "P18-animation-speech-032", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "displayText": "边界阶段关注无线、核心网、参数归属，先看对象，再看证据，最后形成可复核的工程判断。", "audioUrl": "/media/tts/qwen-cherry/p18-animation-speech-032.wav"}, {"id": "P18-animation-action-033", "type": "widget_timelineCue", "title": "边界关系", "widgetId": "P18-lesson-animation-001", "target": "P18-line-5", "content": "flow", "state": {"targets": ["P18-line-5"], "phase": 5, "caption": "边界", "speechId": "P18-animation-action-032", "currentTimeMs": 409264, "holdMs": 350, "semantic": "process", "relationType": "process"}, "currentTimeMs": 409264, "durationMs": 1000, "holdMs": 350}, {"id": "P18-animation-action-034", "type": "widget_timelineCue", "title": "边界要点", "widgetId": "P18-lesson-animation-001", "target": "P18-caption-text", "content": "captionUpdate", "state": {"targets": ["P18-caption-text"], "phase": 5, "caption": "边界阶段关注无线、核心网、参数归属，先看对象，再看证据，最后形成可复核的工程判断。", "phaseLabel": "边界", "currentTimeMs": 410164, "holdMs": 96796}, "currentTimeMs": 410164, "durationMs": 850, "holdMs": 96796}, {"id": "P18-animation-action-035", "type": "widget_setState", "title": "准备复测", "widgetId": "P18-lesson-animation-001", "state": {"activeStep": 4, "currentTimeMs": 507810}}, {"id": "P18-animation-action-036", "type": "widget_timelineCue", "title": "复测切换", "widgetId": "P18-lesson-animation-001", "target": "P18-top-band", "content": "sceneTransition", "state": {"targets": ["P18-top-band"], "phase": 6, "phaseLabel": "复测", "currentTimeMs": 507810}, "currentTimeMs": 507810, "durationMs": 1080}, {"id": "P18-animation-action-037", "type": "widget_setState", "title": "进入复测", "widgetId": "P18-lesson-animation-001", "state": {"activeStep": 5, "currentTimeMs": 508330}}, {"id": "P18-animation-action-038", "type": "laser", "title": "复测", "content": "复测阶段关注动作后按同链路验证，先看对象，再看证据，最后形成可复核的工程判断。", "caption": "复测阶段关注动作后按同链路验证，先看对象，再看证据，最后形成可复核的工程判断。", "displayText": "复测", "widgetId": "P18-lesson-animation-001", "elementId": "P18-step-06", "target": "P18-step-06", "dimOpacity": 0.008, "focusPolicy": "hold", "currentTimeMs": 509630, "durationMs": 99850}, {"id": "P18-animation-action-039", "type": "speech", "title": "复测讲解", "text": "复测阶段关注动作后按同链路验证，先看对象，再看证据，最后形成可复核的工程判断。", "spokenText": "复测阶段关注动作后按同链路验证，先看对象，再看证据，最后形成可复核的工程判断。 这里聚焦“复测”这个判断点。重点看处理动作是否回到复测结果，形成闭环。学习时把它落成三件事：看哪个对象，用哪条证据，得到什么工程结论。", "caption": "复测阶段关注动作后按同链路验证，先看对象，再看证据，最后形成可复核的工程判断。", "widgetId": "P18-lesson-animation-001", "elementId": "P18-step-06", "target": "P18-step-06", "dimOpacity": 0.008, "focusPolicy": "hold", "currentTimeMs": 509790, "durationMs": 3600, "audioId": "P18-animation-speech-039", "speakerId": "teacher", "voiceProfileId": "qwen:Cherry", "displayText": "复测阶段关注动作后按同链路验证，先看对象，再看证据，最后形成可复核的工程判断。", "audioUrl": "/media/tts/qwen-cherry/p18-animation-speech-039.wav"}, {"id": "P18-animation-action-040", "type": "widget_timelineCue", "title": "复测关系", "widgetId": "P18-lesson-animation-001", "target": "P18-line-6", "content": "flow", "state": {"targets": ["P18-line-6"], "phase": 6, "caption": "复测", "speechId": "P18-animation-action-039", "currentTimeMs": 510930, "holdMs": 350, "semantic": "feedback", "relationType": "feedback"}, "currentTimeMs": 510930, "durationMs": 1000, "holdMs": 350}, {"id": "P18-animation-action-041", "type": "widget_timelineCue", "title": "复测要点", "widgetId": "P18-lesson-animation-001", "target": "P18-caption-text", "content": "captionUpdate", "state": {"targets": ["P18-caption-text"], "phase": 6, "caption": "复测阶段关注动作后按同链路验证，先看对象，再看证据，最后形成可复核的工程判断。", "phaseLabel": "复测", "currentTimeMs": 511830, "holdMs": 97120}, "currentTimeMs": 511830, "durationMs": 850, "holdMs": 97120}]}]
+---
+
+<HeroBanner
+  projectId={"专题 18"}
+  title={"5G信令问题分析及优化"}
+  subtitle={"本节讲 5G 信令故障分析：按接入、注册、会话、切换和业务面失败分类，重建 RRC、NAS、NGAP、PFCP 与用户面链路。"}
+  stats={[{"label": "要点", "value": 6}, {"label": "证据", "value": 6}, {"label": "示意", "value": 2}, {"label": "校验", "value": 1}]}
+/>
+
+<ObjectivesAndBrief
+  objectives={[{"icon": "signal", "label": "知识目标", "text": "识别5G信令问题分析及优化的对象、指标与判据。"}, {"icon": "test", "label": "技能目标", "text": "能把概念、指标、证据和判断结论对齐。"}, {"icon": "compass", "label": "素养目标", "text": "形成数据留痕、前后核验的工程习惯。"}]}
+  brief={[{"label": "所属项目", "content": "5G信令分析"}, {"label": "本节目标", "content": "学完后能用 Cause/Timer、消息方向、重传、N2/N3 和节点责任域区分无线、核心网、传输、参数或终端问题。"}, {"label": "研读线索", "content": "概念说明 + 判断方法 + 证据核验"}, {"label": "判断要求", "content": "能说清对象、证据、判据和复测结果之间的关系"}]}
+/>
+
+<NetworkVisual
+  id="sec-network-visual"
+  title={"5G信令问题分析及优化 · 概念框架"}
+  scenario={"signaling"}
+  nodes={[{"label": "故障现象", "detail": "接入、注册、会话、切换和业务失败先分类。", "id": "sec-core-model-node-1"}, {"label": "消息时序", "detail": "按 RRC、NAS、NGAP、PFCP 和 PDU Session 重建时序。", "id": "sec-core-model-node-2"}, {"label": "Cause/Timer", "detail": "Cause、定时器、重传和上下文共同锁定断点。", "id": "sec-core-model-node-3"}, {"label": "故障链分支", "detail": "无线、核心网、参数、传输和终端分支逐层排除。", "id": "sec-core-model-node-4"}, {"label": "责任边界", "detail": "用证据链标定责任域、处理动作和协同接口。", "id": "sec-core-model-node-5"}]}
+  metrics={["失败场景", "消息时序", "Cause/Timer", "责任域"]}
+  refs={[{"label": "3GPP TS 23.502", "href": "https://www.3gpp.org/DynaReport/23502.htm"}, {"label": "3GPP TS 38.331", "href": "https://www.3gpp.org/DynaReport/38331.htm"}, {"label": "3GPP TS 23.501", "href": "https://portal.3gpp.org/desktopmodules/Specifications/SpecificationDetails.aspx?specificationId=3144"}]}
+/>
+
+<section id="sec-overview" class="dg-story-overview" data-playback-region="overview">
+  <div id="sec-overview-summary" data-playback-target="sec-overview-summary guide-summary">
+    <span>导学摘要</span>
+    <p>本节讲 5G 信令故障分析：按接入、注册、会话、切换和业务面失败分类，重建 RRC、NAS、NGAP、PFCP 与用户面链路。</p>
+  </div>
+  <strong id="sec-learning-goal" data-playback-target="sec-learning-goal guide-learning-goal">学完后能用 Cause/Timer、消息方向、重传、N2/N3 和节点责任域区分无线、核心网、传输、参数或终端问题。</strong>
+</section>
+
+<section id="sec-core-model" class="dg-core-model">
+  <header>
+    <span>概念解释</span>
+    <h2>5G信令问题分析及优化 · 概念框架</h2>
+  </header>
+  <div class="dg-core-model-grid">
+    <article id="sec-core-model-node-1" class="dg-core-node">
+      <b>1</b>
+      <strong>故障现象</strong>
+      <p>接入、注册、会话、切换和业务失败先分类。</p>
+    </article>
+    <article id="sec-core-model-node-2" class="dg-core-node">
+      <b>2</b>
+      <strong>消息时序</strong>
+      <p>按 RRC、NAS、NGAP、PFCP 和 PDU Session 重建时序。</p>
+    </article>
+    <article id="sec-core-model-node-3" class="dg-core-node">
+      <b>3</b>
+      <strong>Cause/Timer</strong>
+      <p>Cause、定时器、重传和上下文共同锁定断点。</p>
+    </article>
+    <article id="sec-core-model-node-4" class="dg-core-node">
+      <b>4</b>
+      <strong>故障链分支</strong>
+      <p>无线、核心网、参数、传输和终端分支逐层排除。</p>
+    </article>
+    <article id="sec-core-model-node-5" class="dg-core-node">
+      <b>5</b>
+      <strong>责任边界</strong>
+      <p>用证据链标定责任域、处理动作和协同接口。</p>
+    </article>
+  </div>
+  <div class="dg-core-metrics" aria-label="关键术语">
+    <span>失败场景</span>
+    <span>消息时序</span>
+    <span>Cause/Timer</span>
+    <span>责任域</span>
+  </div>
+</section>
+
+<SectionStep icon="radar" num="一" title="概念与对象：故障现象" id="P18-ku-01" />
+
+<section id="P18-ku-01-section" class="dg-knowledge-unit dg-knowledge-unit-concept" data-playback-region="P18-ku-01">
+  <div id="P18-ku-01-body" class="dg-ku-main" data-playback-target="P18-ku-01-body P18-ku-01-content">
+    <span class="dg-ku-section-label">概念与对象</span>
+    <p>接入、注册、会话、切换和业务失败先分类。</p>
+    <blockquote>信令故障分析先按现象分类：RRC 接入失败、NAS 注册失败、PDU Session 失败、切换失败和业务面失败对应不同链路。</blockquote>
+  </div>
+  <div id="P18-ku-01-visual" class="dg-ku-visual dg-ku-card dg-ku-concept" aria-label="故障现象模型">
+    <strong class="dg-ku-visual-title">故障现象</strong>
+    <div class="dg-ku-token-grid">
+      <span class="dg-ku-token">接入失败</span>
+      <span class="dg-ku-token">注册失败</span>
+      <span class="dg-ku-token">会话失败</span>
+      <span class="dg-ku-token">切换失败</span>
+    </div>
+  </div>
+</section>
+
+<SectionStep icon="route" num="二" title="概念与对象：消息时序" id="P18-ku-02" />
+
+<section id="P18-ku-02-section" class="dg-knowledge-unit dg-knowledge-unit-concept" data-playback-region="P18-ku-02">
+  <div id="P18-ku-02-body" class="dg-ku-main" data-playback-target="P18-ku-02-body P18-ku-02-content">
+    <span class="dg-ku-section-label">概念与对象</span>
+    <p>按 RRC、NAS、NGAP、PFCP 和 PDU Session 重建时序。</p>
+    <blockquote>消息链路要按时间重建，串起 UE、gNB、AMF、SMF 和 UPF 之间的方向、响应、重传和缺失消息。</blockquote>
+  </div>
+  <div id="P18-ku-02-visual" class="dg-ku-visual dg-ku-card dg-ku-concept" aria-label="消息时序模型">
+    <strong class="dg-ku-visual-title">消息时序</strong>
+    <div class="dg-ku-token-grid">
+      <span class="dg-ku-token">UE</span>
+      <span class="dg-ku-token">gNB</span>
+      <span class="dg-ku-token">AMF</span>
+      <span class="dg-ku-token">SMF/UPF</span>
+    </div>
+  </div>
+</section>
+
+<SectionStep icon="chart" num="三" title="工程判读：Cause/Timer" id="P18-ku-03" />
+
+<section id="P18-ku-03-section" class="dg-knowledge-unit dg-knowledge-unit-criteria" data-playback-region="P18-ku-03">
+  <div id="P18-ku-03-body" class="dg-ku-main" data-playback-target="P18-ku-03-body P18-ku-03-content">
+    <span class="dg-ku-section-label">工程判读</span>
+    <p>Cause、定时器、重传和上下文共同锁定断点。</p>
+    <blockquote>Cause 值只能提供线索，必须结合 T300/T3510 等定时器、重传、消息方向和上下文判断真实断点。</blockquote>
+  </div>
+  <div id="P18-ku-03-visual" class="dg-ku-visual dg-ku-flow" aria-label="Cause/Timer图解">
+    <span class="dg-ku-flow-step">Cause</span>
+    <i aria-hidden="true"></i>
+    <span class="dg-ku-flow-step">T300</span>
+    <i aria-hidden="true"></i>
+    <span class="dg-ku-flow-step">T3510</span>
+    <i aria-hidden="true"></i>
+    <span class="dg-ku-flow-step">重传</span>
+  </div>
+  <figure class="dg-concept-motion">
+    <figcaption>
+      <span>机理讲解</span>
+      <strong>Cause/Timer</strong>
+    </figcaption>
+    <video src="/media/manim/p18/p18-signaling-fault-ladder/p18-p18-signaling-fault-ladder.webm" poster="/media/manim/p18/p18-signaling-fault-ladder/poster.png" controls preload="metadata" playsinline></video>
+  </figure>
+</section>
+
+<SectionStep icon="tool" num="四" title="数据与现场佐证：故障链分支" id="P18-ku-04" />
+
+<section id="P18-ku-04-section" class="dg-knowledge-unit dg-knowledge-unit-evidence" data-playback-region="P18-ku-04">
+  <div id="P18-ku-04-body" class="dg-ku-main" data-playback-target="P18-ku-04-body P18-ku-04-content">
+    <span class="dg-ku-section-label">数据与现场佐证</span>
+    <p>无线、核心网、参数、传输和终端分支逐层排除。</p>
+    <blockquote>故障链要分支排除：无线侧看覆盖与 RRC，核心网看注册与会话，传输看 N2/N3，终端看能力和配置。</blockquote>
+  </div>
+  <div id="P18-ku-04-visual" class="dg-ku-visual dg-ku-evidence-chain" aria-label="故障链分支图解">
+    <strong class="dg-ku-visual-title">故障链分支</strong>
+    <div class="dg-ku-token-grid">
+      <span class="dg-ku-token">无线</span>
+      <span class="dg-ku-token">核心网</span>
+      <span class="dg-ku-token">N2/N3</span>
+      <span class="dg-ku-token">终端</span>
+    </div>
+  </div>
+  <div class="dg-evidence-board">
+    <div class="dg-evidence-photos">
+      <figure>
+        <img src="/media/5g/image376.png" alt="问题描述：车辆沿桃花南路由南向北行驶时，5G小区频繁切换..." loading="lazy" />
+        <figcaption>问题描述：车辆沿桃花南路由南向北行驶时，5G小区频繁切换...</figcaption>
+      </figure>
+      <figure>
+        <img src="/media/5g/image377.png" alt="1、查看问题路段的信号覆盖情况，该路段由于位于高架下，且两..." loading="lazy" />
+        <figcaption>1、查看问题路段的信号覆盖情况，该路段由于位于高架下，且两...</figcaption>
+      </figure>
+      <figure>
+        <img src="/media/5g/image378.png" alt="1、查看问题路段的信号覆盖情况，该路段由于位于高架下，且两..." loading="lazy" />
+        <figcaption>1、查看问题路段的信号覆盖情况，该路段由于位于高架下，且两...</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<SectionStep icon="search" num="五" title="操作校验：责任边界" id="P18-ku-05" />
+
+<section id="P18-ku-05-section" class="dg-knowledge-unit dg-knowledge-unit-practice" data-playback-region="P18-ku-05">
+  <div id="P18-ku-05-body" class="dg-ku-main" data-playback-target="P18-ku-05-body P18-ku-05-content">
+    <span class="dg-ku-section-label">操作校验</span>
+    <p>用证据链标定责任域、处理动作和协同接口。</p>
+    <blockquote>责任边界必须由证据链支撑，明确无线、核心网、参数、传输或终端责任域，并给出协同接口。</blockquote>
+  </div>
+  <div id="P18-ku-05-visual" class="dg-ku-visual dg-ku-practice" aria-label="责任边界校验">
+    <strong class="dg-ku-visual-title">责任边界</strong>
+    <div class="dg-ku-practice-steps">
+      <span><b>判断对象</b>证据链</span>
+      <span><b>可用证据</b>责任域</span>
+      <span><b>采用判据</b>协同接口</span>
+      <span><b>复测结论</b>动作</span>
+    </div>
+  </div>
+  <aside class="dg-practice-brief">
+    <span>专项练习</span>
+    <p>围绕“责任边界”完成一次判断：先列对象和证据，再写出采用的工程判据与复测口径。</p>
+    <a href="#sec-review" data-practice-widget="P18-practice-001">完成后复盘</a>
+  </aside>
+</section>
+
+<SectionStep icon="check" num="六" title="闭环复盘：闭环验证" id="P18-ku-06" />
+
+<section id="P18-ku-06-section" class="dg-knowledge-unit dg-knowledge-unit-review" data-playback-region="P18-ku-06">
+  <div id="P18-ku-06-body" class="dg-ku-main" data-playback-target="P18-ku-06-body P18-ku-06-content">
+    <span class="dg-ku-section-label">闭环复盘</span>
+    <p>处理后用同场景信令、KPI 和业务复测确认。</p>
+    <blockquote>信令故障闭环要回到同场景复测，确认消息时序恢复、KPI 回稳、业务可达，并记录遗留风险。</blockquote>
+  </div>
+  <div id="P18-ku-06-visual" class="dg-ku-visual dg-ku-review" aria-label="闭环验证图解">
+    <strong class="dg-ku-visual-title">闭环验证</strong>
+    <div class="dg-ku-token-grid">
+      <span class="dg-ku-token">信令复测</span>
+      <span class="dg-ku-token">KPI</span>
+      <span class="dg-ku-token">业务可达</span>
+      <span class="dg-ku-token">遗留风险</span>
+    </div>
+  </div>
+</section>
+
+<section id="sec-review" class="dg-story-review">
+  <span>复盘</span>
+  <p>本节复盘的关键线索包括：故障现象、消息时序、Cause/Timer、故障链分支、责任边界、闭环验证。</p>
+  <p>复盘时重点核对对象、证据、判据、处置动作和复测结果是否形成闭合关系。</p>
+</section>

@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dgbook.template.knowledge-animation.v1",
+  "title": "DGBook Knowledge Animation Template",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "title", "stage", "constraints", "beats", "outputs"],
+  "properties": {
+    "schema": { "const": "dgbook.template.knowledge-animation/v1" },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "title": { "type": "string", "minLength": 1 },
+    "domain": { "type": "string" },
+    "stage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height", "pageCount"],
+      "properties": {
+        "width": { "type": "number", "const": 1000 },
+        "height": { "type": "number", "const": 562 },
+        "pageCount": { "type": "integer", "minimum": 2 },
+        "transition": { "enum": ["sweep", "wipe", "zoom", "slide"] }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maxVisibleTextChars", "minVisualChangeMs", "linePolicy"],
+      "properties": {
+        "maxVisibleTextChars": { "type": "integer", "minimum": 20, "maximum": 180 },
+        "minVisualChangeMs": { "type": "integer", "minimum": 500, "maximum": 4000 },
+        "linePolicy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mustConnectNodes", "avoidCrossing", "labelLength"],
+          "properties": {
+            "mustConnectNodes": { "type": "boolean" },
+            "avoidCrossing": { "type": "boolean" },
+            "labelLength": { "type": "integer", "minimum": 2, "maximum": 12 }
+          }
+        },
+        "forbiddenCopy": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "beats": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "intent", "visual", "narration"],
+        "properties": {
+          "id": { "type": "string" },
+          "intent": { "type": "string", "minLength": 1 },
+          "visual": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["template", "focus", "elements"],
+            "properties": {
+              "template": {
+                "enum": [
+                  "concept-map",
+                  "signaling-ladder",
+                  "network-topology",
+                  "kpi-dashboard",
+                  "parameter-decision-tree",
+                  "optimization-loop",
+                  "process-walkthrough",
+                  "manim-segment",
+                  "edugame-practice"
+                ]
+              },
+              "focus": { "type": "string" },
+              "elements": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          },
+          "narration": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["caption", "spokenText"],
+            "properties": {
+              "caption": { "type": "string", "maxLength": 80 },
+              "spokenText": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stageArtifact", "optionalMedia"],
+      "properties": {
+        "stageArtifact": { "type": "string" },
+        "optionalMedia": {
+          "type": "array",
+          "items": {
+            "enum": ["manim-webm", "manim-mp4", "edugame-config", "poster-svg"]
+          }
+        }
+      }
+    }
+  }
+}

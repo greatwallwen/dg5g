@@ -1,0 +1,198 @@
+'use client';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { TeacherAuthoritativeSnapshot } from '@/platform/authoritative-snapshot';
+import type { ClassSession, PlaybackScene, Task, TeacherSlide } from '@/platform/models';
+import { getNodeLearningPolicy } from '@/platform/learning-policy';
+import { playbackSceneForLearningUnit } from '@/features/textbook-scene/learning-playback';
+import { TeacherConsoleView } from './teacher-console-view';
+import { profileForNodeId } from '@/features/textbook-scene/shared-classroom-scene';
+import { useClassSession } from './use-class-session';
+import { TeacherSkillPulseProvider } from '@/features/skill-tree/teacher-skill-pulse';
+import type { DemoTaskProfiles } from '@/features/platform/deep-textbook-demo-data';
+import { useAuthoritativeSnapshot } from '@/features/snapshot/authoritative-snapshot-client';
+import { projectTeacherConsoleSnapshot, projectTeacherSkillPulse } from './teacher-console-snapshot-model';
+import { authoritativeDomFacts } from '@/features/snapshot/snapshot-dom-facts';
+type TeacherInspectorTab = 'script' | 'learning' | 'review';
+export function TeacherConsoleClient({ displayName, slides, initialSession, initialSnapshot, task, playback, profiles }: { displayName: string; slides: TeacherSlide[]; initialSession: ClassSession; initialSnapshot: TeacherAuthoritativeSnapshot; task: Task; playback: PlaybackScene; profiles: DemoTaskProfiles }) {
+  const [session, update, connection, submitIntent] = useClassSession(initialSession, { role: 'teacher' });
+  const snapshot = useAuthoritativeSnapshot(initialSnapshot, 'teacher', initialSession.sessionId);
+  const inspectorButtonRef = useRef<HTMLButtonElement>(null);
+  const restoreInspectorFocusRef = useRef(false);
+  const [inspectorOpen, setInspectorOpen] = useState(true);
+  const [inspectorTab, setInspectorTab] = useState<TeacherInspectorTab>('script');
+  const [playbackOpen, setPlaybackOpen] = useState(false);
+  const initialNodeId = slides[0]?.nodeId ?? initialSession.activeNodeId ?? 'P1T1-N01';
+  const activeNodeId = session.activeNodeId ?? initialNodeId;
+  const activePolicy = getNodeLearningPolicy(activeNodeId);
+  const profile = profileForNodeId(activeNodeId, profiles);
+  const unitIndex = Math.max(0, profile.units.findIndex((unit) => unit.capabilityNodeId === activeNodeId));
+  const unit = profile.units[unitIndex] ?? profile.units[0];
+  const snapshotModel = projectTeacherConsoleSnapshot(snapshot, session.studentSyncState);
+  const rosterStats = snapshotModel.rosterStats;
+  const controlMode = snapshotModel.controlMode;
+  const helperReady = snapshotModel.helper.canPush;
+  const selectedNodeProgress = projectTeacherSkillPulse(snapshot, activeNodeId);
+  const submittedAnswers = session.submissionAnswers ?? [];
+  useLayoutEffect(() => {
+    if (inspectorOpen || !restoreInspectorFocusRef.current) return;
+    restoreInspectorFocusRef.current = false;
+    inspectorButtonRef.current?.focus({ preventScroll: true });
+  }, [inspectorOpen]);
+  useEffect(() => {
+    if (!inspectorOpen) return;
+    const inspector = document.querySelector<HTMLElement>('[data-teacher-inspector]');
+    if (!inspector) return;
+    const mobileQuery = window.matchMedia('(max-width: 760px)');
+    const focusable = () => {
+      const visible: HTMLElement[] = [];
+      const candidates = inspector.querySelectorAll<HTMLElement>(
+        'button:not(:disabled), a[href], input:not(:disabled), textarea:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex="-1"])',
+      );
+      for (const element of candidates) {
+        if (element.getClientRects().length > 0) visible.push(element);
+      }
+      return visible;
+    };
+    if (mobileQuery.matches) focusable()[0]?.focus({ preventScroll: true });
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeInspector();
+        return;
+      }
+      if (event.key !== 'Tab' || !mobileQuery.matches) return;
+      const items = focusable();
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      } else if (!inspector.contains(document.activeElement)) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [inspectorOpen]);
+  const teacherScript = useMemo(() => [
+    `聚焦问题：${unit.question}`,
+    `按工程顺序组织讲解：${unit.steps.join(' -> ')}`,
+    `纠正常见错误：${unit.counterexample}`,
+  ], [unit]);
+  const activePlayback = useMemo(() => ({ ...playbackSceneForLearningUnit(unit, profile.taskId), presenterId: playback.presenterId }), [playback.presenterId, profile.taskId, unit]);
+  function go(index: number) {
+    const nextIndex = Math.max(0, Math.min(profile.units.length - 1, index));
+    const next = profile.units[nextIndex];
+    const slideId = `${session.sessionId}-S0${nextIndex + 1}`;
+    update({
+      currentPageId: 'P1-TEACH-CONSOLE-N01',
+      teacherSlideIndex: nextIndex + 1,
+      teacherSlideId: slideId,
+      currentSlideId: slideId,
+      sceneMode: 'learning',
+      activeTaskId: profile.taskId,
+      activeNodeId: next.capabilityNodeId,
+      activeUnitId: next.id,
+    });
+  }
+  async function pushPage() {
+    update({
+      currentPageId: 'P1-STUDENT-FOLLOW-N01',
+      sceneMode: 'learning',
+      activeTaskId: profile.taskId,
+      activeNodeId: unit.capabilityNodeId,
+      activeUnitId: unit.id,
+      activityState: 'pushed',
+      studentSyncState: 'requested',
+      syncRequestId: `${unit.id}-${Date.now()}`,
+    });
+    await submitIntent({ type: 'playback_seeked', positionMs: session.lessonState?.playback.positionMs ?? 0 });
+  }
+  async function forceFollow() {
+    const syncRequestId = `${unit.id}-force-${Date.now()}`;
+    update({
+      currentPageId: 'P1-STUDENT-FOLLOW-N01',
+      sceneMode: 'learning',
+      activeTaskId: profile.taskId,
+      activeNodeId: unit.capabilityNodeId,
+      activeUnitId: unit.id,
+      activityState: 'pushed',
+      studentMode: 'follow',
+      studentSyncState: 'forced',
+      syncRequestId,
+    });
+    await submitIntent({ type: 'playback_seeked', positionMs: session.lessonState?.playback.positionMs ?? 0 });
+  }
+  function releaseFollowLock() {
+    update({ studentMode: 'follow', studentSyncState: 'idle', syncRequestId: `${unit.id}-release-${Date.now()}` });
+  }
+  async function startFormalTest() {
+    if (!activePolicy?.requiresFormalTest) return;
+    const formalTest = session.formalTest;
+    if (!formalTest || formalTest.status === 'running') return;
+    const phase = session.lessonState?.phase ?? 'prepare';
+    if (phase === 'prepare' || phase === 'review') await submitIntent({ type: 'phase_changed', phase: 'lecture' });
+    if (phase === 'prepare' || phase === 'review' || phase === 'lecture' || phase === 'question') await submitIntent({ type: 'phase_changed', phase: 'practice' });
+    if (phase !== 'challenge' && phase !== 'close') await submitIntent({ type: 'phase_changed', phase: 'challenge' });
+    update({
+      sceneMode: 'challenge',
+      formalTest: {
+        ...formalTest,
+        status: 'running',
+        startedAt: new Date().toISOString(),
+        participants: formalTest.participants.map((participant) => ({ ...participant, state: 'playing', score: undefined, durationSeconds: undefined })),
+      },
+    });
+  }
+  async function beginReview() {
+    const phase = session.lessonState?.phase ?? 'prepare';
+    if (phase === 'prepare') await submitIntent({ type: 'phase_changed', phase: 'lecture' });
+    if (phase !== 'review' && phase !== 'close') await submitIntent({ type: 'phase_changed', phase: 'review' });
+    update({ reviewState: 'reviewing', sceneMode: 'review' });
+  }
+  function closeInspector() { restoreInspectorFocusRef.current = true; setInspectorOpen(false); }
+  return <TeacherSkillPulseProvider progress={selectedNodeProgress}><TeacherConsoleView
+    authoritativeFacts={authoritativeDomFacts(snapshot)}
+    displayName={displayName}
+    playbackOpen={playbackOpen}
+    setPlaybackOpen={setPlaybackOpen}
+    unitIndex={unitIndex}
+    controlMode={controlMode}
+    profile={profile}
+    unit={unit}
+    rosterStats={rosterStats}
+    helperReady={helperReady}
+    helperStatus={snapshotModel.helper.status}
+    deliveryStats={snapshotModel.helper.commandDelivery}
+    onlineStudentDeviceCount={snapshotModel.helper.onlineStudentDeviceCount}
+    session={session}
+    inspectorOpen={inspectorOpen}
+    closeInspector={closeInspector}
+    setInspectorOpen={setInspectorOpen}
+    inspectorButtonRef={inspectorButtonRef}
+    inspectorTab={inspectorTab}
+    setInspectorTab={setInspectorTab}
+    teacherScript={teacherScript}
+    formalAssessment={snapshotModel.formalAssessment}
+    classScores={snapshotModel.classScores}
+    submittedAnswers={submittedAnswers}
+    connection={connection}
+    verificationActionState="idle"
+    activePlayback={activePlayback}
+    update={update}
+    submitIntent={submitIntent}
+    task={task}
+    go={go}
+    startFormalTest={startFormalTest}
+    pushPage={pushPage}
+    forceFollow={forceFollow}
+    releaseFollowLock={releaseFollowLock}
+    beginReview={beginReview}
+    verificationMessage=""
+  /></TeacherSkillPulseProvider>;
+}

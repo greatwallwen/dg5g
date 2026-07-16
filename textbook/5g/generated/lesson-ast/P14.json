@@ -1,0 +1,3520 @@
+{
+  "schema": "dgbook.lesson-ast/v1",
+  "source": {
+    "kind": "docx",
+    "path": "content/5g/5g.docx",
+    "importer": "scripts/import-5g-docx.py"
+  },
+  "project": {
+    "id": "P14",
+    "title": "5G全网性能指标采集",
+    "sourceNo": "1",
+    "chapterTitle": "5G全网性能提升",
+    "taskIndex": 1
+  },
+  "lesson": {
+    "id": "P14",
+    "title": "5G全网性能指标采集",
+    "widgetId": "P14-lesson-animation-001",
+    "scenario": "kpi",
+    "scenarioLabel": "指标分析"
+  },
+  "content": {
+    "sections": [
+      {
+        "id": "sec-overview",
+        "title": "导学摘要",
+        "icon": "overview",
+        "texts": [
+          "本节讲全网性能数据采集：统一指标定义、周期、对象和数据源，用 PM 观察全网趋势，用 DT/CQT 补足用户路径和热点体验。"
+        ]
+      },
+      {
+        "id": "P14-ku-01",
+        "title": "概念与对象",
+        "icon": "radar",
+        "texts": [
+          "全网指标采集最怕口径漂移，需明确指标定义、采样周期、统计对象、数据源和缺失处理规则。"
+        ]
+      },
+      {
+        "id": "P14-ku-02",
+        "title": "概念与对象",
+        "icon": "route",
+        "texts": [
+          "PM 数据适合看全网趋势、忙时负荷和小区排名，但必须检查统计周期、计数器完整性和异常清零。"
+        ]
+      },
+      {
+        "id": "P14-ku-03",
+        "title": "工程判读",
+        "icon": "chart",
+        "texts": [
+          "测试数据从用户体验侧补足 PM 盲区，能定位具体道路、楼宇、热点点位和业务脚本下的问题。"
+        ]
+      },
+      {
+        "id": "P14-ku-04",
+        "title": "数据与现场佐证",
+        "icon": "tool",
+        "texts": [
+          "告警不是最终结论，而是异常的时间锚点和对象锚点，需要与 PM、测试和工参联动。"
+        ]
+      },
+      {
+        "id": "P14-ku-05",
+        "title": "操作校验",
+        "icon": "search",
+        "texts": [
+          "多源联判把覆盖、质量、容量、业务体验和告警事件对齐，避免单源数据误判。"
+        ]
+      },
+      {
+        "id": "P14-ku-06",
+        "title": "闭环复盘",
+        "icon": "check",
+        "texts": [
+          "采集结束应固化基线口径、指标周期、对象范围和异常说明，为后续优化验证提供对照。"
+        ]
+      }
+    ],
+    "blocks": [
+      {
+        "id": "block-001",
+        "kind": "paragraph",
+        "order": 1,
+        "text": "项目概述"
+      },
+      {
+        "id": "block-002",
+        "kind": "paragraph",
+        "order": 2,
+        "text": "5G基站入网验收后就进入到日常运维阶段，主要对全网性能指标进行优化和提升，保障5G网络的用户感知。本项目学习5G网络性能指标的定义、采集方法，性能指标分析、制定性能指标提升方案，并对方案进行验证。学习结束后应具备："
+      },
+      {
+        "id": "block-003",
+        "kind": "paragraph",
+        "order": 3,
+        "text": "能完成全网性能指标的采集"
+      },
+      {
+        "id": "block-004",
+        "kind": "paragraph",
+        "order": 4,
+        "text": "能完成全网性能指标提升方案的制定"
+      },
+      {
+        "id": "block-005",
+        "kind": "paragraph",
+        "order": 5,
+        "text": "能完成全网性能指标提升方案的验证"
+      },
+      {
+        "id": "block-006",
+        "kind": "paragraph",
+        "order": 6,
+        "text": "项目导学"
+      },
+      {
+        "id": "block-007",
+        "kind": "paragraph",
+        "order": 7,
+        "text": "本项目章节的知识结构如下："
+      },
+      {
+        "id": "block-008",
+        "kind": "paragraph",
+        "order": 8,
+        "mediaRefs": [
+          "rId313"
+        ]
+      },
+      {
+        "id": "block-009",
+        "kind": "paragraph",
+        "order": 9,
+        "text": "任务导入"
+      },
+      {
+        "id": "block-010",
+        "kind": "paragraph",
+        "order": 10,
+        "text": "5G网络可以采用NSA和SA方式进行组网，那么在NSA和SA网络中可以通过收集哪些性能指标对5G网络的整体服务质量进行评估？"
+      },
+      {
+        "id": "block-011",
+        "kind": "paragraph",
+        "order": 11,
+        "text": "任务要求"
+      },
+      {
+        "id": "block-012",
+        "kind": "paragraph",
+        "order": 12,
+        "text": "完成5G网络接入类指标的采集"
+      },
+      {
+        "id": "block-013",
+        "kind": "paragraph",
+        "order": 13,
+        "text": "学会采集5G网络保持类、移动性、资源类、覆盖类、可用性、干扰类指标的采集"
+      },
+      {
+        "id": "block-014",
+        "kind": "paragraph",
+        "order": 14,
+        "text": "学会描述5G网络NSA和SA接入、切换信令流程"
+      },
+      {
+        "id": "block-015",
+        "kind": "paragraph",
+        "order": 15,
+        "text": "掌握5G网络干扰的分类"
+      },
+      {
+        "id": "block-016",
+        "kind": "paragraph",
+        "order": 16,
+        "text": "知识准备"
+      },
+      {
+        "id": "block-017",
+        "kind": "paragraph",
+        "order": 17,
+        "text": "5G网络性能指标简介"
+      },
+      {
+        "id": "block-018",
+        "kind": "paragraph",
+        "order": 18,
+        "text": "KPI：“Key Performance Indication”即“关键性能指标”，是评价无线网络运行情况的重要标准。采集方式包括OMC性能统计或测试等。如：RRC连接建立成功率，无线接通率等。"
+      },
+      {
+        "id": "block-019",
+        "kind": "paragraph",
+        "order": 19,
+        "text": "PI：“Performance Indication” 即“性能指标”，关键程度略低。"
+      },
+      {
+        "id": "block-020",
+        "kind": "paragraph",
+        "order": 20,
+        "text": "作为网络评估的参考数据，KPI、PI由相应的计数器计算后得到。"
+      },
+      {
+        "id": "block-021",
+        "kind": "paragraph",
+        "order": 21,
+        "text": "全网性能指标的采集途径："
+      },
+      {
+        "id": "block-022",
+        "kind": "paragraph",
+        "order": 22,
+        "text": "通过专用的大数据平台进行采集，各运营商均搭建有综合运维平台，通过北向数据对各个厂家的原始性能数据进行分析后输出全网级的指标，用于全国范围、省级、地市级的年度考核，运营商平台数据是现场网络优化考核目标的主要依据。"
+      },
+      {
+        "id": "block-023",
+        "kind": "paragraph",
+        "order": 23,
+        "text": "使用网管进行各项指标的采集，网管指标是厂家私有系统，现场优化人员利用网管指标可以进行深入的网络分析。"
+      },
+      {
+        "id": "block-024",
+        "kind": "paragraph",
+        "order": 24,
+        "text": "通过路测软件进行采集，需要通过拉网测试、自动路测系统获取源数据。"
+      },
+      {
+        "id": "block-025",
+        "kind": "paragraph",
+        "order": 25,
+        "mediaRefs": [
+          "rId314"
+        ]
+      },
+      {
+        "id": "block-026",
+        "kind": "paragraph",
+        "order": 26,
+        "text": "图5-1-1 性能指标体系"
+      },
+      {
+        "id": "block-027",
+        "kind": "paragraph",
+        "order": 27,
+        "text": "接入指标"
+      },
+      {
+        "id": "block-028",
+        "kind": "paragraph",
+        "order": 28,
+        "text": "5G接入流程综述"
+      },
+      {
+        "id": "block-029",
+        "kind": "paragraph",
+        "order": 29,
+        "text": "5G NSA组网和SA组网时，终端的接入流程如下图所示。"
+      },
+      {
+        "id": "block-030",
+        "kind": "paragraph",
+        "order": 30,
+        "mediaRefs": [
+          "rId315"
+        ]
+      },
+      {
+        "id": "block-031",
+        "kind": "paragraph",
+        "order": 31,
+        "text": "图5-1-2 5G接入流程"
+      },
+      {
+        "id": "block-032",
+        "kind": "paragraph",
+        "order": 32,
+        "text": "小区搜索是UE实现与gNodeB下行时频同步并获取服务小区ID的过程，小区搜索步骤如下："
+      },
+      {
+        "id": "block-033",
+        "kind": "paragraph",
+        "order": 33,
+        "text": "UE解调主同步信号（PSS和LTE一样是3个），实现符号同步，并获取小区组内ID。"
+      },
+      {
+        "id": "block-034",
+        "kind": "paragraph",
+        "order": 34,
+        "text": "UE解调次同步信号(SSS, 5G的SSS有336个，4G的SSS有168个 )，获取小区组ID，结合小区组内ID，最终获得小区的PCI(5G的PCI有1008个，4G的PCI有504个）。"
+      },
+      {
+        "id": "block-035",
+        "kind": "paragraph",
+        "order": 35,
+        "text": "解调PBCH的MIB消息，获取波束ID、半帧指示信息，并完成下行帧同步。"
+      },
+      {
+        "id": "block-036",
+        "kind": "paragraph",
+        "order": 36,
+        "text": "NSA组网下，RMSI中的内容由eNB通过RRC信令在开始接入NR前发送，UE从中直接读取SSB的中心频点，帧号、pointA等信息。"
+      },
+      {
+        "id": "block-037",
+        "kind": "paragraph",
+        "order": 37,
+        "text": "5G NSA组网接入信令流程"
+      },
+      {
+        "id": "block-038",
+        "kind": "paragraph",
+        "order": 38,
+        "text": "5G NSA组网接入信令流程"
+      },
+      {
+        "id": "block-039",
+        "kind": "paragraph",
+        "order": 39,
+        "text": "可划为4个阶段："
+      },
+      {
+        "id": "block-040",
+        "kind": "paragraph",
+        "order": 40,
+        "text": "阶段一 UE接入锚点：UE在4G侧（锚点侧）驻留并完成初始接入，在此阶段4G向UE下发第一次RRC RECFG重配置消息，建立SRB2和DRB。"
+      },
+      {
+        "id": "block-041",
+        "kind": "paragraph",
+        "order": 41,
+        "text": "阶段二 进行5G邻区测量：4G向UE下发第二次RRC RECFG重配置消息，携带B1测量配置（NR小区SSB绝对频点），UE完成测量后上报测量报告"
+      },
+      {
+        "id": "block-042",
+        "kind": "paragraph",
+        "order": 42,
+        "text": "阶段三 5G辅载波添加：4G锚点站经过判断后认为UE符合辅载波添加条件，向gNodeB发起SgNB Addition Rquest请求，得到响应后向UE发出第三次RRC RECFG重配置消息，携带双连接配置信息"
+      },
+      {
+        "id": "block-043",
+        "kind": "paragraph",
+        "order": 43,
+        "text": "路径变更：在OPTION3X组网架构下，由于数据分流点由SCG承担，MeNB通过E-RAB Modification Indication指示核心网将E-RAB的S1-U接口接到SgNB"
+      },
+      {
+        "id": "block-044",
+        "kind": "paragraph",
+        "order": 44,
+        "mediaRefs": [
+          "rId316"
+        ]
+      },
+      {
+        "id": "block-045",
+        "kind": "paragraph",
+        "order": 45,
+        "text": "图5-1-3 5G NSA组网接入信令流程"
+      },
+      {
+        "id": "block-046",
+        "kind": "paragraph",
+        "order": 46,
+        "text": "5G SA组网接入信令流程"
+      },
+      {
+        "id": "block-047",
+        "kind": "paragraph",
+        "order": 47,
+        "text": "1.5G SA组网接入信令流程"
+      },
+      {
+        "id": "block-048",
+        "kind": "paragraph",
+        "order": 48,
+        "mediaRefs": [
+          "rId317"
+        ]
+      },
+      {
+        "id": "block-049",
+        "kind": "paragraph",
+        "order": 49,
+        "text": "图5-1-4 5G SA组网接入信令流程"
+      },
+      {
+        "id": "block-050",
+        "kind": "paragraph",
+        "order": 50,
+        "text": "5G接入类指标介绍"
+      },
+      {
+        "id": "block-051",
+        "kind": "paragraph",
+        "order": 51,
+        "text": "SA组网下5G接入类指标包括RRC连接建立成功率、RRC连接恢复成功率、QoS Flow建立成功率。"
+      },
+      {
+        "id": "block-052",
+        "kind": "paragraph",
+        "order": 52,
+        "text": "NG接口UE相关逻辑信令连接建立成功率、PDU Session建立成功率、UE上下文建立成功率、无线接通率等。"
+      },
+      {
+        "id": "block-053",
+        "kind": "paragraph",
+        "order": 53,
+        "text": "RRC连接建立成功率"
+      },
+      {
+        "id": "block-054",
+        "kind": "paragraph",
+        "order": 54,
+        "text": "指标描述"
+      },
+      {
+        "id": "block-055",
+        "kind": "paragraph",
+        "order": 55,
+        "text": "该指标用于了解该小区内RRC连接建立成功的概率，部分反映了该小区范围内用户接入网络的感受。"
+      },
+      {
+        "id": "block-056",
+        "kind": "paragraph",
+        "order": 56,
+        "text": "测量对象"
+      },
+      {
+        "id": "block-057",
+        "kind": "paragraph",
+        "order": 57,
+        "text": "CU小区类型"
+      },
+      {
+        "id": "block-058",
+        "kind": "paragraph",
+        "order": 58,
+        "text": "指标公式"
+      },
+      {
+        "id": "block-059",
+        "kind": "paragraph",
+        "order": 59,
+        "text": "RRC连接建立成功率=分接入类型的RRC连接建立成功次数/分接入类型RRC连接建立请求次数*100%"
+      },
+      {
+        "id": "block-060",
+        "kind": "paragraph",
+        "order": 60,
+        "text": "分接入类型RRC连接建立请求次数，当gNB接收到从UE来的分接入类型的RRC连接建立请求消息(RRCSetupRquest)，计数器加1。"
+      },
+      {
+        "id": "block-061",
+        "kind": "paragraph",
+        "order": 61,
+        "text": "分接入类型RRC连接建立成功次数，当gNB接收到从UE来的分接入类型的RRC连接建立完成消息(RRCSetupComplete)，计数器加1。"
+      },
+      {
+        "id": "block-062",
+        "kind": "paragraph",
+        "order": 62,
+        "text": "接入类型"
+      },
+      {
+        "id": "block-063",
+        "kind": "paragraph",
+        "order": 63,
+        "text": "接入类型包括：mt-Access类型、mo-Signalling类型、mo-Data类型、mo-VoiceCall类型、emergency类型、highPriorityAccess类型、mo-VideoCall类型、mo-SMS类型、mps-PriorityAccess类型、mcs-PriorityAccess类型。"
+      },
+      {
+        "id": "block-064",
+        "kind": "paragraph",
+        "order": 64,
+        "text": "RRC连接恢复成功率"
+      },
+      {
+        "id": "block-065",
+        "kind": "paragraph",
+        "order": 65,
+        "text": "指标描述"
+      },
+      {
+        "id": "block-066",
+        "kind": "paragraph",
+        "order": 66,
+        "text": "该指标用于了解该小区内RRC连接激活成功的概率，部分反映了该小区范围内用户接入网络的感受。"
+      },
+      {
+        "id": "block-067",
+        "kind": "paragraph",
+        "order": 67,
+        "text": "测量对象"
+      },
+      {
+        "id": "block-068",
+        "kind": "paragraph",
+        "order": 68,
+        "text": "CU小区类型"
+      },
+      {
+        "id": "block-069",
+        "kind": "paragraph",
+        "order": 69,
+        "text": "指标公式"
+      },
+      {
+        "id": "block-070",
+        "kind": "paragraph",
+        "order": 70,
+        "text": "RRC连接恢复成功率=RRC连接恢复成功次数/RRC连接恢复请求次数*100%"
+      },
+      {
+        "id": "block-071",
+        "kind": "paragraph",
+        "order": 71,
+        "text": "恢复原因"
+      },
+      {
+        "id": "block-072",
+        "kind": "paragraph",
+        "order": 72,
+        "text": "恢复原因包括：Emergency、highPriorityAccess、mt-Access、mo-Signalling、mo-Data、mo-VoiceCall、mo-VideoCall、mo-SMS、mps-PriorityAccess、mcs-PriorityAccess、rna-Update。"
+      },
+      {
+        "id": "block-073",
+        "kind": "paragraph",
+        "order": 73,
+        "text": "QoS Flow建立成功率"
+      },
+      {
+        "id": "block-074",
+        "kind": "paragraph",
+        "order": 74,
+        "text": "指标描述"
+      },
+      {
+        "id": "block-075",
+        "kind": "paragraph",
+        "order": 75,
+        "text": "该指标用于了解该小区内分5QI的QoS Flow建立成功的概率，部分反映了该小区范围内用户接入网络的感受。"
+      },
+      {
+        "id": "block-076",
+        "kind": "paragraph",
+        "order": 76,
+        "text": "5G中增加了PDU Session的概念，一个UE可以同时拥有多个PDU Session，一个PDU Session对应多个QoS Flow，由gNB进行QoS Flow到DRB的映射，可以是多对一的映射关系也可以是一对一的映射关系。"
+      },
+      {
+        "id": "block-077",
+        "kind": "paragraph",
+        "order": 77,
+        "text": "测量对象"
+      },
+      {
+        "id": "block-078",
+        "kind": "paragraph",
+        "order": 78,
+        "text": "CU小区类型"
+      },
+      {
+        "id": "block-079",
+        "kind": "paragraph",
+        "order": 79,
+        "text": "指标公式"
+      },
+      {
+        "id": "block-080",
+        "kind": "paragraph",
+        "order": 80,
+        "text": "QoS Flow建立成功率= QoS Flow建立成功次数/QoS Flow建立请求次数*100%"
+      },
+      {
+        "id": "block-081",
+        "kind": "paragraph",
+        "order": 81,
+        "text": "QoS Flow建立请求次数：当gNB收到AMF发送的INITIAL CONTEXT SETUP REQUEST、PDU SESSION RESOURCE SETUP REQUEST、PDU SESSION RESOURCE MODIFY REQUEST消息，携带了一个或多个PDU session的QoS Flow Setup Request List，且存在该5QI的QoS Flow时，该计数器加1。"
+      },
+      {
+        "id": "block-082",
+        "kind": "paragraph",
+        "order": 82,
+        "text": "QoS Flow建立成功次数：当gNB给AMF发送的INITIAL CONTEXT SETUP RESPONSE、PDU SESSION RESOURCE SETUP RESPONSE、PDU SESSION RESOURCE MODIFY RESPONSE消息，携带了一个或多个PDU session的QoS Flow Add or Modify Response List，且存在该5QI的新增QoS Flow，该计数器加1。"
+      },
+      {
+        "id": "block-083",
+        "kind": "paragraph",
+        "order": 83,
+        "text": "NG接口UE相关逻辑信令连接建立成功率"
+      },
+      {
+        "id": "block-084",
+        "kind": "paragraph",
+        "order": 84,
+        "text": "指标描述"
+      },
+      {
+        "id": "block-085",
+        "kind": "paragraph",
+        "order": 85,
+        "text": "该指标用于反映gNB与NGC连接稳定性。"
+      },
+      {
+        "id": "block-086",
+        "kind": "paragraph",
+        "order": 86,
+        "text": "测量对象"
+      },
+      {
+        "id": "block-087",
+        "kind": "paragraph",
+        "order": 87,
+        "text": "CU小区类型"
+      },
+      {
+        "id": "block-088",
+        "kind": "paragraph",
+        "order": 88,
+        "text": "指标公式"
+      },
+      {
+        "id": "block-089",
+        "kind": "paragraph",
+        "order": 89,
+        "text": "NG接口UE相关逻辑信令连接建立成功率= UE NGAP建立成功次数/UE NGAP建立请求次数*100%"
+      },
+      {
+        "id": "block-090",
+        "kind": "paragraph",
+        "order": 90,
+        "text": "UE NGAP建立请求次数：当gNB发送INITIAL UE MESSAGE消息时，计数器加1。"
+      },
+      {
+        "id": "block-091",
+        "kind": "paragraph",
+        "order": 91,
+        "text": "UE NGAP建立成功次数：当gNB接收到第一条携带AMF UE NGAP ID信息的NG口消息，可能是DOWNLINK NAS TRANSPORT、INITIAL CONTEXT SETUP REQUEST或UE CONTEXT RELEASE COMMAND消息，计数器加1。"
+      },
+      {
+        "id": "block-092",
+        "kind": "paragraph",
+        "order": 92,
+        "text": "PDU Session建立成功率"
+      },
+      {
+        "id": "block-093",
+        "kind": "paragraph",
+        "order": 93,
+        "text": "指标描述"
+      },
+      {
+        "id": "block-094",
+        "kind": "paragraph",
+        "order": 94,
+        "text": "该指标用于了解该小区内PDU会话建立成功的概率，部分反映了该小区范围内用户接入网络的感受。"
+      },
+      {
+        "id": "block-095",
+        "kind": "paragraph",
+        "order": 95,
+        "text": "测量对象"
+      },
+      {
+        "id": "block-096",
+        "kind": "paragraph",
+        "order": 96,
+        "text": "CU小区类型"
+      },
+      {
+        "id": "block-097",
+        "kind": "paragraph",
+        "order": 97,
+        "text": "指标公式"
+      },
+      {
+        "id": "block-098",
+        "kind": "paragraph",
+        "order": 98,
+        "text": "PDU会话建立成功率= PDU Session建立成功次数/PDU Session建立请求次数*100%"
+      },
+      {
+        "id": "block-099",
+        "kind": "paragraph",
+        "order": 99,
+        "text": "PDU Session建立请求次数：当gNB收到AMF发送的INITIAL CONTEXT SETUP REQUEST、PDU SESSIONRESOURCE SETUP REQUEST，消息携带了一个或多个PDU session，计数器加1。"
+      },
+      {
+        "id": "block-100",
+        "kind": "paragraph",
+        "order": 100,
+        "text": "PDU Session建立成功次数：当gNB给AMF发送INITIAL CONTEXT SETUP RESPONSE、PDU SESSION RESOURCE SETUP RESPONSE，消息携带了PDU Session Resource Setup Response List，则该计数器加1。"
+      },
+      {
+        "id": "block-101",
+        "kind": "paragraph",
+        "order": 101,
+        "text": "UE上下文建立成功率"
+      },
+      {
+        "id": "block-102",
+        "kind": "paragraph",
+        "order": 102,
+        "text": "指标描述"
+      },
+      {
+        "id": "block-103",
+        "kind": "paragraph",
+        "order": 103,
+        "text": "该指标用于了解该小区内上下文建立成功的概率，部分反映了该小区范围内用户接入网络的感受。"
+      },
+      {
+        "id": "block-104",
+        "kind": "paragraph",
+        "order": 104,
+        "text": "测量对象"
+      },
+      {
+        "id": "block-105",
+        "kind": "paragraph",
+        "order": 105,
+        "text": "CU小区类型"
+      },
+      {
+        "id": "block-106",
+        "kind": "paragraph",
+        "order": 106,
+        "text": "指标公式"
+      },
+      {
+        "id": "block-107",
+        "kind": "paragraph",
+        "order": 107,
+        "text": "UE上下文建立成功率=Context建立成功次数/Context建立请求次数*100%"
+      },
+      {
+        "id": "block-108",
+        "kind": "paragraph",
+        "order": 108,
+        "text": "Context建立请求次数：当gNodeB接收到从AMF来的INITIAL CONTEXT SETUP REQUEST消息时，计数器加1。"
+      },
+      {
+        "id": "block-109",
+        "kind": "paragraph",
+        "order": 109,
+        "text": "Context建立成功次数：当gNodeB给AMF发送INITIAL CONTEXT SETUP RESPONSE消息时，计数器加1。"
+      },
+      {
+        "id": "block-110",
+        "kind": "paragraph",
+        "order": 110,
+        "text": "5G无线接通率"
+      },
+      {
+        "id": "block-111",
+        "kind": "paragraph",
+        "order": 111,
+        "text": "指标描述"
+      },
+      {
+        "id": "block-112",
+        "kind": "paragraph",
+        "order": 112,
+        "text": "该指标用于统计UE成功接入网络的性能，结合指标包括RRC建立、上下文建立及NG口建立。"
+      },
+      {
+        "id": "block-113",
+        "kind": "paragraph",
+        "order": 113,
+        "text": "测量对象"
+      },
+      {
+        "id": "block-114",
+        "kind": "paragraph",
+        "order": 114,
+        "text": "CU小区类型"
+      },
+      {
+        "id": "block-115",
+        "kind": "paragraph",
+        "order": 115,
+        "text": "指标公式"
+      },
+      {
+        "id": "block-116",
+        "kind": "paragraph",
+        "order": 116,
+        "text": "5G无线接通率= RRC连接建立成功率*NG接口UE相关逻辑信令连接建立成功率*QoS Flow建立成功率*100%"
+      },
+      {
+        "id": "block-117",
+        "kind": "paragraph",
+        "order": 117,
+        "text": "5G接入指标采集"
+      },
+      {
+        "id": "block-118",
+        "kind": "paragraph",
+        "order": 118,
+        "text": "1.大数据平台"
+      },
+      {
+        "id": "block-119",
+        "kind": "paragraph",
+        "order": 119,
+        "text": "通过大数据平台对接入指标进行提取和分析。"
+      },
+      {
+        "id": "block-120",
+        "kind": "paragraph",
+        "order": 120,
+        "text": "2.5G网管软件"
+      },
+      {
+        "id": "block-121",
+        "kind": "paragraph",
+        "order": 121,
+        "text": "通过5G网管提取与接入相关联的KPI指标。"
+      },
+      {
+        "id": "block-122",
+        "kind": "paragraph",
+        "order": 122,
+        "text": "3.5G路测软件"
+      },
+      {
+        "id": "block-123",
+        "kind": "paragraph",
+        "order": 123,
+        "text": "通过CQT、DT测试方式采集接通率相关数据。"
+      },
+      {
+        "id": "block-124",
+        "kind": "paragraph",
+        "order": 124,
+        "text": "4.用户投诉"
+      },
+      {
+        "id": "block-125",
+        "kind": "paragraph",
+        "order": 125,
+        "text": "通过对用户投诉信息进行分析，判断是否为接入类问题导致的投诉。"
+      },
+      {
+        "id": "block-126",
+        "kind": "paragraph",
+        "order": 126,
+        "text": "5G保持性指标"
+      },
+      {
+        "id": "block-127",
+        "kind": "paragraph",
+        "order": 127,
+        "text": "保持性指标介绍"
+      },
+      {
+        "id": "block-128",
+        "kind": "paragraph",
+        "order": 128,
+        "text": "5G保持性类指标主要通过无线掉线率、PDU Session异常释放率、SN异常释放率、分QCI的E-RAB掉线率进行体现。"
+      },
+      {
+        "id": "block-129",
+        "kind": "paragraph",
+        "order": 129,
+        "text": "1.无线掉线率"
+      },
+      {
+        "id": "block-130",
+        "kind": "paragraph",
+        "order": 130,
+        "text": "指标描述"
+      },
+      {
+        "id": "block-131",
+        "kind": "paragraph",
+        "order": 131,
+        "text": "该指标反映了系统的业务通讯保持能力，也反映了系统的稳定性和可靠性。"
+      },
+      {
+        "id": "block-132",
+        "kind": "paragraph",
+        "order": 132,
+        "text": "测量对象"
+      },
+      {
+        "id": "block-133",
+        "kind": "paragraph",
+        "order": 133,
+        "text": "CU小区类型"
+      },
+      {
+        "id": "block-134",
+        "kind": "paragraph",
+        "order": 134,
+        "text": "单位"
+      },
+      {
+        "id": "block-135",
+        "kind": "paragraph",
+        "order": 135,
+        "text": "百分比"
+      },
+      {
+        "id": "block-136",
+        "kind": "paragraph",
+        "order": 136,
+        "text": "指标公式"
+      },
+      {
+        "id": "block-137",
+        "kind": "paragraph",
+        "order": 137,
+        "text": "无线掉线率=（GNB切换失败引发释放次数 +GNB空口失败引发释放次数 +由于小区关断或复位引发释放次数 +GNB由于其它原因引发释放次数)/(Context建立成功次数+Context遗留上下文个数+非源小区RRC连接重建成功次数+切入执行成功次数 )*100%"
+      },
+      {
+        "id": "block-138",
+        "kind": "paragraph",
+        "order": 138,
+        "text": "切入执行成功次数=gNB内DU内小区间同频切换入执行成功次数+gNB内DU间小区间同频切换入执行成功次数 +gNB内DU内小区间异频切换入执行成功次数 +gNB内DU间小区间异频切换入执行成功次数 +gNB间Ng同频切换入执行成功次数 +gNB间Ng异频切换入执行成功次数"
+      },
+      {
+        "id": "block-139",
+        "kind": "paragraph",
+        "order": 139,
+        "text": "2.PDU Session异常释放率"
+      },
+      {
+        "id": "block-140",
+        "kind": "paragraph",
+        "order": 140,
+        "text": "指标描述"
+      },
+      {
+        "id": "block-141",
+        "kind": "paragraph",
+        "order": 141,
+        "text": "该指标用于了解该小区内PDU Session异常释放的概率，部分反映了该小区范围内的用户体验。"
+      },
+      {
+        "id": "block-142",
+        "kind": "paragraph",
+        "order": 142,
+        "text": "测量对象"
+      },
+      {
+        "id": "block-143",
+        "kind": "paragraph",
+        "order": 143,
+        "text": "CU小区类型"
+      },
+      {
+        "id": "block-144",
+        "kind": "paragraph",
+        "order": 144,
+        "text": "单位"
+      },
+      {
+        "id": "block-145",
+        "kind": "paragraph",
+        "order": 145,
+        "text": "百分比"
+      },
+      {
+        "id": "block-146",
+        "kind": "paragraph",
+        "order": 146,
+        "text": "指标公式"
+      },
+      {
+        "id": "block-147",
+        "kind": "paragraph",
+        "order": 147,
+        "text": "PDU Session异常释放率=（PDU Session释放次数_其它原因）/(PDU Session释放次数_AMF发起+PDU Session释放次数_用户不活动+PDU Session释放次数_EPS FallBack+PDU Session释放次数_正常释放+PDU Session释放次数_其它原因)"
+      },
+      {
+        "id": "block-148",
+        "kind": "paragraph",
+        "order": 148,
+        "text": "PDU Session释放次数_其它原因：给AMF发送了UE CONTEXT RELEASE REQUEST，原因为其它，且gNB保存的UE上下文中存在PDU Session。该计数器统计因基站其它异常导致的PDU Session释放的次数，可以从PDU Session角度反映出基站因非正常原因释放的业务量。"
+      },
+      {
+        "id": "block-149",
+        "kind": "paragraph",
+        "order": 149,
+        "text": "3.SN异常释放率"
+      },
+      {
+        "id": "block-150",
+        "kind": "paragraph",
+        "order": 150,
+        "text": "指标描述"
+      },
+      {
+        "id": "block-151",
+        "kind": "paragraph",
+        "order": 151,
+        "text": "该指标用于了解该小区内SN释放成功的概率，部分反映了该小区范围内用户业务进行时的感受。"
+      },
+      {
+        "id": "block-152",
+        "kind": "paragraph",
+        "order": 152,
+        "text": "测量对象"
+      },
+      {
+        "id": "block-153",
+        "kind": "paragraph",
+        "order": 153,
+        "text": "CU小区类型"
+      },
+      {
+        "id": "block-154",
+        "kind": "paragraph",
+        "order": 154,
+        "text": "单位"
+      },
+      {
+        "id": "block-155",
+        "kind": "paragraph",
+        "order": 155,
+        "text": "百分比"
+      },
+      {
+        "id": "block-156",
+        "kind": "paragraph",
+        "order": 156,
+        "text": "指标公式"
+      },
+      {
+        "id": "block-157",
+        "kind": "paragraph",
+        "order": 157,
+        "text": "SN异常释放率=(MN触发SN释放次数_其它原因（异常）+SN请求释放次数_其它原因（异常）)/(MN触发SN释放次数_SCG空口失败（正常）+MN触发SN释放次数_UE或承载释放（正常）+MN触发SN释放次数_其它原因（异常）+SN请求释放次数_测量触发（正常）+SN请求释放次数_其它原因（异常）)"
+      },
+      {
+        "id": "block-158",
+        "kind": "paragraph",
+        "order": 158,
+        "text": "各个计数器解析如下："
+      },
+      {
+        "id": "block-159",
+        "kind": "paragraph",
+        "order": 159,
+        "text": "MN触发SN释放次数，其它原因（异常）：当gNB由于其他原因导致收到MN触发的SN RELEASE REQUEST消息时，计数器加1。"
+      },
+      {
+        "id": "block-160",
+        "kind": "paragraph",
+        "order": 160,
+        "text": "SN请求释放次数，其它原因（异常）：当gNB由于其他原因导致向MN发送SN释放请求消息（SnReleaseRequired）时，计数器加1。"
+      },
+      {
+        "id": "block-161",
+        "kind": "paragraph",
+        "order": 161,
+        "text": "MN触发SN释放次数，SCG空口失败（正常）：当gNB由于SCG空口失败导致收到MN触发的SN RELEASE REQUEST消息时，计数器加1。"
+      },
+      {
+        "id": "block-162",
+        "kind": "paragraph",
+        "order": 162,
+        "text": "MN触发SN释放次数，UE或承载释放（正常）：当gNB由于UE或承载释放导致收到MN触发的SN RELEASE REQUEST消息时，计数器加1。"
+      },
+      {
+        "id": "block-163",
+        "kind": "paragraph",
+        "order": 163,
+        "text": "SN请求释放次数，测量触发（正常）：当gNB收到UE的A2测量报告(MeasurementReport)触发SN释放，并向MN发送SN释放请求消息（Sn Release Required）时，计数器加1。"
+      },
+      {
+        "id": "block-164",
+        "kind": "paragraph",
+        "order": 164,
+        "text": "4.分QCI的E-RAB掉线率"
+      },
+      {
+        "id": "block-165",
+        "kind": "paragraph",
+        "order": 165,
+        "text": "指标描述"
+      },
+      {
+        "id": "block-166",
+        "kind": "paragraph",
+        "order": 166,
+        "text": "该指标用于了解分QCI的E-RAB异常释放的概率，部分反映了该小区范围内用户业务进行时的感受。"
+      },
+      {
+        "id": "block-167",
+        "kind": "paragraph",
+        "order": 167,
+        "text": "测量对象"
+      },
+      {
+        "id": "block-168",
+        "kind": "paragraph",
+        "order": 168,
+        "text": "CUCP双连接邻接关系"
+      },
+      {
+        "id": "block-169",
+        "kind": "paragraph",
+        "order": 169,
+        "text": "单位"
+      },
+      {
+        "id": "block-170",
+        "kind": "paragraph",
+        "order": 170,
+        "text": "百分比"
+      },
+      {
+        "id": "block-171",
+        "kind": "paragraph",
+        "order": 171,
+        "text": "指标公式"
+      },
+      {
+        "id": "block-172",
+        "kind": "paragraph",
+        "order": 172,
+        "text": "分QCI的E-RAB掉线率=(分QCI的E-RAB释放请求次数_MN触发+分QCI的E-RAB释放请求次数_SN触发)/分QCI的E-RAB增加成功次数"
+      },
+      {
+        "id": "block-173",
+        "kind": "paragraph",
+        "order": 173,
+        "text": "各个计数器解析如下："
+      },
+      {
+        "id": "block-174",
+        "kind": "paragraph",
+        "order": 174,
+        "text": "分QCI的E-RAB释放请求次数_MN触发：存在以下原因的释放E-RAB时，计数器分别加1。当gNB收到MN的SnModificationRequest，消息携带了X2ap_E_RABs_ToBeReleased_SgNBModReq_List时。当gNB收到MN触发的SgNBReleaseRequest，消息携带了X2ap_E_RABs_ToBeReleased_SgNBRelReqList时。"
+      },
+      {
+        "id": "block-175",
+        "kind": "paragraph",
+        "order": 175,
+        "text": "分QCI的E-RAB释放请求次数_SN触发：当gNB向MN发送SN释放请求消息SgNBReleaseRequired，收到MN发送的SgNBReleaseConfirm，消息携带了X2ap_E_RABs_ToBeReleased_SgNBRelConfList时，每一个承载计数器分别加1。"
+      },
+      {
+        "id": "block-176",
+        "kind": "paragraph",
+        "order": 176,
+        "text": "分QCI的E-RAB增加成功次数：存在以下场景的E-RAB增加时，计数器分别加1。当gNB收到MN的SnModificationRequest，消息携带了X2ap_E_RABs_ToBeAdded_SgNBModReq_List，到收到F1口对重配完成指示的响应消息（UE CONTEXT MODIFICATION RESPONSE）时；当gNB收到MN的SnAddRequest，消息携带了X2ap_E_RABs_ToBeAdded_SgNBAddReqList，到收到F1口的UE CONTEXT MODIFICATION RESPONSE消息时。"
+      },
+      {
+        "id": "block-177",
+        "kind": "paragraph",
+        "order": 177,
+        "text": "5G保持性指标采集"
+      },
+      {
+        "id": "block-178",
+        "kind": "paragraph",
+        "order": 178,
+        "text": "1.大数据平台"
+      },
+      {
+        "id": "block-179",
+        "kind": "paragraph",
+        "order": 179,
+        "text": "通过大数据平台对接入指标进行提取和分析。"
+      },
+      {
+        "id": "block-180",
+        "kind": "paragraph",
+        "order": 180,
+        "text": "2.5G网管软件"
+      },
+      {
+        "id": "block-181",
+        "kind": "paragraph",
+        "order": 181,
+        "text": "通过5G网管提取与接入相关联的KPI指标。"
+      },
+      {
+        "id": "block-182",
+        "kind": "paragraph",
+        "order": 182,
+        "text": "3.5G路测软件"
+      },
+      {
+        "id": "block-183",
+        "kind": "paragraph",
+        "order": 183,
+        "text": "通过CQT、DT测试方式采集接通率相关数据。"
+      },
+      {
+        "id": "block-184",
+        "kind": "paragraph",
+        "order": 184,
+        "text": "4.用户投诉"
+      },
+      {
+        "id": "block-185",
+        "kind": "paragraph",
+        "order": 185,
+        "text": "通过对用户投诉信息进行分析，判断是否为接入类问题导致的投诉。"
+      },
+      {
+        "id": "block-186",
+        "kind": "paragraph",
+        "order": 186,
+        "text": "5G网络移动性指标"
+      },
+      {
+        "id": "block-187",
+        "kind": "paragraph",
+        "order": 187,
+        "text": "5G切换介绍"
+      },
+      {
+        "id": "block-188",
+        "kind": "paragraph",
+        "order": 188,
+        "text": "切换优化是移动网络业务连续性的基础保障，合理而及时的切换可以有效的保障用户感知，防止出现掉线等会引发投诉的现象，在网络优化中占有非常重要的意义。5G的切换由于存在SA和NSA两种组网方式而不同。5G NR的切换流程同4G一样仍然包括测量、判决、执行三个流程，如下图所示："
+      },
+      {
+        "id": "block-189",
+        "kind": "paragraph",
+        "order": 189,
+        "mediaRefs": [
+          "rId318"
+        ]
+      },
+      {
+        "id": "block-190",
+        "kind": "paragraph",
+        "order": 190,
+        "text": "图5-1-5 5G切换介绍"
+      },
+      {
+        "id": "block-191",
+        "kind": "paragraph",
+        "order": 191,
+        "text": "（二）5G切换指标介绍"
+      },
+      {
+        "id": "block-192",
+        "kind": "paragraph",
+        "order": 192,
+        "text": "gNB间Xn切换出成功率"
+      },
+      {
+        "id": "block-193",
+        "kind": "paragraph",
+        "order": 193,
+        "text": "指标描述"
+      },
+      {
+        "id": "block-194",
+        "kind": "paragraph",
+        "order": 194,
+        "text": "该指标用于了解该小区gNB间Xn切换出的成功率。"
+      },
+      {
+        "id": "block-195",
+        "kind": "paragraph",
+        "order": 195,
+        "text": "测量对象"
+      },
+      {
+        "id": "block-196",
+        "kind": "paragraph",
+        "order": 196,
+        "text": "CU小区类型"
+      },
+      {
+        "id": "block-197",
+        "kind": "paragraph",
+        "order": 197,
+        "text": "单位"
+      },
+      {
+        "id": "block-198",
+        "kind": "paragraph",
+        "order": 198,
+        "text": "百分比"
+      },
+      {
+        "id": "block-199",
+        "kind": "paragraph",
+        "order": 199,
+        "text": "指标公式"
+      },
+      {
+        "id": "block-200",
+        "kind": "paragraph",
+        "order": 200,
+        "text": "gNB间Xn切换出成功率=(gNB间Xn同频切换出执行成功次数+gNB间Xn异频切换出执行成功次数)/(gNB间Xn同频切换出准备请求次数+gNB间Xn异频切换出准备请求次数)*100%"
+      },
+      {
+        "id": "block-201",
+        "kind": "paragraph",
+        "order": 201,
+        "text": "gNB间Xn同频切换出准备请求次数：当源gNodeB向目标gNodeB发送HANDOVER REQUEST消息时，该计数器加1。"
+      },
+      {
+        "id": "block-202",
+        "kind": "paragraph",
+        "order": 202,
+        "text": "gNB间Xn同频切换出执行成功次数：当源gNodeB接收到目标侧小区的UE Context Release消息时，该计数器加1。"
+      },
+      {
+        "id": "block-203",
+        "kind": "paragraph",
+        "order": 203,
+        "text": "gNB间Xn异频切换出准备请求次数：当源gNodeB向目标gNodeB发送HANDOVER REQUEST消息时，计数器加1。"
+      },
+      {
+        "id": "block-204",
+        "kind": "paragraph",
+        "order": 204,
+        "text": "gNB间Xn异频切换出执行成功次数：当源gNodeB接收到目标侧小区的UE Context Release消息时，计数器加1。"
+      },
+      {
+        "id": "block-205",
+        "kind": "paragraph",
+        "order": 205,
+        "text": "gNB间Ng切换出成功率"
+      },
+      {
+        "id": "block-206",
+        "kind": "paragraph",
+        "order": 206,
+        "text": "指标描述"
+      },
+      {
+        "id": "block-207",
+        "kind": "paragraph",
+        "order": 207,
+        "text": "该指标用于了解该小区gNB间Ng切换出的成功率。"
+      },
+      {
+        "id": "block-208",
+        "kind": "paragraph",
+        "order": 208,
+        "text": "测量对象"
+      },
+      {
+        "id": "block-209",
+        "kind": "paragraph",
+        "order": 209,
+        "text": "CU小区类型"
+      },
+      {
+        "id": "block-210",
+        "kind": "paragraph",
+        "order": 210,
+        "text": "单位"
+      },
+      {
+        "id": "block-211",
+        "kind": "paragraph",
+        "order": 211,
+        "text": "百分比"
+      },
+      {
+        "id": "block-212",
+        "kind": "paragraph",
+        "order": 212,
+        "text": "指标公式"
+      },
+      {
+        "id": "block-213",
+        "kind": "paragraph",
+        "order": 213,
+        "text": "gNB间Ng切换出成功率=(gNB间Ng同频切换出执行成功次数+gNB间Ng异频切换出执行成功次数)/(gNB间Ng同频切换出准备请求次数+gNB间Ng异频切换出准备请求次数)*100%"
+      },
+      {
+        "id": "block-214",
+        "kind": "paragraph",
+        "order": 214,
+        "text": "gNB间Ng同频切换出执行成功次数：当源gNodeB收到AMF的UE CONTEXT RELEASE COMMAND消息，并且Cause为“Successful handover”时，计数器加1。"
+      },
+      {
+        "id": "block-215",
+        "kind": "paragraph",
+        "order": 215,
+        "text": "gNB间Ng同频切换出准备请求次数：当源gNodeB向AMF发送HANDOVER REQUIRED消息时，计数器加1。"
+      },
+      {
+        "id": "block-216",
+        "kind": "paragraph",
+        "order": 216,
+        "text": "gNB间切换成功率"
+      },
+      {
+        "id": "block-217",
+        "kind": "paragraph",
+        "order": 217,
+        "text": "指标描述"
+      },
+      {
+        "id": "block-218",
+        "kind": "paragraph",
+        "order": 218,
+        "text": "该指标用于了解该小区gNB间Xn或Ng切换出的成功率。"
+      },
+      {
+        "id": "block-219",
+        "kind": "paragraph",
+        "order": 219,
+        "text": "测量对象"
+      },
+      {
+        "id": "block-220",
+        "kind": "paragraph",
+        "order": 220,
+        "text": "CU小区类型"
+      },
+      {
+        "id": "block-221",
+        "kind": "paragraph",
+        "order": 221,
+        "text": "单位"
+      },
+      {
+        "id": "block-222",
+        "kind": "paragraph",
+        "order": 222,
+        "text": "百分比"
+      },
+      {
+        "id": "block-223",
+        "kind": "paragraph",
+        "order": 223,
+        "text": "指标公式"
+      },
+      {
+        "id": "block-224",
+        "kind": "paragraph",
+        "order": 224,
+        "text": "gNB间切换成功率=(gNB间NG切换出成功次数+gNB间Xn切换出成功次数)/(gNB间NG切换出准备请求次数+gNB间Xn切换出准备请求次数)*100%"
+      },
+      {
+        "id": "block-225",
+        "kind": "paragraph",
+        "order": 225,
+        "text": "gNB内切换成功率"
+      },
+      {
+        "id": "block-226",
+        "kind": "paragraph",
+        "order": 226,
+        "text": "指标描述"
+      },
+      {
+        "id": "block-227",
+        "kind": "paragraph",
+        "order": 227,
+        "text": "该指标用于了解该小区gNB内切换出的成功率。"
+      },
+      {
+        "id": "block-228",
+        "kind": "paragraph",
+        "order": 228,
+        "text": "测量对象"
+      },
+      {
+        "id": "block-229",
+        "kind": "paragraph",
+        "order": 229,
+        "text": "CU小区类型"
+      },
+      {
+        "id": "block-230",
+        "kind": "paragraph",
+        "order": 230,
+        "text": "单位"
+      },
+      {
+        "id": "block-231",
+        "kind": "paragraph",
+        "order": 231,
+        "text": "百分比"
+      },
+      {
+        "id": "block-232",
+        "kind": "paragraph",
+        "order": 232,
+        "text": "指标公式"
+      },
+      {
+        "id": "block-233",
+        "kind": "paragraph",
+        "order": 233,
+        "text": "gNB内切换成功率=gNB内切换入成功次数/gNB内切换入准备请求次数*100%"
+      },
+      {
+        "id": "block-234",
+        "kind": "paragraph",
+        "order": 234,
+        "text": "（三）5G切换指标采集"
+      },
+      {
+        "id": "block-235",
+        "kind": "paragraph",
+        "order": 235,
+        "text": "1.5G网管软件"
+      },
+      {
+        "id": "block-236",
+        "kind": "paragraph",
+        "order": 236,
+        "text": "通过5G网管提取与切换相关联的KPI指标。"
+      },
+      {
+        "id": "block-237",
+        "kind": "paragraph",
+        "order": 237,
+        "text": "2.5G路测软件"
+      },
+      {
+        "id": "block-238",
+        "kind": "paragraph",
+        "order": 238,
+        "text": "通过CQT、DT测试方式采集切换数据。"
+      },
+      {
+        "id": "block-239",
+        "kind": "paragraph",
+        "order": 239,
+        "text": "3.用户投诉"
+      },
+      {
+        "id": "block-240",
+        "kind": "paragraph",
+        "order": 240,
+        "text": "通过对用户投诉信息进行分析，判断是否为切换类问题导致的投诉。"
+      },
+      {
+        "id": "block-241",
+        "kind": "paragraph",
+        "order": 241,
+        "text": "5G网络资源类指标"
+      },
+      {
+        "id": "block-242",
+        "kind": "paragraph",
+        "order": 242,
+        "text": "（一）5G网络资源类指标介绍"
+      },
+      {
+        "id": "block-243",
+        "kind": "paragraph",
+        "order": 243,
+        "text": "5G资源类指标包括小区用户面上行PDCP PDU字节数、小区用户面下行PDCP PDU字节数、小区上行RLC SDU接收字节数、小区下行RLC SDU发送字节数、上行PRB平均利用率、下行PRB平均利用率、RRC连接最大连接用户数、RRC连接平均连接用户数、RRC连接最大INACTIVE用户数、RRC连接平均INACTIVE用户数等。"
+      },
+      {
+        "id": "block-244",
+        "kind": "paragraph",
+        "order": 244,
+        "text": "1.小区用户面上行PDCP PDU字节数"
+      },
+      {
+        "id": "block-245",
+        "kind": "paragraph",
+        "order": 245,
+        "text": "指标描述"
+      },
+      {
+        "id": "block-246",
+        "kind": "paragraph",
+        "order": 246,
+        "text": "本指标用于反映基站上行PDCP PDU报文接收的数据量。"
+      },
+      {
+        "id": "block-247",
+        "kind": "paragraph",
+        "order": 247,
+        "text": "测量对象"
+      },
+      {
+        "id": "block-248",
+        "kind": "paragraph",
+        "order": 248,
+        "text": "CUUP小区类型"
+      },
+      {
+        "id": "block-249",
+        "kind": "paragraph",
+        "order": 249,
+        "text": "单位"
+      },
+      {
+        "id": "block-250",
+        "kind": "paragraph",
+        "order": 250,
+        "text": "千字节"
+      },
+      {
+        "id": "block-251",
+        "kind": "paragraph",
+        "order": 251,
+        "text": "指标公式"
+      },
+      {
+        "id": "block-252",
+        "kind": "paragraph",
+        "order": 252,
+        "text": "小区用户面上行PDCP PDU字节数=小区上行PDCP PDU成功接收数据量*125"
+      },
+      {
+        "id": "block-253",
+        "kind": "paragraph",
+        "order": 253,
+        "text": "小区上行PDCP PDU成功接收数据量：当小区上行PDCP层递交一个报文给核心网时，计数器加上该报文的PDCP PDU数据量，单位是兆比特，换算成千字节就是1000/8=125，因此计算指标时要乘125。"
+      },
+      {
+        "id": "block-254",
+        "kind": "paragraph",
+        "order": 254,
+        "text": "2.小区用户面下行PDCP PDU字节数"
+      },
+      {
+        "id": "block-255",
+        "kind": "paragraph",
+        "order": 255,
+        "text": "（1）指标描述"
+      },
+      {
+        "id": "block-256",
+        "kind": "paragraph",
+        "order": 256,
+        "text": "本指标用于反映基站下行PDCP PDU报文发送的数据量。"
+      },
+      {
+        "id": "block-257",
+        "kind": "paragraph",
+        "order": 257,
+        "text": "（2）测量对象"
+      },
+      {
+        "id": "block-258",
+        "kind": "paragraph",
+        "order": 258,
+        "text": "CUUP小区类型"
+      },
+      {
+        "id": "block-259",
+        "kind": "paragraph",
+        "order": 259,
+        "text": "（3）单位"
+      },
+      {
+        "id": "block-260",
+        "kind": "paragraph",
+        "order": 260,
+        "text": "千字节"
+      },
+      {
+        "id": "block-261",
+        "kind": "paragraph",
+        "order": 261,
+        "text": "（4）指标公式"
+      },
+      {
+        "id": "block-262",
+        "kind": "paragraph",
+        "order": 262,
+        "text": "小区用户面下行PDCP PDU字节数=小区下行PDCP成功发送数据量*125"
+      },
+      {
+        "id": "block-263",
+        "kind": "paragraph",
+        "order": 263,
+        "text": "小区下行PDCP PDU成功发送数据量：当小区下行PDCP层成功递交一个报文给RLC层时，计数器加上该报文的数据量。单位是兆比特，换算成千字节就是1000/8=125，因此计算指标时要乘125。"
+      },
+      {
+        "id": "block-264",
+        "kind": "paragraph",
+        "order": 264,
+        "text": "3.小区上行RLC SDU接收字节数"
+      },
+      {
+        "id": "block-265",
+        "kind": "paragraph",
+        "order": 265,
+        "text": "（1）指标描述"
+      },
+      {
+        "id": "block-266",
+        "kind": "paragraph",
+        "order": 266,
+        "text": "本指标统计小区在上行RLC层的用户数据数据量，反映了基站下行业务量。"
+      },
+      {
+        "id": "block-267",
+        "kind": "paragraph",
+        "order": 267,
+        "text": "（2）测量对象"
+      },
+      {
+        "id": "block-268",
+        "kind": "paragraph",
+        "order": 268,
+        "text": "DU小区类型"
+      },
+      {
+        "id": "block-269",
+        "kind": "paragraph",
+        "order": 269,
+        "text": "（3） 单位"
+      },
+      {
+        "id": "block-270",
+        "kind": "paragraph",
+        "order": 270,
+        "text": "千字节"
+      },
+      {
+        "id": "block-271",
+        "kind": "paragraph",
+        "order": 271,
+        "text": "（4）指标公式"
+      },
+      {
+        "id": "block-272",
+        "kind": "paragraph",
+        "order": 272,
+        "text": "小区上行RLC SDU接收字节数=小区上行RLC SDU数据量*125"
+      },
+      {
+        "id": "block-273",
+        "kind": "paragraph",
+        "order": 273,
+        "text": "小区上行RLC SDU数据量：当上行RLC层递送一个报文给PDCP层时，累加一次，值为该RLC SDU数据量。单位是兆比特，换算成千字节就是1000/8=125，因此计算指标时要乘125。"
+      },
+      {
+        "id": "block-274",
+        "kind": "paragraph",
+        "order": 274,
+        "text": "4.小区下行RLC SDU发送字节数"
+      },
+      {
+        "id": "block-275",
+        "kind": "paragraph",
+        "order": 275,
+        "text": "（1）指标描述"
+      },
+      {
+        "id": "block-276",
+        "kind": "paragraph",
+        "order": 276,
+        "text": "本指标统计小区在下行RLC层的用户数据数据量，反映了基站下行业务量。"
+      },
+      {
+        "id": "block-277",
+        "kind": "paragraph",
+        "order": 277,
+        "text": "（2）测量对象"
+      },
+      {
+        "id": "block-278",
+        "kind": "paragraph",
+        "order": 278,
+        "text": "DU小区类型"
+      },
+      {
+        "id": "block-279",
+        "kind": "paragraph",
+        "order": 279,
+        "text": "（3） 单位"
+      },
+      {
+        "id": "block-280",
+        "kind": "paragraph",
+        "order": 280,
+        "text": "千字节"
+      },
+      {
+        "id": "block-281",
+        "kind": "paragraph",
+        "order": 281,
+        "text": "（4）指标公式"
+      },
+      {
+        "id": "block-282",
+        "kind": "paragraph",
+        "order": 282,
+        "text": "小区下行RLC SDU发送字节数=小区下行空口发送的RLC SDU数据量*125"
+      },
+      {
+        "id": "block-283",
+        "kind": "paragraph",
+        "order": 283,
+        "text": "小区下行空口发送的RLC SDU数据量：统计小区下行空口成功传输的RLC SDU报文数据量。当收到某个TB的HARQ成功响应时，计数器累加该TB内包含的所有RLC SDU报文数据量。单位是兆比特，换算成千字节就是1000/8=125，因此计算指标时要乘125。"
+      },
+      {
+        "id": "block-284",
+        "kind": "paragraph",
+        "order": 284,
+        "text": "5.上行PRB平均利用率"
+      },
+      {
+        "id": "block-285",
+        "kind": "paragraph",
+        "order": 285,
+        "text": "（1）指标描述"
+      },
+      {
+        "id": "block-286",
+        "kind": "paragraph",
+        "order": 286,
+        "text": "本指标统计上行所有的共享物理资源块（PUSCH PRB）平均利用率。"
+      },
+      {
+        "id": "block-287",
+        "kind": "paragraph",
+        "order": 287,
+        "text": "（2）测量对象"
+      },
+      {
+        "id": "block-288",
+        "kind": "paragraph",
+        "order": 288,
+        "text": "DU小区类型"
+      },
+      {
+        "id": "block-289",
+        "kind": "paragraph",
+        "order": 289,
+        "text": "（3） 单位"
+      },
+      {
+        "id": "block-290",
+        "kind": "paragraph",
+        "order": 290,
+        "text": "百分比"
+      },
+      {
+        "id": "block-291",
+        "kind": "paragraph",
+        "order": 291,
+        "text": "（4）指标公式"
+      },
+      {
+        "id": "block-292",
+        "kind": "paragraph",
+        "order": 292,
+        "text": "小区上行PRB利用率=PUSCH使用PRB数/PUSCH可用PRB数"
+      },
+      {
+        "id": "block-293",
+        "kind": "paragraph",
+        "order": 293,
+        "text": "PUSCH使用PRB数：当基站在上行slot分配了PUSCH资源，该计数器就累加分配给PUSCH的PRB数。"
+      },
+      {
+        "id": "block-294",
+        "kind": "paragraph",
+        "order": 294,
+        "text": "PUSCH可用PRB数：当基站在上行slot分配资源时会统计本slot可分配为PUSCH的PRB数，该计数器累加可分配为PUSCH的PRB数。"
+      },
+      {
+        "id": "block-295",
+        "kind": "paragraph",
+        "order": 295,
+        "text": "6.下行PRB平均利用率"
+      },
+      {
+        "id": "block-296",
+        "kind": "paragraph",
+        "order": 296,
+        "text": "（1）指标描述"
+      },
+      {
+        "id": "block-297",
+        "kind": "paragraph",
+        "order": 297,
+        "text": "本指标统计下行所有的共享物理资源块（PDSCH PRB）平均利用率。"
+      },
+      {
+        "id": "block-298",
+        "kind": "paragraph",
+        "order": 298,
+        "text": "（2）测量对象"
+      },
+      {
+        "id": "block-299",
+        "kind": "paragraph",
+        "order": 299,
+        "text": "DU小区类型"
+      },
+      {
+        "id": "block-300",
+        "kind": "paragraph",
+        "order": 300,
+        "text": "（3） 单位"
+      },
+      {
+        "id": "block-301",
+        "kind": "paragraph",
+        "order": 301,
+        "text": "百分比"
+      },
+      {
+        "id": "block-302",
+        "kind": "paragraph",
+        "order": 302,
+        "text": "（4）指标公式"
+      },
+      {
+        "id": "block-303",
+        "kind": "paragraph",
+        "order": 303,
+        "text": "小区下行PRB利用率=PDSCH使用PRB数/PDSCH可用PRB数"
+      },
+      {
+        "id": "block-304",
+        "kind": "paragraph",
+        "order": 304,
+        "text": "PDSCH使用PRB数：当基站在下行slot分配了PDSCH资源，该计数器就累加分配给PDSCH的PRB数。"
+      },
+      {
+        "id": "block-305",
+        "kind": "paragraph",
+        "order": 305,
+        "text": "PDSCH可用PRB数：当基站在下行slot分配资源时会统计本slot可分配为PDSCH的PRB数，该计数器累加可分配为PDSCH的PRB数。"
+      },
+      {
+        "id": "block-306",
+        "kind": "paragraph",
+        "order": 306,
+        "text": "7.RRC最大连接用户数"
+      },
+      {
+        "id": "block-307",
+        "kind": "paragraph",
+        "order": 307,
+        "text": "（1）指标描述"
+      },
+      {
+        "id": "block-308",
+        "kind": "paragraph",
+        "order": 308,
+        "text": "在统计周期内，该计数器统计小区级别的，所有采样时刻的RRC连接最大激活用户数。该计数器可以反映出统计周期内基站的最大激活用户数最大容量。"
+      },
+      {
+        "id": "block-309",
+        "kind": "paragraph",
+        "order": 309,
+        "text": "（2）测量对象"
+      },
+      {
+        "id": "block-310",
+        "kind": "paragraph",
+        "order": 310,
+        "text": "DU小区类型"
+      },
+      {
+        "id": "block-311",
+        "kind": "paragraph",
+        "order": 311,
+        "text": "（3） 单位"
+      },
+      {
+        "id": "block-312",
+        "kind": "paragraph",
+        "order": 312,
+        "text": "整型"
+      },
+      {
+        "id": "block-313",
+        "kind": "paragraph",
+        "order": 313,
+        "text": "（4）指标公式"
+      },
+      {
+        "id": "block-314",
+        "kind": "paragraph",
+        "order": 314,
+        "text": "通过单个计数器统计，无公式"
+      },
+      {
+        "id": "block-315",
+        "kind": "paragraph",
+        "order": 315,
+        "text": "（5）触发条件"
+      },
+      {
+        "id": "block-316",
+        "kind": "paragraph",
+        "order": 316,
+        "text": "当gNB接收到UE的RRC连接建立完成（RRCSetupComplete、RRCResumeComplete）消息，用户数加1；当gNB给UE发送RRC连接释放消息（RRCRelease）消息，用户数减1。本计数器统计的是统计周期内各个采样时刻的RRC连接用户数的最大值"
+      },
+      {
+        "id": "block-317",
+        "kind": "paragraph",
+        "order": 317,
+        "text": "（6）采样周期"
+      },
+      {
+        "id": "block-318",
+        "kind": "paragraph",
+        "order": 318,
+        "text": "2s"
+      },
+      {
+        "id": "block-319",
+        "kind": "paragraph",
+        "order": 319,
+        "text": "8.RRC平均连接用户数"
+      },
+      {
+        "id": "block-320",
+        "kind": "paragraph",
+        "order": 320,
+        "text": "（1）指标描述"
+      },
+      {
+        "id": "block-321",
+        "kind": "paragraph",
+        "order": 321,
+        "text": "在统计周期内，该计数器统计小区级别的，所有采样时刻的RRC连接激活用户数的算术平均值。该计数器可以反映出统计周期内基站的激活用户数平均容量。"
+      },
+      {
+        "id": "block-322",
+        "kind": "paragraph",
+        "order": 322,
+        "text": "（2）测量对象"
+      },
+      {
+        "id": "block-323",
+        "kind": "paragraph",
+        "order": 323,
+        "text": "DU小区类型"
+      },
+      {
+        "id": "block-324",
+        "kind": "paragraph",
+        "order": 324,
+        "text": "（3） 单位"
+      },
+      {
+        "id": "block-325",
+        "kind": "paragraph",
+        "order": 325,
+        "text": "整型"
+      },
+      {
+        "id": "block-326",
+        "kind": "paragraph",
+        "order": 326,
+        "text": "（4）指标公式"
+      },
+      {
+        "id": "block-327",
+        "kind": "paragraph",
+        "order": 327,
+        "text": "通过单个计数器统计，无公式"
+      },
+      {
+        "id": "block-328",
+        "kind": "paragraph",
+        "order": 328,
+        "text": "（5）触发条件："
+      },
+      {
+        "id": "block-329",
+        "kind": "paragraph",
+        "order": 329,
+        "text": "当gNB接收到UE的RRC连接建立完成（RRCSetupComplete、RRCResumeComplete）消息，用户数加1；当gNB给UE发送RRC连接释放消息（RRCRelease）消息，用户数减1。本计数器统计的是统计周期内各个采样时刻的RRC连接用户数的平均值。"
+      },
+      {
+        "id": "block-330",
+        "kind": "paragraph",
+        "order": 330,
+        "text": "（6）采样周期"
+      },
+      {
+        "id": "block-331",
+        "kind": "paragraph",
+        "order": 331,
+        "text": "2s"
+      },
+      {
+        "id": "block-332",
+        "kind": "paragraph",
+        "order": 332,
+        "text": "9.RRC连接最大INACTIVE用户数"
+      },
+      {
+        "id": "block-333",
+        "kind": "paragraph",
+        "order": 333,
+        "text": "指标描述"
+      },
+      {
+        "id": "block-334",
+        "kind": "paragraph",
+        "order": 334,
+        "text": "在统计周期内，该计数器统计小区级别的，所有采样时刻的RRC连接建立最大非激活用户数。该计数器可以反映出统计周期内基站的用户数最大非激活容量。"
+      },
+      {
+        "id": "block-335",
+        "kind": "paragraph",
+        "order": 335,
+        "text": "测量对象"
+      },
+      {
+        "id": "block-336",
+        "kind": "paragraph",
+        "order": 336,
+        "text": "DU小区类型"
+      },
+      {
+        "id": "block-337",
+        "kind": "paragraph",
+        "order": 337,
+        "text": "单位"
+      },
+      {
+        "id": "block-338",
+        "kind": "paragraph",
+        "order": 338,
+        "text": "整型"
+      },
+      {
+        "id": "block-339",
+        "kind": "paragraph",
+        "order": 339,
+        "text": "指标公式"
+      },
+      {
+        "id": "block-340",
+        "kind": "paragraph",
+        "order": 340,
+        "text": "通过单个计数器统计，无公式"
+      },
+      {
+        "id": "block-341",
+        "kind": "paragraph",
+        "order": 341,
+        "text": "触发条件"
+      },
+      {
+        "id": "block-342",
+        "kind": "paragraph",
+        "order": 342,
+        "text": "当gNB给UE发送RRC连接释放消息（RRCRelease）消息且携带信元时并将UE迁到Inactive态，非激活用户数加1；当处于Inactive态的UE接入成功或Resume成功，或是由于异常导致释放基站侧所有资源，非激活用户数减1。本计数器统计的是统计周期内各个采样时刻的RRC连接非激活用户数的最大值。"
+      },
+      {
+        "id": "block-343",
+        "kind": "paragraph",
+        "order": 343,
+        "text": "采样周期"
+      },
+      {
+        "id": "block-344",
+        "kind": "paragraph",
+        "order": 344,
+        "text": "2s"
+      },
+      {
+        "id": "block-345",
+        "kind": "paragraph",
+        "order": 345,
+        "text": "10.RRC连接平均INACTIVE用户数"
+      },
+      {
+        "id": "block-346",
+        "kind": "paragraph",
+        "order": 346,
+        "text": "（1）指标描述"
+      },
+      {
+        "id": "block-347",
+        "kind": "paragraph",
+        "order": 347,
+        "text": "在统计周期内，该计数器统计小区级别的，所有采样时刻的RRC连接用户数的算术平均值。该计数器可以反映出统计周期内基站的用户数平均容量。"
+      },
+      {
+        "id": "block-348",
+        "kind": "paragraph",
+        "order": 348,
+        "text": "（2）测量对象"
+      },
+      {
+        "id": "block-349",
+        "kind": "paragraph",
+        "order": 349,
+        "text": "DU小区类型"
+      },
+      {
+        "id": "block-350",
+        "kind": "paragraph",
+        "order": 350,
+        "text": "（3） 单位"
+      },
+      {
+        "id": "block-351",
+        "kind": "paragraph",
+        "order": 351,
+        "text": "整型"
+      },
+      {
+        "id": "block-352",
+        "kind": "paragraph",
+        "order": 352,
+        "text": "（4）指标公式"
+      },
+      {
+        "id": "block-353",
+        "kind": "paragraph",
+        "order": 353,
+        "text": "通过单个计数器统计，无公式"
+      },
+      {
+        "id": "block-354",
+        "kind": "paragraph",
+        "order": 354,
+        "text": "（5）触发条件"
+      },
+      {
+        "id": "block-355",
+        "kind": "paragraph",
+        "order": 355,
+        "text": "当gNB给UE发送RRC连接释放消息（RRCRelease）消息且携带信元时并将UE迁到Inactive态，非激活用户数加1；当处于Inactive态的UE接入成功或Resume成功，或是由于异常导致释放基站侧所有资源，非激活用户数减1。本计数器统计的是统计周期内各个采样时刻的RRC连接非激活用户数的平均值。"
+      },
+      {
+        "id": "block-356",
+        "kind": "paragraph",
+        "order": 356,
+        "text": "（6）采样周期"
+      },
+      {
+        "id": "block-357",
+        "kind": "paragraph",
+        "order": 357,
+        "text": "2s"
+      },
+      {
+        "id": "block-358",
+        "kind": "paragraph",
+        "order": 358,
+        "text": "（二）5G资源类指标采集"
+      },
+      {
+        "id": "block-359",
+        "kind": "paragraph",
+        "order": 359,
+        "text": "1.大数据平台"
+      },
+      {
+        "id": "block-360",
+        "kind": "paragraph",
+        "order": 360,
+        "text": "通过大数据平台对接入指标进行提取和分析。"
+      },
+      {
+        "id": "block-361",
+        "kind": "paragraph",
+        "order": 361,
+        "text": "2.5G网管软件"
+      },
+      {
+        "id": "block-362",
+        "kind": "paragraph",
+        "order": 362,
+        "text": "通过5G网管提取与接入相关联的KPI指标。"
+      },
+      {
+        "id": "block-363",
+        "kind": "paragraph",
+        "order": 363,
+        "text": "3.5G路测软件"
+      },
+      {
+        "id": "block-364",
+        "kind": "paragraph",
+        "order": 364,
+        "text": "通过CQT、DT测试方式采集接通率相关数据。"
+      },
+      {
+        "id": "block-365",
+        "kind": "paragraph",
+        "order": 365,
+        "text": "4.用户投诉"
+      },
+      {
+        "id": "block-366",
+        "kind": "paragraph",
+        "order": 366,
+        "text": "通过对用户投诉信息进行分析，判断是否为接入类问题导致的投诉。"
+      },
+      {
+        "id": "block-367",
+        "kind": "paragraph",
+        "order": 367,
+        "text": "5G网络可用类指标"
+      },
+      {
+        "id": "block-368",
+        "kind": "paragraph",
+        "order": 368,
+        "text": "（一）5G网络可用类指标介绍"
+      },
+      {
+        "id": "block-369",
+        "kind": "paragraph",
+        "order": 369,
+        "text": "5G网络可用性通过小区可用率指标反映。"
+      },
+      {
+        "id": "block-370",
+        "kind": "paragraph",
+        "order": 370,
+        "text": "1.小区可用率"
+      },
+      {
+        "id": "block-371",
+        "kind": "paragraph",
+        "order": 371,
+        "text": "指标描述"
+      },
+      {
+        "id": "block-372",
+        "kind": "paragraph",
+        "order": 372,
+        "text": "本指标本指标描述小区的可用性，反映系统资源的占用情况。"
+      },
+      {
+        "id": "block-373",
+        "kind": "paragraph",
+        "order": 373,
+        "text": "测量对象"
+      },
+      {
+        "id": "block-374",
+        "kind": "paragraph",
+        "order": 374,
+        "text": "CU小区类型"
+      },
+      {
+        "id": "block-375",
+        "kind": "paragraph",
+        "order": 375,
+        "text": "单位"
+      },
+      {
+        "id": "block-376",
+        "kind": "paragraph",
+        "order": 376,
+        "text": "百分比"
+      },
+      {
+        "id": "block-377",
+        "kind": "paragraph",
+        "order": 377,
+        "text": "指标公式"
+      },
+      {
+        "id": "block-378",
+        "kind": "paragraph",
+        "order": 378,
+        "text": "小区可用率=CU小区在服时间/(粒度时间*对象个数)*100%"
+      },
+      {
+        "id": "block-379",
+        "kind": "paragraph",
+        "order": 379,
+        "text": "CU小区在服时间：当CU小区建立成功并处于激活态时，记录开始时间；当CU小区触发以下事件之一时，记录结束时间：1、当CU小区出现配置异常；2、当CU小区由于DU小区异常导致不在服；3、当CU小区进入闭塞状态。CU小区在服时间=结束时间-开始时间。"
+      },
+      {
+        "id": "block-380",
+        "kind": "paragraph",
+        "order": 380,
+        "text": "（二）5G网络可用类指标采集"
+      },
+      {
+        "id": "block-381",
+        "kind": "paragraph",
+        "order": 381,
+        "text": "1.大数据平台"
+      },
+      {
+        "id": "block-382",
+        "kind": "paragraph",
+        "order": 382,
+        "text": "通过大数据平台对接入指标进行提取和分析。"
+      },
+      {
+        "id": "block-383",
+        "kind": "paragraph",
+        "order": 383,
+        "text": "2.5G网管软件"
+      },
+      {
+        "id": "block-384",
+        "kind": "paragraph",
+        "order": 384,
+        "text": "通过5G网管提取与接入相关联的KPI指标。"
+      },
+      {
+        "id": "block-385",
+        "kind": "paragraph",
+        "order": 385,
+        "text": "3.5G路测软件"
+      },
+      {
+        "id": "block-386",
+        "kind": "paragraph",
+        "order": 386,
+        "text": "通过CQT、DT测试方式采集接通率相关数据。"
+      },
+      {
+        "id": "block-387",
+        "kind": "paragraph",
+        "order": 387,
+        "text": "4.用户投诉"
+      },
+      {
+        "id": "block-388",
+        "kind": "paragraph",
+        "order": 388,
+        "text": "通过对用户投诉信息进行分析，判断是否为接入类问题导致的投诉。"
+      },
+      {
+        "id": "block-389",
+        "kind": "paragraph",
+        "order": 389,
+        "text": "5G网络覆盖指标"
+      },
+      {
+        "id": "block-390",
+        "kind": "paragraph",
+        "order": 390,
+        "text": "（一）5G覆盖介绍"
+      },
+      {
+        "id": "block-391",
+        "kind": "paragraph",
+        "order": 391,
+        "text": "良好的无线覆盖是保障移动通信网络质量和指标的前提，结合合理的参数配置才能得到一个高性能的无线网络。5G网络一般采用同频组网，同频干扰严重，良好的覆盖和干扰控制对网络性能意义重大。"
+      },
+      {
+        "id": "block-392",
+        "kind": "paragraph",
+        "order": 392,
+        "mediaRefs": [
+          "rId319"
+        ]
+      },
+      {
+        "id": "block-393",
+        "kind": "paragraph",
+        "order": 393,
+        "text": "图5-1-6 覆盖介绍"
+      },
+      {
+        "id": "block-394",
+        "kind": "paragraph",
+        "order": 394,
+        "text": "1.覆盖率"
+      },
+      {
+        "id": "block-395",
+        "kind": "paragraph",
+        "order": 395,
+        "text": "覆盖率是指通过接收端电平RSRP大于某一门限值的比例，通过测试数据和MR样本分析两种途径进行统计，不同的运营商对覆盖率的定义标准均不相同。MR覆盖率定义为SS-RSRP大于-108dBm的采样点比例，覆盖空洞、弱覆盖均可以通过覆盖率来定义，MR覆盖率可以通过厂家网关、运营商综合运维平台进行统计。"
+      },
+      {
+        "id": "block-396",
+        "kind": "paragraph",
+        "order": 396,
+        "text": "2.覆盖空洞"
+      },
+      {
+        "id": "block-397",
+        "kind": "paragraph",
+        "order": 397,
+        "text": "覆盖空洞定义"
+      },
+      {
+        "id": "block-398",
+        "kind": "paragraph",
+        "order": 398,
+        "text": "覆盖空洞是指在连片站点中间出现的完全没有5G信号的区域，也称为覆盖盲区。UE"
+      },
+      {
+        "id": "block-399",
+        "kind": "paragraph",
+        "order": 399,
+        "text": "的灵敏度一般为-124dBm，考虑部分商用终端与测试终端灵敏度的差异，预留5dB的余量，RSRP＜-119dBm的区域定义为覆盖空洞区域。"
+      },
+      {
+        "id": "block-400",
+        "kind": "paragraph",
+        "order": 400,
+        "mediaRefs": [
+          "rId320"
+        ]
+      },
+      {
+        "id": "block-401",
+        "kind": "paragraph",
+        "order": 401,
+        "text": "图5-1-7 覆盖空洞"
+      },
+      {
+        "id": "block-402",
+        "kind": "paragraph",
+        "order": 402,
+        "text": "覆盖空洞影响"
+      },
+      {
+        "id": "block-403",
+        "kind": "paragraph",
+        "order": 403,
+        "text": "终端脱网；终端无法注册5G网络；5G网络不能为用户提供服务。"
+      },
+      {
+        "id": "block-404",
+        "kind": "paragraph",
+        "order": 404,
+        "text": "3.弱覆盖"
+      },
+      {
+        "id": "block-405",
+        "kind": "paragraph",
+        "order": 405,
+        "text": "（1） 弱覆盖定义"
+      },
+      {
+        "id": "block-406",
+        "kind": "paragraph",
+        "order": 406,
+        "text": "弱覆盖一般是指有信号，但是信号强度不能保证网络稳定的达到KPI要求的的情况。"
+      },
+      {
+        "id": "block-407",
+        "kind": "paragraph",
+        "order": 407,
+        "text": "RSRP<=-108dBm的区域定义为弱覆盖区域，MR覆盖率(RSRP<=-108dBm)<90%的小区定义为弱覆盖小区，可以进一步定义上行弱覆盖小区和下行弱覆盖小区。"
+      },
+      {
+        "id": "block-408",
+        "kind": "paragraph",
+        "order": 408,
+        "text": "（2）弱覆盖影响"
+      },
+      {
+        "id": "block-409",
+        "kind": "paragraph",
+        "order": 409,
+        "text": "终端接通率不高；速率低、时延大；用户感知差。"
+      },
+      {
+        "id": "block-410",
+        "kind": "paragraph",
+        "order": 410,
+        "text": "4.越区覆盖"
+      },
+      {
+        "id": "block-411",
+        "kind": "paragraph",
+        "order": 411,
+        "text": "（1） 越区覆盖定义"
+      },
+      {
+        "id": "block-412",
+        "kind": "paragraph",
+        "order": 412,
+        "text": "当一个小区的信号出现在一层邻区以外并且能够成为主服务小区，称为越区覆盖。通过KPI指标TA大于某个门限占比定义越区覆盖小区，越区覆盖TA值门限和覆盖场景密切相关，密集城区小，一般区域门限大，具体根据实际网络的站间距情况确定。"
+      },
+      {
+        "id": "block-413",
+        "kind": "paragraph",
+        "order": 413,
+        "text": "图5-1-8 越区覆盖"
+      },
+      {
+        "id": "block-414",
+        "kind": "paragraph",
+        "order": 414,
+        "text": "（2）越区覆盖影响"
+      },
+      {
+        "id": "block-415",
+        "kind": "paragraph",
+        "order": 415,
+        "text": "引入干扰；可能形成孤岛，无法切换；用户感知差。"
+      },
+      {
+        "id": "block-416",
+        "kind": "paragraph",
+        "order": 416,
+        "text": "5.导频污染"
+      },
+      {
+        "id": "block-417",
+        "kind": "paragraph",
+        "order": 417,
+        "text": "（1) 导频污染定义"
+      },
+      {
+        "id": "block-418",
+        "kind": "paragraph",
+        "order": 418,
+        "text": "即在某一点存在多个强信号小区却没有一个足够强的主导频的时候，即定义为导频污染。导频污染通常需要满足以下条件："
+      },
+      {
+        "id": "block-419",
+        "kind": "paragraph",
+        "order": 419,
+        "text": "强导频电平：RSRP>-90dBm（天线放在车顶，车内要求是-100dBm）。"
+      },
+      {
+        "id": "block-420",
+        "kind": "paragraph",
+        "order": 420,
+        "text": "强导频数： RSRP_number>=N，设定N=4。"
+      },
+      {
+        "id": "block-421",
+        "kind": "paragraph",
+        "order": 421,
+        "text": "无足够强主导频：最强导频信号和第N个强导频信号的差值如果小于某一门限值D，即定义为该地点没有足够强主导频，RSRP(fist)－RSRP(N)<=D，设定D=6dB。"
+      },
+      {
+        "id": "block-422",
+        "kind": "paragraph",
+        "order": 422,
+        "text": "导频污染：RSRP>-90dB的小区个数大于3个，且RSRP(fist)－RSRP(4)<=6dB。"
+      },
+      {
+        "id": "block-423",
+        "kind": "paragraph",
+        "order": 423,
+        "text": "（2) 导频污染影响"
+      },
+      {
+        "id": "block-424",
+        "kind": "paragraph",
+        "order": 424,
+        "text": "SINR变差，接通率降低；掉话率上升；系统容量降低；速率低，高BLER；用户感知差。"
+      },
+      {
+        "id": "block-425",
+        "kind": "paragraph",
+        "order": 425,
+        "text": "6.重叠覆盖度"
+      },
+      {
+        "id": "block-426",
+        "kind": "paragraph",
+        "order": 426,
+        "text": "（1) 重叠覆盖度定义"
+      },
+      {
+        "id": "block-427",
+        "kind": "paragraph",
+        "order": 427,
+        "text": "在同频网络中，将弱于服务小区信号强度6dB以内且RSRP大于-105dBm的重叠小区数目超过3个（含服务小区）的区域，定义为重叠覆盖区域。重叠覆盖主要问题是站点过高或天线下倾角过小导致覆盖过远以及站点方位角不合理、与道路或河道夹角过小或、与高层大楼、墙面形成多次反射导致无线信号漂移过远。"
+      },
+      {
+        "id": "block-428",
+        "kind": "paragraph",
+        "order": 428,
+        "text": "重叠覆盖度：重叠覆盖小区大于3的样本数/总样本数，重叠覆盖度大于30%的小区定义为高重叠覆盖小区。"
+      },
+      {
+        "id": "block-429",
+        "kind": "paragraph",
+        "order": 429,
+        "mediaRefs": [
+          "rId323"
+        ]
+      },
+      {
+        "id": "block-430",
+        "kind": "paragraph",
+        "order": 430,
+        "text": "图5-1-9 重叠覆盖"
+      },
+      {
+        "id": "block-431",
+        "kind": "paragraph",
+        "order": 431,
+        "text": "（2) 高重叠覆盖影响"
+      },
+      {
+        "id": "block-432",
+        "kind": "paragraph",
+        "order": 432,
+        "text": "干扰增大，SINR降低；用户吞吐量下降；速率低，高BLER；用户感知差；异常事件增多。"
+      },
+      {
+        "id": "block-433",
+        "kind": "paragraph",
+        "order": 433,
+        "text": "(二）5G覆盖指标采集"
+      },
+      {
+        "id": "block-434",
+        "kind": "paragraph",
+        "order": 434,
+        "text": "1.大数据平台"
+      },
+      {
+        "id": "block-435",
+        "kind": "paragraph",
+        "order": 435,
+        "text": "通过大数据平台对MR数据进行分析得到MR覆盖指标，可以对数据进行GIS地理化显示，这是网络优化中覆盖指标统计的主要手段，各运营商的综合网管、网优平台等均能实现。"
+      },
+      {
+        "id": "block-436",
+        "kind": "paragraph",
+        "order": 436,
+        "text": "2.5G网管软件"
+      },
+      {
+        "id": "block-437",
+        "kind": "paragraph",
+        "order": 437,
+        "text": "通过提取与覆盖相关联的KPI指标，分析、判断覆盖问题类型。"
+      },
+      {
+        "id": "block-438",
+        "kind": "paragraph",
+        "order": 438,
+        "text": "3.5G路测软件"
+      },
+      {
+        "id": "block-439",
+        "kind": "paragraph",
+        "order": 439,
+        "text": "通过CQT、DT测试方式采集覆盖数据，分析、判断覆盖问题类型。"
+      },
+      {
+        "id": "block-440",
+        "kind": "paragraph",
+        "order": 440,
+        "text": "4.用户投诉"
+      },
+      {
+        "id": "block-441",
+        "kind": "paragraph",
+        "order": 441,
+        "text": "通过对用户投诉信息进行筛查，分析、判断覆盖问题类型。"
+      },
+      {
+        "id": "block-442",
+        "kind": "paragraph",
+        "order": 442,
+        "text": "5.5G覆盖相关参数核查"
+      },
+      {
+        "id": "block-443",
+        "kind": "paragraph",
+        "order": 443,
+        "text": "通过核查基础接入、切换、邻区及功率等参数，进行分析、判断覆盖问题类型。"
+      },
+      {
+        "id": "block-444",
+        "kind": "paragraph",
+        "order": 444,
+        "text": "5G网络互操作指标"
+      },
+      {
+        "id": "block-445",
+        "kind": "paragraph",
+        "order": 445,
+        "text": "（一）4/5G互操作指标介绍"
+      },
+      {
+        "id": "block-446",
+        "kind": "paragraph",
+        "order": 446,
+        "text": "SN异常释放率"
+      },
+      {
+        "id": "block-447",
+        "kind": "paragraph",
+        "order": 447,
+        "text": "指标描述"
+      },
+      {
+        "id": "block-448",
+        "kind": "paragraph",
+        "order": 448,
+        "text": "该指标用于了解该小区内SN释放成功的概率，部分反映了该小区范围内用户业务进行时的感受。"
+      },
+      {
+        "id": "block-449",
+        "kind": "paragraph",
+        "order": 449,
+        "text": "测量对象"
+      },
+      {
+        "id": "block-450",
+        "kind": "paragraph",
+        "order": 450,
+        "text": "CUCP双连接邻接关系"
+      },
+      {
+        "id": "block-451",
+        "kind": "paragraph",
+        "order": 451,
+        "text": "单位"
+      },
+      {
+        "id": "block-452",
+        "kind": "paragraph",
+        "order": 452,
+        "text": "百分比"
+      },
+      {
+        "id": "block-453",
+        "kind": "paragraph",
+        "order": 453,
+        "text": "指标公式"
+      },
+      {
+        "id": "block-454",
+        "kind": "paragraph",
+        "order": 454,
+        "text": "SN异常释放率=(MN触发SN释放次数_其它原因（异常）+SN请求释放次数_其它原因（异常）)/(MN触发SN释放次数_SCG空口失败（正常）+MN触发SN释放次数_UE或承载释放（正常）+MN触发SN释放次数_其它原因（异常）+SN请求释放次数_测量触发（正常）+SN请求释放次数_其它原因（异常）)"
+      },
+      {
+        "id": "block-455",
+        "kind": "paragraph",
+        "order": 455,
+        "text": "MN触发SN释放次数，其它原因（异常）：当gNB由于其他原因导致收到MN触发的SN RELEASE REQUEST消息时，计数器加1。"
+      },
+      {
+        "id": "block-456",
+        "kind": "paragraph",
+        "order": 456,
+        "text": "SN请求释放次数，其它原因（异常）：当gNB由于其他原因导致向MN发送SN释放请求消息（SnReleaseRequired）时，计数器加1。"
+      },
+      {
+        "id": "block-457",
+        "kind": "paragraph",
+        "order": 457,
+        "text": "MN触发SN释放次数，SCG空口失败（正常）：当gNB由于SCG空口失败导致收到MN触发的SN RELEASE REQUEST消息时，计数器加1。"
+      },
+      {
+        "id": "block-458",
+        "kind": "paragraph",
+        "order": 458,
+        "text": "MN触发SN释放次数，UE或承载释放（正常）：当gNB由于UE或承载释放导致收到MN触发的SN RELEASE REQUEST消息时，计数器加1。"
+      },
+      {
+        "id": "block-459",
+        "kind": "paragraph",
+        "order": 459,
+        "text": "SN请求释放次数，测量触发（正常）：当gNB收到UE的A2测量报告(MeasurementReport)触发SN释放，并向MN发送SN释放请求消息（SnReleaseRequired）时，计数器加1。"
+      },
+      {
+        "id": "block-460",
+        "kind": "paragraph",
+        "order": 460,
+        "text": "SN添加成功率"
+      },
+      {
+        "id": "block-461",
+        "kind": "paragraph",
+        "order": 461,
+        "text": "指标描述"
+      },
+      {
+        "id": "block-462",
+        "kind": "paragraph",
+        "order": 462,
+        "text": "本指标用于了解该小区内SN添加成功的概率，部分反映了该小区范围内用户业务进行时的感受。"
+      },
+      {
+        "id": "block-463",
+        "kind": "paragraph",
+        "order": 463,
+        "text": "(2)测量对象"
+      },
+      {
+        "id": "block-464",
+        "kind": "paragraph",
+        "order": 464,
+        "text": "CU小区类型"
+      },
+      {
+        "id": "block-465",
+        "kind": "paragraph",
+        "order": 465,
+        "text": "(3)单位"
+      },
+      {
+        "id": "block-466",
+        "kind": "paragraph",
+        "order": 466,
+        "text": "百分比"
+      },
+      {
+        "id": "block-467",
+        "kind": "paragraph",
+        "order": 467,
+        "text": "(4)指标公式"
+      },
+      {
+        "id": "block-468",
+        "kind": "paragraph",
+        "order": 468,
+        "text": "SN添加成功率=SN添加成功次数/(SN添加成功次数+SN添加失败次数_F1 Context建立失败+SN添加失败次数_X2口重配超时+SN添加失败次数_其它原因)*100%"
+      },
+      {
+        "id": "block-469",
+        "kind": "paragraph",
+        "order": 469,
+        "text": "SN添加成功次数：当gNB从收到MN的SnAddRequest消息开始，到接收到F1口的UE CONTEXT MODIFICATION RESPONSE消息时，计数器加1。"
+      },
+      {
+        "id": "block-470",
+        "kind": "paragraph",
+        "order": 470,
+        "text": "SN添加失败次数_F1 Context建立失败：当gNB在SN添加过程中，收到DU回复的UE CONTEXT SETUP RESPONSE消息且结果为失败时，计数器加1。"
+      },
+      {
+        "id": "block-471",
+        "kind": "paragraph",
+        "order": 471,
+        "text": "SN添加失败次数_X2口重配超时：当gNB在SN添加过程中，等待X2口的重配完成(RRCReconfigurationComplete)消息超时时，计数器加1。"
+      },
+      {
+        "id": "block-472",
+        "kind": "paragraph",
+        "order": 472,
+        "text": "SN添加失败次数_其它原因：当gNB在SN添加过程中，由于任何其他原因（gNB内部异常）导致的SN添加失败的时候，计数器加1。"
+      },
+      {
+        "id": "block-473",
+        "kind": "paragraph",
+        "order": 473,
+        "text": "SN变更成功率"
+      },
+      {
+        "id": "block-474",
+        "kind": "paragraph",
+        "order": 474,
+        "text": "(1）指标描述"
+      },
+      {
+        "id": "block-475",
+        "kind": "paragraph",
+        "order": 475,
+        "text": "本指标用于了解该小区内SN变更成功的概率，部分反映了该小区范围内用户业务进行时的感受。"
+      },
+      {
+        "id": "block-476",
+        "kind": "paragraph",
+        "order": 476,
+        "text": "(2）测量对象"
+      },
+      {
+        "id": "block-477",
+        "kind": "paragraph",
+        "order": 477,
+        "text": "CUCP双连接邻接关系"
+      },
+      {
+        "id": "block-478",
+        "kind": "paragraph",
+        "order": 478,
+        "text": "(3） 单位"
+      },
+      {
+        "id": "block-479",
+        "kind": "paragraph",
+        "order": 479,
+        "text": "百分比"
+      },
+      {
+        "id": "block-480",
+        "kind": "paragraph",
+        "order": 480,
+        "text": "(4）指标公式"
+      },
+      {
+        "id": "block-481",
+        "kind": "paragraph",
+        "order": 481,
+        "text": "SN变更成功率=SN变更确认次数/SN变更请求次数*100%"
+      },
+      {
+        "id": "block-482",
+        "kind": "paragraph",
+        "order": 482,
+        "text": "SN变更确认次数：当gNB发送SN CHANGE REQUIRED并收到SN CHANGE CONFIRM后，再收到MN的UE CONTEXT RELEASE消息，完成源SN的上下文释放，SN变更成功，计数器加1。"
+      },
+      {
+        "id": "block-483",
+        "kind": "paragraph",
+        "order": 483,
+        "text": "SN变更请求次数：当gNB收到A3测量报告(MeasurementReport)触发SN变更并发送SN CHANGE REQUIRED，计数器加1。"
+      },
+      {
+        "id": "block-484",
+        "kind": "paragraph",
+        "order": 484,
+        "text": "（五）4/5G互操作指标采集"
+      },
+      {
+        "id": "block-485",
+        "kind": "paragraph",
+        "order": 485,
+        "text": "1.5G路测软件"
+      },
+      {
+        "id": "block-486",
+        "kind": "paragraph",
+        "order": 486,
+        "text": "通过CQT、DT测试方式采集4/5G互操作数据。"
+      },
+      {
+        "id": "block-487",
+        "kind": "paragraph",
+        "order": 487,
+        "text": "2.5G网管软件"
+      },
+      {
+        "id": "block-488",
+        "kind": "paragraph",
+        "order": 488,
+        "text": "通过5G网管提取与4/5G互操作相关联的KPI指标。"
+      },
+      {
+        "id": "block-489",
+        "kind": "paragraph",
+        "order": 489,
+        "text": "3.用户投诉"
+      },
+      {
+        "id": "block-490",
+        "kind": "paragraph",
+        "order": 490,
+        "text": "通过对用户投诉信息进行分析，判断是否为4/5G互操作问题导致的投诉。"
+      },
+      {
+        "id": "block-491",
+        "kind": "paragraph",
+        "order": 491,
+        "text": "5G网络干扰指标"
+      },
+      {
+        "id": "block-492",
+        "kind": "paragraph",
+        "order": 492,
+        "text": "（一）5G干扰介绍"
+      },
+      {
+        "id": "block-493",
+        "kind": "paragraph",
+        "order": 493,
+        "text": "干扰源的发射信号（阻塞信号、加性噪声信号）从天线口被放大发射出来后，经过了空间损耗L，最后进入被干扰接收机。如果空间隔离不够的话，进入被干扰接收机的干扰信号强度够大，将会使接收机信噪比恶化或者饱和失真。"
+      },
+      {
+        "id": "block-494",
+        "kind": "paragraph",
+        "order": 494,
+        "text": "不同系统之间的互干扰原理，与干扰和被干扰两个系统之间的特点以及射频指标紧紧相关。但从最基本来看，不同频率系统间的共存干扰，是由于发射机和接收机的非完美性造成的。发射机在发射有用信号时会产生带外辐射，带外辐射包括由于调制引起的邻频辐射和带外杂散辐射。"
+      },
+      {
+        "id": "block-495",
+        "kind": "paragraph",
+        "order": 495,
+        "text": "图5-1-10 5G干扰介绍"
+      },
+      {
+        "id": "block-496",
+        "kind": "paragraph",
+        "order": 496,
+        "text": "通信网络干扰产生的因素有：某些专用无线电系统占用没有明确划分的频率资源、不同运营商网络参数配置冲突、基站收发机滤波器的性能不达标、小区覆盖重叠等。"
+      },
+      {
+        "id": "block-497",
+        "kind": "paragraph",
+        "order": 497,
+        "text": "按照干扰来源可以划分为系统内与系统外干扰以及基站设备本身的运行故障产生的干扰等。"
+      },
+      {
+        "id": "block-498",
+        "kind": "paragraph",
+        "order": 498,
+        "text": "（二）5G干扰指标采集"
+      },
+      {
+        "id": "block-499",
+        "kind": "paragraph",
+        "order": 499,
+        "text": "1.话统计提取"
+      },
+      {
+        "id": "block-500",
+        "kind": "paragraph",
+        "order": 500,
+        "text": "5G网管提取：上行每PRB的接收干扰噪声平均值、上行每PRB的接收干扰噪声最大值、上行每PRB的接收干扰噪声最小值指标。"
+      },
+      {
+        "id": "block-501",
+        "kind": "paragraph",
+        "order": 501,
+        "text": "2.RB级干扰"
+      },
+      {
+        "id": "block-502",
+        "kind": "paragraph",
+        "order": 502,
+        "text": "5G网管选择“基带频谱扫描”进行干扰实监控。"
+      },
+      {
+        "id": "block-503",
+        "kind": "paragraph",
+        "order": 503,
+        "text": "3.扫频仪检测"
+      },
+      {
+        "id": "block-504",
+        "kind": "paragraph",
+        "order": 504,
+        "text": "使用便携式扫频仪连接8木天线查找干扰源。"
+      },
+      {
+        "id": "block-505",
+        "kind": "paragraph",
+        "order": 505,
+        "text": "4.用户投诉"
+      },
+      {
+        "id": "block-506",
+        "kind": "paragraph",
+        "order": 506,
+        "text": "通过对用户投诉信息进行筛查，分析、判断是否存在干扰。"
+      },
+      {
+        "id": "block-507",
+        "kind": "paragraph",
+        "order": 507,
+        "text": "5.沟通协调"
+      },
+      {
+        "id": "block-508",
+        "kind": "paragraph",
+        "order": 508,
+        "text": "通过对已知干扰器设备业主进行定期回访，收集干扰器使用时间。"
+      },
+      {
+        "id": "block-509",
+        "kind": "paragraph",
+        "order": 509,
+        "text": "任务实施"
+      },
+      {
+        "id": "block-510",
+        "kind": "paragraph",
+        "order": 510,
+        "text": "一、登陆5G网络优化仿真实训系统，接收全网性能提升任务，点击继续答题进入任务"
+      },
+      {
+        "id": "block-511",
+        "kind": "paragraph",
+        "order": 511,
+        "mediaRefs": [
+          "rId326"
+        ]
+      },
+      {
+        "id": "block-512",
+        "kind": "paragraph",
+        "order": 512,
+        "text": "图5-1-11 5G网络优化仿真实训系统-接收任务界面"
+      },
+      {
+        "id": "block-513",
+        "kind": "paragraph",
+        "order": 513,
+        "text": "二、 全网性能提升任务界面如下，右边显示全网基站分布拓扑图和路测覆盖图，左下角显示数据中心。"
+      },
+      {
+        "id": "block-514",
+        "kind": "paragraph",
+        "order": 514,
+        "mediaRefs": [
+          "rId327"
+        ]
+      },
+      {
+        "id": "block-515",
+        "kind": "paragraph",
+        "order": 515,
+        "text": "图5-1-12 5G网络优化仿真实训系统-全网性能提升界面"
+      },
+      {
+        "id": "block-516",
+        "kind": "paragraph",
+        "order": 516,
+        "text": "三、 点击数据中心进入全网数据采集界面，可分别采集无线、核心网和传输网的全网指标，我们以无线侧指标采集为例进行演示。"
+      },
+      {
+        "id": "block-517",
+        "kind": "paragraph",
+        "order": 517,
+        "mediaRefs": [
+          "rId328"
+        ]
+      },
+      {
+        "id": "block-518",
+        "kind": "paragraph",
+        "order": 518,
+        "text": "图5-1-13 5G网络优化仿真实训系统-全网性能提升数据中心界面"
+      },
+      {
+        "id": "block-519",
+        "kind": "paragraph",
+        "order": 519,
+        "text": "四、 点击相应模块进入下层界面，我们点击无线侧数据采集模块，左边导航栏从上到下依次显示配置、告警、性能、信令跟踪、用户管理模块，可以分别提取性能指标，配置数据、输出告警信息。"
+      },
+      {
+        "id": "block-520",
+        "kind": "paragraph",
+        "order": 520,
+        "mediaRefs": [
+          "rId329"
+        ]
+      },
+      {
+        "id": "block-521",
+        "kind": "paragraph",
+        "order": 521,
+        "text": "图5-1-14 5G网络优化仿真实训系统-全网性能提升无线数据采集界面"
+      },
+      {
+        "id": "block-522",
+        "kind": "paragraph",
+        "order": 522,
+        "text": "五、 数据采集，点击导航栏相应模块进行数据采集，点击性能模块提取全网性能指标。"
+      },
+      {
+        "id": "block-523",
+        "kind": "paragraph",
+        "order": 523,
+        "mediaRefs": [
+          "rId330"
+        ]
+      },
+      {
+        "id": "block-524",
+        "kind": "paragraph",
+        "order": 524,
+        "text": "图5-1-15 5G网络优化仿真实训系统-全网性能提升性能数据采集界面"
+      },
+      {
+        "id": "block-525",
+        "kind": "paragraph",
+        "order": 525,
+        "text": "随堂测试"
+      },
+      {
+        "id": "block-526",
+        "kind": "paragraph",
+        "order": 526,
+        "text": "通过5G网优仿真实训系统提取过去一小时内全网接入类率指标。"
+      },
+      {
+        "id": "block-527",
+        "kind": "paragraph",
+        "order": 527,
+        "text": "通过5G网优仿真实训系统提取过去一小时内全网保持类率指标。"
+      },
+      {
+        "id": "block-528",
+        "kind": "paragraph",
+        "order": 528,
+        "text": "通过5G网优仿真实训系统提取过去一小时内全网移动性指标。"
+      },
+      {
+        "id": "block-529",
+        "kind": "paragraph",
+        "order": 529,
+        "text": "经典案例"
+      },
+      {
+        "id": "block-530",
+        "kind": "paragraph",
+        "order": 530,
+        "text": "一、接通率相关指标采集案例"
+      },
+      {
+        "id": "block-531",
+        "kind": "paragraph",
+        "order": 531,
+        "text": "1.问题描述"
+      },
+      {
+        "id": "block-532",
+        "kind": "paragraph",
+        "order": 532,
+        "text": "某地市网优团队决定对全网接通率指标进行分析并制定提升方案，需要对相关指标进行采集。"
+      },
+      {
+        "id": "block-533",
+        "kind": "paragraph",
+        "order": 533,
+        "text": "2.问题解决"
+      },
+      {
+        "id": "block-534",
+        "kind": "paragraph",
+        "order": 534,
+        "text": "(1）根据集团考核规范，从网优平台提取全网指标数据，包括RRC建立请求次数，RRC建立成功次数、UE NGAP建立成功次数、UE NGAP建立请求次数、QoS Flow建立请求次数、QoS Flow建立成功次数，5G无线接通率、RRC连接建立成功率、NG接口UE相关逻辑信令连接建立成功率、QoS Flow建立成功率，上行流量、下行流量，平均用户数等。"
+      },
+      {
+        "id": "block-535",
+        "kind": "paragraph",
+        "order": 535,
+        "text": "5G无线接通率= RRC连接建立成功率*NG接口UE相关逻辑信令连接建立成功率*QoS Flow建立成功率*100%"
+      },
+      {
+        "id": "block-536",
+        "kind": "paragraph",
+        "order": 536,
+        "text": "（2）从集团或者省公司大数据平台提取MR覆盖类指标。"
+      },
+      {
+        "id": "block-537",
+        "kind": "paragraph",
+        "order": 537,
+        "text": "（3）通过厂家网管提取干扰类指标。"
+      },
+      {
+        "id": "block-538",
+        "kind": "paragraph",
+        "order": 538,
+        "text": "（4）提取现网配置类指标。"
+      },
+      {
+        "id": "block-539",
+        "kind": "paragraph",
+        "order": 539,
+        "text": "（5）提取现网告警。"
+      },
+      {
+        "id": "block-540",
+        "kind": "paragraph",
+        "order": 540,
+        "text": "直击难点"
+      },
+      {
+        "id": "block-541",
+        "kind": "paragraph",
+        "order": 541,
+        "text": "二维码预留二维码预留重点掌握接通率、掉线率的指标定义，各counter的信令采集点；掌握接入信令流程，切换流程；熟悉覆盖类指标的定义和采集方法"
+      },
+      {
+        "id": "block-542",
+        "kind": "paragraph",
+        "order": 542,
+        "text": "任务测评"
+      },
+      {
+        "id": "block-543",
+        "kind": "paragraph",
+        "order": 543,
+        "text": "一、5G网络采用SA组网时，接入信令流程是什么？"
+      },
+      {
+        "id": "block-544",
+        "kind": "paragraph",
+        "order": 544,
+        "text": "二、5G系统内干扰有哪些，请列举不少于三个5G系统内干扰？"
+      },
+      {
+        "id": "block-545",
+        "kind": "paragraph",
+        "order": 545,
+        "text": "三、5G网络重叠覆盖度高会造成哪些不利影响？"
+      }
+    ],
+    "storyboard": {
+      "schema": "lesson-storyboard/v1",
+      "learningGoal": "学完后能区分 PM、测试数据、告警和工参各自的作用，并形成后续优化可对比的性能基线。",
+      "summary": "本节讲全网性能数据采集：统一指标定义、周期、对象和数据源，用 PM 观察全网趋势，用 DT/CQT 补足用户路径和热点体验。",
+      "knowledgeUnits": [
+        {
+          "id": "P14-ku-01",
+          "title": "指标口径",
+          "kind": "concept",
+          "shortText": "指标定义、周期、对象和数据源先统一。",
+          "narrationText": "全网指标采集最怕口径漂移，需明确指标定义、采样周期、统计对象、数据源和缺失处理规则。"
+        },
+        {
+          "id": "P14-ku-02",
+          "title": "PM 数据",
+          "kind": "concept",
+          "shortText": "PM 计数器用于观察全网趋势和小区排名。",
+          "narrationText": "PM 数据适合看全网趋势、忙时负荷和小区排名，但必须检查统计周期、计数器完整性和异常清零。"
+        },
+        {
+          "id": "P14-ku-03",
+          "title": "测试数据",
+          "kind": "criteria",
+          "shortText": "DT/CQT 补足用户路径和热点体验证据。",
+          "narrationText": "测试数据从用户体验侧补足 PM 盲区，能定位具体道路、楼宇、热点点位和业务脚本下的问题。"
+        },
+        {
+          "id": "P14-ku-04",
+          "title": "告警锚点",
+          "kind": "evidence",
+          "shortText": "告警提供异常发生时间、对象和影响范围。",
+          "narrationText": "告警不是最终结论，而是异常的时间锚点和对象锚点，需要与 PM、测试和工参联动。"
+        },
+        {
+          "id": "P14-ku-05",
+          "title": "多源联判",
+          "kind": "practice",
+          "shortText": "覆盖、质量、业务和告警放入同一判断链。",
+          "narrationText": "多源联判把覆盖、质量、容量、业务体验和告警事件对齐，避免单源数据误判。"
+        },
+        {
+          "id": "P14-ku-06",
+          "title": "性能基线",
+          "kind": "review",
+          "shortText": "形成后续优化可对比的全网性能基线。",
+          "narrationText": "采集结束应固化基线口径、指标周期、对象范围和异常说明，为后续优化验证提供对照。"
+        }
+      ],
+      "reviewSummary": "复盘时检查指标口径、统计周期、对象范围、缺失处理、测试路径和告警锚点是否一致。"
+    }
+  },
+  "knowledge": {
+    "steps": [
+      {
+        "id": "P14-knowledge-01",
+        "label": "指标口径",
+        "description": "指标定义、周期、对象和数据源先统一。"
+      },
+      {
+        "id": "P14-knowledge-02",
+        "label": "PM 数据",
+        "description": "PM 计数器用于观察全网趋势和小区排名。"
+      },
+      {
+        "id": "P14-knowledge-03",
+        "label": "测试数据",
+        "description": "DT/CQT 补足用户路径和热点体验证据。"
+      },
+      {
+        "id": "P14-knowledge-04",
+        "label": "告警锚点",
+        "description": "告警提供异常发生时间、对象和影响范围。"
+      },
+      {
+        "id": "P14-knowledge-05",
+        "label": "多源联判",
+        "description": "覆盖、质量、业务和告警放入同一判断链。"
+      },
+      {
+        "id": "P14-knowledge-06",
+        "label": "性能基线",
+        "description": "形成后续优化可对比的全网性能基线。"
+      }
+    ],
+    "metrics": [
+      {
+        "label": "M1",
+        "value": "PM Co"
+      },
+      {
+        "label": "M2",
+        "value": "RSRP/"
+      },
+      {
+        "label": "M3",
+        "value": "Throu"
+      }
+    ]
+  },
+  "animation": {
+    "templateHint": "optimization-loop",
+    "durationMs": 610000,
+    "targets": [
+      {
+        "id": "P14-step-01",
+        "label": "指标口径",
+        "description": "指标定义、周期、对象和数据源先统一。"
+      },
+      {
+        "id": "P14-step-02",
+        "label": "PM 数据",
+        "description": "PM 计数器用于观察全网趋势和小区排名。"
+      },
+      {
+        "id": "P14-step-03",
+        "label": "测试数据",
+        "description": "DT/CQT 补足用户路径和热点体验证据。"
+      },
+      {
+        "id": "P14-step-04",
+        "label": "告警锚点",
+        "description": "告警提供异常发生时间、对象和影响范围。"
+      },
+      {
+        "id": "P14-step-05",
+        "label": "多源联判",
+        "description": "覆盖、质量、业务和告警放入同一判断链。"
+      },
+      {
+        "id": "P14-step-06",
+        "label": "性能基线",
+        "description": "形成后续优化可对比的全网性能基线。"
+      }
+    ]
+  },
+  "playback": {
+    "mode": "one-way",
+    "widgetId": "P14-lesson-animation-001"
+  }
+}

@@ -1,0 +1,3681 @@
+{
+  "schema": "dgbook.lesson-ast/v1",
+  "source": {
+    "kind": "docx",
+    "path": "content/5g/5g.docx",
+    "importer": "scripts/import-5g-docx.py"
+  },
+  "project": {
+    "id": "P12",
+    "title": "5G网络优化结果验证",
+    "sourceNo": "2",
+    "chapterTitle": "5G端到端网络优化",
+    "taskIndex": 2
+  },
+  "lesson": {
+    "id": "P12",
+    "title": "5G网络优化结果验证",
+    "widgetId": "P12-lesson-animation-001",
+    "scenario": "optimization",
+    "scenarioLabel": "端到端优化"
+  },
+  "content": {
+    "sections": [
+      {
+        "id": "sec-overview",
+        "title": "导学摘要",
+        "icon": "overview",
+        "texts": [
+          "本节讲优化效果验证：冻结优化前基线、样本和时间窗，用同口径前后差值、趋势、TOPN、置信度和用户体验判断是否有效。"
+        ]
+      },
+      {
+        "id": "P12-ku-01",
+        "title": "概念与对象",
+        "icon": "radar",
+        "texts": [
+          "结果验证从基线冻结开始，固定问题小区、对照小区、统计周期、样本量、业务场景和数据来源。"
+        ]
+      },
+      {
+        "id": "P12-ku-02",
+        "title": "概念与对象",
+        "icon": "route",
+        "texts": [
+          "验收目标必须可计算，明确指标阈值、样本下限、忙闲时口径、DT/CQT 路径和业务场景。"
+        ]
+      },
+      {
+        "id": "P12-ku-03",
+        "title": "工程判读",
+        "icon": "chart",
+        "texts": [
+          "验证重点是同口径前后差值，结合趋势曲线、TOPN 变化、样本置信度和用户体验判断优化是否有效。"
+        ]
+      },
+      {
+        "id": "P12-ku-04",
+        "title": "数据与现场佐证",
+        "icon": "tool",
+        "texts": [
+          "局部未达标时沿证据链回钻，核查工参、告警、信令日志、容量负荷和测试轨迹，定位残余原因。"
+        ]
+      },
+      {
+        "id": "P12-ku-05",
+        "title": "操作校验",
+        "icon": "search",
+        "texts": [
+          "复测路径要保持路线、点位、终端、业务脚本和统计口径一致，避免环境差异造成假改善或假劣化。"
+        ]
+      },
+      {
+        "id": "P12-ku-06",
+        "title": "闭环复盘",
+        "icon": "check",
+        "texts": [
+          "验证闭环要说明达标指标、未达标原因、遗留风险、固化配置和后续观察动作，形成可审计结论。"
+        ]
+      }
+    ],
+    "blocks": [
+      {
+        "id": "block-001",
+        "kind": "paragraph",
+        "order": 1,
+        "text": "任务导入"
+      },
+      {
+        "id": "block-002",
+        "kind": "paragraph",
+        "order": 2,
+        "text": "在同学进行通信活动时，比如微信视频，有没有遇到卡端、掉线的情况，看直播或者直播的时候，遇到时延较大，应如何应对？学完本任务，会对这些问题有初步的了解。"
+      },
+      {
+        "id": "block-003",
+        "kind": "paragraph",
+        "order": 3,
+        "text": "任务要求"
+      },
+      {
+        "id": "block-004",
+        "kind": "paragraph",
+        "order": 4,
+        "text": "在理解上一任务的基础上，通过本节内容，能够完成两种组网模式下的，对于不同的问题场景的优化覆盖结果验证工作。本次任务具体内容包括："
+      },
+      {
+        "id": "block-005",
+        "kind": "paragraph",
+        "order": 5,
+        "text": "无线网络覆盖优化结果验证；"
+      },
+      {
+        "id": "block-006",
+        "kind": "paragraph",
+        "order": 6,
+        "text": "无线网络切换优化结果验证；"
+      },
+      {
+        "id": "block-007",
+        "kind": "paragraph",
+        "order": 7,
+        "text": "无线网络时延优化结果验证；"
+      },
+      {
+        "id": "block-008",
+        "kind": "paragraph",
+        "order": 8,
+        "text": "无线网络速率优化结果验证；"
+      },
+      {
+        "id": "block-009",
+        "kind": "paragraph",
+        "order": 9,
+        "text": "无线网络容量优化结果验证；"
+      },
+      {
+        "id": "block-010",
+        "kind": "paragraph",
+        "order": 10,
+        "text": "无线网络掉线优化结果验证；"
+      },
+      {
+        "id": "block-011",
+        "kind": "paragraph",
+        "order": 11,
+        "text": "知识准备"
+      },
+      {
+        "id": "block-012",
+        "kind": "paragraph",
+        "order": 12,
+        "text": "一、覆盖优化"
+      },
+      {
+        "id": "block-013",
+        "kind": "paragraph",
+        "order": 13,
+        "text": "覆盖优化基础知识"
+      },
+      {
+        "id": "block-014",
+        "kind": "paragraph",
+        "order": 14,
+        "text": "5G NR覆盖优化是网络业务和性能的基石，通过开展无线网络覆盖优化工作，可以使网络覆盖范围更合理、覆盖水平更高、干扰水平更低，为业务应用和性能提升提供重要保障。无线网络覆盖优化工作伴随实验网建设、预商用网络建设、工程优化、日常运维优化、专项优化等各个网络发展阶段，是网络优化工作的主要组成部分。"
+      },
+      {
+        "id": "block-015",
+        "kind": "paragraph",
+        "order": 15,
+        "text": "5G NR覆盖优化主要消除网络中存在的四种问题：覆盖空洞、弱覆盖、越区覆盖和导频污染。覆盖空洞可以归入到弱覆盖中，越区覆盖和导频污染都可以归为交叉覆盖，所以，从这个角度和现场可实施角度来讲，优化主要有两个内容：消除弱覆盖和交叉覆盖。"
+      },
+      {
+        "id": "block-016",
+        "kind": "paragraph",
+        "order": 16,
+        "text": "5G NR覆盖评估指标"
+      },
+      {
+        "id": "block-017",
+        "kind": "paragraph",
+        "order": 17,
+        "text": "5G NR网络覆盖主要基于同步信号（SS-RSRP和SINR）或CSI-RS信号（CSI-RSRP和SINR）进行测量，当前阶段主要采用SS-RSRP/SS-SINR进行覆盖评估。"
+      },
+      {
+        "id": "block-018",
+        "kind": "paragraph",
+        "order": 18,
+        "text": "表4-2-1 中国电信5G NR边缘覆盖要求"
+      },
+      {
+        "id": "block-019",
+        "kind": "table",
+        "order": 19,
+        "rows": [
+          [
+            "波束配置",
+            "场景类型",
+            "SS-RSRP（95%概率）",
+            "SS-SINR（95%概率）"
+          ],
+          [
+            "宽波束",
+            "城区（核心）",
+            "≥-100",
+            "-7"
+          ],
+          [
+            "",
+            "城区&一般城区",
+            "≥-105",
+            "-7"
+          ],
+          [
+            "2波束",
+            "城区（核心）",
+            "≥-98",
+            "-5"
+          ],
+          [
+            "",
+            "城区&一般城区",
+            "≥-103",
+            "-5"
+          ],
+          [
+            "4波束",
+            "城区（核心）",
+            "≥-95",
+            "-3"
+          ],
+          [
+            "",
+            "城区&一般城区",
+            "≥-100",
+            "-3"
+          ],
+          [
+            "7波束",
+            "城区（核心）",
+            "≥-92",
+            "0"
+          ],
+          [
+            "",
+            "城区&一般城区",
+            "≥-97",
+            "0"
+          ]
+        ]
+      },
+      {
+        "id": "block-020",
+        "kind": "paragraph",
+        "order": 20,
+        "text": "中国电信以SA为目标网开展5G网络规划，规划优化覆盖指标要求：以SS-RSRP≥105dBm覆盖率满足95%，在SSB宽波束时频域对齐配置下，SS-SINR≥-7dB覆盖率满足95%为参考。对应边缘速率UL/DL=2Mbps/100Mbps。"
+      },
+      {
+        "id": "block-021",
+        "kind": "paragraph",
+        "order": 21,
+        "text": "覆盖问题优化原则如下："
+      },
+      {
+        "id": "block-022",
+        "kind": "paragraph",
+        "order": 22,
+        "text": "先优化SSB RSRP，后优化SSB SINR。"
+      },
+      {
+        "id": "block-023",
+        "kind": "paragraph",
+        "order": 23,
+        "text": "覆盖优化的两大关键任务：消除弱覆盖；"
+      },
+      {
+        "id": "block-024",
+        "kind": "paragraph",
+        "order": 24,
+        "text": "消除交叉覆盖。优先优化弱覆盖、越区覆盖、再优化导频污染。"
+      },
+      {
+        "id": "block-025",
+        "kind": "paragraph",
+        "order": 25,
+        "text": "工程优化阶段按照规划方案优先开展工程质量整改，其次建议优先权值功率优化，再物理天馈调整。"
+      },
+      {
+        "id": "block-026",
+        "kind": "paragraph",
+        "order": 26,
+        "text": "SA组网覆盖问题优化原则如下："
+      },
+      {
+        "id": "block-027",
+        "kind": "paragraph",
+        "order": 27,
+        "text": "按照天线上3dB落点在第一层邻区最大站间距3/4之内原则进行工程优化。"
+      },
+      {
+        "id": "block-028",
+        "kind": "paragraph",
+        "order": 28,
+        "text": "覆盖优化调整顺序：工程质量整改→权值→功率→天馈，天馈调整优先进行下倾角、方位角，再考虑天线挂高调整、迁站及加站。严格控制导频污染。其中最佳覆盖时天线上3db对准该小区第一层邻区最大站间距的3/4的位置，这是要满足关于重叠覆盖优化的要求。"
+      },
+      {
+        "id": "block-029",
+        "kind": "paragraph",
+        "order": 29,
+        "text": "NSA网络优化调整注意事项如下："
+      },
+      {
+        "id": "block-030",
+        "kind": "paragraph",
+        "order": 30,
+        "text": "NSA覆盖优化涉及4/5G两张网络，首先要保证锚点4G小区覆盖良好，无弱覆盖、越区覆盖和无主导小区的情况，业务性能，如接入/切换成功率良好，切换关系合理，抑制乒乓切换。5G/4G 1:1组网下，5G RF覆盖优化目标是和锚点LTE同覆盖，5G小区的工参，如方向角、下倾角初始规划可以和锚点LTE小区一致，单验/簇优化/全网优化阶段再进行精细调整。运维优化阶段，锚点4G覆盖如果有调整，5G同步跟进调整。"
+      },
+      {
+        "id": "block-031",
+        "kind": "paragraph",
+        "order": 31,
+        "text": "5G NR覆盖优化方法"
+      },
+      {
+        "id": "block-032",
+        "kind": "paragraph",
+        "order": 32,
+        "text": "工程参数调整"
+      },
+      {
+        "id": "block-033",
+        "kind": "paragraph",
+        "order": 33,
+        "text": "调整内容：机械下倾角、机械方位角、AAU天线挂高、AAU位置调整等；"
+      },
+      {
+        "id": "block-034",
+        "kind": "paragraph",
+        "order": 34,
+        "text": "参数配置优化"
+      },
+      {
+        "id": "block-035",
+        "kind": "paragraph",
+        "order": 35,
+        "text": "基础参数配置优化：频点、功率、PCI/PRACH、邻区、切换门限等基础参数调整优化；"
+      },
+      {
+        "id": "block-036",
+        "kind": "paragraph",
+        "order": 36,
+        "text": "波束管理优化"
+      },
+      {
+        "id": "block-037",
+        "kind": "paragraph",
+        "order": 37,
+        "text": "广播波束管理优化，主要涉及宽波束和多波束轮询配置以及波束级的权值配置优化。"
+      },
+      {
+        "id": "block-038",
+        "kind": "paragraph",
+        "order": 38,
+        "text": "规划改造方案"
+      },
+      {
+        "id": "block-039",
+        "kind": "paragraph",
+        "order": 39,
+        "text": "对于通过优化手段无法解决的覆盖问题，及时反馈规划建设部分，协同进行天线挂高改造、天线位置改造、新增AAU、站址调整、新增宏站、新增室分系统、或宏微协同组网等工程规划方案的设计，从根本上解决覆盖问题。"
+      },
+      {
+        "id": "block-040",
+        "kind": "paragraph",
+        "order": 40,
+        "text": "覆盖相关的网络优化参数，如下表4-2-2."
+      },
+      {
+        "id": "block-041",
+        "kind": "paragraph",
+        "order": 41,
+        "text": "表4-2-2 覆盖类主要参数"
+      },
+      {
+        "id": "block-042",
+        "kind": "table",
+        "order": 42,
+        "rows": [
+          [
+            "参数名称",
+            "英文名称",
+            "取值范围",
+            "参数说明"
+          ],
+          [
+            "波束信息 子波束索引",
+            "subBeamIndex",
+            "0~63",
+            "SSB子波束索引"
+          ],
+          [
+            "波束信息 波束方位角",
+            "azimuth",
+            "-85~85",
+            "子波束方位角，用来指示波束水平指向"
+          ],
+          [
+            "波束信息 波束倾角",
+            "tilt",
+            "-85~85",
+            "子波束倾角，用来指示波束垂直指向"
+          ],
+          [
+            "波束信息 水平波宽",
+            "beamWidthH",
+            "1~65",
+            "子波束水平波宽。用来指示子波束水平覆盖3dB宽度，配置值非连续，系统自动匹配最接近的参数，不同AAU型号，均向65、45、30、25、20、15或10匹配"
+          ],
+          [
+            "波束信息 垂直波宽",
+            "beamWidthV",
+            "1~65",
+            "子波束垂直波宽。用来指示子波束垂直覆盖3dB宽度。配置值非连续，系统自动匹配最接近的参数"
+          ],
+          [
+            "小区RE参考功率",
+            "powerPerRERef",
+            "-600~500",
+            "小区最大发射功率平均到每个RE的功率值"
+          ],
+          [
+            "波束信息 子波束是否有效",
+            "subBeamValid",
+            "1打开/2关闭/3空置",
+            "子波束是否有效。子波束有效设置为1，无效设置为0"
+          ],
+          [
+            "小区天线方位角",
+            "Antenna Azimuth",
+            "0~180",
+            "基站小区的天线方位角"
+          ],
+          [
+            "小区机械角",
+            "Antenna mechanical inclination",
+            "0~15",
+            "基站小区的天线机械角"
+          ],
+          [
+            "小区天线挂高",
+            "antenna height",
+            "1~50",
+            "基站小区的天线挂高"
+          ]
+        ]
+      },
+      {
+        "id": "block-043",
+        "kind": "paragraph",
+        "order": 43,
+        "text": "二、切换优化基础知识"
+      },
+      {
+        "id": "block-044",
+        "kind": "paragraph",
+        "order": 44,
+        "text": "5G NR切换概述"
+      },
+      {
+        "id": "block-045",
+        "kind": "paragraph",
+        "order": 45,
+        "text": "切换，指终端从一个小区或信道变更到另外一个小区或信道时业务能继续进行。切换过程由终端、接入网、核心网共同完成。"
+      },
+      {
+        "id": "block-046",
+        "kind": "paragraph",
+        "order": 46,
+        "text": "5G的切换优化整体上继承了4G的优化策略，但由于存在SA和NSA两种组网方式而略有不同。切换优化是移动网络业务连续性的基础保障，合理而及时的切换可以有效的保障用户感知，防止出现掉线等引发投诉的现象，在网络优化中占有非常重要的意义。"
+      },
+      {
+        "id": "block-047",
+        "kind": "paragraph",
+        "order": 47,
+        "text": "5G NR的切换流程同4G一样仍然包括测量、判决、执行三个流程，如下图4-2-1："
+      },
+      {
+        "id": "block-048",
+        "kind": "paragraph",
+        "order": 48,
+        "mediaRefs": [
+          "rId247"
+        ]
+      },
+      {
+        "id": "block-049",
+        "kind": "paragraph",
+        "order": 49,
+        "text": "图4-2-1 切换流程"
+      },
+      {
+        "id": "block-050",
+        "kind": "paragraph",
+        "order": 50,
+        "text": "切换事件"
+      },
+      {
+        "id": "block-051",
+        "kind": "paragraph",
+        "order": 51,
+        "text": "理想情况下基站允许终端上报服务小区和邻居小区信号质量，通过单次的测量触发切换。而在现实中，频繁的乒乓切换，会造成基站过载。为了避免这种情况发生，3GPP规范提出了一套测量和报告机制。这些测量和报告类型称为“事件”。终端须报告的“事件”由基站通过下发的RRC信令消息通知终端。"
+      },
+      {
+        "id": "block-052",
+        "kind": "paragraph",
+        "order": 52,
+        "text": "3GPP在38.331中为5G(NR)网络定义的测量事件："
+      },
+      {
+        "id": "block-053",
+        "kind": "paragraph",
+        "order": 53,
+        "text": "A1事件 (服务小区高过的门限值)"
+      },
+      {
+        "id": "block-054",
+        "kind": "paragraph",
+        "order": 54,
+        "text": "A2事件（服务小区低于的门限值)"
+      },
+      {
+        "id": "block-055",
+        "kind": "paragraph",
+        "order": 55,
+        "text": "A3事件（邻小区高出主服务小区的偏滞）"
+      },
+      {
+        "id": "block-056",
+        "kind": "paragraph",
+        "order": 56,
+        "text": "A4事件（邻小区高出门限值）"
+      },
+      {
+        "id": "block-057",
+        "kind": "paragraph",
+        "order": 57,
+        "text": "A5事件（服务小区低于的门限值1，邻小区高出服务小区的门限值2）"
+      },
+      {
+        "id": "block-058",
+        "kind": "paragraph",
+        "order": 58,
+        "text": "A6事件（邻小区高出服务小区的偏滞）"
+      },
+      {
+        "id": "block-059",
+        "kind": "paragraph",
+        "order": 59,
+        "text": "B1事件（异系统邻小区高于服务小区的门限）"
+      },
+      {
+        "id": "block-060",
+        "kind": "paragraph",
+        "order": 60,
+        "text": "B2事件（服务小区低于门限1，异系统邻小区高于门限值2）"
+      },
+      {
+        "id": "block-061",
+        "kind": "paragraph",
+        "order": 61,
+        "text": "观察这些事件，我们可把它们分为A1-A6和B1-B2。UE一直测量服务小区和邻小区的报告数量，并使用报告配置中定义的门限值或偏移量。测量报告数量/事件的触发可以是RSRP，RSRQ或SINR。"
+      },
+      {
+        "id": "block-062",
+        "kind": "paragraph",
+        "order": 62,
+        "text": "表4-2-3 A类事件分类"
+      },
+      {
+        "id": "block-063",
+        "kind": "table",
+        "order": 63,
+        "rows": [
+          [
+            "事件类型",
+            "事件定义",
+            "作用"
+          ],
+          [
+            "事件A1",
+            "服务小区信号质量高于绝对门限",
+            "关闭频间/系统间测量"
+          ],
+          [
+            "事件A2",
+            "服务小区信号质量低于绝对门限",
+            "打开频间/系统间测量"
+          ],
+          [
+            "事件A3",
+            "邻区信号质量比服务小区信号质量高一个相对门限",
+            "频内/频间切换"
+          ],
+          [
+            "事件A4",
+            "邻区信号质量高于绝对门限",
+            "频间切换/基于负荷的切换"
+          ],
+          [
+            "事件A5",
+            "服务小区信号质量低于门限1并且邻区信号质量高于门限2",
+            "频间切换/基于负荷的切换"
+          ]
+        ]
+      },
+      {
+        "id": "block-064",
+        "kind": "paragraph",
+        "order": 64,
+        "text": "A1事件 (服务小区高出门限值)"
+      },
+      {
+        "id": "block-065",
+        "kind": "paragraph",
+        "order": 65,
+        "text": "当服务小区信号超过门限时触发A1事件。它通常用于取消正在进行的切换流程。如果一个UE移动到小区边缘并启动移动流程时就可以触发，但随后移动返回之前移动良好的覆盖区域。"
+      },
+      {
+        "id": "block-066",
+        "kind": "paragraph",
+        "order": 66,
+        "mediaRefs": [
+          "rId248"
+        ]
+      },
+      {
+        "id": "block-067",
+        "kind": "paragraph",
+        "order": 67,
+        "text": "图4-2-2 A1事件"
+      },
+      {
+        "id": "block-068",
+        "kind": "paragraph",
+        "order": 68,
+        "text": "Ms-Hys>Thresh(Trigger Condition)--------------触发条件"
+      },
+      {
+        "id": "block-069",
+        "kind": "paragraph",
+        "order": 69,
+        "text": "Ms+Hys<Thresh(Cancellation Condition)---------撤消条件"
+      },
+      {
+        "id": "block-070",
+        "kind": "paragraph",
+        "order": 70,
+        "text": "A2事件(服务小区低于门限)"
+      },
+      {
+        "id": "block-071",
+        "kind": "paragraph",
+        "order": 71,
+        "text": "A2事件通常用于触发移动过程的UE移动到小区边缘。事件A2不涉及任何相邻小区的测量，它可以用来触发任一迁移过程或用来触发相邻小区的测量；可用于一个基于测量的移动进程。"
+      },
+      {
+        "id": "block-072",
+        "kind": "paragraph",
+        "order": 72,
+        "text": "如基站可在事件A2触发后配置测量间隙和频间或系统间测量。这一意味在覆盖条件相对较差，且极有可能需要进行切换情况下，需要完成同频/异频或系统之间的测量。"
+      },
+      {
+        "id": "block-073",
+        "kind": "paragraph",
+        "order": 73,
+        "mediaRefs": [
+          "rId249"
+        ]
+      },
+      {
+        "id": "block-074",
+        "kind": "paragraph",
+        "order": 74,
+        "text": "图4-2-3 A2事件"
+      },
+      {
+        "id": "block-075",
+        "kind": "paragraph",
+        "order": 75,
+        "text": "Ms+Hys<Thresh(TriggerCondition)-----------触发条件"
+      },
+      {
+        "id": "block-076",
+        "kind": "paragraph",
+        "order": 76,
+        "text": "Ms-Hys>Thresh(CancellationCondition)------撤消条件"
+      },
+      {
+        "id": "block-077",
+        "kind": "paragraph",
+        "order": 77,
+        "text": "A3事件(邻小区比主服务小区高于偏滞)"
+      },
+      {
+        "id": "block-078",
+        "kind": "paragraph",
+        "order": 78,
+        "text": "当邻小区超过偏滞比主服小区(SpCell)高时，触发A3事件。一个主服小区是主服小区组(MCG)或次服小区(SCG)的主服务小区。偏滞量可以是正的，也可以是负的。"
+      },
+      {
+        "id": "block-079",
+        "kind": "paragraph",
+        "order": 79,
+        "text": "A3事件通常用于频内或频间的切换过程。当触发A2事件时，可配置测量间隔、测量频间对象和A3事件进行频间切换。A3事件提供了一个基于相关测量结果的切换触发机制，例如，可配置当邻居小区RSRP比特定小区RSRP强时触发。"
+      },
+      {
+        "id": "block-080",
+        "kind": "paragraph",
+        "order": 80,
+        "mediaRefs": [
+          "rId250"
+        ]
+      },
+      {
+        "id": "block-081",
+        "kind": "paragraph",
+        "order": 81,
+        "text": "图4-2-4 A3事件"
+      },
+      {
+        "id": "block-082",
+        "kind": "paragraph",
+        "order": 82,
+        "text": "Mn+Ofn+Ocn-Hys>Ms+Ofp+Ocp+Off(TriggerCondition)------触发条件"
+      },
+      {
+        "id": "block-083",
+        "kind": "paragraph",
+        "order": 83,
+        "text": "Mn+Ofn+Ocn+Hys<Ms+Ofp+Ocp+Off(CancellationCondition)-撤消条件"
+      },
+      {
+        "id": "block-084",
+        "kind": "paragraph",
+        "order": 84,
+        "text": "A4事件（邻小区高于门限值）"
+      },
+      {
+        "id": "block-085",
+        "kind": "paragraph",
+        "order": 85,
+        "text": "当邻小区测量结果比定义阈值更好时触发A4事件。A4事件可用于不依赖于服务小区覆盖范围的切换过程。例如，在负载平衡功能中，由于负载条件而不是无线条件，决定UE从服务小区切换出去。在这种情况下，UE只需要检测目标小区优于某个信号电平值，并能提供足够的覆盖范围。"
+      },
+      {
+        "id": "block-086",
+        "kind": "paragraph",
+        "order": 86,
+        "mediaRefs": [
+          "rId251"
+        ]
+      },
+      {
+        "id": "block-087",
+        "kind": "paragraph",
+        "order": 87,
+        "text": "图4-2-5 A4事件"
+      },
+      {
+        "id": "block-088",
+        "kind": "paragraph",
+        "order": 88,
+        "text": "Mn+Ofn+Ocn-Hys>Thresh(TriggerCondition)--------触发条件"
+      },
+      {
+        "id": "block-089",
+        "kind": "paragraph",
+        "order": 89,
+        "text": "Mn+Ofn+Ocn+Hys<Thresh(CancellationCondition)---撤消条件"
+      },
+      {
+        "id": "block-090",
+        "kind": "paragraph",
+        "order": 90,
+        "text": "A5事件（服务小区低于门限值1，邻小区高于门限值2）"
+      },
+      {
+        "id": "block-091",
+        "kind": "paragraph",
+        "order": 91,
+        "text": "当主服务小区变得比阈值1更差时，就会触发A5事件；而相邻的小区变得比阈值2更好。A5事件是A2事件和A4事件的组合。"
+      },
+      {
+        "id": "block-092",
+        "kind": "paragraph",
+        "order": 92,
+        "text": "A5事件通常用于频内或频间的切换过程。A2事件触发后用于跨频切换的UE可以配置为测量间隔和事件A5。A5事件提供了基于绝对测量结果的切换触发机制，它可用来触发时间关键切换时，当前的服务小区变得较差，就需要切换到另一个小区。"
+      },
+      {
+        "id": "block-093",
+        "kind": "paragraph",
+        "order": 93,
+        "mediaRefs": [
+          "rId252"
+        ]
+      },
+      {
+        "id": "block-094",
+        "kind": "paragraph",
+        "order": 94,
+        "text": "图4-2-6 A5事件"
+      },
+      {
+        "id": "block-095",
+        "kind": "paragraph",
+        "order": 95,
+        "text": "EventTriggerCondition-------（触发条件）"
+      },
+      {
+        "id": "block-096",
+        "kind": "paragraph",
+        "order": 96,
+        "text": "Ms+Hys<Thresh1"
+      },
+      {
+        "id": "block-097",
+        "kind": "paragraph",
+        "order": 97,
+        "text": "Mn+Ofn+Ocn-Hys>Thresh2"
+      },
+      {
+        "id": "block-098",
+        "kind": "paragraph",
+        "order": 98,
+        "text": "EventCancellationCondition--（撤消条件）"
+      },
+      {
+        "id": "block-099",
+        "kind": "paragraph",
+        "order": 99,
+        "text": "Ms–Hys>Thresh1"
+      },
+      {
+        "id": "block-100",
+        "kind": "paragraph",
+        "order": 100,
+        "text": "Mn+Ofn+Ocn+Hys<Thresh2"
+      },
+      {
+        "id": "block-101",
+        "kind": "paragraph",
+        "order": 101,
+        "text": "A6事件（邻小区超过服务辅小区偏滞）"
+      },
+      {
+        "id": "block-102",
+        "kind": "paragraph",
+        "order": 102,
+        "text": "当相邻的小区因偏移而变得比辅小区更好时，会触发A6事件。偏移量可以是正的，也可以是负的。此测量报告事件适用于载波聚合，即除了主服务小区外还有次邻小区的连接。"
+      },
+      {
+        "id": "block-103",
+        "kind": "paragraph",
+        "order": 103,
+        "mediaRefs": [
+          "rId253"
+        ]
+      },
+      {
+        "id": "block-104",
+        "kind": "paragraph",
+        "order": 104,
+        "text": "图4-2-7 A6事件"
+      },
+      {
+        "id": "block-105",
+        "kind": "paragraph",
+        "order": 105,
+        "text": "Mn+Ocn-Hys>Ms+Ocs+Off(TriggerCondition)-----------触发条件"
+      },
+      {
+        "id": "block-106",
+        "kind": "paragraph",
+        "order": 106,
+        "text": "Mn+Ocn+Hys<Ms+Ocs+Off(CancellationCondition)------撤消条件"
+      },
+      {
+        "id": "block-107",
+        "kind": "paragraph",
+        "order": 107,
+        "text": "B1事件（异系统邻小区超出门限值）"
+      },
+      {
+        "id": "block-108",
+        "kind": "paragraph",
+        "order": 108,
+        "text": "B1事件可用于系统间切换流程，而不取决于服务小区的覆盖范围。例如，在负载均衡特性中，由于负载条件而不是无线条件，决定将UE从5G(NR)网络中切出。在这种情况下，UE只需要检测其他网络的目标小区(例如LTE)是否优于某个信号电平阈值，并能提供足够的覆盖范围。"
+      },
+      {
+        "id": "block-109",
+        "kind": "paragraph",
+        "order": 109,
+        "mediaRefs": [
+          "rId254"
+        ]
+      },
+      {
+        "id": "block-110",
+        "kind": "paragraph",
+        "order": 110,
+        "text": "图4-2-8 B1事件"
+      },
+      {
+        "id": "block-111",
+        "kind": "paragraph",
+        "order": 111,
+        "text": "Mn+Ofn+Ocn-Hys>Thresh-------触发条件"
+      },
+      {
+        "id": "block-112",
+        "kind": "paragraph",
+        "order": 112,
+        "text": "Mn+Ofn+Ocn+Hys<Thresh-------撤消条件"
+      },
+      {
+        "id": "block-113",
+        "kind": "paragraph",
+        "order": 113,
+        "text": "B2事件（主服务小区低于门限1，异系统邻小区高于门限2)"
+      },
+      {
+        "id": "block-114",
+        "kind": "paragraph",
+        "order": 114,
+        "text": "B2事件被触发时，主要服务小区低于比阈值1，而相邻（异系统）小区高于阈值2。当主要的服务小区变差时，这可以触发（异系统）小区的切换流程。系统间相邻小区的测量用来确保目标小区有足够的覆盖范围。"
+      },
+      {
+        "id": "block-115",
+        "kind": "paragraph",
+        "order": 115,
+        "mediaRefs": [
+          "rId255"
+        ]
+      },
+      {
+        "id": "block-116",
+        "kind": "paragraph",
+        "order": 116,
+        "text": "图4-2-9 B2事件"
+      },
+      {
+        "id": "block-117",
+        "kind": "paragraph",
+        "order": 117,
+        "text": "EventTriggerCondition----------触发条件"
+      },
+      {
+        "id": "block-118",
+        "kind": "paragraph",
+        "order": 118,
+        "text": "Ms+Hys<Thresh1"
+      },
+      {
+        "id": "block-119",
+        "kind": "paragraph",
+        "order": 119,
+        "text": "Mn+Ofn+Ocn-Hys>Thresh2"
+      },
+      {
+        "id": "block-120",
+        "kind": "paragraph",
+        "order": 120,
+        "text": "EventCancellationCondition-----撤消条件"
+      },
+      {
+        "id": "block-121",
+        "kind": "paragraph",
+        "order": 121,
+        "text": "Ms–Hys>Thresh1"
+      },
+      {
+        "id": "block-122",
+        "kind": "paragraph",
+        "order": 122,
+        "text": "Mn+Ofn+Ocn+Hys<Thresh2"
+      },
+      {
+        "id": "block-123",
+        "kind": "paragraph",
+        "order": 123,
+        "text": "其中参数具体解释部分如下："
+      },
+      {
+        "id": "block-124",
+        "kind": "paragraph",
+        "order": 124,
+        "text": "Ms表示服务小区的测量结果；"
+      },
+      {
+        "id": "block-125",
+        "kind": "paragraph",
+        "order": 125,
+        "text": "Mn表示邻区的测量结果；"
+      },
+      {
+        "id": "block-126",
+        "kind": "paragraph",
+        "order": 126,
+        "text": "TimeToTrig表示持续满足事件进入条件的时长，即时间迟滞；"
+      },
+      {
+        "id": "block-127",
+        "kind": "paragraph",
+        "order": 127,
+        "text": "Off表示测量结果的偏置，步长0.5db；"
+      },
+      {
+        "id": "block-128",
+        "kind": "paragraph",
+        "order": 128,
+        "text": "Hys表示测量结果的幅度迟滞，步长0.5db；"
+      },
+      {
+        "id": "block-129",
+        "kind": "paragraph",
+        "order": 129,
+        "text": "Ofs表示服务小区的频率偏置；"
+      },
+      {
+        "id": "block-130",
+        "kind": "paragraph",
+        "order": 130,
+        "text": "Ofn表示邻区的频率偏置；"
+      },
+      {
+        "id": "block-131",
+        "kind": "paragraph",
+        "order": 131,
+        "text": "Ocs表示服务小区特定偏置CIO；"
+      },
+      {
+        "id": "block-132",
+        "kind": "paragraph",
+        "order": 132,
+        "text": "Ocn表示系统内邻区的小区特定偏置CIO ；"
+      },
+      {
+        "id": "block-133",
+        "kind": "paragraph",
+        "order": 133,
+        "text": "Thresh即对应事件配置的门限值。"
+      },
+      {
+        "id": "block-134",
+        "kind": "paragraph",
+        "order": 134,
+        "text": "5G(NR)测量事件的参数及取值 表4-2-4："
+      },
+      {
+        "id": "block-135",
+        "kind": "table",
+        "order": 135,
+        "rows": [
+          [
+            "Event（事件）",
+            "Parameter（参数）",
+            "Range（取值）",
+            "Value（单位）"
+          ],
+          [
+            "A1， A2， A4， A5， B1",
+            "RSRP threshold",
+            "0",
+            "127",
+            "-156dBm",
+            "-31dBm"
+          ],
+          [
+            "",
+            "RSRQ threshold",
+            "0",
+            "127",
+            "-40dB",
+            "20dB"
+          ],
+          [
+            "",
+            "SINR threshold",
+            "0",
+            "127",
+            "-23dB",
+            "40dB"
+          ],
+          [
+            "Al",
+            "Hysteresis",
+            "0",
+            "30",
+            "0dB",
+            "15dB"
+          ],
+          [
+            "A3，A6",
+            "Offset",
+            "-30",
+            "30",
+            "-15dB",
+            "+15dB"
+          ],
+          [
+            "A3，A4，A5，A6，B1，B2",
+            "Cell Specific Offset",
+            "",
+            "",
+            "-24dB",
+            "+24dB"
+          ],
+          [
+            "B1， B2",
+            "LTE RSRP",
+            "0",
+            "97",
+            "-140dBm",
+            "-44dBm"
+          ],
+          [
+            "",
+            "LTE RSRQ",
+            "0",
+            "34",
+            "-19.5dB",
+            "-3dBm"
+          ],
+          [
+            "",
+            "LTE SINR",
+            "-23",
+            "40",
+            "-23dB",
+            "40dB"
+          ]
+        ]
+      },
+      {
+        "id": "block-136",
+        "kind": "paragraph",
+        "order": 136,
+        "text": "5G NR中的事件取值范围与LTE有所区别。Range即对应测量报告中上报的数值，而Value则对应其真实的数值。以RSRP为例，LTE中的Value值范围为-140~-44dBm，而NR为-156~-31dBm，NR允许更高及更低的接收电平。LTE实际值为 MR上报值-140，而NR则为MR上报值-156。假设MR中上报的RSRP为50，则实际值为50-140= -90dBm。而NR中RSRP的实际值则为50-156= -106dBm。"
+      },
+      {
+        "id": "block-137",
+        "kind": "paragraph",
+        "order": 137,
+        "text": "（三）5GNR切换异常处理思路"
+      },
+      {
+        "id": "block-138",
+        "kind": "paragraph",
+        "order": 138,
+        "text": "所有的异常流程都首先需要检查基站、传输、终端等状态是否异常，排查基站、传输、终端等问题后再进行分析。"
+      },
+      {
+        "id": "block-139",
+        "kind": "paragraph",
+        "order": 139,
+        "text": "整个切换过程异常情况我们分为一下几个阶段："
+      },
+      {
+        "id": "block-140",
+        "kind": "paragraph",
+        "order": 140,
+        "text": "流程1：测量报告发送后是否收到切换命令"
+      },
+      {
+        "id": "block-141",
+        "kind": "paragraph",
+        "order": 141,
+        "text": "流程2：收到重配命令后是否成功在目标测发送MSG1"
+      },
+      {
+        "id": "block-142",
+        "kind": "paragraph",
+        "order": 142,
+        "text": "流程3：成功发送MSG1之后是否正常收到MSG2"
+      },
+      {
+        "id": "block-143",
+        "kind": "paragraph",
+        "order": 143,
+        "text": "（四）SA组网下的切换流程"
+      },
+      {
+        "id": "block-144",
+        "kind": "paragraph",
+        "order": 144,
+        "text": "基于Xn接口的切换流程如下图4-2-10：当源gNodeB收到UE的测量上报，并判决UE向目标gNodeB切换时，会直接通过Xn接口向目标gNodeB申请资源，完成目标小区的资源准备，之后通过空口的重配消息通知UE向目标小区切换，在切换成功后，目标gNodeB通知源gNodeB释放原来小区的无线资源。此外还要将源gNodeB未发送的数据转发给目标gNodeB，并更新用户平面和控制平面的节点关系。"
+      },
+      {
+        "id": "block-145",
+        "kind": "paragraph",
+        "order": 145,
+        "mediaRefs": [
+          "rId256"
+        ]
+      },
+      {
+        "id": "block-146",
+        "kind": "paragraph",
+        "order": 146,
+        "text": "图4-2-10 SA组网下的切换流程"
+      },
+      {
+        "id": "block-147",
+        "kind": "paragraph",
+        "order": 147,
+        "text": "带SN的NSA切换流程，如图4-2-11"
+      },
+      {
+        "id": "block-148",
+        "kind": "paragraph",
+        "order": 148,
+        "text": "（1）、UE在源4G小区发起业务，并完成双连接添加"
+      },
+      {
+        "id": "block-149",
+        "kind": "paragraph",
+        "order": 149,
+        "text": "（2）、主节点4G小区满足A3门限，发起测量报告，在测量报告里，携带最强的NR邻区测量"
+      },
+      {
+        "id": "block-150",
+        "kind": "paragraph",
+        "order": 150,
+        "text": "（3）、如果最强的NR邻区，其RSRP满足“带SN切换RSRP差值”门限，即目标NR小区RSRP-源NR小区RSRP≥带SN切换RSRP差值，那4G切换同时5G小区同步完成变更。"
+      },
+      {
+        "id": "block-151",
+        "kind": "paragraph",
+        "order": 151,
+        "text": "（4）、如果最强的NR邻区，其RSRP不满足“带SN切换RSRP差值”门限，即目标NR小区RSRP-源NR小区RSRP<带SN切换RSRP差值，那么4G切换，5G小区不变。"
+      },
+      {
+        "id": "block-152",
+        "kind": "paragraph",
+        "order": 152,
+        "mediaRefs": [
+          "rId257"
+        ]
+      },
+      {
+        "id": "block-153",
+        "kind": "paragraph",
+        "order": 153,
+        "text": "图4-2-11 带SN的NSA切换流程"
+      },
+      {
+        "id": "block-154",
+        "kind": "paragraph",
+        "order": 154,
+        "text": "带SN切换的两种场景"
+      },
+      {
+        "id": "block-155",
+        "kind": "paragraph",
+        "order": 155,
+        "text": "主节点切换，伴随辅节点改变："
+      },
+      {
+        "id": "block-156",
+        "kind": "paragraph",
+        "order": 156,
+        "text": "UE连接LTE和NR小区，双连接"
+      },
+      {
+        "id": "block-157",
+        "kind": "paragraph",
+        "order": 157,
+        "text": "UE给eNB上报A3事件，同时携带最强NR邻区测量，并且目标NR的RSRP大于等于源NR小区RSRP，在主节点切换的同时完成PScell改变或SN变更。"
+      },
+      {
+        "id": "block-158",
+        "kind": "paragraph",
+        "order": 158,
+        "text": "图4-2-12 场景1图4-2-12 场景1",
+        "mediaRefs": [
+          "rId258"
+        ]
+      },
+      {
+        "id": "block-159",
+        "kind": "paragraph",
+        "order": 159,
+        "text": "主节点切换辅节点不变，主节点不变辅节点变更："
+      },
+      {
+        "id": "block-160",
+        "kind": "paragraph",
+        "order": 160,
+        "text": "UE连接LTE和NR小区，双连接。"
+      },
+      {
+        "id": "block-161",
+        "kind": "paragraph",
+        "order": 161,
+        "text": "UE给eNB上报A3事件，同时携带最强NR邻区测量，但目标NR的RSRP小于源NR小区RSRP，辅节点不变。"
+      },
+      {
+        "id": "block-162",
+        "kind": "paragraph",
+        "order": 162,
+        "text": "UE给gNB上报A3事件，PScell改变或SN变更。"
+      },
+      {
+        "id": "block-163",
+        "kind": "paragraph",
+        "order": 163,
+        "text": "图4-2-13 场景2图4-2-13 场景2",
+        "mediaRefs": [
+          "rId259"
+        ]
+      },
+      {
+        "id": "block-164",
+        "kind": "paragraph",
+        "order": 164,
+        "text": "不带SN的NSA切换流程"
+      },
+      {
+        "id": "block-165",
+        "kind": "paragraph",
+        "order": 165,
+        "text": "不带SN切换，切换过程中存在SN释放和LTE切换到目标小区后SN添加两个过程："
+      },
+      {
+        "id": "block-166",
+        "kind": "paragraph",
+        "order": 166,
+        "text": "UE在锚点LTE1和NR1的覆盖区内，已接入LTE/NR双连接。UE向基站锚点LTE2移动时触发MN切换，从锚点LTE1切换到锚点LTE2。此种场景下"
+      },
+      {
+        "id": "block-167",
+        "kind": "paragraph",
+        "order": 167,
+        "text": "1、源MN在切换命令下发后，先发起SN释放流程，释放SN"
+      },
+      {
+        "id": "block-168",
+        "kind": "paragraph",
+        "order": 168,
+        "text": "2、LTE切换到目标小区后，再触发SN添加流程，将SN添加到目标侧MN。"
+      },
+      {
+        "id": "block-169",
+        "kind": "paragraph",
+        "order": 169,
+        "text": "图4-2-14 不带SN的NSA切换图4-2-14 不带SN的NSA切换",
+        "mediaRefs": [
+          "rId260"
+        ]
+      },
+      {
+        "id": "block-170",
+        "kind": "paragraph",
+        "order": 170,
+        "text": "不带SN切换"
+      },
+      {
+        "id": "block-171",
+        "kind": "paragraph",
+        "order": 171,
+        "text": "UE连接LTE和NR小区，双连接"
+      },
+      {
+        "id": "block-172",
+        "kind": "paragraph",
+        "order": 172,
+        "text": "UE给eNB上报A3事件，触发站内/站间切换，切换时同时删除SN，UE切换到目标LTE小区，单连接"
+      },
+      {
+        "id": "block-173",
+        "kind": "paragraph",
+        "order": 173,
+        "text": "在目标LTE小区，UE给eNB上报B1，添加同覆盖NR小区。"
+      },
+      {
+        "id": "block-174",
+        "kind": "paragraph",
+        "order": 174,
+        "text": "（七）5G网优相关切换类参数，如下表4-2-5"
+      },
+      {
+        "id": "block-175",
+        "kind": "paragraph",
+        "order": 175,
+        "text": "表 4-2-5切换类主要参数"
+      },
+      {
+        "id": "block-176",
+        "kind": "table",
+        "order": 176,
+        "rows": [
+          [
+            "参数名称",
+            "英文名称",
+            "取值范围",
+            "参数说明"
+          ],
+          [
+            "基站标识",
+            "gNBId",
+            "0~4294967295",
+            "该参数用于指示基站标识"
+          ],
+          [
+            "小区标识",
+            "cellLocalId",
+            "0~16383",
+            "该参数用于指示小区标识"
+          ],
+          [
+            "物理小区ID",
+            "pci",
+            "100~1000",
+            "物理小区标识"
+          ],
+          [
+            "NR邻接关系 支持Xn切换",
+            "supportXnHo",
+            "1:支持/0:不支持",
+            "该参数是邻区是否支持Xn切换开关，用于RRM做切换判决时选择切换类型，默认值为支持"
+          ],
+          [
+            "外部NR邻接小区 公共陆地移动网络标识号",
+            "pLMNId",
+            "460-00/460-01/460-02/460-03",
+            "该参数是用于配置运营商信息，由运营商的移动国家码mcc，移动网络码mnc组成"
+          ],
+          [
+            "外部NR邻接小区 小区类型",
+            "coverageType",
+            "Macro/Micro",
+            "该参数用于指示小区类型"
+          ],
+          [
+            "外部NR邻接小区 上行载波的中心频点",
+            "frequencyUL",
+            "",
+            "上行载波的中心频点"
+          ],
+          [
+            "外部NR邻接小区 上行载波带宽",
+            "bandwidthUL",
+            "5~100",
+            "上行载波带宽"
+          ],
+          [
+            "外部NR邻接小区 上行子载波间隔",
+            "subcarrierSpacingUL",
+            "15/30/60/120",
+            "该参数指示外部小区上行的子载波间隔。根据该参数可以计算小区带宽和测量频点"
+          ],
+          [
+            "外部NR邻接小区 下行载波的中心频点",
+            "frequencyDL",
+            "",
+            "下行载波的中心频点"
+          ],
+          [
+            "外部NR邻接小区 下行载波带宽",
+            "bandwidthDL",
+            "5~100",
+            "下行载波带宽"
+          ],
+          [
+            "外部NR邻接小区 下行子载波间隔",
+            "subcarrierSpacingDL",
+            "15/30/60/120",
+            "该参数指示外部小区下行的子载波间隔。根据该参数可以计算小区带宽和测量频点"
+          ],
+          [
+            "外部NR邻接小区 下行Point A频点",
+            "pointAFrequencyDL",
+            "",
+            "该参数用于指示下行Point A频点。Point A是参考资源块绝对频率位置的最低子载波(公共RB0)"
+          ],
+          [
+            "外部NR邻接小区 上行Point A频点",
+            "pointAFrequencyUL",
+            "",
+            "该参数用于指示上行Point A频点"
+          ],
+          [
+            "外部NR邻接小区 物理小区ID",
+            "nRPCI",
+            "0~1007",
+            "标识小区的物理层小区标识号：NR系统共有1008个物理层小区ID，分成336组，每组3个，一个物理层小区ID只能归属于一个小区组"
+          ],
+          [
+            "外部NR邻接小区 双工方式",
+            "duplexMode",
+            "TDD/FDD",
+            "duplex Mode"
+          ],
+          [
+            "异频测量事件A2 A2事件RSRP门限",
+            "rsrpThreshold",
+            "-156~-31",
+            "测量时服务小区A2事件RSRP绝对门限，当测量到的服务小区RSRP低于门限时UE上报A2事件。"
+          ],
+          [
+            "NR邻接关系",
+            "LIJIE",
+            "11100~300000",
+            "此参数和邻小区的站号、小区号、物理小区相关"
+          ]
+        ]
+      },
+      {
+        "id": "block-177",
+        "kind": "paragraph",
+        "order": 177,
+        "text": "三、时延优化基础知识"
+      },
+      {
+        "id": "block-178",
+        "kind": "paragraph",
+        "order": 178,
+        "text": "（一）通信系统时延"
+      },
+      {
+        "id": "block-179",
+        "kind": "paragraph",
+        "order": 179,
+        "text": "对于移动通信业务而言，最重要的时延是端到端时延，即对于已经建立连接的收发两端，数据包从发送端产生，到接收端正确接收的时延。根据业务模型不同，端到端时延可分为单程时延和回程时延，其中单程时延指数据包从发射端产生经过无线网络正确到达另外一个接收端的时延，回程时延指数据包从发射端产生到目标服务器收到数据包并返回相应的数据包直至发射端正确接收到应答数据包的时延。"
+      },
+      {
+        "id": "block-180",
+        "kind": "paragraph",
+        "order": 180,
+        "text": "在互联网业务指标体系中，关于时间长短的指标评价体系将影响用户对于网络的使用体验。"
+      },
+      {
+        "id": "block-181",
+        "kind": "paragraph",
+        "order": 181,
+        "mediaRefs": [
+          "rId261"
+        ]
+      },
+      {
+        "id": "block-182",
+        "kind": "paragraph",
+        "order": 182,
+        "text": "图4-2-15 业务类型"
+      },
+      {
+        "id": "block-183",
+        "kind": "paragraph",
+        "order": 183,
+        "text": "在5G所对应的六大垂直行业中，对时延的要求基本都小于20ms，这是4G下50ms的时延不能满足的。"
+      },
+      {
+        "id": "block-184",
+        "kind": "paragraph",
+        "order": 184,
+        "mediaRefs": [
+          "rId262"
+        ]
+      },
+      {
+        "id": "block-185",
+        "kind": "paragraph",
+        "order": 185,
+        "text": "图4-2-16 应用场景时延要求"
+      },
+      {
+        "id": "block-186",
+        "kind": "paragraph",
+        "order": 186,
+        "text": "从时延原因分析，从网络侧分析时延产生的原因如下表4-2-6情况："
+      },
+      {
+        "id": "block-187",
+        "kind": "paragraph",
+        "order": 187,
+        "text": "表4-2-6 时延产生的原因表"
+      },
+      {
+        "id": "block-188",
+        "kind": "paragraph",
+        "order": 188,
+        "mediaRefs": [
+          "rId263"
+        ]
+      },
+      {
+        "id": "block-189",
+        "kind": "paragraph",
+        "order": 189,
+        "text": "从端到端的网络分析发现，网络中的各个环节均对时延情况有影响，其中包括了终端自身，无线接入网，传输网络，核心网和应用服务器。"
+      },
+      {
+        "id": "block-190",
+        "kind": "paragraph",
+        "order": 190,
+        "mediaRefs": [
+          "rId264"
+        ]
+      },
+      {
+        "id": "block-191",
+        "kind": "paragraph",
+        "order": 191,
+        "text": "图4-2-17 端到端网络图"
+      },
+      {
+        "id": "block-192",
+        "kind": "paragraph",
+        "order": 192,
+        "text": "5G系统相比其它通讯系统，结构更加精简。从协议已发布一些指标来看，时延相比其它系统有较大改善。比如协议要求用户面时延小于4ms。"
+      },
+      {
+        "id": "block-193",
+        "kind": "paragraph",
+        "order": 193,
+        "text": "（二）5G低时延技术的实现"
+      },
+      {
+        "id": "block-194",
+        "kind": "paragraph",
+        "order": 194,
+        "text": "UPF（用户名功能）下沉、MEC（边缘计算）技术"
+      },
+      {
+        "id": "block-195",
+        "kind": "paragraph",
+        "order": 195,
+        "text": "5G彻底实现了控制面和用户面分离，将用户面下沉，并引入移动边缘计算（MEC），让云服务更加接近用户，从而提供超低时延。"
+      },
+      {
+        "id": "block-196",
+        "kind": "paragraph",
+        "order": 196,
+        "mediaRefs": [
+          "rId265"
+        ]
+      },
+      {
+        "id": "block-197",
+        "kind": "paragraph",
+        "order": 197,
+        "text": "图4-2-18 网络低时延处理"
+      },
+      {
+        "id": "block-198",
+        "kind": "paragraph",
+        "order": 198,
+        "text": "自包含时隙"
+      },
+      {
+        "id": "block-199",
+        "kind": "paragraph",
+        "order": 199,
+        "text": "自包含时隙（self-contained slot）：R15支持的一种新的时隙格式。Self-contained slot支持在一个时隙中同时包含上行传输和下行传输，用于缩短下行反馈时延以及上行调度时延，用于满足超低时延业务需求。"
+      },
+      {
+        "id": "block-200",
+        "kind": "paragraph",
+        "order": 200,
+        "text": "图4-2-19 自包含帧图4-2-19 自包含帧",
+        "mediaRefs": [
+          "rId266"
+        ]
+      },
+      {
+        "id": "block-201",
+        "kind": "paragraph",
+        "order": 201,
+        "text": "增大子载波间隔"
+      },
+      {
+        "id": "block-202",
+        "kind": "paragraph",
+        "order": 202,
+        "text": "子载波间隔增大1倍，则一个符号的时长缩短一半，则至少可以将空口传输时间减少一半"
+      },
+      {
+        "id": "block-203",
+        "kind": "paragraph",
+        "order": 203,
+        "mediaRefs": [
+          "rId267"
+        ]
+      },
+      {
+        "id": "block-204",
+        "kind": "paragraph",
+        "order": 204,
+        "text": "图4-2-20"
+      },
+      {
+        "id": "block-205",
+        "kind": "paragraph",
+        "order": 205,
+        "text": "下行带宽抢占"
+      },
+      {
+        "id": "block-206",
+        "kind": "paragraph",
+        "order": 206,
+        "text": "URLLC抢占eMBB：URLLC可以“后调而先至”直接覆盖eMBB的资源"
+      },
+      {
+        "id": "block-207",
+        "kind": "paragraph",
+        "order": 207,
+        "mediaRefs": [
+          "rId268"
+        ]
+      },
+      {
+        "id": "block-208",
+        "kind": "paragraph",
+        "order": 208,
+        "text": "图4-2-21"
+      },
+      {
+        "id": "block-209",
+        "kind": "paragraph",
+        "order": 209,
+        "text": "mini-slot和免授权"
+      },
+      {
+        "id": "block-210",
+        "kind": "paragraph",
+        "order": 210,
+        "text": "mini-slot，普通调度的最小时间粒度是一个slot（14个OFDM符号）；引入Mini-slots后，调度的最小时间粒度可以进一步压缩到数个OFDM符号，从而为uRLLC类应用进一步压缩空口时延打开了空间。"
+      },
+      {
+        "id": "block-211",
+        "kind": "paragraph",
+        "order": 211,
+        "mediaRefs": [
+          "rId269"
+        ]
+      },
+      {
+        "id": "block-212",
+        "kind": "paragraph",
+        "order": 212,
+        "text": "图4-2-22 Mini-slots"
+      },
+      {
+        "id": "block-213",
+        "kind": "paragraph",
+        "order": 213,
+        "text": "上行免授权，即1次授权，多次使用，较少调度信令所带来的时延；"
+      },
+      {
+        "id": "block-214",
+        "kind": "paragraph",
+        "order": 214,
+        "mediaRefs": [
+          "rId270"
+        ]
+      },
+      {
+        "id": "block-215",
+        "kind": "paragraph",
+        "order": 215,
+        "text": "图4-2-23 免授权"
+      },
+      {
+        "id": "block-216",
+        "kind": "paragraph",
+        "order": 216,
+        "text": "（三）5G网优相关的时延类参数，如下表"
+      },
+      {
+        "id": "block-217",
+        "kind": "paragraph",
+        "order": 217,
+        "text": "表4-2-7 时延类主要参数"
+      },
+      {
+        "id": "block-218",
+        "kind": "table",
+        "order": 218,
+        "rows": [
+          [
+            "参数名称",
+            "英文名称",
+            "参数范围",
+            "参数说明"
+          ],
+          [
+            "DRX配置开关",
+            "drxSwitch",
+            "0关闭/1打开/2空置",
+            "该参数指示非连续接收配置开关，开关打开时，小区下的UE配置DRX，否则不配置DRX"
+          ],
+          [
+            "CSIReportResource CQI的报告发送周期",
+            "cqiReportPeriod",
+            "8/20/40/160/360",
+            "该参数表示RSRP报告的的发送周期修改后会自动触发小区删建，小区用户短暂退服"
+          ],
+          [
+            "rachConfigGeneric PRACH功率攀升步长dB",
+            "powerRampingStep",
+            "0/2/4/6",
+            "发送prach后，没有收到MSG2后，重新发送PRACH的功率攀升值"
+          ],
+          [
+            "rachConfigGeneric 前导最大发送次数",
+            "preambleTransMax",
+            "3/4/8/10/20/50/100",
+            "当UE发送随机接入前缀后，未收到响应，则会把发射功率加上功率攀升步长进行再次尝试，直到前缀发送次数达到最大传输次数。"
+          ],
+          [
+            "移动性功能 EPS回落开关",
+            "epsfbSwitch",
+            "0关闭/1基于盲的方式/2基于测量的方式",
+            "该参数用于控制EPS fallback时的互操作方式。配置为关闭时，表示不进行互操作行为；配置为盲的方式，表示不下测量，直接基于邻区和频点配置进行盲切换或重定向；配置为基于测量的方式，表示先下发测量控制，再通过测量结果进行互操作。"
+          ]
+        ]
+      },
+      {
+        "id": "block-219",
+        "kind": "paragraph",
+        "order": 219,
+        "text": "四、速率优化基础知识"
+      },
+      {
+        "id": "block-220",
+        "kind": "paragraph",
+        "order": 220,
+        "text": "5G网络对数据速率有了新的指标要求，其峰值速率20Gbps，用户体验速率10-100Mbps，是4G网络条件下的10-100倍，如此高的速率是如何实现的呢？"
+      },
+      {
+        "id": "block-221",
+        "kind": "paragraph",
+        "order": 221,
+        "mediaRefs": [
+          "rId271"
+        ]
+      },
+      {
+        "id": "block-222",
+        "kind": "paragraph",
+        "order": 222,
+        "text": "图4-2-24 5G网络要求"
+      },
+      {
+        "id": "block-223",
+        "kind": "paragraph",
+        "order": 223,
+        "text": "5G NR用户速率受到多方面的因素的影响。"
+      },
+      {
+        "id": "block-224",
+        "kind": "paragraph",
+        "order": 224,
+        "mediaRefs": [
+          "rId272"
+        ]
+      },
+      {
+        "id": "block-225",
+        "kind": "paragraph",
+        "order": 225,
+        "text": "图4-2-25 速率影响因素"
+      },
+      {
+        "id": "block-226",
+        "kind": "paragraph",
+        "order": 226,
+        "text": "移动用户的速率通常采用吞吐率来表示，英文称Throughput，上行和下行分开进行表示。LTE时代下行业务为主，所以更多地关心下行吞吐率，5G时代上行业务也会增加，所以上行吞吐率也很重要。本文还是以下行吞吐率分析为例进行说明。"
+      },
+      {
+        "id": "block-227",
+        "kind": "paragraph",
+        "order": 227,
+        "text": "吞吐率可以简称为下行速率，下行峰值速率是在一定的资源配置条件下测得的，它可以简单表示如下："
+      },
+      {
+        "id": "block-228",
+        "kind": "paragraph",
+        "order": 228,
+        "text": "下行峰值速率 =下行数据量/数据传送时间"
+      },
+      {
+        "id": "block-229",
+        "kind": "paragraph",
+        "order": 229,
+        "text": "5G系统中采用大规模天线系统，通常采用多天线进行收发。因此，一定时间段内所传送的数据量除了受载波数以及时域和频域资源限定之外，空域的资源配置也会影响数据量。具体分析如下。"
+      },
+      {
+        "id": "block-230",
+        "kind": "paragraph",
+        "order": 230,
+        "text": "（一）下行信道处理过程"
+      },
+      {
+        "id": "block-231",
+        "kind": "paragraph",
+        "order": 231,
+        "text": "PDSCH下行处理过程主要在TS38.211和TS38.212协议中描述。来自MAC层的MAC PDU包括控制或业务数据，它们在物理层进行编码和解码等处理（如下图），经由空中接口发送出去。"
+      },
+      {
+        "id": "block-232",
+        "kind": "paragraph",
+        "order": 232,
+        "mediaRefs": [
+          "rId273"
+        ]
+      },
+      {
+        "id": "block-233",
+        "kind": "paragraph",
+        "order": 233,
+        "text": "图4-2-26 信息处理流程"
+      },
+      {
+        "id": "block-234",
+        "kind": "paragraph",
+        "order": 234,
+        "text": "其中，层映射功能是根据空间层数将码字分为多路进行发送，而调制功能将符号变换成比特位进行发送，二者都有利于提高吞吐量。"
+      },
+      {
+        "id": "block-235",
+        "kind": "paragraph",
+        "order": 235,
+        "text": "（二）时/频资源"
+      },
+      {
+        "id": "block-236",
+        "kind": "paragraph",
+        "order": 236,
+        "text": "5G系统的资源栅格图示如下，它由时域和频域2部分组成。频域上，子载波间隔与参数集µ相关，频域上时隙长度也与µ相关。以µ=1为例，子载波间隔为30KHz，时隙长度为0.5ms。"
+      },
+      {
+        "id": "block-237",
+        "kind": "paragraph",
+        "order": 237,
+        "mediaRefs": [
+          "rId274"
+        ]
+      },
+      {
+        "id": "block-238",
+        "kind": "paragraph",
+        "order": 238,
+        "text": "图4-2-27 资源栅格"
+      },
+      {
+        "id": "block-239",
+        "kind": "paragraph",
+        "order": 239,
+        "text": "时域资源"
+      },
+      {
+        "id": "block-240",
+        "kind": "paragraph",
+        "order": 240,
+        "text": "随着子载波间隔的增加(µ值增加)，对应的时域OFDM符号长度越来越短。"
+      },
+      {
+        "id": "block-241",
+        "kind": "paragraph",
+        "order": 241,
+        "text": "表4-2-8 不同子载波间隔下的符号长度"
+      },
+      {
+        "id": "block-242",
+        "kind": "paragraph",
+        "order": 242,
+        "mediaRefs": [
+          "rId275"
+        ]
+      },
+      {
+        "id": "block-243",
+        "kind": "paragraph",
+        "order": 243,
+        "text": "不同子载波对应的符号长度不同，因此对于不同得子载波，特定时间段如1ms子帧或者0.5ms半帧范围内所包含的符号数也不同，15KHz下符号长度(包含CP)是其它SCS下的符号长度的的2µ倍，如表所示。即15KHz下包含CP时的符号长度相当于2个30KHz的符号长度之和、或者4个60KHz的符号长度之和，以此类推。"
+      },
+      {
+        "id": "block-244",
+        "kind": "paragraph",
+        "order": 244,
+        "text": "以0.5ms半帧为例，不同子载波间隔下的符号间的关系如下图所示。图中不同子载波间隔下，除了第一个符号之外，其余所有符号的长度都是相同的。"
+      },
+      {
+        "id": "block-245",
+        "kind": "paragraph",
+        "order": 245,
+        "mediaRefs": [
+          "rId276"
+        ]
+      },
+      {
+        "id": "block-246",
+        "kind": "paragraph",
+        "order": 246,
+        "text": "图4-2-28 不同子载波间隔下的符号间的关系"
+      },
+      {
+        "id": "block-247",
+        "kind": "paragraph",
+        "order": 247,
+        "text": "每个时隙中的符号数与循环前缀(CP)的类型有关系。常规CP下，每个时隙中都包含连续的OFDM符号，取值为14，即与子载波间隔无关。扩展CP下，每个时隙中的符号数为12。"
+      },
+      {
+        "id": "block-248",
+        "kind": "paragraph",
+        "order": 248,
+        "text": "5G系统中，根据时隙中符号的作用方式，可以分为全下行(D)、全上行(U)和灵活配置方式。表中D表示下行符号、U表示上行符号，X表示上下行灵活配置方式。如表4-2-9"
+      },
+      {
+        "id": "block-249",
+        "kind": "paragraph",
+        "order": 249,
+        "text": "表4-2-9 时隙配比表"
+      },
+      {
+        "id": "block-250",
+        "kind": "paragraph",
+        "order": 250,
+        "mediaRefs": [
+          "rId277"
+        ]
+      },
+      {
+        "id": "block-251",
+        "kind": "paragraph",
+        "order": 251,
+        "text": "时域上可以采用多个时隙组成特定的帧结构，共同进行上下行数据传送工作，比如子载波间隔为30KHz时，5个时隙可以共同组成2.5ms帧结构。常见的DDDSU单周期或者DDDSU-DDSUU双周期结构如下所示。其中，D表示全下行时隙、U表示全上行时隙、S表示上下行混合以及保护时隙。"
+      },
+      {
+        "id": "block-252",
+        "kind": "paragraph",
+        "order": 252,
+        "text": "2.5ms单周期(DDDSU-DDDSU)图示"
+      },
+      {
+        "id": "block-253",
+        "kind": "paragraph",
+        "order": 253,
+        "text": "传送周期2.5ms，支持2~4个符号的GP配置(例如4个符号的GP)。每2.5ms内，时隙#0、#1和#2固定作为DL，时隙#3为下行主导时隙，格式为DL-GP-UL。SSB(即同步和广播信号)可以在时隙#0、#1、#2和#3上传送。时隙#4固定作为UL时隙，PRACH可以在时隙#4上传送。"
+      },
+      {
+        "id": "block-254",
+        "kind": "paragraph",
+        "order": 254,
+        "text": "图4-2-29 2.5ms单周期图4-2-29 2.5ms单周期",
+        "mediaRefs": [
+          "rId278"
+        ]
+      },
+      {
+        "id": "block-255",
+        "kind": "paragraph",
+        "order": 255,
+        "text": "2.5ms双周期(DDDSU-DDSUU)图示"
+      },
+      {
+        "id": "block-256",
+        "kind": "paragraph",
+        "order": 256,
+        "text": "传送周期2.5ms + 2.5ms，支持2~4个符号的GP配置(例如4个符号的GP)，如下图所示。"
+      },
+      {
+        "id": "block-257",
+        "kind": "paragraph",
+        "order": 257,
+        "text": "每2.5ms+2.5ms的周期内，对于第一个2.5ms，时隙#0、#1和#2固定作为DL，时隙#3为下行主导(dominate)时隙，格式为DL-GP。SSB信号可以在时隙#0、#1、#2和#3上传送。时隙#4固定作为UL主导(prevail)时隙，PRACH可以在时隙#4上传送。每2.5ms+2.5ms的周期内，对于第二个2.5ms，时隙#5和#6固定作为DL，时隙#7为下行主导时隙，格式为DL-GP。时隙#8和#9固定作为UL时隙，PRACH可以在时隙#8和#9上传送。"
+      },
+      {
+        "id": "block-258",
+        "kind": "paragraph",
+        "order": 258,
+        "mediaRefs": [
+          "rId279"
+        ]
+      },
+      {
+        "id": "block-259",
+        "kind": "paragraph",
+        "order": 259,
+        "text": "图4-2-30 2.5ms双周期"
+      },
+      {
+        "id": "block-260",
+        "kind": "paragraph",
+        "order": 260,
+        "text": "上下行配比"
+      },
+      {
+        "id": "block-261",
+        "kind": "paragraph",
+        "order": 261,
+        "text": "特定的帧结构中，时隙D和U的数目大致决定了上下行时域资源占比，S时隙的不同配置也会或多或少地影响上下行时域资源占比。比如D:GP:U=10:2:2和8:4:2的配置中上下行配比就存在微小差异。如果考虑下行峰值吞吐量，则可以采用D时隙的占比来计算。如果要使计算结果更为准确，就可以基于符号数目来计算。基于符号数目的不同帧结构下的容量和开销对比如下表4-2-10。"
+      },
+      {
+        "id": "block-262",
+        "kind": "paragraph",
+        "order": 262,
+        "text": "表4-2-10 资源占比"
+      },
+      {
+        "id": "block-263",
+        "kind": "paragraph",
+        "order": 263,
+        "mediaRefs": [
+          "rId280"
+        ]
+      },
+      {
+        "id": "block-264",
+        "kind": "paragraph",
+        "order": 264,
+        "text": "可见，2.5ms双周期上行占比最高，因此利于上行为主的业务；2.5ms单周期下行占比最高，因此利于下行业务。TS36.306协议中，考虑峰值速率计算时，提供了4种扩展系数，分别为1.0、0.8、0.75和0.4，是与下述四种帧结构配置方式相对应的（表4-2-11），且其中把S时隙粗略作为下行时隙来考虑的。"
+      },
+      {
+        "id": "block-265",
+        "kind": "paragraph",
+        "order": 265,
+        "text": "表4-2-11 时隙占比"
+      },
+      {
+        "id": "block-266",
+        "kind": "paragraph",
+        "order": 266,
+        "mediaRefs": [
+          "rId281"
+        ]
+      },
+      {
+        "id": "block-267",
+        "kind": "paragraph",
+        "order": 267,
+        "text": "频域资源"
+      },
+      {
+        "id": "block-268",
+        "kind": "paragraph",
+        "order": 268,
+        "text": "5G系统中，一个资源块(RB)由频域上连续的个12子载波组成。不同带宽条件下所支持的PRB数目是不同的，详见TS38.104-5.3.1/2 信道带宽配置。FR1(即<6GHz)的传输带宽配置NRB 如下表所示。可见，30KHz条件下，100MHz载波带宽所支持PRB数为273。（见表4-2-12）"
+      },
+      {
+        "id": "block-269",
+        "kind": "paragraph",
+        "order": 269,
+        "text": "表4-2-12 资源表"
+      },
+      {
+        "id": "block-270",
+        "kind": "paragraph",
+        "order": 270,
+        "mediaRefs": [
+          "rId282"
+        ]
+      },
+      {
+        "id": "block-271",
+        "kind": "paragraph",
+        "order": 271,
+        "text": "峰值速率通常采用整个带宽进行估算，也就是说，计算100MHz带宽下的下行峰值吞吐率时，频域PRB数目采用273来进行计算。"
+      },
+      {
+        "id": "block-272",
+        "kind": "paragraph",
+        "order": 272,
+        "text": "（三）时/频域资源中的开销"
+      },
+      {
+        "id": "block-273",
+        "kind": "paragraph",
+        "order": 273,
+        "text": "PDSCH下行时隙中，存在PDCCH和DMRS等信道或者信号，用于辅助进行调度和控制作用。这些信息的存在会降低PDSCH可用的RE资源，因此可以理解为PDSCH信道资源中的开销。采用自包含帧示例如下。第一个符号为PDCCH，第二个符号为前置DMRS，而上行和下行符号之间还需要配置GP作为保护带。"
+      },
+      {
+        "id": "block-274",
+        "kind": "paragraph",
+        "order": 274,
+        "mediaRefs": [
+          "rId283"
+        ]
+      },
+      {
+        "id": "block-275",
+        "kind": "paragraph",
+        "order": 275,
+        "text": "图4-2-31 时/频域资源"
+      },
+      {
+        "id": "block-276",
+        "kind": "paragraph",
+        "order": 276,
+        "text": "DMRS主要用于无线信道估计，它在预定的资源范围内伴随相应的信道进行发送并用于相关信道的解码工作。时域上，可以采用单个符号或者多个符号来配置DMRS；频域上，DMRS也可以采用不同的密度。"
+      },
+      {
+        "id": "block-277",
+        "kind": "paragraph",
+        "order": 277,
+        "mediaRefs": [
+          "rId284"
+        ]
+      },
+      {
+        "id": "block-278",
+        "kind": "paragraph",
+        "order": 278,
+        "text": "图4-2-32 DMRS位置"
+      },
+      {
+        "id": "block-279",
+        "kind": "paragraph",
+        "order": 279,
+        "text": "（四）空域资源"
+      },
+      {
+        "id": "block-280",
+        "kind": "paragraph",
+        "order": 280,
+        "text": "5G系统中，采用mMIMO技术时，可以通过层映射功能将一个码字映射到多个空间层上进行传输，这种利用空间资源的方式也有助于提高用户的吞吐量。下图4-2-33为采用4层进行传输时的层映射方式。"
+      },
+      {
+        "id": "block-281",
+        "kind": "paragraph",
+        "order": 281,
+        "mediaRefs": [
+          "rId285"
+        ]
+      },
+      {
+        "id": "block-282",
+        "kind": "paragraph",
+        "order": 282,
+        "text": "图4-2-33 传输映射"
+      },
+      {
+        "id": "block-283",
+        "kind": "paragraph",
+        "order": 283,
+        "text": "对于终端来说，如果基站侧4端口独立发送，UE侧支持4天线端口独立接收，则相当于采用了4x4 MIMO，因此下行速率相当于速率扩大到4倍，其吞吐率也是单天线端口的4倍。"
+      },
+      {
+        "id": "block-284",
+        "kind": "paragraph",
+        "order": 284,
+        "mediaRefs": [
+          "rId286"
+        ]
+      },
+      {
+        "id": "block-285",
+        "kind": "paragraph",
+        "order": 285,
+        "text": "图4-2-34 4x4 MIMO"
+      },
+      {
+        "id": "block-286",
+        "kind": "paragraph",
+        "order": 286,
+        "text": "（五）载频资源"
+      },
+      {
+        "id": "block-287",
+        "kind": "paragraph",
+        "order": 287,
+        "text": "5G系统中，6GHz以下所支持的最大信号带宽为100MHz，如果采用载波聚合实现多载波同时传送，则下行吞吐率相应地扩大。"
+      },
+      {
+        "id": "block-288",
+        "kind": "paragraph",
+        "order": 288,
+        "mediaRefs": [
+          "rId287"
+        ]
+      },
+      {
+        "id": "block-289",
+        "kind": "paragraph",
+        "order": 289,
+        "text": "图4-2-35 载波聚合"
+      },
+      {
+        "id": "block-290",
+        "kind": "paragraph",
+        "order": 290,
+        "text": "（六）调制方式和码率"
+      },
+      {
+        "id": "block-291",
+        "kind": "paragraph",
+        "order": 291,
+        "text": "调制是将符号变换成比特的过程。不同调制方式所对应的调制阶数不同，意味着1个符号经过不同的调制方式后所产生的符号数不同。比如，256QAM下，1个符号对应8比特，而64QAM下，1个符号则对应6比特。（如表4-2-13） 表4-2-13 调制阶数"
+      },
+      {
+        "id": "block-292",
+        "kind": "paragraph",
+        "order": 292,
+        "mediaRefs": [
+          "rId288"
+        ]
+      },
+      {
+        "id": "block-293",
+        "kind": "paragraph",
+        "order": 293,
+        "text": "下行调度过程中，为了确定物理下行链路共享信道中的调制阶数，目标码率和传输块大小，UE首先会读取DCI中的5比特的调制和编码域(IMCS)，并进一步确定调制阶数(Qm)和目标码率®，同时读取DCI中的冗余版本字段(RV)来确定冗余版本。其次，UE使用层数(ʋ)、速率匹配之前所分配的PRB总数(nPRB)，来确定传输块大小。"
+      },
+      {
+        "id": "block-294",
+        "kind": "paragraph",
+        "order": 294,
+        "text": "有效信道码率定义为下行链路信息比特数(包括CRC比特)除以PDSCH上物理信道的比特数，效率为信息比特数与总符号数的比值。码率和效率之间可以互相换算。由于总比特数是总符号数与调制阶数的乘积，所以效率等于码率乘以调制阶数。表示为："
+      },
+      {
+        "id": "block-295",
+        "kind": "paragraph",
+        "order": 295,
+        "text": "码率=信息比特数/物理信道总比特数=信息比特数/(物理信道总符号数*调制阶数)=效率/调制阶数"
+      },
+      {
+        "id": "block-296",
+        "kind": "paragraph",
+        "order": 296,
+        "text": "如果有效信道码率高于0.95，则UE将忽略传输块的初始传输的解码工作。如果UE忽略解码工作，则物理层会向高层指明该传输块未被成功解码。UE根据下行信道测量结果上报CQI，gNB根据UE上报的CQI信息选择合适调制方式，满足该信道条件下的效率要求。不同调制方式所对应的效率请参见TS38.214中的定义。"
+      },
+      {
+        "id": "block-297",
+        "kind": "paragraph",
+        "order": 297,
+        "text": "以256QAM为例，规范规定的MCS及其效率表示为（如下表4-2-14）："
+      },
+      {
+        "id": "block-298",
+        "kind": "paragraph",
+        "order": 298,
+        "text": "表4-2-14 MCS效率"
+      },
+      {
+        "id": "block-299",
+        "kind": "paragraph",
+        "order": 299,
+        "mediaRefs": [
+          "rId289"
+        ]
+      },
+      {
+        "id": "block-300",
+        "kind": "paragraph",
+        "order": 300,
+        "text": "为了表示的方便性，表中码率取值是乘以1024之后的结果。由此可见，对应最高频谱效率的最大码率为948/1024=0.925。"
+      },
+      {
+        "id": "block-301",
+        "kind": "paragraph",
+        "order": 301,
+        "text": "（七）峰值速率计算"
+      },
+      {
+        "id": "block-302",
+        "kind": "paragraph",
+        "order": 302,
+        "text": "TS38.306协议中提供的峰值速率计算方法，对终端所支持的最大数据速率进行了计算。在上述分析基础上，可以理解规范中计算公式的含义。"
+      },
+      {
+        "id": "block-303",
+        "kind": "paragraph",
+        "order": 303,
+        "text": "对于NR，频带或频带组合中给定数量的聚合载波的近似数据速率计算公式如下："
+      },
+      {
+        "id": "block-304",
+        "kind": "paragraph",
+        "order": 304,
+        "mediaRefs": [
+          "rId290"
+        ]
+      },
+      {
+        "id": "block-305",
+        "kind": "paragraph",
+        "order": 305,
+        "text": "举例来说：3.5GHz频段，100M载波带宽，2.5ms单周期，S时隙配比为11:1:2，下行256QAM，上行64QAM，单UE的峰值速率如下："
+      },
+      {
+        "id": "block-306",
+        "kind": "paragraph",
+        "order": 306,
+        "text": "UE下行峰值速率 = 4*8*0.92578*273*12*（1-0.14）*21200 = 1,769,440,558bps = 1.769Gbps"
+      },
+      {
+        "id": "block-307",
+        "kind": "paragraph",
+        "order": 307,
+        "text": "UE上行峰值速率 = 2*6*0.92578*273*12*（1-0.08）*6400 = 214,289,422bps = 0.214Gbps"
+      },
+      {
+        "id": "block-308",
+        "kind": "paragraph",
+        "order": 308,
+        "mediaRefs": [
+          "rId291"
+        ]
+      },
+      {
+        "id": "block-309",
+        "kind": "paragraph",
+        "order": 309,
+        "text": "（八）速率问题排查思路鱼骨图"
+      },
+      {
+        "id": "block-310",
+        "kind": "paragraph",
+        "order": 310,
+        "mediaRefs": [
+          "rId292"
+        ]
+      },
+      {
+        "id": "block-311",
+        "kind": "paragraph",
+        "order": 311,
+        "text": "图4-2-36 速率问题排查"
+      },
+      {
+        "id": "block-312",
+        "kind": "paragraph",
+        "order": 312,
+        "text": "业务速率低的问题，可以分解到服务器及传输问题，测试电脑机终端问题，无线环境问题，以及基站相关参数设置问题。"
+      },
+      {
+        "id": "block-313",
+        "kind": "paragraph",
+        "order": 313,
+        "text": "速率问题排查思路和流程"
+      },
+      {
+        "id": "block-314",
+        "kind": "paragraph",
+        "order": 314,
+        "text": "通过业务测试确认小区速率较低；"
+      },
+      {
+        "id": "block-315",
+        "kind": "paragraph",
+        "order": 315,
+        "text": "通过告警分析核查问题小区是否存在影响业务的告警，如果存在异常告警，则按照告警提示解决影响业务的告警；"
+      },
+      {
+        "id": "block-316",
+        "kind": "paragraph",
+        "order": 316,
+        "text": "通过查看上下行RSRP和SINR，或使用网管频谱分析，判断问题小区或UE测试区域是否存在较强干扰或弱覆盖，如果存在，则通过干扰解决、找点、调整小区发射功率等手段改善UE无线环境；"
+      },
+      {
+        "id": "block-317",
+        "kind": "paragraph",
+        "order": 317,
+        "text": "通过参数核查确认问题小区无线参数是否设置正确，如有问题，则严格按照现场实际组网配置和峰值流量测试配置要求修改对应无线参数；"
+      },
+      {
+        "id": "block-318",
+        "kind": "paragraph",
+        "order": 318,
+        "text": "通过查、问等方式确认测试环境是否满足峰值流量测试要求，如有问题，则根据核查结果协调局方或核心网侧配合解决问题。"
+      },
+      {
+        "id": "block-319",
+        "kind": "paragraph",
+        "order": 319,
+        "text": "如果经历以上处理步骤后，故障仍然无法解决，则采集故障信息上报进行分析。"
+      },
+      {
+        "id": "block-320",
+        "kind": "paragraph",
+        "order": 320,
+        "text": "（九）5G网优相关的速率类参数，如下表4-2-15"
+      },
+      {
+        "id": "block-321",
+        "kind": "paragraph",
+        "order": 321,
+        "text": "表 4-2-15 速率类主要参数"
+      },
+      {
+        "id": "block-322",
+        "kind": "table",
+        "order": 322,
+        "rows": [
+          [
+            "参数名称",
+            "英文名称",
+            "参数范围",
+            "参数说明"
+          ],
+          [
+            "DLAmc参数 下行PDSCH MCS最大值",
+            "maxMCSDl",
+            "0~28",
+            "该参数用于限制小区PDSCH链路所能达到的最大MCS值。范围0-28,"
+          ],
+          [
+            "DLAmc参数 下行PDSCH MCS最小值",
+            "minMCSDl",
+            "0~28",
+            "该参数用于限制小区PDSCH链路所能达到的最小MCS值。范围0-28,"
+          ],
+          [
+            "DLAmc参数 下行PDSCH内环AMC使能开关",
+            "dlIlAMCEnable",
+            "ture/false/null",
+            "下行PDSCH内环AMC使能开关。置TRUE，打开下行内环AMC，小区根据UE的CQI和SRS上报值预估PDSCH链路的信道环境，从而调整pdsch的调制和编码方式；置FALSE，关闭下行内环AMC，小区不会根据UE的CQI和SRS上报來估计PDSCH链路的信道环境。正常业务流程建议打开，在故障排查等特殊场景可以按需要修改。"
+          ],
+          [
+            "DLAmc参数 下行PDSCHh外环AMC使能开关",
+            "dlOlAMCEnable",
+            "ture/false/null",
+            "下行PDSCH外环AMC使能开关。置TRUE，打开下行外环AMC，小区根据UE上报的PDSCH的ACK/NACK反馈來调整PDSCH的调制和编码方式;置FALSE，关闭下行外环AMC，小区不会根据UE上报的PDSCH的ACK/NACK反馈來调整PDSCH的调制和编码方式。正常业务流程建议打开，在故障排查等特殊场景可以按需要修改。"
+          ],
+          [
+            "帧结构配置参数 帧结构第一个周期S slot上的下行符号数",
+            "nrofDownlinkSymbols1",
+            "0~13",
+            "该参数用于指示帧结构第一个周期S slot上的下行符号的个数。"
+          ],
+          [
+            "NRPhysicalCellDU 用户体验开关",
+            "userExpSwitch",
+            "0~9",
+            "该参数为用户延时体验服务模式的控制开关，通过对用户的预调度和基于SR的带宽分配等功能进行控制，影响用户体验效果。对于不同场景，可以选用不同的体验服务模式。"
+          ],
+          [
+            "256QAM列表 PUSCH 256QAM使能开关",
+            "qam256EnableUl",
+            "false/true",
+            "上行256QAM使能开关，信道条件较好时使能，采用高阶调度。"
+          ],
+          [
+            "256QAM列表 PDSCH 256QAM使能开关",
+            "dlPowerControlSwitch",
+            "false/true",
+            "该参数用于降低近点用户下行256QAM的功率，以减少对远点用户的干扰，是小区级参数。当该参置为1时，表示需要降低近点用户下行256QAM的功率，支持EVM功率均衡；当置为0时，表示不降低近点用户下行256QAM的功率，不进行EVM功率均衡优化"
+          ],
+          [
+            "256QAM列表 下行256QAM功率调整优化开关",
+            "qam256EnableDl",
+            "false/true",
+            "上行256QAM使能开关，信道条件较好时使能，采用高阶调度"
+          ],
+          [
+            "HARQ参数 下行HARQ最大传输次数",
+            "dlHarqMaxTxNum",
+            "1/2/3/4/5",
+            "HARQ具有重传机制，该参数给出了下行HARQ最大传输次数, 为新传次数和重传次数总和。例如: 若该参数配置为5，则包含新传次数为1，重传次数为4"
+          ],
+          [
+            "HARQ参数 上行HARQ最大传输次数",
+            "ulHarqMaxTxNum",
+            "1/2/3/4/5",
+            "HARQ具有重传机制，该参数给出了上行HARQ最大传输次数, 为新传次数和重传次数总和。例如: 若该参数配置为5，则包含新传次数为1，重传次数为4"
+          ],
+          [
+            "QoS业务类型 业务承载类型(IMS signaling qci=5)",
+            "srvBearerType",
+            "GBR/Non-GBR",
+            "该参数表示业务承载类型,包括GBR和Non-GBR。Non-GBR（Non-GuaranteedBitRate，非保证速率），是指该承载只提供“尽力而为”（不保证质量）的传输。GBR（Guaranteed BitRate，保证速率）指该承载提供保证速率的传输"
+          ],
+          [
+            "ULAmc参数 上行MCS最大值",
+            "maxMCSUl",
+            "0~28",
+            "该参数指示了高层为小区上行链路配置的最大MCS值"
+          ],
+          [
+            "ULAmc参数 上行MCS最小值",
+            "minMCSUl",
+            "0~28",
+            "该参数指示了高层为小区上行链路配置的最小MCS值"
+          ],
+          [
+            "SA QoS承载业务类型 业务数据包QoS延迟参数",
+            "srvPacketDelay",
+            "1~10000",
+            "该参数用于设置业务数据包的延迟参数，由相关23系列的3GPP协议定义，此参数在网管里不可修改，仅仅做为参考信息"
+          ],
+          [
+            "SA QoS承载业务类型 误包率",
+            "srvPacketError",
+            "1E-7~0.1",
+            "该参数表示业务数据包QoS误包率"
+          ],
+          [
+            "SA QoS承载业务类型 业务优先级",
+            "srvPrior",
+            "1~255",
+            "该优先级参数关联5G QoS相关特性，指示在所有DRB中该DRB的优先级"
+          ],
+          [
+            "以太网接口 接收带宽",
+            "bandwidth",
+            "1~40000",
+            "以太网口接收带宽，新增网口或修改网口速率时配置，标识以太网口端口速率，具体值参考网口硬件参数"
+          ],
+          [
+            "以太网接口 发送带宽",
+            "transmitBandwidth",
+            "1~40000",
+            "以太网口发送带宽，新增网口或修改网口速率时配置，标识以太网口端口发送速率，具体值参考网口硬件参数"
+          ],
+          [
+            "以太网接口 应用场景",
+            "appscene",
+            "0无差别类型/1增强移动宽带类型/2超高可靠超低时延通信类型",
+            "表示以太网口的应用场景。"
+          ],
+          [
+            "CarrierDL carrier带宽",
+            "bandwidth",
+            "1~273",
+            "carrier带宽"
+          ]
+        ]
+      },
+      {
+        "id": "block-323",
+        "kind": "paragraph",
+        "order": 323,
+        "text": "五、容量优化基础知识"
+      },
+      {
+        "id": "block-324",
+        "kind": "paragraph",
+        "order": 324,
+        "text": "（一）容量：一般指系统可容纳多少用户，和系统数据的吞吐量；用户接入数量，一般和RRC是信令指标和系统带宽资源有关。"
+      },
+      {
+        "id": "block-325",
+        "kind": "paragraph",
+        "order": 325,
+        "text": "随着5G网络的发展和用户的快速逐渐增长，热点区域小区负荷也逐渐升高，用户的不均匀分布导致部分小区出现高负荷情况，热点区域小区均匀覆盖和单载波已经不能保障用户的需求，小区间覆盖伸缩和双载波部署越来越重要。急需通过覆盖调整、参数优化、负荷均衡、资源扩容等方式需 要在热点区域展开，以提升网络容量。"
+      },
+      {
+        "id": "block-326",
+        "kind": "paragraph",
+        "order": 326,
+        "text": "在以下场景中，经常需要考虑容量优化网络保障。",
+        "mediaRefs": [
+          "rId293"
+        ]
+      },
+      {
+        "id": "block-327",
+        "kind": "paragraph",
+        "order": 327,
+        "text": "图4-2-37 大话务场景"
+      },
+      {
+        "id": "block-328",
+        "kind": "paragraph",
+        "order": 328,
+        "text": "高负荷小区占比大面临的问题："
+      },
+      {
+        "id": "block-329",
+        "kind": "paragraph",
+        "order": 329,
+        "text": "系统资源本身不足，拥塞导致批量未接通；"
+      },
+      {
+        "id": "block-330",
+        "kind": "paragraph",
+        "order": 330,
+        "text": "用户网络速率感知体验差，投诉量持续增加；"
+      },
+      {
+        "id": "block-331",
+        "kind": "paragraph",
+        "order": 331,
+        "text": "新技术新功能开发的缓慢，跟不上业务的增长；"
+      },
+      {
+        "id": "block-332",
+        "kind": "paragraph",
+        "order": 332,
+        "text": "5G用户数=面积（平方）*人流密度*运营商5G用户渗透率"
+      },
+      {
+        "id": "block-333",
+        "kind": "paragraph",
+        "order": 333,
+        "text": "根据所在区域内，总用户数业务的需求和5G网络站点小区负载能力，可以规划计算出站点数量，小区数量。"
+      },
+      {
+        "id": "block-334",
+        "kind": "paragraph",
+        "order": 334,
+        "text": "在仿真软件中容量方面，根据5G NR将单用户的业务速率或者其他的需求，作为容量评估的输入方，通过评估不同场景、资源配置、信道模型，结合小区平均吞吐量SE和边缘吞吐量ESE的系统容量计算，最终将计算得到能承载的用户数、站址规模。"
+      },
+      {
+        "id": "block-335",
+        "kind": "paragraph",
+        "order": 335,
+        "text": "（二）5G网优相关的容量类参数，如下表4-2-16"
+      },
+      {
+        "id": "block-336",
+        "kind": "paragraph",
+        "order": 336,
+        "text": "表4-2-16 容量类主要参数"
+      },
+      {
+        "id": "block-337",
+        "kind": "table",
+        "order": 337,
+        "rows": [
+          [
+            "参数名称",
+            "英文名称",
+            "取值范围",
+            "参数说明"
+          ],
+          [
+            "负载均衡的一种测量 事件标识",
+            "eventId",
+            "A1/A2/A3/A4/A5",
+            "该参数指示了测量触发的事件标识"
+          ],
+          [
+            "负载均衡的一种测量 A4 A5事件判决的RSRP绝对门限",
+            "rsrpThreshold",
+            "-156~-31",
+            "测量时服务小区A4事件判决的RSRP绝对门限，当测量到的服务小区RSRP高于门限时UE上报A4事件"
+          ],
+          [
+            "负载均衡的一种测量 A5事件RSRP门限2",
+            "A5Thrd2Rsrp",
+            "-156~-31",
+            "测量时邻区A5事件RSRP绝对门限"
+          ],
+          [
+            "负载均衡的一种测量 判决迟滞范围",
+            "hysteresis",
+            "0~30",
+            "进行判决时迟滞范围，用于事件的判决"
+          ],
+          [
+            "天线信息 下行发射天线数",
+            "dlAntNum",
+            "1天线/2天线/4天线/8天线/16天线/32天线/64天线",
+            "该参数用于适配不同的下行发射天线数。根据RRU/AAU支持的下行发射天线数确定。例如不同RRU/AAU机型支持的天线数不一样，比如2天线，4天线，8天线等等。"
+          ],
+          [
+            "天线信息 上行接收天线数",
+            "ulAntNum",
+            "1天线/2天线/4天线/8天线/16天线/32天线/64天线",
+            "该参数用于适配不同的上行接收天线数。根据RRU/AAU支持的上行接收天线数确定。例如不同RRU/AAU机型支持的天线数不一样，比如2天线，4天线，8天线等等。"
+          ]
+        ]
+      },
+      {
+        "id": "block-338",
+        "kind": "paragraph",
+        "order": 338,
+        "text": "六、掉话优化基础知识"
+      },
+      {
+        "id": "block-339",
+        "kind": "paragraph",
+        "order": 339,
+        "text": "（一）5GNR语音解决方案"
+      },
+      {
+        "id": "block-340",
+        "kind": "paragraph",
+        "order": 340,
+        "text": "5G NR语音解决方案部分分为两部分，5G支持IMS方案，则采用VoNR，5G仅和4G有互操作；5G不支持IMS方案，则采用EPS Fallback，类似于LTE语音解决方案，EPS FB：若5G尚未提供语音业务，所有语音呼叫回落到4G，由4G提供语音业务EPS FB+CSFB：若4G尚未支持VoLTE，语音呼叫再从4G回落到2G/3G，由2G/3G网络提供语音业务。VoNR为终极解决方案，一段时间内VoNR、VoeLTE、VoLTE、2/3G语音业务将共存。"
+      },
+      {
+        "id": "block-341",
+        "kind": "paragraph",
+        "order": 341,
+        "mediaRefs": [
+          "rId294"
+        ]
+      },
+      {
+        "id": "block-342",
+        "kind": "paragraph",
+        "order": 342,
+        "text": "图4-2-38 语音解决方案图"
+      },
+      {
+        "id": "block-343",
+        "kind": "paragraph",
+        "order": 343,
+        "text": "在无线通信系统中，掉话率是非常关键的指标，它可以被终端用户直接感知从而影响用户使用感受。"
+      },
+      {
+        "id": "block-344",
+        "kind": "paragraph",
+        "order": 344,
+        "text": "（二）掉线率定义："
+      },
+      {
+        "id": "block-345",
+        "kind": "paragraph",
+        "order": 345,
+        "text": "电信NR数据业务掉线率=NR数据业务掉线次数/业务接通次数×100%"
+      },
+      {
+        "id": "block-346",
+        "kind": "paragraph",
+        "order": 346,
+        "text": "业务保持过程中NR异常释放次数：NR异常释放和/或10s以上应用层速率为0均视作掉线。"
+      },
+      {
+        "id": "block-347",
+        "kind": "paragraph",
+        "order": 347,
+        "text": "中移SA掉线率=掉线次数/成功完成连接建立次数×100%"
+      },
+      {
+        "id": "block-348",
+        "kind": "paragraph",
+        "order": 348,
+        "text": "分子定义：测试任务还在运行中且已经接收到了一定数据的情况下，超过60s没有任何数据传输即判断掉线"
+      },
+      {
+        "id": "block-349",
+        "kind": "paragraph",
+        "order": 349,
+        "text": "分母定义：RRC IDLE状态的终端通过随机接入-RRC连接建立-PDU Session建立空口过程完成与无线网络的连接并开始上下行数据传输，视作成功完成连接建立。"
+      },
+      {
+        "id": "block-350",
+        "kind": "paragraph",
+        "order": 350,
+        "text": "从上面定义可以看出，目前的定义不仅仅是空口信令流程上的失败，还包含了在一定时间内速率为0，也被记为掉线。"
+      },
+      {
+        "id": "block-351",
+        "kind": "paragraph",
+        "order": 351,
+        "text": "（三）前台测试中掉线信令表现主要有如下4种："
+      },
+      {
+        "id": "block-352",
+        "kind": "paragraph",
+        "order": 352,
+        "text": "1.弱覆盖/SINR导致终端检测到无线链路失败，发起重建立但重建立无响应或失败；"
+      },
+      {
+        "id": "block-353",
+        "kind": "paragraph",
+        "order": 353,
+        "text": "终端发送MR后一直未收到切换命令，源小区信号较差，终端检测到RLF，发起了重建立请求，但未收到RRCReestablishment，重建立失败。终端读取系统消息选择小区驻留并发起注册流程。"
+      },
+      {
+        "id": "block-354",
+        "kind": "paragraph",
+        "order": 354,
+        "text": "覆盖或SINR较差，会导致终端检测到无线链路失败，发起重建立且重建立无响应或失败。"
+      },
+      {
+        "id": "block-355",
+        "kind": "paragraph",
+        "order": 355,
+        "text": "2.在RRC连接态下，终端收到了网络的异常释放导致掉话；"
+      },
+      {
+        "id": "block-356",
+        "kind": "paragraph",
+        "order": 356,
+        "text": "在RRC连接态下终端未检测到RLF，但网络侧下发了RRC Release消息，释放了RRC连接，前台信令看到RRC释放未携带原因，只能从流程上进行判断。"
+      },
+      {
+        "id": "block-357",
+        "kind": "paragraph",
+        "order": 357,
+        "text": "3.在切换执行过程中失败导致掉话；"
+      },
+      {
+        "id": "block-358",
+        "kind": "paragraph",
+        "order": 358,
+        "text": "在切换执行阶段，UE检测到RLF，发起RRC重建立流程，上报重建立原因为handover failure，但重建立失败导致掉话。"
+      },
+      {
+        "id": "block-359",
+        "kind": "paragraph",
+        "order": 359,
+        "text": "4.RRC重配阶段（如建立/修改/释放RB/测量）同步失败导致掉话。"
+      },
+      {
+        "id": "block-360",
+        "kind": "paragraph",
+        "order": 360,
+        "text": "在RRC连接状态下，若需要建立、修改、释放RB或测控信息，则需要通过RRC重配命令将配置下发给终端，终端收到重配命令后启动T304，若T304超时则发起重建立流程，如果重建立无响应或重建立失败，则会导致掉话。"
+      },
+      {
+        "id": "block-361",
+        "kind": "paragraph",
+        "order": 361,
+        "text": "（四）连接态下物理层失步/同步检测过程"
+      },
+      {
+        "id": "block-362",
+        "kind": "paragraph",
+        "order": 362,
+        "text": "在T300，T301，T304，T311，T319定时器均未启动，若UE高层收到N310个连续的“out-of-sync”指示，UE将启动T310定时器；"
+      },
+      {
+        "id": "block-363",
+        "kind": "paragraph",
+        "order": 363,
+        "text": "在T310定时器运行期间，如果UE从底层收到了N311个连续“in-sync”指示，则停止T310定时器"
+      },
+      {
+        "id": "block-364",
+        "kind": "paragraph",
+        "order": 364,
+        "text": "无线定时器介绍（参考项目三内容）"
+      },
+      {
+        "id": "block-365",
+        "kind": "paragraph",
+        "order": 365,
+        "text": "（五）掉线问题排查流程"
+      },
+      {
+        "id": "block-366",
+        "kind": "paragraph",
+        "order": 366,
+        "text": "掉线是在UE接入完成RRCConnectionReconfigurationComplete后处于连接态，之后由于干扰问题、覆盖问题、邻区问题、PCI冲突或其他原因导致的UE上下行失步，触发重建立请求但重建立失败或者重建立被拒绝，或未触发重建立请求直接释放到IDLE态的过程。简单理解可以认为：只要不是终端主动发起的释放都应该算为掉线。"
+      },
+      {
+        "id": "block-367",
+        "kind": "paragraph",
+        "order": 367,
+        "text": "1.检查掉话相关站点是否有告警"
+      },
+      {
+        "id": "block-368",
+        "kind": "paragraph",
+        "order": 368,
+        "text": "先检查掉话位置点相关站点是否有告警，重点检查是否有硬件告警（如AAU链路断，输入电源断，光模块不可用告警），软件告警，传输相关告警，XN/NG链路断告警，这些都是会引起掉话问题的告警，如果有的话，需要首先处理这类告警。"
+      },
+      {
+        "id": "block-369",
+        "kind": "paragraph",
+        "order": 369,
+        "text": "2.检查是否存在传输丢包"
+      },
+      {
+        "id": "block-370",
+        "kind": "paragraph",
+        "order": 370,
+        "text": "在切换过程中，涉及到XN或NG接口，信令/数据交互需要通过XN或NG接口进行传输。因此，需要同时核查XN和NG接口传输是否存在丢包，时延较大或时延抖动较大问题，若存在则需联系传输侧进行排查，解决传输问题。"
+      },
+      {
+        "id": "block-371",
+        "kind": "paragraph",
+        "order": 371,
+        "text": "在设备感知管理->传输分析->IP通道检测进行传输问题核查。"
+      },
+      {
+        "id": "block-372",
+        "kind": "paragraph",
+        "order": 372,
+        "text": "3.排查终端问题"
+      },
+      {
+        "id": "block-373",
+        "kind": "paragraph",
+        "order": 373,
+        "text": "由于目前SA终端成熟度不高，因此，可以通过升级到最新版本验证是否存在掉话，若仍存在掉话，则更换不同品牌终端，验证是否只是特定品牌终端存在该问题。通过该流程，主要排查终端异常导致的掉话。"
+      },
+      {
+        "id": "block-374",
+        "kind": "paragraph",
+        "order": 374,
+        "text": "4.核查baseline参数"
+      },
+      {
+        "id": "block-375",
+        "kind": "paragraph",
+        "order": 375,
+        "text": "出现掉话问题，在进行参数排查时，首先与系统自带baseline参数进行核查，若存在未对齐参数，先对齐参数，进行复测，保证参数与baseline设置一致。"
+      },
+      {
+        "id": "block-376",
+        "kind": "paragraph",
+        "order": 376,
+        "text": "5.解决弱覆盖/质量较差问题"
+      },
+      {
+        "id": "block-377",
+        "kind": "paragraph",
+        "order": 377,
+        "text": "从前台log查看，若发现RSRP，SINR较差（一般RSRP<-110，SINR<-5左右容易发生掉话），则需进行RF优化，解决弱覆盖及质差问题。"
+      },
+      {
+        "id": "block-378",
+        "kind": "paragraph",
+        "order": 378,
+        "text": "6.解决邻区漏配问题"
+      },
+      {
+        "id": "block-379",
+        "kind": "paragraph",
+        "order": 379,
+        "text": "从前台信令查看，终端一直上报MR，但一直未收到切换重配命令，首先怀疑是否存在邻区漏配，核查后台邻区配置，是否配置邻区，若配置邻区，按照SA切换指导书核查切换参数设置是否正确。"
+      },
+      {
+        "id": "block-380",
+        "kind": "paragraph",
+        "order": 380,
+        "text": "7.解决切换不及时问题"
+      },
+      {
+        "id": "block-381",
+        "kind": "paragraph",
+        "order": 381,
+        "text": "终端切换不及时容易导致掉话。从前台表现来看，终端上报MR后未收到基站发送的切换重配命令，而后台信令中查看，基站已发送切换重配命令，查看此时源小区RSRP/SINR是否非常差，若是，则为切换不及时，可通过修改邻区中CIO参数加快切换流程触发。"
+      },
+      {
+        "id": "block-382",
+        "kind": "paragraph",
+        "order": 382,
+        "text": "8.解决切换过早问题"
+      },
+      {
+        "id": "block-383",
+        "kind": "paragraph",
+        "order": 383,
+        "text": "切换过早问题，在街道拐角经常出现。前台信令表现为，终端上报MR后，收到了基站发送的切换重配且终端已回复重配完成，但后台信令中目标小区未收到重配完成，查看此时目标小区RSRP/SINR是否非常差，若是，则表示切换过早或目标小区存在越区覆盖问题。可通过RF优化或修改CIO延缓切换流程触发。"
+      },
+      {
+        "id": "block-384",
+        "kind": "paragraph",
+        "order": 384,
+        "text": "9.解决PCI冲突问题"
+      },
+      {
+        "id": "block-385",
+        "kind": "paragraph",
+        "order": 385,
+        "text": "在切换流程中，若存在同频同PCI问题，则会导致目标小区无法收到切换重配完成消息，从而导致切换失败，引发掉话问题。需确保邻区中不存在同频同PCI问题，若存在，则需要对PCI进行优化。"
+      },
+      {
+        "id": "block-386",
+        "kind": "paragraph",
+        "order": 386,
+        "text": "10.解决随机接入参数问题"
+      },
+      {
+        "id": "block-387",
+        "kind": "paragraph",
+        "order": 387,
+        "text": "在切换流程中，若目标侧PRACH参数设置错误或CCE聚合度参数设置错误，则会导致在切换流程中随机接入失败，若出现随机接入过程失败导致切换掉话，则根据SA接入指导书进行排查。"
+      },
+      {
+        "id": "block-388",
+        "kind": "paragraph",
+        "order": 388,
+        "text": "11.解决干扰问题"
+      },
+      {
+        "id": "block-389",
+        "kind": "paragraph",
+        "order": 389,
+        "text": "外部干扰会影响基站接收终端上行信令，若存在上行干扰，基站大概率存在无法接收到终端发送的RRC重配完成信令，从而导致掉话。通过后台进行扫频确认是否存在干扰，详情参看干扰排查指导书。"
+      },
+      {
+        "id": "block-390",
+        "kind": "paragraph",
+        "order": 390,
+        "text": "在设备感知管理->频谱干扰分析->基带频谱分析中进行扫频核查是否存在上行干扰。"
+      },
+      {
+        "id": "block-391",
+        "kind": "paragraph",
+        "order": 391,
+        "mediaRefs": [
+          "rId295",
+          "rId296",
+          "rId297"
+        ]
+      },
+      {
+        "id": "block-392",
+        "kind": "paragraph",
+        "order": 392,
+        "text": "图4-2-39 问题排查流程"
+      },
+      {
+        "id": "block-393",
+        "kind": "paragraph",
+        "order": 393,
+        "text": "（六）5G网优相关的掉线类参数，如下表4-2-17"
+      },
+      {
+        "id": "block-394",
+        "kind": "paragraph",
+        "order": 394,
+        "text": "表4-2-17 掉线类主要参数"
+      },
+      {
+        "id": "block-395",
+        "kind": "table",
+        "order": 395,
+        "rows": [
+          [
+            "参数名称",
+            "英文名称",
+            "取值范围",
+            "参数说明释"
+          ],
+          [
+            "UE定时器配置 UE等待RRC重建响应的定时器长度(T301)",
+            "t301",
+            "100~2000",
+            "该参数用于指示UE等待RRC重建响应的定时器长度。当UE发送RRC连接重建请求消息时，打开T301定时器。当UE收到RRC连接重建消息或RRC连接重建拒绝消息后，停止T301定时器；当定时器超时，UE进入IDLE态。"
+          ],
+          [
+            "UE定时器配置 UE接收下行失步指示的最大个数(N310)",
+            "n310",
+            "1~20",
+            "该参数用于指示UE检测下行失步时，连续接收失步指示的最大个数。"
+          ],
+          [
+            "移动性功能 NR语音开关指示",
+            "voNrSwitch",
+            "false/ture",
+            "开关打开时，表示基站支持VONR业务。开关关闭时，表示基站不支持VONR的业务"
+          ],
+          [
+            "UE定时器配置UE监测到无线链路失败后转入idle状态的定时器长度(T311)",
+            "t311",
+            "1000~30000",
+            "该参数用于指示UE检测下行失步时，连续接收失步指示的最大个数。"
+          ]
+        ]
+      },
+      {
+        "id": "block-396",
+        "kind": "paragraph",
+        "order": 396,
+        "text": "任务实施"
+      },
+      {
+        "id": "block-397",
+        "kind": "paragraph",
+        "order": 397,
+        "text": "用网络优化仿真软件，查询站点覆盖，切换，容量，掉话，速率，时延等，各项优化结果数据，具体操作如下："
+      },
+      {
+        "id": "block-398",
+        "kind": "paragraph",
+        "order": 398,
+        "text": "登录仿真软件，在前边三步完成后，点击进入step4，进入系统后，点击要查询的站点，如下图4-2-40："
+      },
+      {
+        "id": "block-399",
+        "kind": "paragraph",
+        "order": 399,
+        "mediaRefs": [
+          "rId298"
+        ]
+      },
+      {
+        "id": "block-400",
+        "kind": "paragraph",
+        "order": 400,
+        "text": "图4-2-40 仿真界面"
+      },
+      {
+        "id": "block-401",
+        "kind": "paragraph",
+        "order": 401,
+        "text": "然后可以查询该站点各项优化结果。"
+      },
+      {
+        "id": "block-402",
+        "kind": "paragraph",
+        "order": 402,
+        "text": "具体查询结果如下图："
+      },
+      {
+        "id": "block-403",
+        "kind": "paragraph",
+        "order": 403,
+        "text": "一、查询覆盖优化结果 图4-2-41"
+      },
+      {
+        "id": "block-404",
+        "kind": "paragraph",
+        "order": 404,
+        "mediaRefs": [
+          "rId299"
+        ]
+      },
+      {
+        "id": "block-405",
+        "kind": "paragraph",
+        "order": 405,
+        "text": "图4-2-41 覆盖优化图"
+      },
+      {
+        "id": "block-406",
+        "kind": "paragraph",
+        "order": 406,
+        "text": "二、查询切换优化结果，如下图4-2-42"
+      },
+      {
+        "id": "block-407",
+        "kind": "paragraph",
+        "order": 407,
+        "mediaRefs": [
+          "rId300"
+        ]
+      },
+      {
+        "id": "block-408",
+        "kind": "paragraph",
+        "order": 408,
+        "text": "图4-2-42 切换优化图"
+      },
+      {
+        "id": "block-409",
+        "kind": "paragraph",
+        "order": 409,
+        "text": "三、查询时延优化结果，如下图4-2-43"
+      },
+      {
+        "id": "block-410",
+        "kind": "paragraph",
+        "order": 410,
+        "mediaRefs": [
+          "rId301"
+        ]
+      },
+      {
+        "id": "block-411",
+        "kind": "paragraph",
+        "order": 411,
+        "text": "图4-2-43 时延优化图"
+      },
+      {
+        "id": "block-412",
+        "kind": "paragraph",
+        "order": 412,
+        "text": "四、查询速率优化结果，如下图4-2-44"
+      },
+      {
+        "id": "block-413",
+        "kind": "paragraph",
+        "order": 413,
+        "mediaRefs": [
+          "rId302"
+        ]
+      },
+      {
+        "id": "block-414",
+        "kind": "paragraph",
+        "order": 414,
+        "text": "图4-2-44 速率优化图"
+      },
+      {
+        "id": "block-415",
+        "kind": "paragraph",
+        "order": 415,
+        "text": "五、查询容量优化结果，如下图4-2-45"
+      },
+      {
+        "id": "block-416",
+        "kind": "paragraph",
+        "order": 416,
+        "mediaRefs": [
+          "rId303"
+        ]
+      },
+      {
+        "id": "block-417",
+        "kind": "paragraph",
+        "order": 417,
+        "text": "图4-2-45 容量优化图"
+      },
+      {
+        "id": "block-418",
+        "kind": "paragraph",
+        "order": 418,
+        "text": "六、查询掉话优化结果，如下图4-2-46"
+      },
+      {
+        "id": "block-419",
+        "kind": "paragraph",
+        "order": 419,
+        "mediaRefs": [
+          "rId304"
+        ]
+      },
+      {
+        "id": "block-420",
+        "kind": "paragraph",
+        "order": 420,
+        "text": "图4-2-46 掉线优化图"
+      },
+      {
+        "id": "block-421",
+        "kind": "paragraph",
+        "order": 421,
+        "text": "随堂测试"
+      },
+      {
+        "id": "block-422",
+        "kind": "paragraph",
+        "order": 422,
+        "text": "请简述时频资源和参数集µ的对应关系。"
+      },
+      {
+        "id": "block-423",
+        "kind": "paragraph",
+        "order": 423,
+        "text": "请简述覆盖优化的基本原则。"
+      },
+      {
+        "id": "block-424",
+        "kind": "paragraph",
+        "order": 424,
+        "text": "请简要描述不带SN的NSA切换流程。"
+      },
+      {
+        "id": "block-425",
+        "kind": "paragraph",
+        "order": 425,
+        "text": "重点难点"
+      },
+      {
+        "id": "block-426",
+        "kind": "paragraph",
+        "order": 426,
+        "text": "本节重点：无线网络端到端优化常见的六种优化场景基本原理。"
+      },
+      {
+        "id": "block-427",
+        "kind": "paragraph",
+        "order": 427,
+        "text": "本节难点：无线网络端到端优化常见的六种优化场景内容，参数理解，优化方法。"
+      },
+      {
+        "id": "block-428",
+        "kind": "paragraph",
+        "order": 428,
+        "text": "任务测评"
+      },
+      {
+        "id": "block-429",
+        "kind": "paragraph",
+        "order": 429,
+        "text": "1、覆盖优化的目标是什么？"
+      },
+      {
+        "id": "block-430",
+        "kind": "paragraph",
+        "order": 430,
+        "text": "2、简述5G高速率特性，从无线技术上是如何实现的？"
+      },
+      {
+        "id": "block-431",
+        "kind": "paragraph",
+        "order": 431,
+        "text": "3、登录仿真软件，修改参数完成网络端到端优化，提高各项性能指标。"
+      },
+      {
+        "id": "block-432",
+        "kind": "paragraph",
+        "order": 432,
+        "text": "预留二维码位置预留二维码位置"
+      },
+      {
+        "id": "block-433",
+        "kind": "paragraph",
+        "order": 433,
+        "text": "经典案例"
+      },
+      {
+        "id": "block-434",
+        "kind": "paragraph",
+        "order": 434,
+        "text": "弱覆盖问题"
+      },
+      {
+        "id": "block-435",
+        "kind": "paragraph",
+        "order": 435,
+        "text": "【问题描述】"
+      },
+      {
+        "id": "block-436",
+        "kind": "paragraph",
+        "order": 436,
+        "text": "塔园路北侧弱覆盖问题：UE在该路段主要占用永新大厦1小区PCI9信号，此时RSRP在-105dBm左右，邻区内无其他基站信号或者很弱，同时该路段北侧及南侧采样点RSRP较强，也是该小区覆盖。该弱覆盖路段持续约200米。"
+      },
+      {
+        "id": "block-437",
+        "kind": "paragraph",
+        "order": 437,
+        "mediaRefs": [
+          "rId305"
+        ]
+      },
+      {
+        "id": "block-438",
+        "kind": "paragraph",
+        "order": 438,
+        "text": "【问题分析】"
+      },
+      {
+        "id": "block-439",
+        "kind": "paragraph",
+        "order": 439,
+        "text": "上站勘察，现场查勘，永新大厦1小区PCI9覆盖方向上有高楼遮挡，导致该路段弱覆盖。"
+      },
+      {
+        "id": "block-440",
+        "kind": "paragraph",
+        "order": 440,
+        "mediaRefs": [
+          "rId306"
+        ]
+      },
+      {
+        "id": "block-441",
+        "kind": "paragraph",
+        "order": 441,
+        "text": "【优化方案】"
+      },
+      {
+        "id": "block-442",
+        "kind": "paragraph",
+        "order": 442,
+        "text": "PCI9小区电子下倾角下压3°"
+      },
+      {
+        "id": "block-443",
+        "kind": "paragraph",
+        "order": 443,
+        "text": "PCI9小区sssOffsetRE+3dB"
+      },
+      {
+        "id": "block-444",
+        "kind": "paragraph",
+        "order": 444,
+        "text": "PCI9小区波束2、3波束宽度10°→7°。"
+      },
+      {
+        "id": "block-445",
+        "kind": "paragraph",
+        "order": 445,
+        "text": "备注：本次调整天线下倾角并未上塔，采用的是修改波束下倾角来调整"
+      },
+      {
+        "id": "block-446",
+        "kind": "paragraph",
+        "order": 446,
+        "mediaRefs": [
+          "rId307"
+        ]
+      },
+      {
+        "id": "block-447",
+        "kind": "paragraph",
+        "order": 447,
+        "text": "2、掉话案例"
+      },
+      {
+        "id": "block-448",
+        "kind": "paragraph",
+        "order": 448,
+        "text": "邻区漏配导致掉话"
+      },
+      {
+        "id": "block-449",
+        "kind": "paragraph",
+        "order": 449,
+        "text": "如下图所示，终端上报2次MR向RSRP更好的邻区PCI为480的小区尝试切换，但网络侧一直未下发切换命令，邻区信号较强对服务小区造成干扰，服务小区SINR较差导致掉话。"
+      },
+      {
+        "id": "block-450",
+        "kind": "paragraph",
+        "order": 450,
+        "text": "对于终端上报MR但未收到切换命令，首先怀疑存在邻区漏配问题，经核查，PCI 358小区漏配PCI 480小区为邻区。添加邻区关系后进行复测，可正常切换，无掉话问题。"
+      },
+      {
+        "id": "block-451",
+        "kind": "paragraph",
+        "order": 451,
+        "mediaRefs": [
+          "rId308"
+        ]
+      },
+      {
+        "id": "block-452",
+        "kind": "paragraph",
+        "order": 452,
+        "text": "切换过早导致掉话"
+      },
+      {
+        "id": "block-453",
+        "kind": "paragraph",
+        "order": 453,
+        "text": "如图所示，PCI 371信号突然变强，RSRP达到77-156=-79dbm，满足A3门限，终端上报A3 MR后尝试往目标小区切换。从地理化显示来看，此位置处于街道拐角，信号变化较大。"
+      },
+      {
+        "id": "block-454",
+        "kind": "paragraph",
+        "order": 454,
+        "mediaRefs": [
+          "rId309"
+        ]
+      },
+      {
+        "id": "block-455",
+        "kind": "paragraph",
+        "order": 455,
+        "text": "从信令上看终端已经发送切换完成命令，但未收到目标小区的测量控制消息。查看此时目标小区RSRP在2ms内已经降低到-107dbm，由于目标小区信号突然降低导致终端未收到目标小区测控消息，无法完成切换。导致掉话的原因主要是由于目标小区信号突变，终端切换到目标小区后失步导致掉话。"
+      },
+      {
+        "id": "block-456",
+        "kind": "paragraph",
+        "order": 456,
+        "mediaRefs": [
+          "rId310"
+        ]
+      }
+    ],
+    "storyboard": {
+      "schema": "lesson-storyboard/v1",
+      "learningGoal": "学完后能定义验收阈值、样本下限、忙闲时口径和 DT/CQT 路径，并处理局部未达标区域。",
+      "summary": "本节讲优化效果验证：冻结优化前基线、样本和时间窗，用同口径前后差值、趋势、TOPN、置信度和用户体验判断是否有效。",
+      "knowledgeUnits": [
+        {
+          "id": "P12-ku-01",
+          "title": "基线冻结",
+          "kind": "concept",
+          "shortText": "优化前指标、样本、范围和时间窗先冻结。",
+          "narrationText": "结果验证从基线冻结开始，固定问题小区、对照小区、统计周期、样本量、业务场景和数据来源。"
+        },
+        {
+          "id": "P12-ku-02",
+          "title": "验收口径",
+          "kind": "concept",
+          "shortText": "目标线包含阈值、置信样本和业务场景。",
+          "narrationText": "验收目标必须可计算，明确指标阈值、样本下限、忙闲时口径、DT/CQT 路径和业务场景。"
+        },
+        {
+          "id": "P12-ku-03",
+          "title": "差值验证",
+          "kind": "criteria",
+          "shortText": "用前后差值、趋势和置信度判断有效性。",
+          "narrationText": "验证重点是同口径前后差值，结合趋势曲线、TOPN 变化、样本置信度和用户体验判断优化是否有效。"
+        },
+        {
+          "id": "P12-ku-04",
+          "title": "异常回钻",
+          "kind": "evidence",
+          "shortText": "未达标小区回看工参、告警、日志和容量。",
+          "narrationText": "局部未达标时沿证据链回钻，核查工参、告警、信令日志、容量负荷和测试轨迹，定位残余原因。"
+        },
+        {
+          "id": "P12-ku-05",
+          "title": "复测路径",
+          "kind": "practice",
+          "shortText": "同路线、同点位、同业务脚本确认恢复情况。",
+          "narrationText": "复测路径要保持路线、点位、终端、业务脚本和统计口径一致，避免环境差异造成假改善或假劣化。"
+        },
+        {
+          "id": "P12-ku-06",
+          "title": "结论闭环",
+          "kind": "review",
+          "shortText": "结论同时给出达标项、遗留项、风险和后续动作。",
+          "narrationText": "验证闭环要说明达标指标、未达标原因、遗留风险、固化配置和后续观察动作，形成可审计结论。"
+        }
+      ],
+      "reviewSummary": "复盘时检查前值、目标线、对照小区、复测路径、异常回钻和结论闭环是否一致，避免把样本漂移当优化效果。"
+    }
+  },
+  "knowledge": {
+    "steps": [
+      {
+        "id": "P12-knowledge-01",
+        "label": "基线冻结",
+        "description": "优化前指标、样本、范围和时间窗先冻结。"
+      },
+      {
+        "id": "P12-knowledge-02",
+        "label": "验收口径",
+        "description": "目标线包含阈值、置信样本和业务场景。"
+      },
+      {
+        "id": "P12-knowledge-03",
+        "label": "差值验证",
+        "description": "用前后差值、趋势和置信度判断有效性。"
+      },
+      {
+        "id": "P12-knowledge-04",
+        "label": "异常回钻",
+        "description": "未达标小区回看工参、告警、日志和容量。"
+      },
+      {
+        "id": "P12-knowledge-05",
+        "label": "复测路径",
+        "description": "同路线、同点位、同业务脚本确认恢复情况。"
+      },
+      {
+        "id": "P12-knowledge-06",
+        "label": "结论闭环",
+        "description": "结论同时给出达标项、遗留项、风险和后续动作。"
+      }
+    ],
+    "metrics": [
+      {
+        "label": "M1",
+        "value": "N2/N3"
+      },
+      {
+        "label": "M2",
+        "value": "复测"
+      },
+      {
+        "label": "M3",
+        "value": "闭环"
+      }
+    ]
+  },
+  "animation": {
+    "templateHint": "optimization-loop",
+    "durationMs": 610000,
+    "targets": [
+      {
+        "id": "P12-step-01",
+        "label": "基线冻结",
+        "description": "优化前指标、样本、范围和时间窗先冻结。"
+      },
+      {
+        "id": "P12-step-02",
+        "label": "验收口径",
+        "description": "目标线包含阈值、置信样本和业务场景。"
+      },
+      {
+        "id": "P12-step-03",
+        "label": "差值验证",
+        "description": "用前后差值、趋势和置信度判断有效性。"
+      },
+      {
+        "id": "P12-step-04",
+        "label": "异常回钻",
+        "description": "未达标小区回看工参、告警、日志和容量。"
+      },
+      {
+        "id": "P12-step-05",
+        "label": "复测路径",
+        "description": "同路线、同点位、同业务脚本确认恢复情况。"
+      },
+      {
+        "id": "P12-step-06",
+        "label": "结论闭环",
+        "description": "结论同时给出达标项、遗留项、风险和后续动作。"
+      }
+    ]
+  },
+  "playback": {
+    "mode": "one-way",
+    "widgetId": "P12-lesson-animation-001"
+  }
+}

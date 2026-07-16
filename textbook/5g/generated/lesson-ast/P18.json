@@ -1,0 +1,1079 @@
+{
+  "schema": "dgbook.lesson-ast/v1",
+  "source": {
+    "kind": "docx",
+    "path": "content/5g/5g.docx",
+    "importer": "scripts/import-5g-docx.py"
+  },
+  "project": {
+    "id": "P18",
+    "title": "5G信令问题分析及优化",
+    "sourceNo": "2",
+    "chapterTitle": "5G信令分析",
+    "taskIndex": 2
+  },
+  "lesson": {
+    "id": "P18",
+    "title": "5G信令问题分析及优化",
+    "widgetId": "P18-lesson-animation-001",
+    "scenario": "signaling",
+    "scenarioLabel": "信令分析"
+  },
+  "content": {
+    "sections": [
+      {
+        "id": "sec-overview",
+        "title": "导学摘要",
+        "icon": "overview",
+        "texts": [
+          "本节讲 5G 信令故障分析：按接入、注册、会话、切换和业务面失败分类，重建 RRC、NAS、NGAP、PFCP 与用户面链路。"
+        ]
+      },
+      {
+        "id": "P18-ku-01",
+        "title": "概念与对象",
+        "icon": "radar",
+        "texts": [
+          "信令故障分析先按现象分类：RRC 接入失败、NAS 注册失败、PDU Session 失败、切换失败和业务面失败对应不同链路。"
+        ]
+      },
+      {
+        "id": "P18-ku-02",
+        "title": "概念与对象",
+        "icon": "route",
+        "texts": [
+          "消息链路要按时间重建，串起 UE、gNB、AMF、SMF 和 UPF 之间的方向、响应、重传和缺失消息。"
+        ]
+      },
+      {
+        "id": "P18-ku-03",
+        "title": "工程判读",
+        "icon": "chart",
+        "texts": [
+          "Cause 值只能提供线索，必须结合 T300/T3510 等定时器、重传、消息方向和上下文判断真实断点。"
+        ]
+      },
+      {
+        "id": "P18-ku-04",
+        "title": "数据与现场佐证",
+        "icon": "tool",
+        "texts": [
+          "故障链要分支排除：无线侧看覆盖与 RRC，核心网看注册与会话，传输看 N2/N3，终端看能力和配置。"
+        ]
+      },
+      {
+        "id": "P18-ku-05",
+        "title": "操作校验",
+        "icon": "search",
+        "texts": [
+          "责任边界必须由证据链支撑，明确无线、核心网、参数、传输或终端责任域，并给出协同接口。"
+        ]
+      },
+      {
+        "id": "P18-ku-06",
+        "title": "闭环复盘",
+        "icon": "check",
+        "texts": [
+          "信令故障闭环要回到同场景复测，确认消息时序恢复、KPI 回稳、业务可达，并记录遗留风险。"
+        ]
+      }
+    ],
+    "blocks": [
+      {
+        "id": "block-001",
+        "kind": "paragraph",
+        "order": 1,
+        "text": "任务导入"
+      },
+      {
+        "id": "block-002",
+        "kind": "paragraph",
+        "order": 2,
+        "text": "掌握了5G关键信令流程和相关解析，在日常工作中，对于碰到的网络问题，像注册失败，接入异常，切换失败，掉线等等，就可以通过信令进行分析，找到并定位问题的原因，提出解决建议及处理方案。"
+      },
+      {
+        "id": "block-003",
+        "kind": "paragraph",
+        "order": 3,
+        "text": "任务要求"
+      },
+      {
+        "id": "block-004",
+        "kind": "paragraph",
+        "order": 4,
+        "text": "1.掌握通过信令分析问题的方法"
+      },
+      {
+        "id": "block-005",
+        "kind": "paragraph",
+        "order": 5,
+        "text": "2.掌握覆盖类，接入类，切换类，掉线类等主要问题处理手段"
+      },
+      {
+        "id": "block-006",
+        "kind": "paragraph",
+        "order": 6,
+        "text": "3.会撰写问题分析和解决方案报告"
+      },
+      {
+        "id": "block-007",
+        "kind": "paragraph",
+        "order": 7,
+        "text": "知识准备"
+      },
+      {
+        "id": "block-008",
+        "kind": "paragraph",
+        "order": 8,
+        "text": "覆盖类问题分析"
+      },
+      {
+        "id": "block-009",
+        "kind": "paragraph",
+        "order": 9,
+        "text": "1.5G NR网络覆盖主要基于同步信号（SS-RSRP和SINR）或CSI-RS信号（CSI-RSRP和SINR）进行测量，当前阶段主要采用SS-RSRP/SS-SINR进行覆盖评估。"
+      },
+      {
+        "id": "block-010",
+        "kind": "paragraph",
+        "order": 10,
+        "text": "中国移动2.6GHz 5G网络以SA为目标网开展规划，规划优化覆盖指标要求：室外最小的规划场强SS-RSRP≥-100dBm，在SSB宽波束时频域对齐配置下，要求SS-SINR≥-7dBm，可满足下行边缘100Mbps速率要求。"
+      },
+      {
+        "id": "block-011",
+        "kind": "paragraph",
+        "order": 11,
+        "text": "中国联通以SA为目标网开展5G网络规划，规划优化覆盖指标要求：以SS-RSRP≥105dBm覆盖率满足90%，在SSB宽波束时频域对齐配置下，SS-SINR≥-7dB覆盖率满足90%为网络设计参考。对应边缘速率UL/DL=2Mbps/100Mbps。"
+      },
+      {
+        "id": "block-012",
+        "kind": "paragraph",
+        "order": 12,
+        "text": "中国电信以SA为目标网开展5G网络规划，规划优化覆盖指标要求：以SS-RSRP≥105dBm覆盖率满足95%，在SSB宽波束时频域对齐配置下，SS-SINR≥-7dB覆盖率满足95%为参考。对应边缘速率UL/DL=2Mbps/100Mbps。"
+      },
+      {
+        "id": "block-013",
+        "kind": "paragraph",
+        "order": 13,
+        "text": "2.常见覆盖问题如图：6-2-1"
+      },
+      {
+        "id": "block-014",
+        "kind": "paragraph",
+        "order": 14,
+        "mediaRefs": [
+          "rId386"
+        ]
+      },
+      {
+        "id": "block-015",
+        "kind": "paragraph",
+        "order": 15,
+        "text": "图：6-2-1 覆盖问题分类"
+      },
+      {
+        "id": "block-016",
+        "kind": "paragraph",
+        "order": 16,
+        "text": "3.覆盖问题优化原则"
+      },
+      {
+        "id": "block-017",
+        "kind": "paragraph",
+        "order": 17,
+        "text": "1）先优化SSB RSRP，后优化SSB-SINR"
+      },
+      {
+        "id": "block-018",
+        "kind": "paragraph",
+        "order": 18,
+        "text": "2）覆盖优化的两大关键任务：消除弱覆盖；消除交叉覆盖"
+      },
+      {
+        "id": "block-019",
+        "kind": "paragraph",
+        "order": 19,
+        "text": "3）优先优化弱覆盖、越区覆盖、再优化导频污染"
+      },
+      {
+        "id": "block-020",
+        "kind": "paragraph",
+        "order": 20,
+        "text": "4）工程优化阶段按照规划方案优先开展工程质量整改，再进行覆盖优化调整"
+      },
+      {
+        "id": "block-021",
+        "kind": "paragraph",
+        "order": 21,
+        "text": "4.覆盖优化方法"
+      },
+      {
+        "id": "block-022",
+        "kind": "paragraph",
+        "order": 22,
+        "text": "1）调整内容：机械下倾角、机械方位角、AAU天线挂高、AAU位置调整等；"
+      },
+      {
+        "id": "block-023",
+        "kind": "paragraph",
+        "order": 23,
+        "text": "2）基础参数配置优化：频点、功率、PCI/PRACH、邻区、切换门限等基础参数调整优化；"
+      },
+      {
+        "id": "block-024",
+        "kind": "paragraph",
+        "order": 24,
+        "text": "3）广播波束管理优化，主要涉及宽波束和多波束轮询配置以及波束级的权值配置优化。"
+      },
+      {
+        "id": "block-025",
+        "kind": "paragraph",
+        "order": 25,
+        "text": "4）对于通过优化手段无法解决的覆盖问题，及时反馈规划建设部分，协同进行天线挂高改造、天线位置改造、新增AAU、站址调整、新增宏站、新增室分系统、或宏微协同组网等工程规划方案的设计，从根本上解决覆盖问题。"
+      },
+      {
+        "id": "block-026",
+        "kind": "paragraph",
+        "order": 26,
+        "text": "接入类问题分析"
+      },
+      {
+        "id": "block-027",
+        "kind": "paragraph",
+        "order": 27,
+        "text": "1.SA完整的接入流程包括如下几个步骤"
+      },
+      {
+        "id": "block-028",
+        "kind": "paragraph",
+        "order": 28,
+        "text": "随机接入过程：当UE因为某种原因（如：业务请求、TAC更新、被寻呼等）需要和网络建立连接时，UE先进行随机接入与网络建立信令连接；"
+      },
+      {
+        "id": "block-029",
+        "kind": "paragraph",
+        "order": 29,
+        "text": "RRC连接建立过程：建立SRB1，用于传输信令，建立成功后UE进入连接态；"
+      },
+      {
+        "id": "block-030",
+        "kind": "paragraph",
+        "order": 30,
+        "text": "UE专有NG连接建立过程：gNodeB发送初始UE消息到AMF，AMF触发下行NAS消息、初始上下文请求消息，以gNodeB收到的第一条UE级的NG口消息标志专有NG连接建立成功；"
+      },
+      {
+        "id": "block-031",
+        "kind": "paragraph",
+        "order": 31,
+        "text": "2.接入问题分析思路"
+      },
+      {
+        "id": "block-032",
+        "kind": "paragraph",
+        "order": 32,
+        "text": "出现接入问题故障时，首先排除硬件故障及告警等硬件问题及基础参数设置问题，可参考流程图：6-2-2。"
+      },
+      {
+        "id": "block-033",
+        "kind": "paragraph",
+        "order": 33,
+        "text": "主要核查如下条目："
+      },
+      {
+        "id": "block-034",
+        "kind": "paragraph",
+        "order": 34,
+        "text": "1）小区状态核查，确保小区状态正常，处于正常服务状态；"
+      },
+      {
+        "id": "block-035",
+        "kind": "paragraph",
+        "order": 35,
+        "text": "2）核查是否存在影响业务的告警，若有先处理告警；"
+      },
+      {
+        "id": "block-036",
+        "kind": "paragraph",
+        "order": 36,
+        "text": "3）检查终端或SIM卡，排除终端或SIM卡导致接入失败情况；"
+      },
+      {
+        "id": "block-037",
+        "kind": "paragraph",
+        "order": 37,
+        "text": "4）核查小区是否被bar，若bar掉后可搜到系统消息但无法接入；"
+      },
+      {
+        "id": "block-038",
+        "kind": "paragraph",
+        "order": 38,
+        "text": "5）检查PRACH相关参数；"
+      },
+      {
+        "id": "block-039",
+        "kind": "paragraph",
+        "order": 39,
+        "text": "6）检查切片参数设置（参数名：切片区分）是否与核心网一致；"
+      },
+      {
+        "id": "block-040",
+        "kind": "paragraph",
+        "order": 40,
+        "text": "7）核查是否存在上行干扰，若存在干扰，先解决干扰问题；"
+      },
+      {
+        "id": "block-041",
+        "kind": "paragraph",
+        "order": 41,
+        "text": "8）排除无线环境影响。"
+      },
+      {
+        "id": "block-042",
+        "kind": "paragraph",
+        "order": 42,
+        "mediaRefs": [
+          "rId387"
+        ]
+      },
+      {
+        "id": "block-043",
+        "kind": "paragraph",
+        "order": 43,
+        "text": "图：6-2-2接入问题分析流程图"
+      },
+      {
+        "id": "block-044",
+        "kind": "paragraph",
+        "order": 44,
+        "text": "切换类问题分析"
+      },
+      {
+        "id": "block-045",
+        "kind": "paragraph",
+        "order": 45,
+        "text": "1.5G切换优化是移动网络业务连续性的基础保障，合理而及时的切换可以有效的保障用户感知，防止出现掉线等会引发投诉的现象，在网络优化中占有非常重要的意义。"
+      },
+      {
+        "id": "block-046",
+        "kind": "paragraph",
+        "order": 46,
+        "text": "5G NR的切换流程同4G一样仍然包括测量、判决、执行三个流程. 如图：6-2-3"
+      },
+      {
+        "id": "block-047",
+        "kind": "paragraph",
+        "order": 47,
+        "mediaRefs": [
+          "rId388"
+        ]
+      },
+      {
+        "id": "block-048",
+        "kind": "paragraph",
+        "order": 48,
+        "text": "图：6-2-3 切换三部曲"
+      },
+      {
+        "id": "block-049",
+        "kind": "paragraph",
+        "order": 49,
+        "text": "2.SA系统内切换分类"
+      },
+      {
+        "id": "block-050",
+        "kind": "paragraph",
+        "order": 50,
+        "text": "1）根据切换前后频点是否变更"
+      },
+      {
+        "id": "block-051",
+        "kind": "paragraph",
+        "order": 51,
+        "text": "同频切换：切换源和目标小区属于同一频点，同频切换无需启动测量gap。"
+      },
+      {
+        "id": "block-052",
+        "kind": "paragraph",
+        "order": 52,
+        "text": "异频切换：切换源小区和目标小区属于不同的频点，需要启动异频测量。"
+      },
+      {
+        "id": "block-053",
+        "kind": "paragraph",
+        "order": 53,
+        "text": "2）切换源小区和目标小区是否属于同一站点"
+      },
+      {
+        "id": "block-054",
+        "kind": "paragraph",
+        "order": 54,
+        "text": "站内切换：站内切换指的是终端在一个gNB内的不同小区之间进行切换。"
+      },
+      {
+        "id": "block-055",
+        "kind": "paragraph",
+        "order": 55,
+        "text": "站间切换：站间切换指终端在两个gNB之间小区进行切换。根据涉及到的接口不同，又分为XN切换和NG切换。"
+      },
+      {
+        "id": "block-056",
+        "kind": "paragraph",
+        "order": 56,
+        "text": "3）切换涉及到的接口"
+      },
+      {
+        "id": "block-057",
+        "kind": "paragraph",
+        "order": 57,
+        "text": "XN切换：源站点和目标站点信息交互通过XN接口完成。"
+      },
+      {
+        "id": "block-058",
+        "kind": "paragraph",
+        "order": 58,
+        "text": "NG切换：源站点和目标站点信息交互通过NG接口完成。"
+      },
+      {
+        "id": "block-059",
+        "kind": "paragraph",
+        "order": 59,
+        "text": "3.切换问题分析见流程图6-2-4",
+        "mediaRefs": [
+          "rId389"
+        ]
+      },
+      {
+        "id": "block-060",
+        "kind": "paragraph",
+        "order": 60,
+        "text": "前后台信令结合来看，主要现象有："
+      },
+      {
+        "id": "block-061",
+        "kind": "paragraph",
+        "order": 61,
+        "text": "1）UE收到测量控制消息一直未发送测量报告"
+      },
+      {
+        "id": "block-062",
+        "kind": "paragraph",
+        "order": 62,
+        "text": "2）UE发送测量报告，但gNB未收到"
+      },
+      {
+        "id": "block-063",
+        "kind": "paragraph",
+        "order": 63,
+        "text": "3）gNB未发送切换命令"
+      },
+      {
+        "id": "block-064",
+        "kind": "paragraph",
+        "order": 64,
+        "text": "4）gNB发送切换命令，但UE未收到"
+      },
+      {
+        "id": "block-065",
+        "kind": "paragraph",
+        "order": 65,
+        "text": "5)UE收到切换命令，但随机接入失败"
+      },
+      {
+        "id": "block-066",
+        "kind": "paragraph",
+        "order": 66,
+        "text": "6)UE发送切换完成命令，但gNB未收到"
+      },
+      {
+        "id": "block-067",
+        "kind": "paragraph",
+        "order": 67,
+        "text": "源gNB未收到UE上下文释放消息"
+      },
+      {
+        "id": "block-068",
+        "kind": "paragraph",
+        "order": 68,
+        "text": "可以根据具体问题，采用针对性方案处理。"
+      },
+      {
+        "id": "block-069",
+        "kind": "paragraph",
+        "order": 69,
+        "text": "图6-2-4 切换问题分析思路"
+      },
+      {
+        "id": "block-070",
+        "kind": "paragraph",
+        "order": 70,
+        "text": "掉线类问题分析"
+      },
+      {
+        "id": "block-071",
+        "kind": "paragraph",
+        "order": 71,
+        "text": "掉线率定义："
+      },
+      {
+        "id": "block-072",
+        "kind": "paragraph",
+        "order": 72,
+        "text": "掉线是在UE接入完成RRCConnectionReconfigurationComplete后处于连接态，之后由于干扰问题、覆盖问题、邻区问题、PCI冲突或其他原因导致的UE上下行失步，触发重建立请求但重建立失败或者重建立被拒绝，或未触发重建立请求直接释放到IDLE态的过程。简单理解可以认为：只要不是终端主动发起的释放都应该算为掉线。"
+      },
+      {
+        "id": "block-073",
+        "kind": "paragraph",
+        "order": 73,
+        "text": "电信NR数据业务掉线率=NR数据业务掉线次数/业务接通次数×100%"
+      },
+      {
+        "id": "block-074",
+        "kind": "paragraph",
+        "order": 74,
+        "text": "中移SA掉线率=掉线次数/成功完成连接建立次数×100%"
+      },
+      {
+        "id": "block-075",
+        "kind": "paragraph",
+        "order": 75,
+        "text": "2.前台掉线信令表现"
+      },
+      {
+        "id": "block-076",
+        "kind": "paragraph",
+        "order": 76,
+        "text": "前台测试中掉线信令表现主要有如下4种："
+      },
+      {
+        "id": "block-077",
+        "kind": "paragraph",
+        "order": 77,
+        "text": "1）弱覆盖/SINR导致终端检测到无线链路失败，发起重建立但重建立无响应或失败；"
+      },
+      {
+        "id": "block-078",
+        "kind": "paragraph",
+        "order": 78,
+        "text": "2）在RRC连接态下，终端收到了网络的异常释放导致掉话；"
+      },
+      {
+        "id": "block-079",
+        "kind": "paragraph",
+        "order": 79,
+        "text": "3）在切换执行过程中失败导致掉话；"
+      },
+      {
+        "id": "block-080",
+        "kind": "paragraph",
+        "order": 80,
+        "text": "4）RRC重配阶段（如建立/修改/释放RB/测量）同步失败导致掉话。"
+      },
+      {
+        "id": "block-081",
+        "kind": "paragraph",
+        "order": 81,
+        "text": "3.掉线问题排查流程"
+      },
+      {
+        "id": "block-082",
+        "kind": "paragraph",
+        "order": 82,
+        "text": "1）检查掉话相关站点是否有告警"
+      },
+      {
+        "id": "block-083",
+        "kind": "paragraph",
+        "order": 83,
+        "text": "2）检查是否存在传输丢包"
+      },
+      {
+        "id": "block-084",
+        "kind": "paragraph",
+        "order": 84,
+        "text": "3）排查终端问题"
+      },
+      {
+        "id": "block-085",
+        "kind": "paragraph",
+        "order": 85,
+        "text": "4）核查baseline参数"
+      },
+      {
+        "id": "block-086",
+        "kind": "paragraph",
+        "order": 86,
+        "text": "5) 解决弱覆盖/质量较差问题"
+      },
+      {
+        "id": "block-087",
+        "kind": "paragraph",
+        "order": 87,
+        "text": "6) 解决邻区漏配问题"
+      },
+      {
+        "id": "block-088",
+        "kind": "paragraph",
+        "order": 88,
+        "text": "7) 解决切换不及时问题"
+      },
+      {
+        "id": "block-089",
+        "kind": "paragraph",
+        "order": 89,
+        "text": "8) 解决切换过早问题"
+      },
+      {
+        "id": "block-090",
+        "kind": "paragraph",
+        "order": 90,
+        "text": "9) 解决PCI冲突问题"
+      },
+      {
+        "id": "block-091",
+        "kind": "paragraph",
+        "order": 91,
+        "text": "10)解决随机接入参数问题"
+      },
+      {
+        "id": "block-092",
+        "kind": "paragraph",
+        "order": 92,
+        "text": "11)解决干扰问题"
+      },
+      {
+        "id": "block-093",
+        "kind": "paragraph",
+        "order": 93,
+        "text": "任务实施"
+      },
+      {
+        "id": "block-094",
+        "kind": "paragraph",
+        "order": 94,
+        "text": "登陆5G网络优化仿真实训系统，接收信令分析任务，进入任务。如图：6-2-5"
+      },
+      {
+        "id": "block-095",
+        "kind": "paragraph",
+        "order": 95,
+        "mediaRefs": [
+          "rId378"
+        ]
+      },
+      {
+        "id": "block-096",
+        "kind": "paragraph",
+        "order": 96,
+        "text": "图：6-2-5 信令分析界面"
+      },
+      {
+        "id": "block-097",
+        "kind": "paragraph",
+        "order": 97,
+        "text": "通过log数据分析，发现问题，点击问题分析如图6-2-6"
+      },
+      {
+        "id": "block-098",
+        "kind": "paragraph",
+        "order": 98,
+        "mediaRefs": [
+          "rId390"
+        ]
+      },
+      {
+        "id": "block-099",
+        "kind": "paragraph",
+        "order": 99,
+        "text": "图6-2-6 问题分析"
+      },
+      {
+        "id": "block-100",
+        "kind": "paragraph",
+        "order": 100,
+        "text": "打开问题分析，添加问题和解决建议，根据log分析可以添加多个问题，每个问题可以提出多个解决建议。最后点击保存。如图：6-2-7"
+      },
+      {
+        "id": "block-101",
+        "kind": "paragraph",
+        "order": 101,
+        "mediaRefs": [
+          "rId391"
+        ]
+      },
+      {
+        "id": "block-102",
+        "kind": "paragraph",
+        "order": 102,
+        "text": "图：6-2-7 问题分析和建议填写"
+      },
+      {
+        "id": "block-103",
+        "kind": "paragraph",
+        "order": 103,
+        "text": "随堂测试"
+      },
+      {
+        "id": "block-104",
+        "kind": "paragraph",
+        "order": 104,
+        "text": "通过log分析，分析覆盖类问题并提出解决建议？"
+      },
+      {
+        "id": "block-105",
+        "kind": "paragraph",
+        "order": 105,
+        "text": "经典案例"
+      },
+      {
+        "id": "block-106",
+        "kind": "paragraph",
+        "order": 106,
+        "text": "一.切换过早导致掉话"
+      },
+      {
+        "id": "block-107",
+        "kind": "paragraph",
+        "order": 107,
+        "text": "问题描述：如图6-2-8所示，PCI 371信号突然变强，RSRP达到77-156=-79dbm，满足A3门限，终端上报A3 MR后尝试往目标小区切换。从地理化显示来看，此位置处于街道拐角，信号变化较大。"
+      },
+      {
+        "id": "block-108",
+        "kind": "paragraph",
+        "order": 108,
+        "mediaRefs": [
+          "rId309"
+        ]
+      },
+      {
+        "id": "block-109",
+        "kind": "paragraph",
+        "order": 109,
+        "text": "图6-2-8"
+      },
+      {
+        "id": "block-110",
+        "kind": "paragraph",
+        "order": 110,
+        "text": "问题分析：从信令上看终端已经发送切换完成命令，但未收到目标小区的测量控制消息。查看此时目标小区RSRP在2ms内已经降低到-107dbm，如图6-2-9。由于目标小区信号突然降低导致终端未收到目标小区测控消息，无法完成切换。导致掉话的原因主要是由于目标小区信号突变，终端切换到目标小区后失步导致掉话。"
+      },
+      {
+        "id": "block-111",
+        "kind": "paragraph",
+        "order": 111,
+        "mediaRefs": [
+          "rId310"
+        ]
+      },
+      {
+        "id": "block-112",
+        "kind": "paragraph",
+        "order": 112,
+        "text": "图6-2-9"
+      },
+      {
+        "id": "block-113",
+        "kind": "paragraph",
+        "order": 113,
+        "text": "优化解决建议：1. 增加PCI371 在此处的信号强度，使其切换成功后有满足的信号强度供其业务连续性。"
+      },
+      {
+        "id": "block-114",
+        "kind": "paragraph",
+        "order": 114,
+        "text": "调整CIO，或者切换触发时间，使其切换变慢，增加目标小区信号考察时间，等目标信号强度稳定后再切换。"
+      },
+      {
+        "id": "block-115",
+        "kind": "paragraph",
+        "order": 115,
+        "text": "频繁切换导致速率低"
+      },
+      {
+        "id": "block-116",
+        "kind": "paragraph",
+        "order": 116,
+        "text": "问题描述：车辆沿桃花南路由南向北行驶时，5G小区频繁切换，导致测试速率频繁掉坑，测试速率不达标；如图图6-2-10"
+      },
+      {
+        "id": "block-117",
+        "kind": "paragraph",
+        "order": 117,
+        "mediaRefs": [
+          "rId392"
+        ]
+      },
+      {
+        "id": "block-118",
+        "kind": "paragraph",
+        "order": 118,
+        "text": "图6-2-10"
+      },
+      {
+        "id": "block-119",
+        "kind": "paragraph",
+        "order": 119,
+        "text": "问题分析处理："
+      },
+      {
+        "id": "block-120",
+        "kind": "paragraph",
+        "order": 120,
+        "text": "1、查看问题路段的信号覆盖情况，该路段由于位于高架下，且两边有楼宇阻挡，导致周边小区信号在该路段均衰减为-95dBm以下，造成问题路段无主服务小区，且弱信号重叠覆盖。通过分析发现，该路段北侧可以使用9AXHCX建设西路农产品批发市场7栋-NR-D-3（PCI=365）进行覆盖，南侧可以使用9AXHCX水厂路-NR-D-3（PCI=502）进行覆盖。如图6-2-11。"
+      },
+      {
+        "id": "block-121",
+        "kind": "paragraph",
+        "order": 121,
+        "mediaRefs": [
+          "rId393",
+          "rId394"
+        ]
+      },
+      {
+        "id": "block-122",
+        "kind": "paragraph",
+        "order": 122,
+        "text": "图6-2-11"
+      },
+      {
+        "id": "block-123",
+        "kind": "paragraph",
+        "order": 123,
+        "text": "2、查看问题路段PCI分布，发现问题路段部分占用1100m外的9AXHCX朝阳新城动物园东门景观塔-NR-D-1（PCI=273），由于该站为景观塔，站点较高导致越区覆盖。通过下压9AXHCX朝阳新城动物园东门景观塔-NR-D-1的波束下倾6度并将其功率由327降低为307，问题路段的超远覆盖的带改善，问题路段不再占用9AXHCX朝阳新城动物园东门景观塔-NR-D-1（PCI=273）信号；"
+      },
+      {
+        "id": "block-124",
+        "kind": "paragraph",
+        "order": 124,
+        "text": "3、进一步分析发现问题路段部分占用9AXHCX西湖区桃花派出所-NR-D-1 和9AXHCX丰源金润广场-NR-D-3的旁瓣信号，考虑到现网SSB波束的默认设置都为水平105°，垂直6°，较宽的波束易造成5G信号的重叠覆盖，所以将9AXHCX西湖区桃花派出所-NR-D-1 和9AXHCX丰源金润广场-NR-D-3的波束都调整为窄波束场景3，水平65°，垂直6°。波束修改后问题路段不再占用这两个小区的信号。"
+      },
+      {
+        "id": "block-125",
+        "kind": "paragraph",
+        "order": 125,
+        "text": "4.为了增强主服务小区对路段的覆盖情况，将9AXHCX建设西路农产品批发市场7栋-NR-D-3（PCI=365）的功率提升为339，同时将9AXHCX水厂路-NR-D-3（PCI=502）的方位角由160°调整为20°，使其主覆盖问题路段。如图6-2-12"
+      },
+      {
+        "id": "block-126",
+        "kind": "paragraph",
+        "order": 126,
+        "mediaRefs": [
+          "rId395",
+          "rId396"
+        ]
+      },
+      {
+        "id": "block-127",
+        "kind": "paragraph",
+        "order": 127,
+        "text": "如图6-2-12"
+      },
+      {
+        "id": "block-128",
+        "kind": "paragraph",
+        "order": 128,
+        "text": "效果验证：经过优化后问题路段5G切换链明显改善，5G小区切换次数由12次减少为2次，平均速率由287Mbps提升至445Mbps；如图6-2-13"
+      },
+      {
+        "id": "block-129",
+        "kind": "paragraph",
+        "order": 129,
+        "mediaRefs": [
+          "rId397"
+        ]
+      },
+      {
+        "id": "block-130",
+        "kind": "paragraph",
+        "order": 130,
+        "text": "图6-2-13"
+      },
+      {
+        "id": "block-131",
+        "kind": "paragraph",
+        "order": 131,
+        "text": "优化总结："
+      },
+      {
+        "id": "block-132",
+        "kind": "paragraph",
+        "order": 132,
+        "text": "5G小区频繁切换问题优化方法：1.勘查周边环境情况和站点情况，确定问题路段主服务小区并梳理问题路段切换链；2.对于距离较远的越区信号，可以通过下压SSB波束下倾角和降低功率的方式减少干扰；3对于距离较近的重叠覆盖信号，可以通过将SSB波束场景调整为窄波束（例如场景3）的方法减少重叠覆盖；4.必要时可考虑对锚点的4G切换链进行优化；5. 通过RF优化增强主服务小区覆盖或减少邻区信号重叠覆盖。"
+      },
+      {
+        "id": "block-133",
+        "kind": "paragraph",
+        "order": 133,
+        "text": "直击难点"
+      },
+      {
+        "id": "block-134",
+        "kind": "paragraph",
+        "order": 134,
+        "text": "重点掌握覆盖类，接入类，切换类，掉线类等主要问题处理手段，能用信令分析定位问题，提出优化方案。"
+      },
+      {
+        "id": "block-135",
+        "kind": "paragraph",
+        "order": 135,
+        "text": "二维码预留二维码预留"
+      },
+      {
+        "id": "block-136",
+        "kind": "paragraph",
+        "order": 136,
+        "text": "任务测评"
+      },
+      {
+        "id": "block-137",
+        "kind": "paragraph",
+        "order": 137,
+        "text": "1.接入类问题的分析思路。"
+      },
+      {
+        "id": "block-138",
+        "kind": "paragraph",
+        "order": 138,
+        "text": "2.掉线问题的排查流程和处理手段。"
+      }
+    ],
+    "storyboard": {
+      "schema": "lesson-storyboard/v1",
+      "learningGoal": "学完后能用 Cause/Timer、消息方向、重传、N2/N3 和节点责任域区分无线、核心网、传输、参数或终端问题。",
+      "summary": "本节讲 5G 信令故障分析：按接入、注册、会话、切换和业务面失败分类，重建 RRC、NAS、NGAP、PFCP 与用户面链路。",
+      "knowledgeUnits": [
+        {
+          "id": "P18-ku-01",
+          "title": "故障现象",
+          "kind": "concept",
+          "shortText": "接入、注册、会话、切换和业务失败先分类。",
+          "narrationText": "信令故障分析先按现象分类：RRC 接入失败、NAS 注册失败、PDU Session 失败、切换失败和业务面失败对应不同链路。"
+        },
+        {
+          "id": "P18-ku-02",
+          "title": "消息时序",
+          "kind": "concept",
+          "shortText": "按 RRC、NAS、NGAP、PFCP 和 PDU Session 重建时序。",
+          "narrationText": "消息链路要按时间重建，串起 UE、gNB、AMF、SMF 和 UPF 之间的方向、响应、重传和缺失消息。"
+        },
+        {
+          "id": "P18-ku-03",
+          "title": "Cause/Timer",
+          "kind": "criteria",
+          "shortText": "Cause、定时器、重传和上下文共同锁定断点。",
+          "narrationText": "Cause 值只能提供线索，必须结合 T300/T3510 等定时器、重传、消息方向和上下文判断真实断点。"
+        },
+        {
+          "id": "P18-ku-04",
+          "title": "故障链分支",
+          "kind": "evidence",
+          "shortText": "无线、核心网、参数、传输和终端分支逐层排除。",
+          "narrationText": "故障链要分支排除：无线侧看覆盖与 RRC，核心网看注册与会话，传输看 N2/N3，终端看能力和配置。"
+        },
+        {
+          "id": "P18-ku-05",
+          "title": "责任边界",
+          "kind": "practice",
+          "shortText": "用证据链标定责任域、处理动作和协同接口。",
+          "narrationText": "责任边界必须由证据链支撑，明确无线、核心网、参数、传输或终端责任域，并给出协同接口。"
+        },
+        {
+          "id": "P18-ku-06",
+          "title": "闭环验证",
+          "kind": "review",
+          "shortText": "处理后用同场景信令、KPI 和业务复测确认。",
+          "narrationText": "信令故障闭环要回到同场景复测，确认消息时序恢复、KPI 回稳、业务可达，并记录遗留风险。"
+        }
+      ],
+      "reviewSummary": "复盘时检查故障现象、消息时序、分支排除、责任边界和闭环复测是否连成一条可审计链路。"
+    }
+  },
+  "knowledge": {
+    "steps": [
+      {
+        "id": "P18-knowledge-01",
+        "label": "故障现象",
+        "description": "接入、注册、会话、切换和业务失败先分类。"
+      },
+      {
+        "id": "P18-knowledge-02",
+        "label": "消息时序",
+        "description": "按 RRC、NAS、NGAP、PFCP 和 PDU Session 重建时序。"
+      },
+      {
+        "id": "P18-knowledge-03",
+        "label": "Cause/Timer",
+        "description": "Cause、定时器、重传和上下文共同锁定断点。"
+      },
+      {
+        "id": "P18-knowledge-04",
+        "label": "故障链分支",
+        "description": "无线、核心网、参数、传输和终端分支逐层排除。"
+      },
+      {
+        "id": "P18-knowledge-05",
+        "label": "责任边界",
+        "description": "用证据链标定责任域、处理动作和协同接口。"
+      },
+      {
+        "id": "P18-knowledge-06",
+        "label": "闭环验证",
+        "description": "处理后用同场景信令、KPI 和业务复测确认。"
+      }
+    ],
+    "metrics": [
+      {
+        "label": "M1",
+        "value": "RRC"
+      },
+      {
+        "label": "M2",
+        "value": "NAS"
+      },
+      {
+        "label": "M3",
+        "value": "Regis"
+      }
+    ]
+  },
+  "animation": {
+    "templateHint": "signaling-ladder",
+    "durationMs": 610000,
+    "targets": [
+      {
+        "id": "P18-step-01",
+        "label": "故障现象",
+        "description": "接入、注册、会话、切换和业务失败先分类。"
+      },
+      {
+        "id": "P18-step-02",
+        "label": "消息时序",
+        "description": "按 RRC、NAS、NGAP、PFCP 和 PDU Session 重建时序。"
+      },
+      {
+        "id": "P18-step-03",
+        "label": "Cause/Timer",
+        "description": "Cause、定时器、重传和上下文共同锁定断点。"
+      },
+      {
+        "id": "P18-step-04",
+        "label": "故障链分支",
+        "description": "无线、核心网、参数、传输和终端分支逐层排除。"
+      },
+      {
+        "id": "P18-step-05",
+        "label": "责任边界",
+        "description": "用证据链标定责任域、处理动作和协同接口。"
+      },
+      {
+        "id": "P18-step-06",
+        "label": "闭环验证",
+        "description": "处理后用同场景信令、KPI 和业务复测确认。"
+      }
+    ]
+  },
+  "playback": {
+    "mode": "one-way",
+    "widgetId": "P18-lesson-animation-001"
+  }
+}
