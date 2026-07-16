@@ -3,7 +3,7 @@ import { readActorFromRequest } from '@/platform/auth/server-actor';
 import {
   createLearningCommandService,
   describeLearningCommandError,
-  type ProfessionalOutputCommand,
+  parseProfessionalOutputCommand,
 } from '@/platform/learning-command-service';
 import { loadSelfStudyCatalog } from '@/features/textbook-scene/self-study-content';
 import {
@@ -16,17 +16,8 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: Request, { params }: { params: { taskId: string } }) {
   const actor = readActorFromRequest(request);
   if (!actor) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-  const body = await request.json().catch(() => null) as Record<string, unknown> | null;
-  if (!body || Array.isArray(body)) {
-    return NextResponse.json({ error: 'Invalid professional output command' }, { status: 400 });
-  }
-  const command: ProfessionalOutputCommand = {
-    expectedStateRevision: body.expectedStateRevision as number,
-    fields: body.fields as ProfessionalOutputCommand['fields'],
-    upstreamRefs: body.upstreamRefs as ProfessionalOutputCommand['upstreamRefs'],
-    ...(body.outputId === undefined ? {} : { outputId: body.outputId as string }),
-  };
   try {
+    const command = parseProfessionalOutputCommand(await request.json().catch(() => null));
     return NextResponse.json(
       createLearningCommandService().submitProfessionalOutput(
         actor,

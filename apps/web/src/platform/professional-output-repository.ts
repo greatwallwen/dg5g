@@ -7,6 +7,7 @@ import {
   projectP01OutputPrefill,
   type P01ActivityAttemptFact,
   type P01OutputFieldKey,
+  type P01OutputPrefill,
 } from '../features/portfolio/p01-output-definition.ts';
 import type { AppDatabase } from './db/database.ts';
 import { SnapshotClock } from './snapshot-clock.ts';
@@ -394,6 +395,14 @@ export class ProfessionalOutputRepository {
         `${command.taskId} upstream reference must identify this student's persisted ${expectedTask} version.`,
       );
     }
+  }
+
+  readP01Prefill(studentId: string): P01OutputPrefill {
+    assertNonEmpty('studentId', studentId);
+    return projectP01OutputPrefill(
+      this.readLatestPassedP01ActivityFacts(studentId),
+      p01Activities,
+    );
   }
 
   private assertEvidenceLinks(command: NormalizedWrite): void {

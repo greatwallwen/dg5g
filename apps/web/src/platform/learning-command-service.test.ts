@@ -8,6 +8,7 @@ import { LearningRepository } from './learning-repository.ts';
 import { LearningCommandService } from './learning-command-service.ts';
 import { NodeRouteAccessError } from './access-control.ts';
 import { p01OutputFieldKeys } from '../features/portfolio/p01-output-definition.ts';
+import { p01EvidenceLibrary } from '../features/portfolio/evidence-library.ts';
 import {
   ProfessionalOutputNotFoundError,
   ProfessionalOutputRepository,
@@ -330,7 +331,10 @@ test('professional output commands reuse node access and derive ownership from t
       upstreamRefs: [],
     });
     assert.equal(submitted.head.status, 'submitted');
-    assert.equal(service.readProfessionalOutput(studentTwo, 'P01', draft.head.outputId)?.head.outputId, draft.head.outputId);
+    const envelope = service.readProfessionalOutput(studentTwo, 'P01', draft.head.outputId);
+    assert.equal(envelope.output?.head.outputId, draft.head.outputId);
+    assert.deepEqual(envelope.prefill, {});
+    assert.equal(envelope.evidenceLibrary.length, p01EvidenceLibrary.length);
   } finally {
     fixture.cleanup();
   }

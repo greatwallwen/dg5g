@@ -1,4 +1,9 @@
 import type { AuthenticatedActor } from './auth/actor.ts';
+import {
+  p01EvidenceLibrary,
+  type P01EvidenceDefinition,
+} from '../features/portfolio/evidence-library.ts';
+import type { P01OutputPrefill } from '../features/portfolio/p01-output-definition.ts';
 import { classifyNodeRoute, NodeRouteAccessError, type NodeRouteClassification } from './access-control.ts';
 import { getDatabase, type AppDatabase } from './db/database.ts';
 import { getNodeLearningPolicy } from './learning-policy.ts';
@@ -16,7 +21,9 @@ import {
 } from './learning-repository.ts';
 import {
   ProfessionalOutputNotFoundError,
+  ProfessionalOutputEvidenceError,
   ProfessionalOutputRepository,
+  ProfessionalOutputRevisionRequiredError,
   ProfessionalOutputStateError,
   ProfessionalOutputStateRevisionConflictError,
   ProfessionalOutputUpstreamError,
@@ -37,6 +44,12 @@ export interface ProfessionalOutputCommand extends Omit<
   WriteProfessionalOutputInput,
   'studentId' | 'taskId'
 > {}
+
+export interface ProfessionalOutputEnvelope {
+  output: ProfessionalOutputAggregate | null;
+  prefill: P01OutputPrefill;
+  evidenceLibrary: P01EvidenceDefinition[];
+}
 
 export type ProfessionalOutputFieldValidator = (
   taskId: P1OutputTaskId,
@@ -147,9 +160,15 @@ export class LearningCommandService {
     actor: AuthenticatedActor,
     taskId: string,
     outputId?: string,
-  ): ProfessionalOutputAggregate | undefined {
+  ): ProfessionalOutputEnvelope {
     const studentId = this.requireProfessionalOutputAccess(actor, taskId);
-    return this.requireOutputRepository().read(studentId, asP1OutputTaskId(taskId), outputId);
+    const canonicalTaskId = asP1OutputTaskId(taskId);
+    const repository = this.requireOutputRepository();
+    return {
+      output: repository.read(studentId, canonicalTaskId, outputId) ?? null,
+      prefill: canonicalTaskId === 'P01' ? repository.readP01Prefill(studentId) : {},
+      evidenceLibrary: canonicalTaskId === 'P01' ? p01EvidenceLibrary : [],
+    };
   }
 
   saveProfessionalOutputDraft(
@@ -280,7 +299,9 @@ export function describeLearningCommandError(error: unknown): LearningCommandPro
   if (error instanceof ProfessionalOutputStateError) {
     return { status: 409, body: { error: error.message, outputStatus: error.status } };
   }
-  if (error instanceof ProfessionalOutputUpstreamError) {
+  if (error instanceof ProfessionalOutputUpstreamError
+    || error instanceof ProfessionalOutputEvidenceError
+    || error instanceof ProfessionalOutputRevisionRequiredError) {
     return { status: 422, body: { error: error.message } };
   }
   if (error instanceof LearningCommandValidationError || error instanceof FormalAttemptPolicyError) {
@@ -290,6 +311,30 @@ export function describeLearningCommandError(error: unknown): LearningCommandPro
     return { status: 400, body: { error: error.message } };
   }
   return undefined;
+}
+
+const professionalOutputCommandKeys = new Set([
+  'outputId',
+  'expectedStateRevision',
+  'fields',
+  'upstreamRefs',
+  'evidenceLinks',
+]);
+
+export function parseProfessionalOutputCommand(body: unknown): ProfessionalOutputCommand {
+  if (!isRecord(body)) throw new TypeError('Invalid professional output command.');
+  for (const key of Object.keys(body)) {
+    if (!professionalOutputCommandKeys.has(key)) {
+      throw new TypeError(`Unsupported professional output command key: ${key}.`);
+    }
+  }
+  return {
+    ...(body.outputId === undefined ? {} : { outputId: body.outputId as string }),
+    expectedStateRevision: body.expectedStateRevision as number,
+    fields: body.fields as ProfessionalOutputCommand['fields'],
+    upstreamRefs: body.upstreamRefs as ProfessionalOutputCommand['upstreamRefs'],
+    evidenceLinks: (body.evidenceLinks ?? {}) as ProfessionalOutputCommand['evidenceLinks'],
+  };
 }
 
 function requireStudentIdentity(actor: AuthenticatedActor): string {

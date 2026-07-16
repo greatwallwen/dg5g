@@ -13,6 +13,10 @@ import { createTestDatabase } from './db/test-database.ts';
 import { LearningRepository } from './learning-repository.ts';
 import { loadSelfStudyCatalog } from '../features/textbook-scene/self-study-content.ts';
 import { professionalOutputSchemaForTask } from '../features/portfolio/output-schema.ts';
+import {
+  p01EvidenceLibrary,
+  seedP01EvidenceLibrary,
+} from '../features/portfolio/evidence-library.ts';
 
 registerHooks({
   resolve(specifier, context, nextResolve) {
@@ -54,7 +58,7 @@ test('every actor-scoped learning endpoint rejects an anonymous request', async 
   }
 });
 
-test('professional output routes derive ownership from Cookie and expose draft, conflict, submit, and read', async () => {
+test('professional output routes derive ownership from Cookie and expose the authorized output envelope', async () => {
   await withAuthenticatedFixture(async ({ database, studentTwoCookie }) => {
     database.prepare(`
       DELETE FROM professional_outputs
@@ -66,10 +70,10 @@ test('professional output routes derive ownership from Cookie and expose draft, 
       'http://localhost/api/outputs/P01/draft',
       studentTwoCookie,
       {
-        studentId: 'stu-03',
         expectedStateRevision: 0,
         fields,
         upstreamRefs: [],
+        evidenceLinks: { siteRoom: ['P01-EV-ROOM-OVERVIEW'] },
       },
     ), { params: { taskId: 'P01' } });
     assert.equal(draftResponse.status, 200);
@@ -85,6 +89,7 @@ test('professional output routes derive ownership from Cookie and expose draft, 
         expectedStateRevision: 0,
         fields,
         upstreamRefs: [],
+        evidenceLinks: { siteRoom: ['P01-EV-ROOM-OVERVIEW'] },
       },
     ), { params: { taskId: 'P01' } });
     assert.equal(staleResponse.status, 409);
@@ -98,6 +103,7 @@ test('professional output routes derive ownership from Cookie and expose draft, 
         expectedStateRevision: 1,
         fields,
         upstreamRefs: [],
+        evidenceLinks: { siteRoom: ['P01-EV-ROOM-OVERVIEW'] },
       },
     ), { params: { taskId: 'P01' } });
     assert.equal(submitResponse.status, 200);
@@ -108,10 +114,93 @@ test('professional output routes derive ownership from Cookie and expose draft, 
       { headers: { cookie: studentTwoCookie } },
     ), { params: { taskId: 'P01' } });
     assert.equal(readResponse.status, 200);
-    const persisted = await readResponse.json();
-    assert.equal(persisted.head.studentId, 'stu-02');
-    assert.equal(persisted.head.stateRevision, 2);
-    assert.equal(persisted.versions.length, 1);
+    const envelope = await readResponse.json();
+    assert.deepEqual(Object.keys(envelope).sort(), ['evidenceLibrary', 'output', 'prefill']);
+    assert.equal(envelope.output.head.studentId, 'stu-02');
+    assert.equal(envelope.output.head.stateRevision, 2);
+    assert.equal(envelope.output.versions.length, 1);
+    assert.equal(envelope.output.versions[0].evidenceLinks.siteRoom[0], 'P01-EV-ROOM-OVERVIEW');
+    assert.equal(typeof envelope.prefill, 'object');
+    assert.equal(envelope.evidenceLibrary.length, p01EvidenceLibrary.length);
+    assert.equal(envelope.evidenceLibrary[0].origin, 'demo');
+  });
+});
+
+test('professional output mutation routes reject every client-owned identity, source, workflow, review, and score key atomically', async () => {
+  await withAuthenticatedFixture(async ({ database, studentTwoCookie }) => {
+    database.prepare(`
+      DELETE FROM professional_outputs
+      WHERE student_id = 'stu-02' AND task_id = 'P01'
+    `).run();
+    const schema = professionalOutputSchemaForTask(loadSelfStudyCatalog(), 'P01');
+    const fields = Object.fromEntries(schema.fields.map(({ key, label }) => [key, `已填写：${label}`]));
+    const before = outputMutationCounts(database, 'stu-02');
+    for (const [forgedKey, forgedValue] of Object.entries({
+      studentId: 'stu-03',
+      fieldSources: [{ fieldKey: 'siteRoom', sourceNodeId: 'P1T1-N01', sourceAttemptId: 'forged' }],
+      sourceNodeId: 'P1T1-N01',
+      origin: 'user',
+      status: 'verified',
+      version: 99,
+      review: { status: 'verified' },
+      score: 100,
+    })) {
+      const response = await outputDraftRoute.POST(jsonRequest(
+        'http://localhost/api/outputs/P01/draft',
+        studentTwoCookie,
+        {
+          expectedStateRevision: 0,
+          fields,
+          upstreamRefs: [],
+          evidenceLinks: {},
+          [forgedKey]: forgedValue,
+        },
+      ), { params: { taskId: 'P01' } });
+      assert.equal(response.status, 400, forgedKey);
+      assert.match((await response.json()).error, /unsupported|unknown|command/i, forgedKey);
+    }
+    assert.deepEqual(outputMutationCounts(database, 'stu-02'), before);
+  });
+});
+
+test('professional output routes reject unknown and cross-field evidence with 422 and no partial facts', async () => {
+  await withAuthenticatedFixture(async ({ database, studentTwoCookie }) => {
+    database.prepare(`
+      DELETE FROM professional_outputs
+      WHERE student_id = 'stu-02' AND task_id = 'P01'
+    `).run();
+    const fields = Object.fromEntries(
+      professionalOutputSchemaForTask(loadSelfStudyCatalog(), 'P01').fields
+        .map(({ key, label }) => [key, `已填写：${label}`]),
+    );
+    const before = outputMutationCounts(database, 'stu-02');
+    for (const evidenceLinks of [
+      { siteRoom: ['FORGED-EVIDENCE'] },
+      { siteRoom: ['P01-EV-BBU-NAMEPLATE'] },
+    ]) {
+      const response = await outputDraftRoute.POST(jsonRequest(
+        'http://localhost/api/outputs/P01/draft',
+        studentTwoCookie,
+        { expectedStateRevision: 0, fields, upstreamRefs: [], evidenceLinks },
+      ), { params: { taskId: 'P01' } });
+      assert.equal(response.status, 422);
+      assert.match((await response.json()).error, /evidence/i);
+      assert.deepEqual(outputMutationCounts(database, 'stu-02'), before);
+    }
+  });
+});
+
+test('P02 reads retain the same envelope with no P01 prefill or evidence catalog', async () => {
+  await withAuthenticatedFixture(async ({ studentThreeCookie }) => {
+    const response = outputRoute.GET(new Request(
+      'http://localhost/api/outputs/P02',
+      { headers: { cookie: studentThreeCookie } },
+    ), { params: { taskId: 'P02' } });
+    assert.equal(response.status, 200);
+    const envelope = await response.json();
+    assert.equal(envelope.output.head.taskId, 'P02');
+    assert.deepEqual(envelope.prefill, {});
+    assert.deepEqual(envelope.evidenceLibrary, []);
   });
 });
 
@@ -208,6 +297,10 @@ test('professional output routes fail closed for teacher, locked, not-open, unkn
         { headers: { cookie: studentCookie } },
       ), { params: { taskId } });
       assert.equal(readResponse.status, expectedStatus);
+      const readBody = await readResponse.json();
+      assert.equal('output' in readBody, false);
+      assert.equal('prefill' in readBody, false);
+      assert.equal('evidenceLibrary' in readBody, false);
     }
     const teacherResponse = await outputDraftRoute.POST(jsonRequest(
       'http://localhost/api/outputs/P01/draft',
@@ -221,6 +314,18 @@ test('professional output routes fail closed for teacher, locked, not-open, unkn
       { headers: { cookie: studentTwoCookie } },
     ), { params: { taskId: 'P01' } });
     assert.equal(nonOwnerResponse.status, 404);
+    const nonOwnerMutation = await outputDraftRoute.POST(jsonRequest(
+      'http://localhost/api/outputs/P01/draft',
+      studentTwoCookie,
+      {
+        outputId: 'demo-output-stu-03-p1t1-n04',
+        expectedStateRevision: 1,
+        fields: { siteRoom: 'forged overwrite' },
+        upstreamRefs: [],
+        evidenceLinks: {},
+      },
+    ), { params: { taskId: 'P01' } });
+    assert.equal(nonOwnerMutation.status, 404);
     assert.equal(database.prepare(`
       SELECT COUNT(*) FROM professional_outputs WHERE student_id = 'stu-01'
     `).pluck().get(), 0);
@@ -475,6 +580,7 @@ async function withAuthenticatedFixture(
     database: AppDatabase;
     studentCookie: string;
     studentTwoCookie: string;
+    studentThreeCookie: string;
     teacherCookie: string;
   }) => Promise<void>,
 ): Promise<void> {
@@ -484,19 +590,23 @@ async function withAuthenticatedFixture(
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    seedP01EvidenceLibrary(fixture.database);
     process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
     closeDatabase();
     const auth = new AuthService(fixture.database);
     const student = auth.login({ username: 'student01', password });
     const studentTwo = auth.login({ username: 'student02', password });
+    const studentThree = auth.login({ username: 'student03', password });
     const teacher = auth.login({ username: 'teacher01', password });
     assert.ok(student);
     assert.ok(studentTwo);
+    assert.ok(studentThree);
     assert.ok(teacher);
     await run({
       database: fixture.database,
       studentCookie: `${AUTH_COOKIE_NAME}=${student.token}`,
       studentTwoCookie: `${AUTH_COOKIE_NAME}=${studentTwo.token}`,
+      studentThreeCookie: `${AUTH_COOKIE_NAME}=${studentThree.token}`,
       teacherCookie: `${AUTH_COOKIE_NAME}=${teacher.token}`,
     });
   } finally {
@@ -513,4 +623,31 @@ function jsonRequest(url: string, cookie: string, body: unknown): Request {
     headers: { cookie, 'content-type': 'application/json' },
     body: JSON.stringify(body),
   });
+}
+
+function outputMutationCounts(database: AppDatabase, studentId: string) {
+  return {
+    heads: database.prepare('SELECT COUNT(*) FROM professional_outputs WHERE student_id = ?').pluck().get(studentId),
+    versions: database.prepare(`
+      SELECT COUNT(*) FROM professional_output_versions AS version
+      JOIN professional_outputs AS output ON output.output_id = version.output_id
+      WHERE output.student_id = ?
+    `).pluck().get(studentId),
+    links: database.prepare(`
+      SELECT COUNT(*) FROM output_evidence_links AS link
+      JOIN professional_outputs AS output ON output.output_id = link.output_id
+      WHERE output.student_id = ?
+    `).pluck().get(studentId),
+    sources: database.prepare(`
+      SELECT COUNT(*) FROM output_field_sources AS source
+      JOIN professional_outputs AS output ON output.output_id = source.output_id
+      WHERE output.student_id = ?
+    `).pluck().get(studentId),
+    events: database.prepare(`
+      SELECT COUNT(*) FROM learning_events
+      WHERE student_id = ? AND event_type IN ('evidence_draft_saved', 'evidence_submitted')
+    `).pluck().get(studentId),
+    snapshot: database.prepare('SELECT version FROM snapshot_versions WHERE topic = ?')
+      .pluck().get(`learning:${studentId}`),
+  };
 }
