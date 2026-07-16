@@ -52,9 +52,9 @@ test('one authoritative transaction yields identical common facts and audience-s
     assert.equal(student.me.learning.version, student.me.studentVersion);
     assert.equal(
       student.me.learning.nodes.find(({ nodeId }) => nodeId === 'P1T1-N02')?.bestFormalScore,
-      74,
+      undefined,
     );
-    assert.equal(student.me.nodes.find(({ nodeId }) => nodeId === 'P1T1-N02')?.nodeTestHighestScore, 74);
+    assert.equal(student.me.nodes.find(({ nodeId }) => nodeId === 'P1T1-N02')?.nodeTestHighestScore, undefined);
     assert.equal('students' in student, false);
 
     assert.equal(teacher.audience, 'teacher');
@@ -98,21 +98,63 @@ test('score and submission fields keep their distinct authoritative meanings', (
     });
     assert.deepEqual(snapshot.submissions.professionalOutputs, {
       submittedAwaitingReviewCount: 0,
-      returnedCount: 0,
+      returnedCount: 1,
       verifiedCount: 3,
     });
     assert.deepEqual(snapshot.classScores, {
       activeNodeTestHighestScore: 93,
-      activeNodeTestAverageScore: 85,
-      activeTaskCompositeAverageScore: 91.5,
+      activeNodeTestAverageScore: 90.5,
+      activeTaskCompositeAverageScore: 94,
+      projectCompositeAverageScore: 92,
       distribution: [
         { range: '90-100', count: 1 },
         { range: 'pass-89', count: 1 },
-        { range: '60-below-pass', count: 1 },
+        { range: '60-below-pass', count: 0 },
         { range: 'below-60', count: 0 },
       ],
+      demoData: true,
     });
-    assert.equal('projectCompositeAverageScore' in snapshot.classScores, false);
+    assert.equal(snapshot.students[0]?.nodes.every(({ origin }) => origin === undefined), true);
+    assert.equal(snapshot.students[1]?.nodes.find(({ nodeId }) => nodeId === 'P1T1-N04')?.origin, 'demo');
+    assert.equal(snapshot.students[2]?.tasks.every(({ origin }) => origin === 'demo'), true);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('historical demo attempts never enter active assessment submission statistics', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    const classroom = new ClassroomSessionRepository(fixture.database).readSession('demo-class');
+    assert.ok(classroom);
+    classroom.state.formalTest = {
+      assessmentId: 'demo-assessment-stu-03-p01',
+      gameId: 'p01-n02-formal',
+      nodeId: 'P1T1-N02',
+      status: 'running',
+      durationSeconds: 300,
+      startedAt: '2026-07-16T00:30:00.000Z',
+    };
+    fixture.database.prepare(`
+      UPDATE classroom_sessions SET status = 'active', state_json = ?
+      WHERE session_id = 'demo-class'
+    `).run(JSON.stringify(classroom.state));
+
+    const snapshot = new AuthoritativeSnapshotReader(fixture.database).read(
+      teacherActor(),
+      'teacher',
+      { now },
+    );
+    assert.deepEqual(snapshot.submissions.activeAssessment, {
+      status: 'running',
+      eligibleCount: 3,
+      submittedCount: 0,
+      playingCount: 3,
+      passedCount: 0,
+      submissionPercent: 0,
+    });
   } finally {
     fixture.cleanup();
   }

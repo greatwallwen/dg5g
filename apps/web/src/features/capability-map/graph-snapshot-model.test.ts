@@ -24,9 +24,9 @@ test('student graph model keeps canonical state progress separate from named sco
 
     assert.equal(model.mode, 'student');
     assert.equal(model.selectedNodeId, 'P1T1-N02');
-    assert.equal(node?.learningState, 'micro-practice-passed');
-    assert.equal(node?.nodeTestHighestScore, 74);
-    assert.equal(node?.stateCompletionPercent, 40);
+    assert.equal(node?.learningState, 'locked');
+    assert.equal(node?.nodeTestHighestScore, undefined);
+    assert.equal(node?.stateCompletionPercent, 0);
     assert.notEqual(node?.stateCompletionPercent, node?.nodeTestHighestScore);
     assert.equal(task?.taskCompositeScore, undefined);
     assert.equal(Object.hasOwn(task ?? {}, 'taskCompositeScore'), false);

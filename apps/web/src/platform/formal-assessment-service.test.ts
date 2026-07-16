@@ -4,7 +4,7 @@ import type { AuthenticatedActor } from './auth/actor.ts';
 import { createTestDatabase } from './db/test-database.ts';
 import { migrateDatabase } from './db/migrations.ts';
 import { seedDemo } from './db/demo-seed.ts';
-import { closeDatabase } from './db/database.ts';
+import { closeDatabase, type AppDatabase } from './db/database.ts';
 import { AuthService } from './auth/auth-service.ts';
 import { AUTH_COOKIE_NAME } from './auth/cookie.ts';
 import { ActivityRepository } from '../features/learning-activities/activity-repository.ts';
@@ -120,6 +120,7 @@ test('issues an answer-free paper and grades and persists only on the server', (
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    readyForFormalAssessment(fixture.database, studentOne.userId);
     const service = new FormalAssessmentService(fixture.database, deterministicOptions());
 
     const issued = service.issuePaper(studentOne, 'P1T1-N02');
@@ -165,6 +166,7 @@ test('binds a single-use token to one student, node, version, and assessment ins
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    readyForFormalAssessment(fixture.database, studentOne.userId);
     const service = new FormalAssessmentService(fixture.database, deterministicOptions());
     const issued = service.issuePaper(studentOne, 'P1T1-N02');
 
@@ -187,6 +189,7 @@ test('issuing a new paper atomically retires the prior paper so remediation cann
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    readyForFormalAssessment(fixture.database, studentOne.userId);
     const service = new FormalAssessmentService(fixture.database, deterministicOptions());
     const first = service.issuePaper(studentOne, 'P1T1-N02');
     const parallel = service.issuePaper(studentOne, 'P1T1-N02');
@@ -220,6 +223,7 @@ test('validates all choice and ordering values against the bound paper before gr
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    readyForFormalAssessment(fixture.database, studentOne.userId);
     const service = new FormalAssessmentService(fixture.database, deterministicOptions());
     const issued = service.issuePaper(studentOne, 'P1T1-N02');
     const invalidAnswers = [
@@ -255,6 +259,7 @@ test('requires a coherent four-part professional conclusion instead of keyword s
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    readyForFormalAssessment(fixture.database, studentOne.userId);
     const service = new FormalAssessmentService(fixture.database, deterministicOptions());
     const issued = service.issuePaper(studentOne, 'P1T1-N02');
     const result = service.submitAnswers(studentOne, issued.attemptToken, passingAnswers);
@@ -284,6 +289,7 @@ test('stores only a token hash and rejects expiry plus node, version, and instan
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    readyForFormalAssessment(fixture.database, studentOne.userId);
     const service = new FormalAssessmentService(fixture.database, {
       ...deterministicOptions(),
       now: () => now,
@@ -339,6 +345,7 @@ test('rolls back token consumption and assessment closure when persistence fails
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    readyForFormalAssessment(fixture.database, studentOne.userId);
     const service = new FormalAssessmentService(fixture.database, deterministicOptions());
     const issued = service.issuePaper(studentOne, 'P1T1-N02');
     fixture.database.exec(`
@@ -375,6 +382,7 @@ test('requires real post-failure passed activities and unlocks only after every 
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    readyForFormalAssessment(fixture.database, studentOne.userId);
     const service = new FormalAssessmentService(fixture.database, {
       ...deterministicOptions(),
       now: () => now,
@@ -445,6 +453,9 @@ test('refuses an accessible N02 paper until authoritative micro-practice readine
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    passRequiredActivities(fixture.database, studentOne.userId, [
+      ['P1T1-N01-micro-01', 'P1T1-N01'],
+    ]);
     fixture.database.prepare(`
       DELETE FROM learning_events WHERE student_id = ? AND node_id = ?
     `).run(studentOne.studentId, 'P1T1-N02');
@@ -483,18 +494,7 @@ test('refuses an accessible N02 paper until authoritative micro-practice readine
     });
 
     closeDatabase();
-    for (const [index, sectionId] of ['understand', 'evidence', 'explain', 'practice'].entries()) {
-      const snapshot = learning.readStudentSnapshot(studentOne);
-      learning.appendEvent(studentOne, {
-        eventId: `micro-ready-${index}`,
-        nodeId: 'P1T1-N02',
-        channel: 'self-study',
-        eventType: 'section_completed',
-        payload: { completed: true, sectionId },
-        occurredAt: `2026-07-16T09:0${index}:00.000Z`,
-        expectedVersion: snapshot.version,
-      });
-    }
+    passRequiredActivities(fixture.database, studentOne.userId, n02RequiredActivities);
     assert.equal(service.issuePaper(studentOne, 'P1T1-N02').paper.nodeId, 'P1T1-N02');
   } finally {
     closeDatabase();
@@ -510,6 +510,7 @@ test('assessment route rejects forged scores and accepts an answer-only submissi
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    readyForFormalAssessment(fixture.database, studentOne.userId);
     process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
     closeDatabase();
     const auth = new AuthService(fixture.database);
@@ -574,6 +575,34 @@ function deterministicOptions() {
     randomId: () => `assessment-sequence-${++sequence}`,
     randomToken: () => `token-sequence-${++sequence}-0123456789abcdef`,
   };
+}
+
+const n02RequiredActivities = [
+  ['P1T1-N02-foundation-01', 'P1T1-N02'],
+  ['P1T1-N02-application-01', 'P1T1-N02'],
+  ['P1T1-N02-transfer-01', 'P1T1-N02'],
+] as const;
+
+function readyForFormalAssessment(database: AppDatabase, studentId: string): void {
+  passRequiredActivities(database, studentId, [
+    ['P1T1-N01-micro-01', 'P1T1-N01'],
+    ...n02RequiredActivities,
+  ]);
+}
+
+function passRequiredActivities(
+  database: AppDatabase,
+  studentId: string,
+  activities: readonly (readonly [activityId: string, nodeId: string])[],
+): void {
+  const insert = database.prepare(`
+    INSERT INTO practice_attempts (
+      attempt_id, student_id, activity_id, node_id, passed, origin, attempted_at
+    ) VALUES (?, ?, ?, ?, 1, 'user', '1999-12-31T23:59:00.000Z')
+  `);
+  for (const [activityId, nodeId] of activities) {
+    insert.run(`test-ready-${studentId}-${activityId}`, studentId, activityId, nodeId);
+  }
 }
 
 function correctActivityResponse(activityId: string): Record<string, unknown> {

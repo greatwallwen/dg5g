@@ -79,16 +79,16 @@ function StudentReady({ model }: { model: Extract<StudentHomeViewModel, { kind: 
       <aside className="student-home-side">
         <section className="role-home-card student-progress-card" data-student-home-progress>
           <div className="role-home-card-head">
-            <div><span className="role-home-kicker">学习进度</span><h2>{model.progress.stateLabel}</h2></div>
+            <div><span className="role-home-kicker">学习进度</span><h2>{model.progress.stateLabel}{model.progress.stateOrigin === 'demo' ? <small>演示数据</small> : null}</h2></div>
             <strong className="student-progress-value">{model.progress.completionPercent}%</strong>
           </div>
           <div className="role-home-progress" aria-label={`节点完成度 ${model.progress.completionPercent}%`}>
             <i style={{ width: `${model.progress.completionPercent}%` }} />
           </div>
           <dl className="student-score-list">
-            <Score label="节点测试最高分" value={model.progress.nodeTestHighestScore} />
-            <Score label="任务综合分" value={model.progress.taskCompositeScore} />
-            <Score label="项目综合分" value={model.progress.projectCompositeScore} />
+            <Score demo={model.progress.nodeTestScoreOrigin === 'demo'} label="节点测试最高分" value={model.progress.nodeTestHighestScore} />
+            <Score demo={model.progress.taskScoreOrigin === 'demo'} label="任务综合分" value={model.progress.taskCompositeScore} />
+            <Score demo={model.progress.projectScoreOrigin === 'demo'} label="项目综合分" value={model.progress.projectCompositeScore} />
           </dl>
         </section>
 
@@ -114,8 +114,8 @@ function StudentReady({ model }: { model: Extract<StudentHomeViewModel, { kind: 
   );
 }
 
-function Score({ label, value }: { label: string; value?: number }) {
-  return <div><dt>{label}</dt><dd>{value === undefined ? '尚未形成' : Math.round(value)}</dd></div>;
+function Score({ demo, label, value }: { demo?: boolean; label: string; value?: number }) {
+  return <div><dt>{label}</dt><dd>{value === undefined ? '尚未形成' : Math.round(value)}{demo ? <small>演示数据</small> : null}</dd></div>;
 }
 
 function StudentBlocked({ model }: { model: Extract<StudentHomeViewModel, { kind: 'blocked' }> }) {

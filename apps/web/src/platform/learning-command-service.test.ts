@@ -4,6 +4,7 @@ import type { AuthenticatedActor } from './auth/actor.ts';
 import { createTestDatabase } from './db/test-database.ts';
 import { migrateDatabase } from './db/migrations.ts';
 import { seedDemo } from './db/demo-seed.ts';
+import type { AppDatabase } from './db/database.ts';
 import { LearningRepository } from './learning-repository.ts';
 import { LearningCommandService } from './learning-command-service.ts';
 import { NodeRouteAccessError } from './access-control.ts';
@@ -44,6 +45,7 @@ test('an authenticated student appends a learning event only to their own SQLite
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    unlockN02(fixture.database);
     const repository = new LearningRepository(fixture.database);
     const service = new LearningCommandService(repository);
     const before = repository.readTopicVersion('learning:stu-01');
@@ -71,6 +73,7 @@ test('formal attempts are accepted only on the policy-defined N02 node test', ()
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    unlockN02(fixture.database);
     const repository = new LearningRepository(fixture.database);
     const service = new LearningCommandService(repository);
     const before = repository.readTopicVersion('learning:stu-01');
@@ -94,9 +97,18 @@ test('formal attempt storage has no permanent three-attempt lock while exact rep
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    readyN02(fixture.database);
     const repository = new LearningRepository(fixture.database);
     const service = new LearningCommandService(repository);
     let version = repository.readTopicVersion('learning:stu-01');
+    service.recordFormalAttempt(studentOne, {
+      attemptId: 'command-service-attempt-1',
+      nodeId: 'P1T1-N02',
+      gameId: 'node-test',
+      score: 80,
+      expectedVersion: version,
+    });
+    version += 1;
     const second = {
       attemptId: 'command-service-attempt-2',
       nodeId: 'P1T1-N02',
@@ -138,6 +150,7 @@ test('student event commands reject teacher facts and output facts on a non-outp
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    unlockN02(fixture.database);
     const repository = new LearningRepository(fixture.database);
     const service = new LearningCommandService(repository);
     const before = repository.readTopicVersion('learning:stu-01');
@@ -163,6 +176,7 @@ test('learning events reject evidence submission until the authoritative output 
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    unlockN02(fixture.database);
     const repository = new LearningRepository(fixture.database);
     const service = new LearningCommandService(repository);
     const before = repository.readTopicVersion('learning:stu-02');
@@ -187,6 +201,7 @@ test('locked, not-open, and unknown nodes fail closed without advancing either s
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    unlockN02(fixture.database);
     const repository = new LearningRepository(fixture.database);
     const service = new LearningCommandService(repository);
     const learningBefore = repository.readTopicVersion('learning:stu-01');
@@ -218,6 +233,7 @@ test('student event matrix rejects direct pass facts and malformed section, game
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    unlockN02(fixture.database);
     const repository = new LearningRepository(fixture.database);
     const service = new LearningCommandService(repository);
     const before = repository.readTopicVersion('learning:stu-01');
@@ -246,10 +262,7 @@ test('formal N02 attempts require micro-practice-passed in the current state tra
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
-    fixture.database.prepare(`
-      DELETE FROM learning_events
-      WHERE student_id = 'stu-01' AND node_id = 'P1T1-N02'
-    `).run();
+    unlockN02(fixture.database);
     const repository = new LearningRepository(fixture.database);
     const service = new LearningCommandService(repository);
     const before = repository.readTopicVersion('learning:stu-01');
@@ -273,6 +286,7 @@ test('the current published classroom node permits a member submission without o
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    unlockN02(fixture.database);
     fixture.database.prepare(`
       UPDATE classroom_sessions
       SET status = 'active', active_node_id = 'P1T1-N04', updated_at = CURRENT_TIMESTAMP
@@ -305,6 +319,7 @@ test('professional output commands reuse node access and derive ownership from t
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    unlockN02(fixture.database);
     fixture.database.prepare(`
       DELETE FROM professional_outputs
       WHERE student_id = 'stu-02' AND task_id = 'P01'
@@ -345,6 +360,7 @@ test('professional output access fails closed for locked, not-open, unknown, and
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    unlockN02(fixture.database);
     const learningRepository = new LearningRepository(fixture.database);
     const service = new LearningCommandService(
       learningRepository,
@@ -384,4 +400,33 @@ test('professional output access fails closed for locked, not-open, unknown, and
 
 function completeP01Fields(value: string): Record<string, string> {
   return Object.fromEntries(p01OutputFieldKeys.map((fieldKey) => [fieldKey, `${value}: ${fieldKey}`]));
+}
+
+function unlockN02(database: AppDatabase): void {
+  passRequiredActivities(database, [
+    ['P1T1-N01-micro-01', 'P1T1-N01'],
+  ]);
+}
+
+function readyN02(database: AppDatabase): void {
+  passRequiredActivities(database, [
+    ['P1T1-N01-micro-01', 'P1T1-N01'],
+    ['P1T1-N02-foundation-01', 'P1T1-N02'],
+    ['P1T1-N02-application-01', 'P1T1-N02'],
+    ['P1T1-N02-transfer-01', 'P1T1-N02'],
+  ]);
+}
+
+function passRequiredActivities(
+  database: AppDatabase,
+  activities: readonly (readonly [activityId: string, nodeId: string])[],
+): void {
+  const insert = database.prepare(`
+    INSERT INTO practice_attempts (
+      attempt_id, student_id, activity_id, node_id, passed, origin
+    ) VALUES (?, 'stu-01', ?, ?, 1, 'user')
+  `);
+  for (const [activityId, nodeId] of activities) {
+    insert.run(`test-ready-stu-01-${activityId}`, activityId, nodeId);
+  }
 }

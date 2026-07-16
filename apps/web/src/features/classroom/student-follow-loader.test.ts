@@ -26,8 +26,8 @@ test('loads the exact demo-class SQLite session without joining or deriving a no
     assert.equal(loaded.participation.joinedCount, 0);
     assert.equal(loaded.participation.followingCount, 0);
     assert.deepEqual(loaded.returnTarget, {
-      href: '/learn/P1T1-N02',
-      nodeId: 'P1T1-N02',
+      href: '/learn/P1T1-N01',
+      nodeId: 'P1T1-N01',
     });
     assert.equal(Object.keys(loaded.contentCatalog).length, 12);
     assert.equal(fixture.database.prepare(`

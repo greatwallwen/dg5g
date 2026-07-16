@@ -1192,75 +1192,88 @@ function checkDemoSeedContract() {
     .map(({ studentId, nodeId, unitId }) => ({ studentId, nodeId, unitId }))
     .sort((left, right) => String(left.studentId).localeCompare(String(right.studentId)));
   const expectedCursors = [
-    { studentId: 'stu-01', nodeId: 'P1T1-N02', unitId: 'P01-ku-02' },
-    { studentId: 'stu-02', nodeId: 'P1T2-N02', unitId: 'P02-ku-02' },
-    { studentId: 'stu-03', nodeId: 'P1T3-N02', unitId: 'P03-ku-02' },
+    { studentId: 'stu-01', nodeId: 'P1T1-N01', unitId: 'P01-ku-01' },
+    { studentId: 'stu-02', nodeId: 'P1T1-N04', unitId: 'P01-ku-04' },
+    { studentId: 'stu-03', nodeId: 'P1T3-N04', unitId: 'P03-ku-04' },
   ];
   if (JSON.stringify(cursorProjection) !== JSON.stringify(expectedCursors)) {
-    fail('demo self-study cursors must stagger stu-01/stu-02/stu-03 across P01/P02/P03 N02');
+    fail('demo cursors must expose the clean, returned-revision, and completed-project personas');
   }
 
   const events = Array.isArray(demo?.events) ? demo.events : [];
+  const practiceAttempts = Array.isArray(demo?.practiceAttempts) ? demo.practiceAttempts : [];
   const attempts = Array.isArray(demo?.attempts) ? demo.attempts : [];
   const outputs = Array.isArray(demo?.outputs) ? demo.outputs : [];
   const reviews = Array.isArray(demo?.reviews) ? demo.reviews : [];
   const frozenScores = Array.isArray(demo?.frozenTaskScores) ? demo.frozenTaskScores : [];
-  const stu03P01EntryEvents = events.filter((event) => (
-    event?.studentId === 'stu-03' && event?.nodeId === 'P1T1-N01'
-  ));
-  if (
-    stu03P01EntryEvents.length !== 1
-    || stu03P01EntryEvents[0]?.eventId !== 'demo-event-stu-03-p1t1-n01-v2'
-    || stu03P01EntryEvents[0]?.eventType !== 'micro_practice_passed'
-  ) {
-    fail('stu-03 P1T1-N01 must use the immutable v2 passed event so legacy started facts cannot block the P01-P03 gate chain');
-  }
-  const completedTasks = [
-    { studentId: 'stu-02', taskId: 'P1T1' },
-    { studentId: 'stu-03', taskId: 'P1T1' },
-    { studentId: 'stu-03', taskId: 'P1T2' },
+  const requiredP01Activities = [
+    'P1T1-N01-micro-01',
+    'P1T1-N02-foundation-01',
+    'P1T1-N02-application-01',
+    'P1T1-N02-transfer-01',
+    'P1T1-N03-micro-01',
+    'P1T1-N04-micro-01',
   ];
-
-  for (const completed of completedTasks) {
-    const prefix = `${completed.taskId}-N`;
-    const taskEvents = events
-      .filter((event) => event?.studentId === completed.studentId && String(event?.nodeId).startsWith(prefix))
-      .map((event) => ({ nodeId: event.nodeId, eventType: event.eventType }))
-      .sort((left, right) => left.nodeId.localeCompare(right.nodeId));
-    const expectedEvents = [1, 2, 3, 4].map((index) => ({
-      nodeId: `${completed.taskId}-N0${index}`,
-      eventType: 'micro_practice_passed',
-    }));
-    if (JSON.stringify(taskEvents) !== JSON.stringify(expectedEvents)) {
-      fail(`${completed.studentId}/${completed.taskId} must seed passed micro-practice facts for N01-N04`);
+  for (const studentId of ['stu-02', 'stu-03']) {
+    const activities = practiceAttempts
+      .filter((attempt) => attempt?.studentId === studentId)
+      .map((attempt) => attempt.activityId)
+      .sort();
+    if (JSON.stringify(activities) !== JSON.stringify([...requiredP01Activities].sort())) {
+      fail(`${studentId} must seed exactly the six required P01 practice attempts`);
     }
+  }
+  if (practiceAttempts.some((attempt) => attempt?.studentId === 'stu-01')) {
+    fail('stu-01 must remain a clean learner without practice attempts');
+  }
 
-    const taskAttempts = attempts.filter((attempt) =>
-      attempt?.studentId === completed.studentId && String(attempt?.nodeId).startsWith(prefix));
-    if (
-      taskAttempts.length !== 1
-      || taskAttempts[0]?.nodeId !== `${completed.taskId}-N02`
-      || taskAttempts[0]?.gameId !== 'node-test'
-      || Number(taskAttempts[0]?.score) < 80
-    ) {
-      fail(`${completed.studentId}/${completed.taskId} must seed one >=80 N02 node-test attempt`);
-    }
-
-    const output = outputs.find((item) =>
-      item?.studentId === completed.studentId && item?.taskId === completed.taskId);
-    const review = reviews.find((item) => item?.outputId === output?.outputId);
-    if (
-      output?.nodeId !== `${completed.taskId}-N04`
-      || output?.status !== 'verified'
-      || review?.status !== 'verified'
-    ) {
-      fail(`${completed.studentId}/${completed.taskId} must seed a verified N04 output and review`);
-    }
+  const formalProjection = attempts.map(({ studentId, nodeId, score }) => ({ studentId, nodeId, score }));
+  const expectedFormalProjection = [
+    { studentId: 'stu-02', nodeId: 'P1T1-N02', score: 88 },
+    { studentId: 'stu-03', nodeId: 'P1T1-N02', score: 93 },
+    { studentId: 'stu-03', nodeId: 'P1T2-N02', score: 91 },
+    { studentId: 'stu-03', nodeId: 'P1T3-N02', score: 90 },
+  ];
+  if (JSON.stringify(formalProjection) !== JSON.stringify(expectedFormalProjection)) {
+    fail('demo formal attempts must model one returned P01 learner and one complete P1 learner');
+  }
+  if (attempts.some((attempt) => !attempt?.assessmentId || !attempt?.completedAt)) {
+    fail('every demo formal attempt must be bound to an assessment and explicit completion time');
   }
 
   if (attempts.some((attempt) => String(attempt?.nodeId).endsWith('-N04') || attempt?.gameId === 'task-pixi')) {
     fail('demo seed must never create an N04 or task-pixi formal attempt');
   }
+
+  const outputProjection = outputs.map(({ studentId, taskId, status, currentVersion }) => ({
+    studentId, taskId, status, currentVersion,
+  }));
+  const expectedOutputProjection = [
+    { studentId: 'stu-02', taskId: 'P01', status: 'returned', currentVersion: 1 },
+    { studentId: 'stu-03', taskId: 'P01', status: 'verified', currentVersion: 2 },
+    { studentId: 'stu-03', taskId: 'P02', status: 'verified', currentVersion: 1 },
+    { studentId: 'stu-03', taskId: 'P03', status: 'verified', currentVersion: 1 },
+  ];
+  if (JSON.stringify(outputProjection) !== JSON.stringify(expectedOutputProjection)) {
+    fail('demo outputs must model P01 V1 returned and a verified P01 V2 to P03 chain');
+  }
+  const reviewProjection = reviews.map(({ outputId, outputVersion, status }) => ({
+    outputId, outputVersion, status,
+  }));
+  const expectedReviewProjection = [
+    { outputId: 'demo-output-stu-02-p01', outputVersion: 1, status: 'returned' },
+    { outputId: 'demo-output-stu-03-p01', outputVersion: 1, status: 'returned' },
+    { outputId: 'demo-output-stu-03-p01', outputVersion: 2, status: 'verified' },
+    { outputId: 'demo-output-stu-03-p02', outputVersion: 1, status: 'verified' },
+    { outputId: 'demo-output-stu-03-p03', outputVersion: 1, status: 'verified' },
+  ];
+  if (JSON.stringify(reviewProjection) !== JSON.stringify(expectedReviewProjection)) {
+    fail('demo reviews must stay bound to the exact output version they reviewed');
+  }
+  if (events.some((event) => event?.studentId === 'stu-01')) {
+    fail('stu-01 must remain a clean learner without learning events');
+  }
+
   const frozenProjection = frozenScores
     .map(({ scoreId, studentId, taskId, snapshotVersion, officialScore }) => ({
       scoreId, studentId, taskId, snapshotVersion, officialScore,
@@ -1268,29 +1281,29 @@ function checkDemoSeedContract() {
     .sort((left, right) => `${left.studentId}/${left.taskId}`.localeCompare(`${right.studentId}/${right.taskId}`));
   const expectedFrozenScores = [
     {
-      scoreId: 'demo-task-score-stu-02-p01-v2',
-      studentId: 'stu-02',
-      taskId: 'P01',
-      snapshotVersion: 2,
-      officialScore: 89,
-    },
-    {
-      scoreId: 'demo-task-score-stu-03-p1t1-v1',
+      scoreId: 'demo-score-stu-03-p01',
       studentId: 'stu-03',
       taskId: 'P01',
-      snapshotVersion: 1,
+      snapshotVersion: 4,
       officialScore: 94,
     },
     {
-      scoreId: 'demo-task-score-stu-03-p1t2-v1',
+      scoreId: 'demo-score-stu-03-p02',
       studentId: 'stu-03',
       taskId: 'P02',
-      snapshotVersion: 1,
+      snapshotVersion: 5,
       officialScore: 92,
+    },
+    {
+      scoreId: 'demo-score-stu-03-p03',
+      studentId: 'stu-03',
+      taskId: 'P03',
+      snapshotVersion: 6,
+      officialScore: 91,
     },
   ];
   if (JSON.stringify(frozenProjection) !== JSON.stringify(expectedFrozenScores)) {
-    fail('demo frozen task scores must use canonical P01/P02 IDs and the immutable stu-02 P01 v2 score');
+    fail('only the complete stu-03 persona may have canonical P01/P02/P03 frozen scores');
   }
 }
 

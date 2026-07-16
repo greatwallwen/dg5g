@@ -19,25 +19,25 @@ test('cursor API requires a student Cookie and returns the actor own seeded curs
     const body = await response.json();
     assert.equal(response.status, 200);
     assert.equal(body.cursor.studentId, 'stu-01');
-    assert.equal(body.cursor.nodeId, 'P1T1-N02');
-    assert.equal(body.cursor.unitId, 'P01-ku-02');
+    assert.equal(body.cursor.nodeId, 'P1T1-N01');
+    assert.equal(body.cursor.unitId, 'P01-ku-01');
   });
 });
 
 test('cursor PUT persists a complete per-node cursor and ignores query identity spoofing', async () => {
   await withFixture(async ({ database, studentCookie }) => {
     const response = await cursorRoute.PUT(request('PUT', studentCookie, {
-      unitId: 'P01-ku-02',
-      actionId: 'P1T1-N02-lesson-visual',
+      unitId: 'P01-ku-01',
+      actionId: 'P1T1-N01-lesson-case',
       actionIndex: 1,
       positionMs: 4_200,
     }, '?studentId=stu-02'), context());
     assert.equal(response.status, 200);
     assert.deepEqual((await response.json()).cursor, {
       studentId: 'stu-01',
-      nodeId: 'P1T1-N02',
-      unitId: 'P01-ku-02',
-      actionId: 'P1T1-N02-lesson-visual',
+      nodeId: 'P1T1-N01',
+      unitId: 'P01-ku-01',
+      actionId: 'P1T1-N01-lesson-case',
       actionIndex: 1,
       positionMs: 4_200,
     });
@@ -47,7 +47,7 @@ test('cursor PUT persists a complete per-node cursor and ignores query identity 
     assert.equal((await refreshed.json()).cursor.positionMs, 4_200);
     assert.equal(database.prepare(`
       SELECT position_ms FROM self_study_cursors
-      WHERE student_id = 'stu-02' AND node_id = 'P1T1-N02'
+      WHERE student_id = 'stu-02' AND node_id = 'P1T1-N01'
     `).pluck().get(), undefined);
   });
 });
@@ -56,7 +56,7 @@ test('cursor route rejects authority fields, foreign content, and malformed posi
   await withFixture(async ({ database, studentCookie }) => {
     const before = database.prepare(`
       SELECT unit_id AS unitId, action_id AS actionId, action_index AS actionIndex, position_ms AS positionMs
-      FROM self_study_cursors WHERE student_id = 'stu-01' AND node_id = 'P1T1-N02'
+      FROM self_study_cursors WHERE student_id = 'stu-01' AND node_id = 'P1T1-N01'
     `).get();
     const invalidBodies = [
       { studentId: 'stu-02', actionIndex: 0, positionMs: 0 },
@@ -72,7 +72,7 @@ test('cursor route rejects authority fields, foreign content, and malformed posi
     }
     assert.deepEqual(database.prepare(`
       SELECT unit_id AS unitId, action_id AS actionId, action_index AS actionIndex, position_ms AS positionMs
-      FROM self_study_cursors WHERE student_id = 'stu-01' AND node_id = 'P1T1-N02'
+      FROM self_study_cursors WHERE student_id = 'stu-01' AND node_id = 'P1T1-N01'
     `).get(), before);
   });
 });
@@ -128,7 +128,7 @@ async function withFixture(run: (fixture: {
   }
 }
 
-function request(method: string, cookie?: string, body?: unknown, query = '', nodeId = 'P1T1-N02'): Request {
+function request(method: string, cookie?: string, body?: unknown, query = '', nodeId = 'P1T1-N01'): Request {
   return new Request(`http://localhost/api/self-study/cursors/${nodeId}${query}`, {
     method,
     headers: {
@@ -139,6 +139,6 @@ function request(method: string, cookie?: string, body?: unknown, query = '', no
   });
 }
 
-function context(nodeId = 'P1T1-N02') {
+function context(nodeId = 'P1T1-N01') {
   return { params: { nodeId } };
 }

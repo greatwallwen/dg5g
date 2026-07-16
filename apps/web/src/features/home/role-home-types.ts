@@ -4,6 +4,7 @@ import type {
   SnapshotSubmissionMetrics,
 } from '../../platform/authoritative-snapshot.ts';
 import type { AuthoritativeDomFacts } from '../snapshot/snapshot-dom-facts.ts';
+import type { LearningOrigin } from '../../platform/learning-origin.ts';
 
 export type RoleHomeActionIcon = 'arrow' | 'book' | 'grid' | 'map';
 
@@ -26,11 +27,15 @@ export interface LearningContextSnapshot {
   };
   progress: {
     stateLabel: string;
+    stateOrigin?: LearningOrigin;
     completionPercent: number;
     nextRequirement: string;
     nodeTestHighestScore?: number;
+    nodeTestScoreOrigin?: LearningOrigin;
     taskCompositeScore?: number;
+    taskScoreOrigin?: LearningOrigin;
     projectCompositeScore?: number;
+    projectScoreOrigin?: LearningOrigin;
   };
 }
 

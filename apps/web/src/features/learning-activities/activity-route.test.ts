@@ -34,7 +34,9 @@ test('activity attempt route enforces 401, 403, and the exact command body', asy
     }), context(scopeActivityId));
 
     assert.deepEqual([anonymous.status, teacher.status, authorityField.status, missingField.status], [401, 403, 400, 400]);
-    assert.equal(database.prepare('SELECT COUNT(*) FROM practice_attempts').pluck().get(), 0);
+    assert.equal(database.prepare(`
+      SELECT COUNT(*) FROM practice_attempts WHERE origin = 'user'
+    `).pluck().get(), 0);
   });
 });
 
@@ -51,7 +53,8 @@ test('activity attempt route derives actor identity and returns 409 for a stale 
       FROM practice_attempts WHERE attempt_id = 'activity-versioned'
     `).get(), { studentId: 'stu-01', activityId: scopeActivityId });
     assert.equal(database.prepare(`
-      SELECT COUNT(*) FROM practice_attempts WHERE student_id = 'stu-02'
+      SELECT COUNT(*) FROM practice_attempts
+      WHERE student_id = 'stu-02' AND origin = 'user'
     `).pluck().get(), 0);
   });
 });

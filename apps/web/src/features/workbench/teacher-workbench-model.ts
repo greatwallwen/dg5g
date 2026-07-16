@@ -57,9 +57,9 @@ export function buildTeacherWorkbenchViewModel(snapshot: TeacherWorkbenchSnapsho
     },
     classSummary: snapshot.classSummary,
     scoreCards: [
-      scoreCard('节点测试最高分', snapshot.classScores.activeNodeTestHighestScore, 'current'),
-      scoreCard('任务综合分', snapshot.classScores.activeTaskCompositeAverageScore, 'review'),
-      scoreCard('项目综合分', snapshot.classScores.projectCompositeAverageScore, 'muted'),
+      scoreCard('节点测试最高分', snapshot.classScores.activeNodeTestHighestScore, 'current', snapshot.classScores.demoData),
+      scoreCard('任务综合分', snapshot.classScores.activeTaskCompositeAverageScore, 'review', snapshot.classScores.demoData),
+      scoreCard('项目综合分', snapshot.classScores.projectCompositeAverageScore, 'muted', snapshot.classScores.demoData),
     ],
     graphAction: { label: '课程能力图谱', href: '/course' },
   };
@@ -69,6 +69,11 @@ function scoreCard(
   label: string,
   value: number | undefined,
   tone: 'current' | 'review' | 'muted',
+  demoData?: boolean,
 ) {
-  return { label, value: value === undefined ? '尚未形成' : String(Math.round(value)), tone };
+  return {
+    label,
+    value: value === undefined ? '尚未形成' : `${Math.round(value)}${demoData ? ' · 演示数据' : ''}`,
+    tone,
+  };
 }

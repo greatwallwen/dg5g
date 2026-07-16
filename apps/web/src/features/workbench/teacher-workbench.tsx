@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Icon } from '../../ui/foundation/icons.tsx';
 import { RoleHomeHeader } from '../home/role-home-header.tsx';
 import { TeacherStartLessonClient } from './teacher-start-lesson-client.tsx';
+import { TeacherDemoResetClient } from './teacher-demo-reset-client.tsx';
 import type { TeacherWorkbenchViewModel } from './teacher-workbench-model.ts';
 
 export function TeacherWorkbench({ model }: { model: TeacherWorkbenchViewModel }) {
@@ -79,6 +80,7 @@ function TeacherReady({ model }: { model: Extract<TeacherWorkbenchViewModel, { k
         <Link aria-label="课程能力图谱" className="role-home-secondary" href={model.graphAction.href}>
           <Icon name="map" size={19} />{model.graphAction.label}<Icon name="arrow" size={17} />
         </Link>
+        <TeacherDemoResetClient />
       </section>
 
       <section className="role-home-card teacher-progress-card" data-teacher-workbench-progress>

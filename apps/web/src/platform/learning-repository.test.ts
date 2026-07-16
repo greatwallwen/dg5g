@@ -36,6 +36,7 @@ test('writes one learning event and advances only its student topic plus global 
       eventType: 'section_completed',
       payload: { sectionId: 'case' },
       occurredAt: '2026-07-15T10:00:00.000Z',
+      origin: 'user',
     }]);
   } finally {
     fixture.cleanup();
@@ -87,6 +88,9 @@ test('stores and replays a structurally valid formal attempt without applying co
       durationSeconds: 203,
       mistakeKnowledgePointIds: ['kp-boundary'],
       completedAt: '2026-07-15T10:02:00.000Z',
+      answers: {},
+      diagnostics: {},
+      origin: 'user',
     };
 
     assert.deepEqual(repository.recordFormalAttempt(attempt, 0), {

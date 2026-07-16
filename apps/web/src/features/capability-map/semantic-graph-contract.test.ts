@@ -9,7 +9,8 @@ test('graph nodes expose stable access markers and do not overlap future-open la
   assert.match(elements, /data-graph-node-state=\{access\.kind\}/);
   assert.match(elements, /node\.subtitle && !access\.disabled/);
   assert.match(elements, /className="semantic-edge-label"/);
-  assert.match(elements, /`任务综合分 \$\{taskScore === undefined \? '尚未形成'/);
+  assert.match(elements, /`任务综合分 \$\{scoreLabel\(taskScore, achievementTask\?\.origin\)\}`/);
+  assert.match(elements, /演示数据/);
   assert.doesNotMatch(elements, /P1T1-N04' \? '证据链重建'/);
 });
 

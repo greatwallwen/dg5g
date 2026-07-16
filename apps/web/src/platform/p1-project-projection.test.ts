@@ -20,16 +20,16 @@ test('projects the authoritative P01 to P03 chain for each seeded student', () =
     const studentThree = readP1ProjectProjection('stu-03', fixture.database);
 
     assert.equal(studentOne.studentVersion, 0);
-    assert.equal(studentOne.snapshotVersion, 2);
+    assert.equal(studentOne.snapshotVersion, 6);
     assert.equal(Object.hasOwn(studentOne, 'globalVersion'), false);
 
     assert.deepEqual(studentOne.tasks.map(({ taskId }) => taskId), ['P01', 'P02', 'P03']);
     assert.deepEqual(studentOne.tasks.map(({ nodes }) => nodes.length), [4, 4, 4]);
     assert.equal(new Set(studentOne.tasks.flatMap(({ nodes }) => nodes.map(({ nodeId }) => nodeId))).size, 12);
 
-    assert.equal(studentOne.tasks[0].nextNodeId, 'P1T1-N02');
-    assert.equal(studentTwo.tasks[1].nextNodeId, 'P1T2-N02');
-    assert.equal(studentThree.tasks[2].nextNodeId, 'P1T3-N02');
+    assert.equal(studentOne.tasks[0].nextNodeId, 'P1T1-N01');
+    assert.equal(studentTwo.tasks[0].nextNodeId, 'P1T1-N04');
+    assert.equal(studentThree.tasks[2].nextNodeId, undefined);
 
     assert.equal(studentOne.tasks[1].state, 'locked');
     assert.equal(studentOne.tasks[1].nextNodeId, undefined);
@@ -60,13 +60,10 @@ test('uses generated P1 content, immutable output heads and frozen scores withou
       projection.tasks.map(({ title, taskOutputTitle }) => ({ title, taskOutputTitle })),
       content.tasks.map(({ title, taskOutputTitle }) => ({ title, taskOutputTitle })),
     );
-    assert.equal(projection.tasks[0].outputStatus, 'verified');
+    assert.equal(projection.tasks[0].outputStatus, 'returned');
     assert.equal(projection.tasks[0].currentOutputVersion, 1);
-    assert.deepEqual(projection.tasks[0].verifiedOutputReference, {
-      outputId: 'demo-output-stu-02-p1t1-n04',
-      version: 1,
-    });
-    assert.equal(projection.tasks[0].taskCompositeScore, 89);
+    assert.equal(projection.tasks[0].verifiedOutputReference, undefined);
+    assert.equal(projection.tasks[0].taskCompositeScore, undefined);
     assert.equal(projection.tasks[1].taskCompositeScore, undefined);
     assert.equal(projection.projectCompositeScore, undefined);
     assert.equal(projection.portfolioStatus, 'collecting');
@@ -127,10 +124,10 @@ test('a returned v1 revised and resubmitted as v2 is current on both project and
 
     assert.equal(projection.tasks[0].currentOutputVersion, 2);
     assert.equal(projection.tasks[0].outputStatus, 'submitted');
-    assert.equal(projection.tasks[0].teacherFeedback, '补齐连接方向证据。');
+    assert.equal(projection.tasks[0].teacherFeedback, undefined);
     assert.equal(projection.tasks[0].verifiedOutputReference, undefined);
     assert.equal(portfolio.items[0]?.versionLabel, 'v2');
-    assert.equal(portfolio.items[0]?.teacherFeedback, '补齐连接方向证据。');
+    assert.equal(portfolio.items[0]?.teacherFeedback, '暂无教师反馈');
     assert.equal(portfolio.packageStatus, 'not-formed');
   } finally {
     fixture.cleanup();

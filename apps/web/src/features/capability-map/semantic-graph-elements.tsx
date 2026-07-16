@@ -77,7 +77,9 @@ export function GraphNode({ node, selected, current, path, achievement, access, 
   const achievementTaskId = taskIdForAchievementNode(node);
   const achievementTask = achievementTaskId ? taskProgress.find((item) => item.taskId === achievementTaskId) : undefined;
   const taskScore = node.kind === 'achievement' ? achievementTask?.taskCompositeScore : undefined;
-  const title = node.kind === 'achievement' ? `任务综合分 ${taskScore === undefined ? '尚未形成' : `${taskScore}分`}` : node.title;
+  const title = node.kind === 'achievement'
+    ? `任务综合分 ${scoreLabel(taskScore, achievementTask?.origin)}`
+    : node.title;
   const showSubtitle = zoomLevel === 'detail' && node.subtitle && !access.disabled;
   const pointerStart = useRef<GraphNodePointerPoint>();
   // D3 zoom suppresses the SVG click after its mouse gesture. Pointer events let
@@ -190,22 +192,30 @@ export function detailForNode(
       { label: '教材内容', value: ability.title },
       { label: '微练习', value: microPracticeLabel(node.nodeId) },
       { label: '正式节点测试', value: formalTestTitle },
-      { label: '节点测试最高分', value: record?.nodeTestHighestScore === undefined ? '尚未形成' : `${record.nodeTestHighestScore}分` },
+      { label: '节点测试最高分', value: scoreLabel(record?.nodeTestHighestScore, record?.origin) },
       { label: '下一步', value: record?.nextRequirement ?? access.label },
       ...(nodeHeatmap ? [{ label: '班级状态分布', value: heatmapLabel(nodeHeatmap.stateCounts) }] : []),
     ] : [
       { label: '图谱层级', value: graphKindLabel[node.kind] },
       { label: '当前关系', value: node.subtitle ?? '沿课程能力主线展开' },
       ...(task ? [
-        { label: '节点测试最高分', value: task.nodeTestHighestScore === undefined ? '尚未形成' : `${task.nodeTestHighestScore}分` },
-        { label: '任务综合分', value: task.taskCompositeScore === undefined ? '尚未形成' : `${task.taskCompositeScore}分` },
+        { label: '节点测试最高分', value: scoreLabel(task.nodeTestHighestScore, task.origin) },
+        { label: '任务综合分', value: scoreLabel(task.taskCompositeScore, task.origin) },
       ] : []),
       ...(node.projectId === 'P1' ? [{
         label: '项目综合分',
-        value: projectCompositeScore === undefined ? '尚未形成' : `${projectCompositeScore}分`,
+        value: scoreLabel(
+          projectCompositeScore,
+          tasks.some(({ origin }) => origin === 'user') ? 'user'
+            : tasks.some(({ origin }) => origin === 'demo') ? 'demo' : undefined,
+        ),
       }] : []),
     ],
   };
+}
+
+function scoreLabel(score: number | undefined, origin?: 'demo' | 'user'): string {
+  return score === undefined ? '尚未形成' : `${score}分${origin === 'demo' ? ' · 演示数据' : ''}`;
 }
 
 function microPracticeLabel(nodeId?: string) {

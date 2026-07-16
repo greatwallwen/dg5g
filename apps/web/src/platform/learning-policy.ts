@@ -19,6 +19,7 @@ export interface NodeLearningPolicy {
   /** @deprecated Legacy readers use this until the SQLite service migration is complete. */
   prerequisiteNodeIds: string[];
   requiresMicroPractice: boolean;
+  requiredActivityIds: readonly string[];
   requiresFormalTest: boolean;
   assessmentRole: AssessmentRole;
   formalPassScore?: number;
@@ -46,6 +47,17 @@ const taskDefinitions: Array<{
   { taskId: 'P03', prefix: 'P1T3', entryPrerequisite: 'P1T2-N04', outputTitle: '投诉信息调查单' },
 ];
 
+const requiredActivityIdsByNode: Partial<Record<P1NodeId, readonly string[]>> = {
+  'P1T1-N01': ['P1T1-N01-micro-01'],
+  'P1T1-N02': [
+    'P1T1-N02-foundation-01',
+    'P1T1-N02-application-01',
+    'P1T1-N02-transfer-01',
+  ],
+  'P1T1-N03': ['P1T1-N03-micro-01'],
+  'P1T1-N04': ['P1T1-N04-micro-01'],
+};
+
 export const nodeLearningPolicies: NodeLearningPolicy[] = taskDefinitions.flatMap((task) =>
   Array.from({ length: 4 }, (_, offset): NodeLearningPolicy => {
     const index = offset + 1;
@@ -69,6 +81,7 @@ export const nodeLearningPolicies: NodeLearningPolicy[] = taskDefinitions.flatMa
       prerequisites,
       prerequisiteNodeIds: prerequisites.map((item) => item.nodeId),
       requiresMicroPractice: true,
+      requiredActivityIds: requiredActivityIdsByNode[nodeId] ?? [],
       requiresFormalTest: isNodeTest,
       assessmentRole: isNodeTest ? 'node-test' : 'none',
       formalPassScore: isNodeTest ? 80 : undefined,

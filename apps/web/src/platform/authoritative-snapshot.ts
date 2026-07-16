@@ -15,6 +15,7 @@ import type { NodeLearningState } from './learning-status.ts';
 import { nodeLearningStateCompletionPercent } from './learning-status.ts';
 import { projectP1Project, type P1ProjectProjection } from './p1-project-projection.ts';
 import { SnapshotClock } from './snapshot-clock.ts';
+import type { LearningOrigin } from './learning-origin.ts';
 
 export type SnapshotAudience = 'student' | 'teacher' | 'projector' | 'graph';
 export type ScoreDistributionRange = '90-100' | 'pass-89' | '60-below-pass' | 'below-60';
@@ -46,6 +47,7 @@ export interface ClassScoreSnapshot {
   activeTaskCompositeAverageScore?: number;
   projectCompositeAverageScore?: number;
   distribution: Array<{ range: ScoreDistributionRange; count: number }>;
+  demoData?: boolean;
 }
 
 export interface SnapshotCommon {
@@ -91,15 +93,18 @@ export interface StudentSnapshotDetail {
     state: NodeLearningState;
     nodeTestHighestScore?: number;
     nextRequirement: string;
+    origin?: LearningOrigin;
   }>;
   tasks: Array<{
     taskId: P1TaskId;
     stateCompletionPercent: number;
     nodeTestHighestScore?: number;
     taskCompositeScore?: number;
+    origin?: LearningOrigin;
   }>;
   project: Omit<P1ProjectProjection, 'studentVersion' | 'snapshotVersion'>;
   projectCompositeScore?: number;
+  projectCompositeOrigin?: LearningOrigin;
 }
 
 export interface StudentSelfSnapshotDetail extends StudentSnapshotDetail {
@@ -112,7 +117,8 @@ export interface WeakPointSnapshot {
   stateCounts: Partial<Record<NodeLearningState, number>>;
 }
 
-type StudentGraphDetail = Pick<StudentSnapshotDetail, 'studentId' | 'studentVersion' | 'nodes' | 'tasks' | 'projectCompositeScore'>;
+type StudentGraphDetail = Pick<StudentSnapshotDetail,
+  'studentId' | 'studentVersion' | 'nodes' | 'tasks' | 'projectCompositeScore' | 'projectCompositeOrigin'>;
 
 export type AuthoritativeSnapshot =
   | (SnapshotCommon & { audience: 'student'; me: StudentSelfSnapshotDetail })
@@ -271,21 +277,27 @@ export class AuthoritativeSnapshotReader {
     const device = new ClassroomSessionRepository(this.database).readDeviceSnapshot(session.sessionId, observedAt);
     const joinedCount = participation.readJoinedStudentIds(session.sessionId).length;
     const followingCount = participation.readFollowingStudentIds(session.sessionId).length;
-    const scores = activeNodeId
+    const scoreFacts = activeNodeId
       ? students.flatMap(({ learning }) => {
-          const score = learning.nodes.find(({ nodeId }) => nodeId === activeNodeId)?.bestFormalScore;
-          return score === undefined ? [] : [score];
+          const node = learning.nodes.find(({ nodeId }) => nodeId === activeNodeId);
+          return node?.bestFormalScore === undefined ? [] : [{ score: node.bestFormalScore, origin: node.origin }];
         })
       : [];
-    const taskScores = activePolicy
+    const taskScoreFacts = activePolicy
       ? students.flatMap(({ learning }) => {
-          const score = learning.tasks.find(({ taskId }) => taskId === activePolicy.taskId)?.taskCompositeScore;
-          return score === undefined ? [] : [score];
+          const task = learning.tasks.find(({ taskId }) => taskId === activePolicy.taskId);
+          return task?.taskCompositeScore === undefined ? [] : [{ score: task.taskCompositeScore, origin: task.origin }];
         })
       : [];
-    const projectScores = students.flatMap(({ learning }) => (
-      learning.projectCompositeScore === undefined ? [] : [learning.projectCompositeScore]
+    const projectScoreFacts = students.flatMap(({ learning }) => (
+      learning.projectCompositeScore === undefined ? [] : [{
+        score: learning.projectCompositeScore,
+        origin: learning.projectCompositeOrigin,
+      }]
     ));
+    const scores = scoreFacts.map(({ score }) => score);
+    const taskScores = taskScoreFacts.map(({ score }) => score);
+    const projectScores = projectScoreFacts.map(({ score }) => score);
     const classScores: ClassScoreSnapshot = {
       ...(scores.length === 0 ? {} : {
         activeNodeTestHighestScore: Math.max(...scores),
@@ -294,6 +306,9 @@ export class AuthoritativeSnapshotReader {
       ...(taskScores.length === 0 ? {} : { activeTaskCompositeAverageScore: average(taskScores) }),
       ...(projectScores.length === 0 ? {} : { projectCompositeAverageScore: average(projectScores) }),
       distribution: scoreDistribution(scores, activePolicy?.formalPassScore ?? 80),
+      ...([...scoreFacts, ...taskScoreFacts, ...projectScoreFacts].some(({ origin }) => origin === 'demo')
+        ? { demoData: true }
+        : {}),
     };
     return {
       snapshotVersion: version.version,
@@ -359,6 +374,9 @@ export class AuthoritativeSnapshotReader {
           ...(detail.projectCompositeScore === undefined ? {} : {
             projectCompositeScore: detail.projectCompositeScore,
           }),
+          ...(detail.projectCompositeOrigin === undefined ? {} : {
+            projectCompositeOrigin: detail.projectCompositeOrigin,
+          }),
         },
       };
     }
@@ -400,9 +418,10 @@ function projectSubmissionMetrics(
     ? []
     : students.flatMap(({ member, learning }) => {
         const scores = learning.nodes.find(({ nodeId }) => nodeId === activeNodeId)?.attempts
-          .filter(({ assessmentId, completedAt, gameId }) => {
+          .filter(({ assessmentId, completedAt, gameId, origin }) => {
             const completedAtMs = Date.parse(completedAt);
-            return assessmentId === formalTest.assessmentId
+            return origin === 'user'
+              && assessmentId === formalTest.assessmentId
               && gameId === formalTest.gameId
               && Number.isFinite(completedAtMs)
               && completedAtMs >= windowStartedAt
@@ -471,6 +490,7 @@ function projectStudentDetail(student: ProjectedStudent): StudentSnapshotDetail 
     state: node.state,
     ...(node.bestFormalScore === undefined ? {} : { nodeTestHighestScore: node.bestFormalScore }),
     nextRequirement: node.nextRequirement,
+    ...(node.origin ? { origin: node.origin } : {}),
   }));
   return {
     studentId: student.member.studentId,
@@ -482,10 +502,14 @@ function projectStudentDetail(student: ProjectedStudent): StudentSnapshotDetail 
       stateCompletionPercent: projectStudentTaskCompletion(task.taskId, nodes),
       ...(task.nodeTestHighestScore === undefined ? {} : { nodeTestHighestScore: task.nodeTestHighestScore }),
       ...(task.taskCompositeScore === undefined ? {} : { taskCompositeScore: task.taskCompositeScore }),
+      ...(task.origin ? { origin: task.origin } : {}),
     })),
     project,
     ...(student.learning.projectCompositeScore === undefined ? {} : {
       projectCompositeScore: student.learning.projectCompositeScore,
+    }),
+    ...(student.learning.projectCompositeOrigin === undefined ? {} : {
+      projectCompositeOrigin: student.learning.projectCompositeOrigin,
     }),
   };
 }

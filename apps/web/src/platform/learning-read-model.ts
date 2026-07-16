@@ -22,9 +22,11 @@ import {
   type StoredFrozenTaskScore,
   type StoredLearningEvent,
   type StoredOutputReview,
+  type StoredPracticeAttempt,
   type StoredProfessionalOutput,
   type StudentLearningFacts,
 } from './learning-repository.ts';
+import type { LearningOrigin } from './learning-origin.ts';
 
 export const REQUIRED_SELF_STUDY_SECTIONS = [
   'understand',
@@ -42,6 +44,10 @@ export interface FormalAttemptProjection {
   durationSeconds?: number;
   mistakeKnowledgePointIds: string[];
   completedAt: string;
+  questionVersion?: string;
+  answers?: unknown;
+  diagnostics?: unknown;
+  origin?: LearningOrigin;
 }
 
 export interface NodeEvidenceProjection {
@@ -53,6 +59,7 @@ export interface NodeEvidenceProjection {
   submittedAt?: string;
   createdAt: string;
   updatedAt: string;
+  origin?: LearningOrigin;
   version?: number;
   stateRevision?: number;
 }
@@ -64,6 +71,8 @@ export interface OutputReviewProjection {
   score?: number;
   feedback?: string;
   reviewedAt: string;
+  outputVersion?: number;
+  origin?: LearningOrigin;
 }
 
 export interface NodePrerequisiteProjection {
@@ -85,6 +94,7 @@ export interface StudentNodeLearningSnapshot {
   prerequisites: NodePrerequisiteProjection[];
   bestFormalScore?: number;
   nextRequirement: string;
+  origin?: LearningOrigin;
 }
 
 export interface StudentLearningSnapshot {
@@ -92,8 +102,9 @@ export interface StudentLearningSnapshot {
   globalVersion: number;
   studentId: string;
   nodes: StudentNodeLearningSnapshot[];
-  tasks: Array<TaskScoreProjection & { taskId: P1TaskId }>;
+  tasks: Array<TaskScoreProjection & { taskId: P1TaskId; origin?: LearningOrigin }>;
   projectCompositeScore?: number;
+  projectCompositeOrigin?: LearningOrigin;
 }
 
 export interface ClassLearningSnapshot {
@@ -124,13 +135,18 @@ function projectStudentLearningFacts(facts: StudentLearningFacts): StudentLearni
   const snapshots = new Map<string, StudentNodeLearningSnapshot>();
 
   for (const policy of nodeLearningPolicies) {
-    const events = facts.events.filter(({ nodeId }) => nodeId === policy.nodeId);
-    const storedAttempts = facts.attempts.filter(({ nodeId }) => nodeId === policy.nodeId);
+    const events = preferUserOrigin(facts.events.filter(({ nodeId }) => nodeId === policy.nodeId));
+    const practiceAttempts = preferUserOrigin(
+      facts.practiceAttempts.filter(({ nodeId }) => nodeId === policy.nodeId),
+    );
+    const storedAttempts = preferUserOrigin(facts.attempts.filter(({ nodeId }) => nodeId === policy.nodeId));
     const attempts = storedAttempts.map(toAttemptProjection);
     const sections = completedSections(events);
     const classroomSubmitted = events.some(isCompletedClassroomSubmission);
     const evidence = latestOutputForNode(facts.outputs, policy.nodeId);
-    const storedReview = evidence ? latestReviewForOutput(facts.reviews, evidence.outputId) : undefined;
+    const storedReview = evidence
+      ? latestReviewForOutput(facts.reviews, evidence.outputId, evidence.currentVersion)
+      : undefined;
     const review = storedReview ? toReviewProjection(storedReview) : undefined;
     const prerequisites = policy.prerequisites.map((prerequisite): NodePrerequisiteProjection => {
       const prior = snapshots.get(prerequisite.nodeId);
@@ -154,9 +170,9 @@ function projectStudentLearningFacts(facts: StudentLearningFacts): StudentLearni
       ? Math.max(...storedAttempts.map(({ score }) => score))
       : undefined;
     const projection = deriveNodeLearningProjection(policy, {
-      hasActivity: events.length > 0 || storedAttempts.length > 0 || evidence !== undefined,
-      microPracticePassed: events.some(isMicroPracticePass)
-        || REQUIRED_SELF_STUDY_SECTIONS.every((sectionId) => sections.includes(sectionId)),
+      hasActivity: events.length > 0 || practiceAttempts.length > 0
+        || storedAttempts.length > 0 || evidence !== undefined,
+      microPracticePassed: microPracticePassed(policy.requiredActivityIds, practiceAttempts, events),
       bestFormalTestScore: bestFormalScore,
       evidenceReviewStatus: evidenceReviewState(evidence, review),
     }, prerequisiteProgress);
@@ -172,6 +188,9 @@ function projectStudentLearningFacts(facts: StudentLearningFacts): StudentLearni
       prerequisites,
       ...(bestFormalScore === undefined ? {} : { bestFormalScore }),
       nextRequirement: projection.nextRequirement,
+      ...((activeOrigin(events, practiceAttempts, storedAttempts, evidence ? [evidence] : [], storedReview ? [storedReview] : []))
+        ? { origin: activeOrigin(events, practiceAttempts, storedAttempts, evidence ? [evidence] : [], storedReview ? [storedReview] : []) }
+        : {}),
     };
     snapshots.set(policy.nodeId, node);
   }
@@ -183,13 +202,16 @@ function projectStudentLearningFacts(facts: StudentLearningFacts): StudentLearni
     const testNodeIds = new Set(taskPolicies
       .filter(({ assessmentRole }) => assessmentRole === 'node-test')
       .map(({ nodeId }) => nodeId));
-    const scores = facts.attempts
-      .filter(({ nodeId }) => testNodeIds.has(nodeId as P1NodeId))
-      .map(({ score }) => score);
+    const taskAttempts = [...testNodeIds].flatMap((nodeId) => (
+      preferUserOrigin(facts.attempts.filter((attempt) => attempt.nodeId === nodeId))
+    ));
+    const scores = taskAttempts.map(({ score }) => score);
     const nodeTestHighestScore = scores.length ? Math.max(...scores) : undefined;
     const outputPolicy = taskPolicies.find(({ requiresProfessionalOutput }) => requiresProfessionalOutput);
     const output = outputPolicy ? latestOutputForNode(facts.outputs, outputPolicy.nodeId) : undefined;
-    const outputReview = output ? latestReviewForOutput(facts.reviews, output.outputId) : undefined;
+    const outputReview = output
+      ? latestReviewForOutput(facts.reviews, output.outputId, output.currentVersion)
+      : undefined;
     const outputRubricScore = output?.status === 'verified'
       && outputReview?.status === 'verified'
       && outputReview.score !== undefined
@@ -204,16 +226,23 @@ function projectStudentLearningFacts(facts: StudentLearningFacts): StudentLearni
       ...(frozenScore?.officialScore === undefined
         ? {}
         : { taskCompositeScore: frozenScore.officialScore }),
+      ...(frozenScore ? { origin: frozenScore.origin } : {}),
     };
   });
 
+  const projectCompositeScore = calculateProjectCompositeScore(
+    tasks.map(({ taskCompositeScore }) => taskCompositeScore),
+  );
   return {
     version: facts.version,
     globalVersion: facts.globalVersion,
     studentId: facts.studentId,
     nodes,
     tasks,
-    projectCompositeScore: calculateProjectCompositeScore(tasks.map(({ taskCompositeScore }) => taskCompositeScore)),
+    projectCompositeScore,
+    ...(projectCompositeScore === undefined ? {} : {
+      projectCompositeOrigin: tasks.some(({ origin }) => origin === 'user') ? 'user' : 'demo',
+    }),
   };
 }
 
@@ -227,6 +256,10 @@ function toAttemptProjection(attempt: StoredFormalAttempt): FormalAttemptProject
     ...(attempt.durationSeconds === undefined ? {} : { durationSeconds: attempt.durationSeconds }),
     mistakeKnowledgePointIds: attempt.mistakeKnowledgePointIds,
     completedAt: attempt.completedAt,
+    ...(attempt.questionVersion === undefined ? {} : { questionVersion: attempt.questionVersion }),
+    answers: attempt.answers,
+    diagnostics: attempt.diagnostics,
+    origin: attempt.origin,
   };
 }
 
@@ -242,6 +275,7 @@ function toEvidenceProjection(output: StoredProfessionalOutput, taskId: P1TaskId
     ...(output.submittedAt === undefined ? {} : { submittedAt: output.submittedAt }),
     createdAt: output.createdAt,
     updatedAt: output.updatedAt,
+    origin: output.origin,
   };
 }
 
@@ -249,7 +283,9 @@ function latestFrozenTaskScoreForTask(
   scores: StoredFrozenTaskScore[],
   taskId: P1TaskId,
 ): StoredFrozenTaskScore | undefined {
-  return scores.filter((score) => canonicalFrozenTaskId(score.taskId) === taskId).at(-1);
+  return preferUserOrigin(
+    scores.filter((score) => canonicalFrozenTaskId(score.taskId) === taskId),
+  ).at(-1);
 }
 
 function canonicalFrozenTaskId(taskId: string): P1TaskId | undefined {
@@ -272,15 +308,23 @@ function toReviewProjection(review: StoredOutputReview): OutputReviewProjection 
     ...(review.score === undefined ? {} : { score: review.score }),
     ...(review.feedback === undefined ? {} : { feedback: review.feedback }),
     reviewedAt: review.reviewedAt,
+    ...(review.outputVersion === undefined ? {} : { outputVersion: review.outputVersion }),
+    origin: review.origin,
   };
 }
 
 function latestOutputForNode(outputs: StoredProfessionalOutput[], nodeId: string): StoredProfessionalOutput | undefined {
-  return outputs.filter((output) => output.nodeId === nodeId).at(-1);
+  return preferUserOrigin(outputs.filter((output) => output.nodeId === nodeId)).at(-1);
 }
 
-function latestReviewForOutput(reviews: StoredOutputReview[], outputId: string): StoredOutputReview | undefined {
-  return reviews.filter((review) => review.outputId === outputId).at(-1);
+function latestReviewForOutput(
+  reviews: StoredOutputReview[],
+  outputId: string,
+  outputVersion: number,
+): StoredOutputReview | undefined {
+  const scoped = preferUserOrigin(reviews.filter((review) => review.outputId === outputId));
+  return scoped.filter((review) => review.outputVersion === outputVersion).at(-1)
+    ?? scoped.filter((review) => review.outputVersion === undefined).at(-1);
 }
 
 function evidenceReviewState(
@@ -297,7 +341,7 @@ function prerequisiteMet(prior: StudentNodeLearningSnapshot | undefined): boolea
   return prior?.state === 'achieved';
 }
 
-function isMicroPracticePass(event: StoredLearningEvent): boolean {
+function isLegacyMicroPracticePass(event: StoredLearningEvent): boolean {
   if (event.eventType === 'micro_practice_passed') return true;
   if (event.eventType === 'game_completed') {
     return isRecord(event.payload)
@@ -305,6 +349,31 @@ function isMicroPracticePass(event: StoredLearningEvent): boolean {
       && event.payload.formal === false;
   }
   return isCompletedClassroomSubmission(event);
+}
+
+function microPracticePassed(
+  requiredActivityIds: readonly string[],
+  attempts: StoredPracticeAttempt[],
+  events: StoredLearningEvent[],
+): boolean {
+  if (requiredActivityIds.length === 0) return events.some(isLegacyMicroPracticePass);
+  return requiredActivityIds.every((activityId) => attempts.some((attempt) => (
+    attempt.activityId === activityId && attempt.passed
+  )));
+}
+
+function preferUserOrigin<Value extends { origin: LearningOrigin }>(facts: Value[]): Value[] {
+  return facts.some(({ origin }) => origin === 'user')
+    ? facts.filter(({ origin }) => origin === 'user')
+    : facts;
+}
+
+function activeOrigin(
+  ...groups: Array<Array<{ origin: LearningOrigin }>>
+): LearningOrigin | undefined {
+  const facts = groups.flat();
+  if (facts.some(({ origin }) => origin === 'user')) return 'user';
+  return facts.length > 0 ? 'demo' : undefined;
 }
 
 function isCompletedClassroomSubmission(event: StoredLearningEvent): boolean {

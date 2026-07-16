@@ -23,7 +23,7 @@ test('SQLite role-home read returns the current three-member class and persisted
     const authoritative = new AuthoritativeSnapshotReader(fixture.database)
       .read(teacherActor(), 'teacher');
 
-    assert.equal(student.selfStudy?.node.id, 'P1T1-N02');
+    assert.equal(student.selfStudy?.node.id, 'P1T1-N01');
     assert.equal(student.activeClassroom, undefined, 'paused teaching is not an active follow session');
     assert.equal(teacher.classroom.id, 'demo-class');
     assert.equal(teacher.classroom.status, 'paused');
@@ -40,7 +40,7 @@ test('SQLite role-home read returns the current three-member class and persisted
       affectedCount: 1,
     }]);
     assert.deepEqual(teacher.classScores, authoritative.classScores);
-    assert.equal(student.selfStudy?.progress.nodeTestHighestScore, 74);
+    assert.equal(student.selfStudy?.progress.nodeTestHighestScore, undefined);
     assert.equal(student.selfStudy?.progress.taskCompositeScore, undefined);
     assert.equal(student.selfStudy?.progress.projectCompositeScore, undefined);
 
@@ -72,7 +72,7 @@ test('active SQLite classroom is authoritative while the independent cursor rema
     const snapshot = new RoleHomeReadRepository(fixture.database)
       .readStudentHomeSnapshot(studentActor());
 
-    assert.equal(snapshot.selfStudy?.node.id, 'P1T1-N02');
+    assert.equal(snapshot.selfStudy?.node.id, 'P1T1-N01');
     assert.equal(snapshot.activeClassroom?.context.node.id, 'P1T1-N03');
     assert.equal(snapshot.activeClassroom?.routeSessionId, 'demo-class');
     assert.deepEqual(snapshot.activeClassroom?.participation, {
@@ -151,9 +151,9 @@ test('all three seeded students have an explicit usable personal entry', async (
     ];
 
     assert.deepEqual(entries.map((entry: { selfStudy?: { node: { id: string } } }) => entry.selfStudy?.node.id), [
-      'P1T1-N02',
-      'P1T2-N02',
-      'P1T3-N02',
+      'P1T1-N01',
+      'P1T1-N04',
+      'P1T3-N04',
     ]);
     assert.deepEqual(entries.map((entry) => entry.selfStudy?.access.kind), [
       'open',
@@ -178,10 +178,15 @@ test('authoritative home adapters preserve a real zero test score instead of tre
       WHERE session_id = 'demo-class'
     `).run();
     fixture.database.prepare(`
+      UPDATE self_study_cursors
+      SET node_id = 'P1T3-N02', unit_id = 'P03-ku-02', action_id = 'P1T3-N02-lesson-case'
+      WHERE student_id = 'stu-03'
+    `).run();
+    fixture.database.prepare(`
       INSERT INTO formal_attempts (
         attempt_id, student_id, node_id, game_id, score,
-        mistake_knowledge_point_ids_json
-      ) VALUES ('zero-score-is-real', 'stu-03', 'P1T3-N02', 'node-test', 0, '[]')
+        mistake_knowledge_point_ids_json, origin
+      ) VALUES ('zero-score-is-real', 'stu-03', 'P1T3-N02', 'node-test', 0, '[]', 'user')
     `).run();
     const repository = new RoleHomeReadRepository(fixture.database);
     const student = repository.readStudentHomeSnapshot({

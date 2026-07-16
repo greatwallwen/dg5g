@@ -20,9 +20,9 @@ test('turns the student project projection into a clear current task and next ac
     });
     assert.deepEqual(model.currentAction, {
       taskId: 'P01',
-      nodeId: 'P1T1-N02',
-      label: '继续 P01 · 设备拓扑',
-      href: '/learn/P1T1-N02',
+      nodeId: 'P1T1-N01',
+      label: '继续 P01 · 室内资源边界',
+      href: '/learn/P1T1-N01',
     });
     assert.equal(model.completedTaskCount, 0);
     assert.equal(model.taskCount, 3);
@@ -44,11 +44,10 @@ test('labels verified task evidence with its current immutable version', () => {
     seedDemo(fixture.database);
     const model = buildP1ProjectViewModel(readP1ProjectProjection('stu-02', fixture.database));
 
-    assert.equal(model.tasks[0].stateLabel, '任务完成');
-    assert.equal(model.tasks[0].output.statusLabel, '教师已认证');
+    assert.equal(model.tasks[0].stateLabel, '产出处理中');
+    assert.equal(model.tasks[0].output.statusLabel, '退回修订');
     assert.equal(model.tasks[0].output.versionLabel, 'v1');
-    assert.equal(model.tasks[0].taskCompositeScoreLabel, '89');
-    assert.equal(model.currentAction?.nodeId, 'P1T2-N02');
+    assert.equal(model.currentAction?.nodeId, 'P1T1-N04');
   } finally {
     fixture.cleanup();
   }

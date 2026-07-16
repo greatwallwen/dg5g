@@ -5,6 +5,7 @@ import {
   type NodeLearningState,
 } from '../../platform/learning-status.ts';
 import { authoritativeDomFacts, type AuthoritativeDomFacts } from '../snapshot/snapshot-dom-facts.ts';
+import type { LearningOrigin } from '../../platform/learning-origin.ts';
 
 export interface CanonicalGraphNodeProgress {
   nodeId: P1NodeId;
@@ -12,6 +13,7 @@ export interface CanonicalGraphNodeProgress {
   stateCompletionPercent: number;
   nodeTestHighestScore?: number;
   nextRequirement: string;
+  origin?: LearningOrigin;
 }
 
 export interface CanonicalGraphTaskProgress {
@@ -19,6 +21,7 @@ export interface CanonicalGraphTaskProgress {
   stateCompletionPercent: number;
   nodeTestHighestScore?: number;
   taskCompositeScore?: number;
+  origin?: LearningOrigin;
 }
 
 export interface GraphSnapshotModel {
@@ -28,6 +31,7 @@ export interface GraphSnapshotModel {
   sessionId: string;
   selectedNodeId?: P1NodeId;
   projectCompositeScore?: number;
+  projectCompositeOrigin?: LearningOrigin;
   nodes: CanonicalGraphNodeProgress[];
   tasks: CanonicalGraphTaskProgress[];
   nodeHeatmap: Array<{
@@ -47,6 +51,7 @@ export function projectGraphSnapshot(snapshot: GraphAuthoritativeSnapshot): Grap
         nodeTestHighestScore: node.nodeTestHighestScore,
       }),
       nextRequirement: node.nextRequirement,
+      ...(node.origin ? { origin: node.origin } : {}),
     }));
     return {
       mode: snapshot.mode,
@@ -56,6 +61,9 @@ export function projectGraphSnapshot(snapshot: GraphAuthoritativeSnapshot): Grap
       selectedNodeId,
       ...(snapshot.me.projectCompositeScore === undefined ? {} : {
         projectCompositeScore: snapshot.me.projectCompositeScore,
+      }),
+      ...(snapshot.me.projectCompositeOrigin === undefined ? {} : {
+        projectCompositeOrigin: snapshot.me.projectCompositeOrigin,
       }),
       nodes,
       tasks: snapshot.me.tasks.map((task): CanonicalGraphTaskProgress => ({
@@ -67,6 +75,7 @@ export function projectGraphSnapshot(snapshot: GraphAuthoritativeSnapshot): Grap
         ...(task.taskCompositeScore === undefined ? {} : {
           taskCompositeScore: task.taskCompositeScore,
         }),
+        ...(task.origin ? { origin: task.origin } : {}),
       })),
       nodeHeatmap: [],
     };

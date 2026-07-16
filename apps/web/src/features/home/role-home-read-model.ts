@@ -176,7 +176,8 @@ export class RoleHomeReadRepository {
     const policy = getNodeLearningPolicy(nodeId);
     const progress = student.nodes.find((node) => node.nodeId === nodeId);
     if (!found || !policy || policy.publicationStatus !== 'published' || !progress) return undefined;
-    const taskScore = student.tasks.find((task) => task.taskId === found.task.taskId)?.taskCompositeScore;
+    const taskProgress = student.tasks.find((task) => task.taskId === found.task.taskId);
+    const taskScore = taskProgress?.taskCompositeScore;
     const accessKind = classroomOverride || progress.state !== 'locked' ? 'open' : 'locked';
     return {
       project: content.project,
@@ -196,11 +197,17 @@ export class RoleHomeReadRepository {
       },
       progress: {
         stateLabel: classroomOverride ? '课堂进行中' : nodeLearningStateLabel[progress.state],
+        stateOrigin: classroomOverride ? undefined : progress.origin,
         completionPercent: completionPercentForState(progress.state),
         nextRequirement: progress.nextRequirement,
         nodeTestHighestScore: progress.nodeTestHighestScore,
+        nodeTestScoreOrigin: progress.nodeTestHighestScore === undefined ? undefined : progress.origin,
         taskCompositeScore: taskScore,
+        taskScoreOrigin: taskScore === undefined ? undefined : taskProgress?.origin,
         projectCompositeScore: student.projectCompositeScore,
+        projectScoreOrigin: student.projectCompositeScore === undefined
+          ? undefined
+          : student.projectCompositeOrigin,
       },
     };
   }

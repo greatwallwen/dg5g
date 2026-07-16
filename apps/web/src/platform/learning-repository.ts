@@ -4,6 +4,7 @@ import {
   SnapshotTopicNotFoundError,
   type SnapshotTopic,
 } from './snapshot-clock.ts';
+import type { LearningOrigin } from './learning-origin.ts';
 
 export type { SnapshotTopic } from './snapshot-clock.ts';
 export type LearningChannel = 'self-study' | 'classroom' | 'game';
@@ -38,6 +39,20 @@ export interface StoredLearningEvent {
   eventType: string;
   payload: unknown;
   occurredAt: string;
+  origin: LearningOrigin;
+}
+
+export interface StoredPracticeAttempt {
+  attemptId: string;
+  studentId: string;
+  activityId: string;
+  nodeId: string;
+  passed: boolean;
+  response: unknown;
+  result: unknown;
+  artifact: unknown;
+  attemptedAt: string;
+  origin: LearningOrigin;
 }
 
 export interface StoredFormalAttempt {
@@ -50,6 +65,10 @@ export interface StoredFormalAttempt {
   durationSeconds?: number;
   mistakeKnowledgePointIds: string[];
   completedAt: string;
+  questionVersion?: string;
+  answers: unknown;
+  diagnostics: unknown;
+  origin: LearningOrigin;
 }
 
 export interface StoredProfessionalOutput {
@@ -64,6 +83,7 @@ export interface StoredProfessionalOutput {
   submittedAt?: string;
   createdAt: string;
   updatedAt: string;
+  origin: LearningOrigin;
 }
 
 export interface StoredFrozenTaskScore {
@@ -75,6 +95,7 @@ export interface StoredFrozenTaskScore {
   officialScore?: number;
   details: unknown;
   frozenAt: string;
+  origin: LearningOrigin;
 }
 
 export interface StoredOutputReview {
@@ -85,6 +106,8 @@ export interface StoredOutputReview {
   score?: number;
   feedback?: string;
   reviewedAt: string;
+  outputVersion?: number;
+  origin: LearningOrigin;
 }
 
 export interface StudentLearningFacts {
@@ -92,6 +115,7 @@ export interface StudentLearningFacts {
   version: number;
   globalVersion: number;
   events: StoredLearningEvent[];
+  practiceAttempts: StoredPracticeAttempt[];
   attempts: StoredFormalAttempt[];
   outputs: StoredProfessionalOutput[];
   reviews: StoredOutputReview[];
@@ -139,6 +163,20 @@ interface EventRow {
   eventType: string;
   payloadJson: string;
   occurredAt: string;
+  origin: LearningOrigin;
+}
+
+interface PracticeAttemptRow {
+  attemptId: string;
+  studentId: string;
+  activityId: string;
+  nodeId: string;
+  passed: 0 | 1;
+  responseJson: string;
+  resultJson: string;
+  artifactJson: string;
+  attemptedAt: string;
+  origin: LearningOrigin;
 }
 
 interface FormalAttemptRow {
@@ -151,6 +189,10 @@ interface FormalAttemptRow {
   durationSeconds: number | null;
   mistakeKnowledgePointIdsJson: string;
   completedAt: string;
+  questionVersion: string | null;
+  answersJson: string;
+  diagnosticsJson: string;
+  origin: LearningOrigin;
 }
 
 interface ProfessionalOutputRow {
@@ -165,6 +207,7 @@ interface ProfessionalOutputRow {
   submittedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  origin: LearningOrigin;
 }
 
 interface FrozenTaskScoreRow {
@@ -176,6 +219,7 @@ interface FrozenTaskScoreRow {
   officialScore: number | null;
   detailsJson: string;
   frozenAt: string;
+  origin: LearningOrigin;
 }
 
 interface OutputReviewRow {
@@ -186,6 +230,8 @@ interface OutputReviewRow {
   score: number | null;
   feedback: string | null;
   reviewedAt: string;
+  outputVersion: number | null;
+  origin: LearningOrigin;
 }
 
 export class LearningRepository {
@@ -308,10 +354,10 @@ export class LearningRepository {
       this.assertLearningVersion(topic, expectedVersion);
       this.database.prepare(`
         INSERT INTO learning_events (
-          event_id, student_id, node_id, channel, event_type, payload_json, occurred_at
+          event_id, student_id, node_id, channel, event_type, payload_json, occurred_at, origin
         ) VALUES (
           @eventId, @studentId, @nodeId, @channel, @eventType, @payloadJson,
-          COALESCE(@occurredAt, CURRENT_TIMESTAMP)
+          COALESCE(@occurredAt, CURRENT_TIMESTAMP), 'user'
         )
       `).run(event);
       this.clock.advance([topic]);
@@ -333,10 +379,10 @@ export class LearningRepository {
       this.database.prepare(`
         INSERT INTO formal_attempts (
           attempt_id, student_id, node_id, assessment_id, game_id, score, duration_seconds,
-          mistake_knowledge_point_ids_json, completed_at
+          mistake_knowledge_point_ids_json, completed_at, origin
         ) VALUES (
           @attemptId, @studentId, @nodeId, @assessmentId, @gameId, @score, @durationSeconds,
-          @mistakeKnowledgePointIdsJson, COALESCE(@completedAt, CURRENT_TIMESTAMP)
+          @mistakeKnowledgePointIdsJson, COALESCE(@completedAt, CURRENT_TIMESTAMP), 'user'
         )
       `).run(attempt);
       this.clock.advance([topic]);
@@ -357,10 +403,20 @@ export class LearningRepository {
           event_type AS eventType,
           payload_json AS payloadJson,
           occurred_at AS occurredAt
+          , origin
         FROM learning_events
         WHERE student_id = ?
         ORDER BY occurred_at, event_id
       `).all(studentId) as EventRow[];
+      const practiceAttempts = this.database.prepare(`
+        SELECT attempt_id AS attemptId, student_id AS studentId,
+          activity_id AS activityId, node_id AS nodeId, passed,
+          response_json AS responseJson, result_json AS resultJson,
+          artifact_json AS artifactJson, attempted_at AS attemptedAt, origin
+        FROM practice_attempts
+        WHERE student_id = ?
+        ORDER BY attempted_at, attempt_id
+      `).all(studentId) as PracticeAttemptRow[];
       const attempts = this.database.prepare(`
         SELECT
           attempt_id AS attemptId,
@@ -371,7 +427,11 @@ export class LearningRepository {
           score,
           duration_seconds AS durationSeconds,
           mistake_knowledge_point_ids_json AS mistakeKnowledgePointIdsJson,
-          completed_at AS completedAt
+          completed_at AS completedAt,
+          question_version AS questionVersion,
+          answers_json AS answersJson,
+          diagnostics_json AS diagnosticsJson,
+          origin
         FROM formal_attempts
         WHERE student_id = ?
         ORDER BY completed_at, attempt_id
@@ -389,6 +449,7 @@ export class LearningRepository {
           submitted_at AS submittedAt,
           created_at AS createdAt,
           updated_at AS updatedAt
+          , origin
         FROM professional_outputs
         WHERE student_id = ?
         ORDER BY updated_at, output_id
@@ -401,7 +462,14 @@ export class LearningRepository {
           review.status,
           review.score,
           review.feedback,
-          review.reviewed_at AS reviewedAt
+          review.reviewed_at AS reviewedAt,
+          CAST((
+            SELECT json_extract(event.payload_json, '$.version')
+            FROM learning_events AS event
+            WHERE json_extract(event.payload_json, '$.reviewId') = review.review_id
+            ORDER BY event.occurred_at DESC, event.event_id DESC LIMIT 1
+          ) AS INTEGER) AS outputVersion,
+          review.origin
         FROM output_reviews AS review
         INNER JOIN professional_outputs AS output
           ON output.output_id = review.output_id
@@ -417,7 +485,8 @@ export class LearningRepository {
           provisional_score AS provisionalScore,
           official_score AS officialScore,
           details_json AS detailsJson,
-          frozen_at AS frozenAt
+          frozen_at AS frozenAt,
+          origin
         FROM frozen_task_scores
         WHERE student_id = ?
         ORDER BY snapshot_version, frozen_at, score_id
@@ -427,6 +496,7 @@ export class LearningRepository {
         version: this.readTopicVersion(topic),
         globalVersion: this.readTopicVersion('global'),
         events: events.map(toStoredEvent),
+        practiceAttempts: practiceAttempts.map(toStoredPracticeAttempt),
         attempts: attempts.map(toStoredAttempt),
         outputs: outputs.map(toStoredOutput),
         reviews: reviews.map(toStoredReview),
@@ -463,6 +533,7 @@ export class LearningRepository {
         event_type AS eventType,
         payload_json AS payloadJson,
         occurred_at AS occurredAt
+        , origin
       FROM learning_events
       WHERE event_id = ?
     `).get(eventId) as EventRow | undefined;
@@ -480,6 +551,10 @@ export class LearningRepository {
         duration_seconds AS durationSeconds,
         mistake_knowledge_point_ids_json AS mistakeKnowledgePointIdsJson,
         completed_at AS completedAt
+        , question_version AS questionVersion,
+        answers_json AS answersJson,
+        diagnostics_json AS diagnosticsJson,
+        origin
       FROM formal_attempts
       WHERE attempt_id = ?
     `).get(attemptId) as FormalAttemptRow | undefined;
@@ -567,6 +642,22 @@ function toStoredEvent(row: EventRow): StoredLearningEvent {
     eventType: row.eventType,
     payload: parseJson(row.payloadJson),
     occurredAt: row.occurredAt,
+    origin: row.origin,
+  };
+}
+
+function toStoredPracticeAttempt(row: PracticeAttemptRow): StoredPracticeAttempt {
+  return {
+    attemptId: row.attemptId,
+    studentId: row.studentId,
+    activityId: row.activityId,
+    nodeId: row.nodeId,
+    passed: row.passed === 1,
+    response: parseJson(row.responseJson),
+    result: parseJson(row.resultJson),
+    artifact: parseJson(row.artifactJson),
+    attemptedAt: row.attemptedAt,
+    origin: row.origin,
   };
 }
 
@@ -584,6 +675,10 @@ function toStoredAttempt(row: FormalAttemptRow): StoredFormalAttempt {
       ? mistakeKnowledgePointIds.filter((value): value is string => typeof value === 'string')
       : [],
     completedAt: row.completedAt,
+    ...(row.questionVersion === null ? {} : { questionVersion: row.questionVersion }),
+    answers: parseJson(row.answersJson),
+    diagnostics: parseJson(row.diagnosticsJson),
+    origin: row.origin,
   };
 }
 
@@ -600,6 +695,7 @@ function toStoredOutput(row: ProfessionalOutputRow): StoredProfessionalOutput {
     ...(row.submittedAt === null ? {} : { submittedAt: row.submittedAt }),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
+    origin: row.origin,
   };
 }
 
@@ -613,6 +709,7 @@ function toStoredFrozenTaskScore(row: FrozenTaskScoreRow): StoredFrozenTaskScore
     ...(row.officialScore === null ? {} : { officialScore: row.officialScore }),
     details: parseJson(row.detailsJson),
     frozenAt: row.frozenAt,
+    origin: row.origin,
   };
 }
 
@@ -625,6 +722,8 @@ function toStoredReview(row: OutputReviewRow): StoredOutputReview {
     ...(row.score === null ? {} : { score: row.score }),
     ...(row.feedback === null ? {} : { feedback: row.feedback }),
     reviewedAt: row.reviewedAt,
+    ...(row.outputVersion === null ? {} : { outputVersion: row.outputVersion }),
+    origin: row.origin,
   };
 }
 

@@ -42,6 +42,10 @@ test('two node cursors coexist while only the last saved node is active and vers
     assert.deepEqual(repository.readAll('stu-01'), [
       { studentId: 'stu-01', nodeId: 'P1T2-N02', ...p02 },
       { studentId: 'stu-01', nodeId: 'P1T1-N02', ...p01 },
+      {
+        studentId: 'stu-01', nodeId: 'P1T1-N01', unitId: 'P01-ku-01',
+        actionId: 'P1T1-N01-lesson-case', actionIndex: 0, positionMs: 0,
+      },
     ]);
     assert.equal(topicVersion('learning:stu-01'), learningBefore + 2);
     assert.equal(topicVersion('global'), globalBefore + 2);

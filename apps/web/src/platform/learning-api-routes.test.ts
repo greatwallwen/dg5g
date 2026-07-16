@@ -725,6 +725,7 @@ async function withAuthenticatedFixture(
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
     seedP01EvidenceLibrary(fixture.database);
+    passRequiredPractice(fixture.database, 'stu-01', 'P1T1-N01-micro-01', 'P1T1-N01');
     process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
     closeDatabase();
     const auth = new AuthService(fixture.database);
@@ -784,4 +785,17 @@ function outputMutationCounts(database: AppDatabase, studentId: string) {
     snapshot: database.prepare('SELECT version FROM snapshot_versions WHERE topic = ?')
       .pluck().get(`learning:${studentId}`),
   };
+}
+
+function passRequiredPractice(
+  database: AppDatabase,
+  studentId: string,
+  activityId: string,
+  nodeId: string,
+): void {
+  database.prepare(`
+    INSERT INTO practice_attempts (
+      attempt_id, student_id, activity_id, node_id, passed, origin
+    ) VALUES (?, ?, ?, ?, 1, 'user')
+  `).run(`test-unlock-${studentId}-${activityId}`, studentId, activityId, nodeId);
 }

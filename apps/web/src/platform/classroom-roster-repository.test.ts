@@ -67,11 +67,11 @@ test('projects only persisted formal-attempt facts for the active node', () => {
     const studentTwo = roster.find(({ studentId }) => studentId === 'stu-02');
     const studentThree = roster.find(({ studentId }) => studentId === 'stu-03');
 
-    assert.equal(studentOne?.firstGameScore, 74);
-    assert.equal(studentOne?.bestGameScore, 74);
-    assert.equal(studentOne?.latestGameScore, 74);
-    assert.equal(studentOne?.attemptCount, 1);
-    assert.equal(studentOne?.gameDurationSeconds, 224);
+    assert.equal(studentOne?.firstGameScore, undefined);
+    assert.equal(studentOne?.bestGameScore, undefined);
+    assert.equal(studentOne?.latestGameScore, undefined);
+    assert.equal(studentOne?.attemptCount, undefined);
+    assert.equal(studentOne?.gameDurationSeconds, undefined);
     assert.equal(studentTwo?.firstGameScore, 88);
     assert.equal(studentTwo?.bestGameScore, 88);
     assert.equal(studentTwo?.latestGameScore, 88);
@@ -99,9 +99,9 @@ test('projects persisted learning events without inventing scores', () => {
     const studentTwo = roster.find(({ studentId }) => studentId === 'stu-02');
     const studentThree = roster.find(({ studentId }) => studentId === 'stu-03');
 
-    assert.equal(studentOne?.selfStudyState, 'completed');
-    assert.equal(studentTwo?.selfStudyState, 'completed');
-    assert.equal(studentThree?.selfStudyState, 'completed');
+    assert.equal(studentOne?.selfStudyState, 'not_started');
+    assert.equal(studentTwo?.selfStudyState, 'not_started');
+    assert.equal(studentThree?.selfStudyState, 'not_started');
     assert.equal(studentOne?.bestGameScore, undefined);
     assert.equal(studentTwo?.bestGameScore, undefined);
     assert.equal(studentThree?.bestGameScore, undefined);
@@ -119,14 +119,19 @@ test('projects persisted task-output review facts only onto their database membe
     const roster = new ClassroomRosterRepository(fixture.database)
       .readStudentRoster('demo-class', 'P1T1-N04');
     const studentOne = roster.find(({ studentId }) => studentId === 'stu-01');
-    const reviewedStudents = roster.filter(({ studentId }) => studentId !== 'stu-01');
+    const studentTwo = roster.find(({ studentId }) => studentId === 'stu-02');
+    const studentThree = roster.find(({ studentId }) => studentId === 'stu-03');
 
     assert.equal(studentOne?.submissionState, 'draft');
     assert.equal(studentOne?.evidenceCount, 0);
-    assert.ok(reviewedStudents.every(({ submissionState }) => submissionState === 'reviewed'));
-    assert.ok(reviewedStudents.every(({ evidenceCount }) => evidenceCount === 1));
-    assert.ok(reviewedStudents.every(({ evidenceReviewStatus }) => evidenceReviewStatus === 'verified'));
-    assert.ok(reviewedStudents.every(({ teacherVerified }) => teacherVerified === true));
+    assert.equal(studentTwo?.submissionState, 'reviewed');
+    assert.equal(studentTwo?.evidenceCount, 1);
+    assert.equal(studentTwo?.evidenceReviewStatus, 'returned');
+    assert.equal(studentTwo?.teacherVerified, false);
+    assert.equal(studentThree?.submissionState, 'reviewed');
+    assert.equal(studentThree?.evidenceCount, 1);
+    assert.equal(studentThree?.evidenceReviewStatus, 'verified');
+    assert.equal(studentThree?.teacherVerified, true);
     assert.ok(roster.every(({ bestGameScore }) => bestGameScore === undefined), 'N04 output rubric scores are not node-test scores');
   } finally {
     fixture.cleanup();

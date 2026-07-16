@@ -27,8 +27,8 @@ test('projects seeded SQLite learning facts without a process-local event store'
 
   assert.equal(n02?.bestGameScore, 88);
   assert.equal(n02?.formalTestPassed, true);
-  assert.equal(p01?.taskScore, 89);
-  assert.equal(p01?.professionalOutputScore, 90);
+  assert.equal(p01?.taskScore, undefined);
+  assert.equal(p01?.professionalOutputScore, undefined);
 });
 
 test('keeps compatibility reads fail-closed for unknown nodes', () => {
@@ -49,5 +49,5 @@ test('projects the three-task P1 outcome from the same snapshot', () => {
 
   assert.deepEqual(project.taskIds, ['P01', 'P02', 'P03']);
   assert.deepEqual(store.getTaskMasteryForStudent('stu-03').map((task) => task.taskId), ['P01', 'P02', 'P03']);
-  assert.equal(project.provisionalScore, undefined);
+  assert.equal(project.provisionalScore, 92);
 });

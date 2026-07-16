@@ -1,269 +1,262 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { seedDemo } from './db/demo-seed.ts';
+import { seedBase, seedDemo } from './db/demo-seed.ts';
 import { migrateDatabase } from './db/migrations.ts';
 import { createTestDatabase } from './db/test-database.ts';
-import { LearningReadModel, REQUIRED_SELF_STUDY_SECTIONS } from './learning-read-model.ts';
+import { LearningReadModel } from './learning-read-model.ts';
 import { LearningRepository } from './learning-repository.ts';
 
-test('projects one authoritative twelve-node student snapshot from SQLite facts', () => {
+test('only the policy-required passed practice activities satisfy P01 micro-practice', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
-    seedDemo(fixture.database);
-    const snapshot = new LearningReadModel(new LearningRepository(fixture.database))
-      .readStudentSnapshot('stu-02');
-
-    assert.equal(snapshot.studentId, 'stu-02');
-    assert.equal(snapshot.version, 0);
-    assert.equal(snapshot.globalVersion, 2);
-    assert.equal(snapshot.nodes.length, 12);
-    assert.deepEqual(snapshot.nodes.map(({ nodeId }) => nodeId), [
-      'P1T1-N01', 'P1T1-N02', 'P1T1-N03', 'P1T1-N04',
-      'P1T2-N01', 'P1T2-N02', 'P1T2-N03', 'P1T2-N04',
-      'P1T3-N01', 'P1T3-N02', 'P1T3-N03', 'P1T3-N04',
-    ]);
-
-    const testedNode = requiredNode(snapshot, 'P1T1-N02');
-    assert.equal(testedNode.state, 'achieved');
-    assert.equal(testedNode.bestFormalScore, 88);
-    assert.equal(testedNode.attempts.length, 1);
-    assert.equal(testedNode.attempts[0]?.attemptId, 'demo-attempt-stu-02-p1t1-n02-v2');
-
-    const outputNode = requiredNode(snapshot, 'P1T1-N04');
-    assert.equal(outputNode.state, 'achieved');
-    assert.equal(outputNode.evidence?.outputId, 'demo-output-stu-02-p1t1-n04');
-    assert.equal(outputNode.evidence?.status, 'verified');
-    assert.equal(outputNode.evidence?.version, 1);
-    assert.equal(outputNode.evidence?.stateRevision, 1);
-    assert.equal(outputNode.review?.status, 'verified');
-    assert.equal(outputNode.review?.score, 90);
-
-    const p02Entry = requiredNode(snapshot, 'P1T2-N01');
-    assert.equal(p02Entry.state, 'achieved');
-    assert.deepEqual(p02Entry.prerequisites, [{
-      nodeId: 'P1T1-N04',
-      condition: 'achieved',
-      state: 'achieved',
-      met: true,
-    }]);
-    assert.equal(requiredNode(snapshot, 'P1T2-N02').state, 'available');
-
-    assert.deepEqual(snapshot.tasks, [
-      { taskId: 'P01', nodeTestHighestScore: 88, outputRubricScore: 90, taskCompositeScore: 89 },
-      { taskId: 'P02', nodeTestHighestScore: undefined, outputRubricScore: undefined },
-      { taskId: 'P03', nodeTestHighestScore: undefined, outputRubricScore: undefined },
-    ]);
-    assert.equal(snapshot.projectCompositeScore, undefined);
+    seedBase(fixture.database);
+    const model = new LearningReadModel(new LearningRepository(fixture.database));
+    const insertPractice = fixture.database.prepare(`
+      INSERT INTO practice_attempts (
+        attempt_id, student_id, activity_id, node_id, response_json,
+        result_json, artifact_json, passed, origin
+      ) VALUES (?, 'stu-01', ?, ?, '{}', '{}', '{}', ?, 'user')
+    `);
+    fixture.database.exec(`
+      INSERT INTO learning_events (
+        event_id, student_id, node_id, channel, event_type, payload_json, origin
+      ) VALUES
+        ('arbitrary-pass', 'stu-01', 'P1T1-N01', 'self-study', 'micro_practice_passed', '{}', 'user'),
+        ('all-sections', 'stu-01', 'P1T1-N01', 'self-study', 'section_completed',
+          '{"sectionId":"understand","completed":true}', 'user'),
+        ('class-submit', 'stu-01', 'P1T1-N01', 'classroom', 'classroom_submitted',
+          '{"completed":true}', 'user')
+    `);
+    assert.equal(requiredNode(model.readStudentSnapshot('stu-01'), 'P1T1-N01').state, 'learning');
+    insertPractice.run('failed-required', 'P1T1-N01-micro-01', 'P1T1-N01', 0);
+    insertPractice.run('passed-remediation', 'P1T1-N02-remediation-revision-01', 'P1T1-N02', 1);
+    assert.equal(requiredNode(model.readStudentSnapshot('stu-01'), 'P1T1-N01').state, 'learning');
+    insertPractice.run('passed-required', 'P1T1-N01-micro-01', 'P1T1-N01', 1);
+    assert.equal(requiredNode(model.readStudentSnapshot('stu-01'), 'P1T1-N01').state, 'achieved');
   } finally {
     fixture.cleanup();
   }
 });
 
-test('uses the latest frozen official task score instead of recomputing mutable facts', () => {
+test('N02 requires all three base activities and ignores remediation-only passes', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    insertPassedPractice(fixture.database, 'stu-01', 'P1T1-N01-micro-01', 'P1T1-N01');
+    insertPassedPractice(fixture.database, 'stu-01', 'P1T1-N02-foundation-01', 'P1T1-N02');
+    insertPassedPractice(fixture.database, 'stu-01', 'P1T1-N02-application-01', 'P1T1-N02');
+    insertPassedPractice(fixture.database, 'stu-01', 'P1T1-N02-remediation-revision-01', 'P1T1-N02');
+    fixture.database.prepare(`
+      INSERT INTO formal_attempts (attempt_id, student_id, node_id, score, origin)
+      VALUES ('n02-pass', 'stu-01', 'P1T1-N02', 100, 'user')
+    `).run();
+    const model = new LearningReadModel(new LearningRepository(fixture.database));
+    assert.equal(requiredNode(model.readStudentSnapshot('stu-01'), 'P1T1-N02').state, 'learning');
+    insertPassedPractice(fixture.database, 'stu-01', 'P1T1-N02-transfer-01', 'P1T1-N02');
+    assert.equal(requiredNode(model.readStudentSnapshot('stu-01'), 'P1T1-N02').state, 'achieved');
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('lower user score shadows higher demo score and zero remains a real submitted attempt', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    insertP01PrerequisitePractice(fixture.database, 'stu-01', true);
+    fixture.database.exec(`
+      INSERT INTO formal_attempts (
+        attempt_id, student_id, node_id, game_id, score, origin, completed_at
+      ) VALUES
+        ('demo-high', 'stu-01', 'P1T1-N02', 'node-test', 99, 'demo', '2026-07-16T01:00:00Z'),
+        ('user-zero', 'stu-01', 'P1T1-N02', 'node-test', 0, 'user', '2026-07-16T02:00:00Z');
+    `);
+    const node = requiredNode(
+      new LearningReadModel(new LearningRepository(fixture.database)).readStudentSnapshot('stu-01'),
+      'P1T1-N02',
+    );
+    assert.equal(node.bestFormalScore, 0);
+    assert.deepEqual(node.attempts.map(({ score, origin }) => ({ score, origin })), [
+      { score: 0, origin: 'user' },
+    ]);
+    assert.equal(node.state, 'micro-practice-passed');
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('user frozen task fact shadows a higher demo task score without erasing demo history', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
-    fixture.database.prepare(`
+    fixture.database.exec(`
       INSERT INTO frozen_task_scores (
         score_id, student_id, task_id, snapshot_version,
-        provisional_score, official_score, details_json
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      'later-frozen-stu-02-p01',
-      'stu-02',
-      'P01',
-      3,
-      77,
-      77,
-      JSON.stringify({ source: 'frozen-authority-test', taskCompositeScore: 77 }),
-    );
-
+        provisional_score, official_score, details_json, origin
+      ) VALUES
+        ('demo-higher-stu3-p01', 'stu-03', 'P01', 7, 99, 99, '{"taskCompositeScore":99}', 'demo'),
+        ('user-lower-stu3-p01', 'stu-03', 'P01', 8, 0, 0, '{"taskCompositeScore":0}', 'user');
+    `);
     const snapshot = new LearningReadModel(new LearningRepository(fixture.database))
-      .readStudentSnapshot('stu-02');
-
-    assert.deepEqual(snapshot.tasks[0], {
-      taskId: 'P01',
-      nodeTestHighestScore: 88,
-      outputRubricScore: 90,
-      taskCompositeScore: 77,
-    });
+      .readStudentSnapshot('stu-03');
+    assert.equal(snapshot.tasks[0]?.taskCompositeScore, 0);
+    assert.equal(snapshot.tasks[0]?.origin, 'user');
+    assert.equal(fixture.database.prepare(`
+      SELECT COUNT(*) FROM frozen_task_scores
+      WHERE student_id = 'stu-03' AND task_id = 'P01' AND origin = 'demo'
+    `).pluck().get() as number >= 2, true);
   } finally {
     fixture.cleanup();
   }
 });
 
-test('projects a stable class membership at one shared global snapshot version', () => {
+test('user output version shadows demo return and only a review bound to the current version applies', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    insertP01PrerequisitePractice(fixture.database, 'stu-01', true);
+    fixture.database.exec(`
+      INSERT INTO formal_attempts (attempt_id, student_id, node_id, score, origin)
+      VALUES ('formal-user', 'stu-01', 'P1T1-N02', 90, 'user');
+      INSERT INTO professional_outputs (
+        output_id, student_id, task_id, node_id, status, content_json,
+        current_version, state_revision, origin
+      ) VALUES ('mixed-output', 'stu-01', 'P01', 'P1T1-N04', 'returned',
+        '{"version":1}', 1, 3, 'demo');
+      INSERT INTO professional_output_versions (
+        output_id, task_id, version, fields_json, upstream_refs_json
+      ) VALUES ('mixed-output', 'P01', 1, '{"version":1}', '[]');
+      INSERT INTO output_reviews (
+        review_id, output_id, reviewer_id, status, feedback, origin
+      ) VALUES ('demo-return-v1', 'mixed-output', 'teacher-01', 'returned', 'revise v1', 'demo');
+      INSERT INTO learning_events (
+        event_id, student_id, node_id, channel, event_type, payload_json, origin
+      ) VALUES ('demo-return-event', 'stu-01', 'P1T1-N04', 'classroom', 'teacher_returned',
+        '{"reviewId":"demo-return-v1","version":1}', 'demo');
+      UPDATE professional_outputs SET status = 'submitted', content_json = '{"version":2}',
+        current_version = 2, state_revision = 5, origin = 'user'
+      WHERE output_id = 'mixed-output';
+      INSERT INTO professional_output_versions (
+        output_id, task_id, version, fields_json, upstream_refs_json
+      ) VALUES ('mixed-output', 'P01', 2, '{"version":2}', '[]');
+      INSERT INTO learning_events (
+        event_id, student_id, node_id, channel, event_type, payload_json, origin
+      ) VALUES ('user-submit-v2', 'stu-01', 'P1T1-N04', 'self-study', 'evidence_submitted',
+        '{"outputId":"mixed-output","version":2}', 'user');
+    `);
+    const model = new LearningReadModel(new LearningRepository(fixture.database));
+    const submitted = requiredNode(model.readStudentSnapshot('stu-01'), 'P1T1-N04');
+    assert.equal(submitted.state, 'awaiting-review');
+    assert.equal(submitted.evidence?.origin, 'user');
+    assert.equal(submitted.review, undefined);
+
+    fixture.database.exec(`
+      INSERT INTO output_reviews (
+        review_id, output_id, reviewer_id, status, score, feedback, origin
+      ) VALUES ('user-verify-v2', 'mixed-output', 'teacher-01', 'verified', 90, 'verified v2', 'user');
+      INSERT INTO learning_events (
+        event_id, student_id, node_id, channel, event_type, payload_json, origin
+      ) VALUES ('user-verify-event-v2', 'stu-01', 'P1T1-N04', 'classroom', 'teacher_verified',
+        '{"reviewId":"user-verify-v2","version":2}', 'user');
+      UPDATE professional_outputs SET status = 'verified', state_revision = 6
+      WHERE output_id = 'mixed-output';
+    `);
+    const verified = requiredNode(model.readStudentSnapshot('stu-01'), 'P1T1-N04');
+    assert.equal(verified.state, 'achieved');
+    assert.equal(verified.review?.outputVersion, 2);
+    assert.equal(verified.review?.origin, 'user');
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('clean, returned, and complete demo personas project consistently with visible origins', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    const model = new LearningReadModel(new LearningRepository(fixture.database));
+    const clean = model.readStudentSnapshot('stu-01');
+    const returned = model.readStudentSnapshot('stu-02');
+    const complete = model.readStudentSnapshot('stu-03');
+
+    assert.equal(clean.nodes.every(({ attempts, evidence }) => attempts.length === 0 && evidence === undefined), true);
+    assert.equal(clean.tasks.every(({ nodeTestHighestScore, taskCompositeScore }) => (
+      nodeTestHighestScore === undefined && taskCompositeScore === undefined
+    )), true);
+    assert.equal(requiredNode(returned, 'P1T1-N04').state, 'returned');
+    assert.equal(requiredNode(returned, 'P1T1-N04').origin, 'demo');
+    assert.equal(requiredNode(returned, 'P1T1-N04').evidence?.origin, 'demo');
+    assert.equal(requiredNode(returned, 'P1T1-N04').review?.origin, 'demo');
+    assert.equal(returned.tasks[0]?.taskCompositeScore, undefined);
+    assert.equal(requiredNode(complete, 'P1T1-N04').state, 'achieved');
+    assert.equal(requiredNode(complete, 'P1T2-N04').state, 'achieved');
+    assert.equal(requiredNode(complete, 'P1T3-N04').state, 'achieved');
+    assert.deepEqual(complete.tasks.map(({ taskId, taskCompositeScore, origin }) => ({
+      taskId, taskCompositeScore, origin,
+    })), [
+      { taskId: 'P01', taskCompositeScore: 94, origin: 'demo' },
+      { taskId: 'P02', taskCompositeScore: 92, origin: 'demo' },
+      { taskId: 'P03', taskCompositeScore: 91, origin: 'demo' },
+    ]);
+    assert.equal(complete.projectCompositeScore, 92);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('class read uses the same student projections and one shared global snapshot version', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
     const repository = new LearningRepository(fixture.database);
-    repository.appendEvent({
-      eventId: 'class-snapshot-event',
-      studentId: 'stu-01',
-      nodeId: 'P1T1-N01',
-      channel: 'self-study',
-      eventType: 'section_completed',
-      payload: { sectionId: 'case', completed: true },
-    }, 0);
-    repository.appendEvent({
-      eventId: 'class-snapshot-practice',
-      studentId: 'stu-01',
-      nodeId: 'P1T1-N01',
-      channel: 'classroom',
-      eventType: 'classroom_activity_submitted',
-      payload: { completed: true },
-    }, 1);
-
     const snapshot = new LearningReadModel(repository).readClassSnapshot('teacher-01', 'demo-class');
-    assert.equal(snapshot.classId, 'demo-class');
-    assert.equal(snapshot.version, 4);
     assert.deepEqual(snapshot.students.map(({ studentId }) => studentId), ['stu-01', 'stu-02', 'stu-03']);
-    assert.deepEqual(snapshot.students.map(({ globalVersion }) => globalVersion), [4, 4, 4]);
-    assert.deepEqual(snapshot.students.map(({ version }) => version), [2, 0, 0]);
-    assert.deepEqual(requiredNode(snapshot.students[0]!, 'P1T1-N01').completedSections, ['case']);
-    assert.equal(requiredNode(snapshot.students[0]!, 'P1T1-N01').state, 'achieved');
+    assert.equal(snapshot.students.every(({ globalVersion }) => globalVersion === snapshot.version), true);
+    assert.equal(requiredNode(snapshot.students[0]!, 'P1T1-N01').state, 'available');
+    assert.equal(requiredNode(snapshot.students[1]!, 'P1T1-N04').state, 'returned');
+    assert.equal(requiredNode(snapshot.students[2]!, 'P1T3-N04').state, 'achieved');
   } finally {
     fixture.cleanup();
   }
 });
 
-test('micro-practice projection rejects incomplete client events but keeps the direct seed event', () => {
-  const fixture = createTestDatabase();
-  try {
-    migrateDatabase(fixture.database);
-    fixture.database.exec(`
-      INSERT INTO users (id, username, display_name, role, password_hash)
-      VALUES
-        ('strict-game-missing-formal', 'strict-game-missing-formal', 'Strict A', 'student', 'disabled'),
-        ('strict-game-missing-complete', 'strict-game-missing-complete', 'Strict B', 'student', 'disabled'),
-        ('strict-game-valid', 'strict-game-valid', 'Strict C', 'student', 'disabled'),
-        ('strict-class-missing-complete', 'strict-class-missing-complete', 'Strict D', 'student', 'disabled'),
-        ('strict-class-valid', 'strict-class-valid', 'Strict E', 'student', 'disabled'),
-        ('strict-seed-direct', 'strict-seed-direct', 'Strict F', 'student', 'disabled');
-      INSERT INTO learning_events (
-        event_id, student_id, node_id, channel, event_type, payload_json
-      ) VALUES
-        ('strict-a', 'strict-game-missing-formal', 'P1T1-N01', 'game', 'game_completed', '{"completed":true}'),
-        ('strict-b', 'strict-game-missing-complete', 'P1T1-N01', 'game', 'game_completed', '{"formal":false}'),
-        ('strict-c', 'strict-game-valid', 'P1T1-N01', 'game', 'game_completed', '{"completed":true,"formal":false}'),
-        ('strict-d', 'strict-class-missing-complete', 'P1T1-N01', 'classroom', 'classroom_submitted', '{}'),
-        ('strict-e', 'strict-class-valid', 'P1T1-N01', 'classroom', 'classroom_activity_submitted', '{"completed":true}'),
-        ('strict-f', 'strict-seed-direct', 'P1T1-N01', 'self-study', 'micro_practice_passed', '{}');
-    `);
-    const readModel = new LearningReadModel(new LearningRepository(fixture.database));
-    const node = (studentId: string) => requiredNode(readModel.readStudentSnapshot(studentId), 'P1T1-N01');
-
-    assert.equal(node('strict-game-missing-formal').state, 'learning');
-    assert.equal(node('strict-game-missing-complete').state, 'learning');
-    assert.equal(node('strict-game-valid').state, 'achieved');
-    assert.equal(node('strict-class-missing-complete').state, 'learning');
-    assert.equal(node('strict-class-missing-complete').classroomSubmitted, false);
-    assert.equal(node('strict-class-valid').state, 'achieved');
-    assert.equal(node('strict-class-valid').classroomSubmitted, true);
-    assert.equal(node('strict-seed-direct').state, 'achieved');
-    assert.equal(node('strict-seed-direct').classroomSubmitted, false);
-  } finally {
-    fixture.cleanup();
+function insertP01PrerequisitePractice(
+  database: ReturnType<typeof createTestDatabase>['database'],
+  studentId: string,
+  throughN04: boolean,
+) {
+  const attempts = [
+    ['P1T1-N01-micro-01', 'P1T1-N01'],
+    ['P1T1-N02-foundation-01', 'P1T1-N02'],
+    ['P1T1-N02-application-01', 'P1T1-N02'],
+    ['P1T1-N02-transfer-01', 'P1T1-N02'],
+    ['P1T1-N03-micro-01', 'P1T1-N03'],
+    ...(throughN04 ? [['P1T1-N04-micro-01', 'P1T1-N04']] : []),
+  ];
+  for (const [activityId, nodeId] of attempts) {
+    insertPassedPractice(database, studentId, activityId!, nodeId!);
   }
-});
+}
 
-test('all four required self-study sections plus an N02 pass advance while one missing section does not', () => {
-  const fixture = createTestDatabase();
-  try {
-    migrateDatabase(fixture.database);
-    fixture.database.exec(`
-      INSERT INTO users (id, username, display_name, role, password_hash)
-      VALUES
-        ('four-sections', 'four-sections', 'Four Sections', 'student', 'disabled'),
-        ('three-sections', 'three-sections', 'Three Sections', 'student', 'disabled');
-      INSERT INTO learning_events (
-        event_id, student_id, node_id, channel, event_type, payload_json
-      ) VALUES
-        ('four-prerequisite', 'four-sections', 'P1T1-N01', 'self-study', 'micro_practice_passed', '{}'),
-        ('three-prerequisite', 'three-sections', 'P1T1-N01', 'self-study', 'micro_practice_passed', '{}'),
-        ('four-understand', 'four-sections', 'P1T1-N02', 'self-study', 'section_completed', '{"sectionId":"understand","completed":true}'),
-        ('four-evidence', 'four-sections', 'P1T1-N02', 'self-study', 'section_completed', '{"sectionId":"evidence","completed":true}'),
-        ('four-explain', 'four-sections', 'P1T1-N02', 'self-study', 'section_completed', '{"sectionId":"explain","completed":true}'),
-        ('four-practice', 'four-sections', 'P1T1-N02', 'self-study', 'section_completed', '{"sectionId":"practice","completed":true}'),
-        ('three-understand', 'three-sections', 'P1T1-N02', 'self-study', 'section_completed', '{"sectionId":"understand","completed":true}'),
-        ('three-evidence', 'three-sections', 'P1T1-N02', 'self-study', 'section_completed', '{"sectionId":"evidence","completed":true}'),
-        ('three-explain', 'three-sections', 'P1T1-N02', 'self-study', 'section_completed', '{"sectionId":"explain","completed":true}');
-      INSERT INTO formal_attempts (attempt_id, student_id, node_id, game_id, score)
-      VALUES
-        ('four-attempt', 'four-sections', 'P1T1-N02', 'node-test', 84),
-        ('three-attempt', 'three-sections', 'P1T1-N02', 'node-test', 84);
-    `);
-    const readModel = new LearningReadModel(new LearningRepository(fixture.database));
-    const complete = requiredNode(readModel.readStudentSnapshot('four-sections'), 'P1T1-N02');
-    const incomplete = requiredNode(readModel.readStudentSnapshot('three-sections'), 'P1T1-N02');
-
-    assert.deepEqual(complete.completedSections, [...REQUIRED_SELF_STUDY_SECTIONS]);
-    assert.equal(complete.state, 'achieved');
-    assert.ok(complete.stateTrail.includes('micro-practice-passed'));
-    assert.ok(complete.stateTrail.includes('formal-test-passed'));
-    assert.deepEqual(incomplete.completedSections, REQUIRED_SELF_STUDY_SECTIONS.slice(0, 3));
-    assert.equal(incomplete.state, 'learning');
-    assert.equal(incomplete.stateTrail.includes('micro-practice-passed'), false);
-  } finally {
-    fixture.cleanup();
-  }
-});
-
-test('forms the project composite only when all three task test and verified rubric scores exist', () => {
-  const fixture = createTestDatabase();
-  try {
-    migrateDatabase(fixture.database);
-    seedDemo(fixture.database);
-    fixture.database.exec(`
-      INSERT INTO learning_events (
-        event_id, student_id, node_id, channel, event_type, payload_json
-      ) VALUES
-        ('project-p3-n02-practice', 'stu-03', 'P1T3-N02', 'self-study', 'micro_practice_passed', '{}'),
-        ('project-p3-n03-practice', 'stu-03', 'P1T3-N03', 'self-study', 'micro_practice_passed', '{}'),
-        ('project-p3-n04-practice', 'stu-03', 'P1T3-N04', 'self-study', 'micro_practice_passed', '{}');
-      INSERT INTO formal_attempts (
-        attempt_id, student_id, node_id, game_id, score
-      ) VALUES ('project-p3-n02-attempt', 'stu-03', 'P1T3-N02', 'node-test', 80);
-      INSERT INTO professional_outputs (
-        output_id, student_id, task_id, node_id, status, submitted_at,
-        current_version, state_revision
-      ) VALUES (
-        'project-p3-n04-output', 'stu-03', 'P03', 'P1T3-N04', 'verified', CURRENT_TIMESTAMP,
-        1, 1
-      );
-      INSERT INTO professional_output_versions (
-        output_id, task_id, version, schema_version, fields_json, upstream_refs_json
-      ) VALUES ('project-p3-n04-output', 'P03', 1, 1, '{}', '[]');
-      INSERT INTO output_reviews (
-        review_id, output_id, reviewer_id, status, score, feedback
-      ) VALUES (
-        'project-p3-n04-review', 'project-p3-n04-output', 'teacher-01', 'verified', 90, 'verified'
-      );
-      INSERT INTO frozen_task_scores (
-        score_id, student_id, task_id, snapshot_version,
-        provisional_score, official_score, details_json
-      ) VALUES (
-        'project-p3-frozen-score', 'stu-03', 'P03', 2, 86, 86,
-        '{"nodeTestHighestScore":80,"outputRubricScore":90,"taskCompositeScore":86}'
-      );
-    `);
-
-    const snapshot = new LearningReadModel(new LearningRepository(fixture.database))
-      .readStudentSnapshot('stu-03');
-    assert.deepEqual(snapshot.tasks, [
-      { taskId: 'P01', nodeTestHighestScore: 93, outputRubricScore: 94, taskCompositeScore: 94 },
-      { taskId: 'P02', nodeTestHighestScore: 91, outputRubricScore: 92, taskCompositeScore: 92 },
-      { taskId: 'P03', nodeTestHighestScore: 80, outputRubricScore: 90, taskCompositeScore: 86 },
-    ]);
-    assert.equal(snapshot.projectCompositeScore, 91);
-    assert.equal(requiredNode(snapshot, 'P1T3-N04').state, 'achieved');
-  } finally {
-    fixture.cleanup();
-  }
-});
+function insertPassedPractice(
+  database: ReturnType<typeof createTestDatabase>['database'],
+  studentId: string,
+  activityId: string,
+  nodeId: string,
+) {
+  database.prepare(`
+    INSERT INTO practice_attempts (
+      attempt_id, student_id, activity_id, node_id, passed, origin
+    ) VALUES (?, ?, ?, ?, 1, 'user')
+  `).run(`${studentId}-${activityId}`, studentId, activityId, nodeId);
+}
 
 function requiredNode(snapshot: ReturnType<LearningReadModel['readStudentSnapshot']>, nodeId: string) {
   const node = snapshot.nodes.find((candidate) => candidate.nodeId === nodeId);

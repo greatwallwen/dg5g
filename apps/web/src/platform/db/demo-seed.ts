@@ -1,7 +1,10 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readActivityDefinition } from '../../features/learning-activities/activity-catalog.ts';
+import { seedP01EvidenceLibrary } from '../../features/portfolio/evidence-library.ts';
 import { hashPassword, verifyPassword } from '../auth/password.ts';
+import { SnapshotClock } from '../snapshot-clock.ts';
 import type { AppDatabase } from './database.ts';
 
 export const DEMO_TEACHER_ID = 'teacher-01';
@@ -42,14 +45,32 @@ interface DemoSeed {
       eventType: string;
       payload: Record<string, unknown>;
     }>;
+    practiceAttempts: Array<{
+      attemptId: string;
+      studentId: string;
+      activityId: string;
+      nodeId: string;
+      response: Record<string, unknown>;
+    }>;
+    assessmentInstances: Array<{
+      assessmentId: string;
+      nodeId: string;
+      gameId: string;
+      questionVersion: string;
+      status: 'preparing' | 'running' | 'closed';
+    }>;
     attempts: Array<{
       attemptId: string;
       studentId: string;
       nodeId: string;
-      gameId?: string;
+      assessmentId: string;
+      gameId: string;
+      questionVersion: string;
       score: number;
       durationSeconds?: number;
-      mistakeKnowledgePointIds: string[];
+      completedAt: string;
+      answers: Record<string, unknown>;
+      diagnostics: Record<string, unknown>;
     }>;
     outputs: Array<{
       outputId: string;
@@ -57,15 +78,24 @@ interface DemoSeed {
       taskId: string;
       nodeId: string;
       status: OutputStatus;
-      content: Record<string, unknown>;
+      currentVersion: number;
+      stateRevision: number;
+      versions: Array<{
+        version: number;
+        fields: Record<string, unknown>;
+        upstreamRefs: Array<{ outputId: string; version: number }>;
+        evidenceLinks: Record<string, string[]>;
+      }>;
     }>;
     reviews: Array<{
       reviewId: string;
       outputId: string;
+      outputVersion: number;
       reviewerId: string;
       status: ReviewStatus;
       score?: number;
       feedback?: string;
+      annotations: Record<string, string>;
     }>;
     cursors: Array<{
       studentId: string;
@@ -149,6 +179,11 @@ export function seedBase(database: AppDatabase, seed = readDemoSeed()): void {
     VALUES (@sessionId, @studentId)
     ON CONFLICT(session_id, student_id) DO NOTHING
   `);
+  const ensureLearningTopic = database.prepare(`
+    INSERT INTO snapshot_versions (topic, version, updated_at)
+    VALUES ('learning:' || @id, 0, CURRENT_TIMESTAMP)
+    ON CONFLICT(topic) DO NOTHING
+  `);
   const ensureClassroomTopic = database.prepare(`
     INSERT INTO snapshot_versions (topic, version, updated_at)
     SELECT 'classroom:' || session_id, revision, updated_at
@@ -169,6 +204,7 @@ export function seedBase(database: AppDatabase, seed = readDemoSeed()): void {
         ? storedHash
         : hashPassword(demoPassword);
       upsertUser.run({ ...user, passwordHash, isActive: Number(user.isActive) });
+      if (user.role === 'student') ensureLearningTopic.run(user);
     }
     for (const classroom of seed.base.classrooms) {
       upsertClassroom.run(classroom);
@@ -180,31 +216,55 @@ export function seedBase(database: AppDatabase, seed = readDemoSeed()): void {
 
 export function seedDemo(database: AppDatabase, seed = readDemoSeed()): void {
   seedBase(database, seed);
+  seedP01EvidenceLibrary(database);
   const upsertEvent = database.prepare(`
     INSERT INTO learning_events (
-      event_id, student_id, node_id, channel, event_type, payload_json
+      event_id, student_id, node_id, channel, event_type, payload_json, origin
     ) VALUES (
-      @eventId, @studentId, @nodeId, @channel, @eventType, @payloadJson
+      @eventId, @studentId, @nodeId, @channel, @eventType, @payloadJson, 'demo'
     )
     ON CONFLICT(event_id) DO NOTHING
   `);
+  const upsertPracticeAttempt = database.prepare(`
+    INSERT INTO practice_attempts (
+      attempt_id, student_id, activity_id, node_id, response_json,
+      result_json, artifact_json, passed, origin
+    ) VALUES (
+      @attemptId, @studentId, @activityId, @nodeId, @responseJson,
+      @resultJson, @artifactJson, 1, 'demo'
+    )
+    ON CONFLICT(attempt_id) DO NOTHING
+  `);
+  const upsertAssessmentInstance = database.prepare(`
+    INSERT INTO formal_assessment_instances (
+      assessment_id, node_id, game_id, question_version, status,
+      opened_at, closed_at
+    ) VALUES (
+      @assessmentId, @nodeId, @gameId, @questionVersion, @status,
+      CURRENT_TIMESTAMP,
+      CASE WHEN @status = 'closed' THEN CURRENT_TIMESTAMP ELSE NULL END
+    )
+    ON CONFLICT(assessment_id) DO NOTHING
+  `);
   const upsertAttempt = database.prepare(`
     INSERT INTO formal_attempts (
-      attempt_id, student_id, node_id, game_id, score, duration_seconds,
-      mistake_knowledge_point_ids_json
+      attempt_id, student_id, node_id, assessment_id, game_id, score, duration_seconds,
+      mistake_knowledge_point_ids_json, question_version, answers_json,
+      diagnostics_json, completed_at, origin
     ) VALUES (
-      @attemptId, @studentId, @nodeId, @gameId, @score, @durationSeconds,
-      @mistakeKnowledgePointIdsJson
+      @attemptId, @studentId, @nodeId, @assessmentId, @gameId, @score, @durationSeconds,
+      '[]', @questionVersion, @answersJson, @diagnosticsJson, @completedAt, 'demo'
     )
     ON CONFLICT(attempt_id) DO NOTHING
   `);
   const upsertOutput = database.prepare(`
     INSERT INTO professional_outputs (
       output_id, student_id, task_id, node_id, status, content_json,
-      current_version, state_revision, updated_at
+      submitted_at, current_version, state_revision, origin, updated_at
     ) VALUES (
       @outputId, @studentId, @taskId, @nodeId, @status, @contentJson,
-      1, 1, CURRENT_TIMESTAMP
+      CASE WHEN @status = 'draft' THEN NULL ELSE CURRENT_TIMESTAMP END,
+      @currentVersion, @stateRevision, 'demo', CURRENT_TIMESTAMP
     )
     ON CONFLICT(output_id) DO NOTHING
   `);
@@ -212,17 +272,27 @@ export function seedDemo(database: AppDatabase, seed = readDemoSeed()): void {
     INSERT INTO professional_output_versions (
       output_id, task_id, version, schema_version, fields_json, upstream_refs_json
     ) VALUES (
-      @outputId, @taskId, 1, 1, @fieldsJson, @upstreamRefsJson
+      @outputId, @taskId, @version, 1, @fieldsJson, @upstreamRefsJson
     )
     ON CONFLICT(output_id, version) DO NOTHING
   `);
+  const upsertEvidenceLink = database.prepare(`
+    INSERT INTO output_evidence_links (output_id, version, field_key, evidence_id)
+    VALUES (@outputId, @version, @fieldKey, @evidenceId)
+    ON CONFLICT(output_id, version, field_key, evidence_id) DO NOTHING
+  `);
   const upsertReview = database.prepare(`
     INSERT INTO output_reviews (
-      review_id, output_id, reviewer_id, status, score, feedback
+      review_id, output_id, reviewer_id, status, score, feedback, origin
     ) VALUES (
-      @reviewId, @outputId, @reviewerId, @status, @score, @feedback
+      @reviewId, @outputId, @reviewerId, @status, @score, @feedback, 'demo'
     )
     ON CONFLICT(review_id) DO NOTHING
+  `);
+  const upsertAnnotation = database.prepare(`
+    INSERT INTO output_review_annotations (review_id, field_key, comment)
+    VALUES (@reviewId, @fieldKey, @comment)
+    ON CONFLICT(review_id, field_key) DO NOTHING
   `);
   const upsertCursor = database.prepare(`
     INSERT INTO self_study_cursors (
@@ -240,10 +310,10 @@ export function seedDemo(database: AppDatabase, seed = readDemoSeed()): void {
   const upsertFrozenScore = database.prepare(`
     INSERT INTO frozen_task_scores (
       score_id, student_id, task_id, snapshot_version, provisional_score,
-      official_score, details_json
+      official_score, details_json, origin
     ) VALUES (
       @scoreId, @studentId, @taskId, @snapshotVersion, @provisionalScore,
-      @officialScore, @detailsJson
+      @officialScore, @detailsJson, 'demo'
     )
     ON CONFLICT(score_id) DO NOTHING
   `);
@@ -262,37 +332,62 @@ export function seedDemo(database: AppDatabase, seed = readDemoSeed()): void {
     for (const event of seed.demo.events) {
       upsertEvent.run({ ...event, payloadJson: JSON.stringify(event.payload) });
     }
+    for (const attempt of seed.demo.practiceAttempts) {
+      const definition = readActivityDefinition(attempt.activityId);
+      if (!definition || definition.activity.nodeId !== attempt.nodeId) {
+        throw new Error(`Unknown demo practice activity: ${attempt.activityId}.`);
+      }
+      const artifact = {
+        type: 'learning-activity-artifact',
+        activityId: attempt.activityId,
+        nodeId: attempt.nodeId,
+        kind: definition.activity.kind,
+        response: attempt.response,
+        transferTarget: definition.activity.transferTarget,
+      };
+      upsertPracticeAttempt.run({
+        ...attempt,
+        responseJson: JSON.stringify(attempt.response),
+        resultJson: JSON.stringify({ passed: true, feedback: definition.activity.feedback.passed }),
+        artifactJson: JSON.stringify(artifact),
+      });
+    }
+    for (const instance of seed.demo.assessmentInstances) upsertAssessmentInstance.run(instance);
     for (const attempt of seed.demo.attempts) {
       upsertAttempt.run({
-        gameId: null,
         durationSeconds: null,
         ...attempt,
-        mistakeKnowledgePointIdsJson: JSON.stringify(attempt.mistakeKnowledgePointIds),
+        answersJson: JSON.stringify(attempt.answers),
+        diagnosticsJson: JSON.stringify(attempt.diagnostics),
       });
     }
     for (const output of seed.demo.outputs) {
       const taskId = canonicalOutputTaskId(output.taskId);
-      const fieldsJson = JSON.stringify(output.content);
-      const upstreamTaskId = taskId === 'P02' ? 'P01' : taskId === 'P03' ? 'P02' : undefined;
-      const upstream = upstreamTaskId
-        ? seed.demo.outputs.find((candidate) => (
-          candidate.studentId === output.studentId
-          && canonicalOutputTaskId(candidate.taskId) === upstreamTaskId
-        ))
-        : undefined;
-      const upstreamRefsJson = JSON.stringify(upstream
-        ? [{ outputId: upstream.outputId, version: 1 }]
-        : []);
-      upsertOutput.run({ ...output, taskId, contentJson: fieldsJson });
-      upsertOutputVersion.run({
-        outputId: output.outputId,
-        taskId,
-        fieldsJson,
-        upstreamRefsJson,
-      });
+      const current = output.versions.find(({ version }) => version === output.currentVersion);
+      if (!current || output.versions.length === 0) {
+        throw new Error(`Demo output has no current version: ${output.outputId}.`);
+      }
+      upsertOutput.run({ ...output, taskId, contentJson: JSON.stringify(current.fields) });
+      for (const version of output.versions) {
+        upsertOutputVersion.run({
+          outputId: output.outputId,
+          taskId,
+          version: version.version,
+          fieldsJson: JSON.stringify(version.fields),
+          upstreamRefsJson: JSON.stringify(version.upstreamRefs),
+        });
+        for (const [fieldKey, evidenceIds] of Object.entries(version.evidenceLinks)) {
+          for (const evidenceId of evidenceIds) {
+            upsertEvidenceLink.run({ outputId: output.outputId, version: version.version, fieldKey, evidenceId });
+          }
+        }
+      }
     }
     for (const review of seed.demo.reviews) {
       upsertReview.run({ score: null, feedback: null, ...review });
+      for (const [fieldKey, comment] of Object.entries(review.annotations)) {
+        upsertAnnotation.run({ reviewId: review.reviewId, fieldKey, comment });
+      }
     }
     for (const cursor of seed.demo.cursors) {
       upsertCursor.run({ unitId: null, actionId: null, ...cursor });
@@ -320,10 +415,22 @@ function canonicalOutputTaskId(taskId: string): 'P01' | 'P02' | 'P03' {
 }
 
 export function resetDemo(database: AppDatabase, seed = readDemoSeed()): void {
+  validateStableBase(seed);
   const studentPlaceholders = DEMO_STUDENT_IDS.map(() => '?').join(', ');
   database.transaction(() => {
-    database.prepare('DELETE FROM classroom_sessions WHERE session_id = ?').run(DEMO_CLASS_ID);
+    database.prepare(`
+      DELETE FROM formal_assessment_instances
+      WHERE session_id = ? OR assessment_id IN (
+        SELECT assessment_id FROM formal_assessment_tokens
+        WHERE student_id IN (${studentPlaceholders})
+        UNION
+        SELECT assessment_id FROM formal_attempts
+        WHERE student_id IN (${studentPlaceholders}) AND assessment_id IS NOT NULL
+      )
+    `).run(DEMO_CLASS_ID, ...DEMO_STUDENT_IDS, ...DEMO_STUDENT_IDS);
     database.prepare(`DELETE FROM professional_outputs WHERE student_id IN (${studentPlaceholders})`)
+      .run(...DEMO_STUDENT_IDS);
+    database.prepare(`DELETE FROM practice_attempts WHERE student_id IN (${studentPlaceholders})`)
       .run(...DEMO_STUDENT_IDS);
     database.prepare(`DELETE FROM self_study_cursors WHERE student_id IN (${studentPlaceholders})`)
       .run(...DEMO_STUDENT_IDS);
@@ -333,8 +440,41 @@ export function resetDemo(database: AppDatabase, seed = readDemoSeed()): void {
       .run(...DEMO_STUDENT_IDS);
     database.prepare(`DELETE FROM frozen_task_scores WHERE student_id IN (${studentPlaceholders})`)
       .run(...DEMO_STUDENT_IDS);
+    database.prepare('DELETE FROM classroom_commands WHERE session_id = ?').run(DEMO_CLASS_ID);
+    database.prepare('DELETE FROM device_presence WHERE session_id = ?').run(DEMO_CLASS_ID);
+    database.prepare('DELETE FROM classroom_participation WHERE session_id = ?').run(DEMO_CLASS_ID);
+    const classroom = seed.base.classrooms.find(({ sessionId }) => sessionId === DEMO_CLASS_ID)!;
+    database.prepare(`
+      UPDATE classroom_sessions
+      SET name = @name, teacher_id = @teacherId, status = @status,
+        active_node_id = @activeNodeId, active_unit_id = @activeUnitId,
+        state_json = '{}', revision = revision + 1, updated_at = CURRENT_TIMESTAMP,
+        closed_at = NULL
+      WHERE session_id = @sessionId
+    `).run(classroom);
     seedDemo(database, seed);
+    validateSeededPersonas(database);
+    new SnapshotClock(database).advance([
+      ...DEMO_STUDENT_IDS.map((studentId) => `learning:${studentId}` as const),
+      `classroom:${DEMO_CLASS_ID}`,
+    ]);
   })();
+}
+
+function validateSeededPersonas(database: AppDatabase): void {
+  const count = (sql: string, ...parameters: unknown[]) => (
+    database.prepare(sql).pluck().get(...parameters) as number
+  );
+  if (
+    count("SELECT COUNT(*) FROM learning_events WHERE student_id = 'stu-01'") !== 0
+    || count("SELECT COUNT(*) FROM practice_attempts WHERE student_id = 'stu-01'") !== 0
+    || count("SELECT COUNT(*) FROM formal_attempts WHERE student_id = 'stu-01'") !== 0
+    || count("SELECT COUNT(*) FROM professional_outputs WHERE student_id = 'stu-01'") !== 0
+    || count("SELECT COUNT(*) FROM professional_outputs WHERE student_id = 'stu-02' AND status = 'returned'") !== 1
+    || count("SELECT COUNT(*) FROM professional_outputs WHERE student_id = 'stu-03' AND status = 'verified'") !== 3
+  ) {
+    throw new Error('Demo persona validation failed; reset was rolled back.');
+  }
 }
 
 export function readDemoSeed(seedPath = resolveDemoSeedPath()): DemoSeed {
