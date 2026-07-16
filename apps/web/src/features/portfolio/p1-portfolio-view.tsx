@@ -95,6 +95,13 @@ export function P1PortfolioView({
                   <span><Icon name="message" size={15} />教师反馈</span>
                   <p>{item.teacherFeedback}</p>
                 </blockquote>
+                <Link
+                  className="p1-portfolio-link"
+                  data-p1-portfolio-detail-link={item.taskId}
+                  href={item.detailHref}
+                >
+                  {item.detailActionLabel}<Icon name="arrow" size={15} />
+                </Link>
               </article>
             ))}
           </div>

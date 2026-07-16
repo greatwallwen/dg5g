@@ -15,6 +15,8 @@ export interface P1PortfolioReferenceViewModel {
 
 export interface P1PortfolioItemViewModel {
   taskId: P1TaskId;
+  detailHref: string;
+  detailActionLabel: string;
   taskTitle: string;
   outputTitle: string;
   versionLabel: string;
@@ -63,6 +65,8 @@ export function buildP1PortfolioViewModel(projection: P1ProjectProjection): P1Po
     packageReferences,
     items: projection.tasks.map((task) => ({
       taskId: task.taskId,
+      detailHref: `/student/projects/p1/portfolio/${task.taskId}`,
+      detailActionLabel: task.currentOutputVersion === undefined ? '查看未形成原因' : '查看成果与证据',
       taskTitle: task.title,
       outputTitle: task.taskOutputTitle,
       versionLabel: task.currentOutputVersion === undefined ? '尚未形成' : `v${task.currentOutputVersion}`,

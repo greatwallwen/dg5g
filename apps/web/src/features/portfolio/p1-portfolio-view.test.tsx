@@ -26,6 +26,11 @@ test('renders the complete package as exactly three immutable version references
   assert.match(html, /修订后证据闭环/);
   assert.match(html, /任务综合分/);
   assert.match(html, /href="\/student\/projects\/p1"/);
+  assert.equal((html.match(/data-p1-portfolio-detail-link=/g) ?? []).length, 3);
+  for (const taskId of ['P01', 'P02', 'P03']) {
+    assert.match(html, new RegExp(`href="/student/projects/p1/portfolio/${taskId}"`));
+  }
+  assert.equal((html.match(/查看成果与证据/g) ?? []).length, 3);
   assert.doesNotMatch(html, /fields|contentJson/);
 });
 
@@ -58,6 +63,8 @@ test('shows an explicit unformed state without inventing package references or a
   assert.match(html, /补拍铭牌并修订/);
   assert.doesNotMatch(html, /data-p1-package-reference=/);
   assert.doesNotMatch(html, /项目综合分[^<]*<[^>]*>0</);
+  assert.match(html, /href="\/student\/projects\/p1\/portfolio\/P01"/);
+  assert.match(html, /查看成果与证据/);
 });
 
 function completeModel(): P1PortfolioViewModel {
@@ -93,6 +100,8 @@ function portfolioItem(
 ): P1PortfolioViewModel['items'][number] {
   return {
     taskId,
+    detailHref: `/student/projects/p1/portfolio/${taskId}`,
+    detailActionLabel: '查看成果与证据',
     taskTitle,
     outputTitle,
     versionLabel,

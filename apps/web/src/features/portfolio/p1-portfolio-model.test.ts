@@ -38,6 +38,8 @@ test('a returned v1 revised to v2 is current everywhere but the package remains 
   assert.deepEqual(model.packageReferences, []);
   assert.deepEqual(model.items[0], {
     taskId: 'P01',
+    detailHref: '/student/projects/p1/portfolio/P01',
+    detailActionLabel: '查看成果与证据',
     taskTitle: '室内信息采集',
     outputTitle: '室内设备与链路证据表',
     versionLabel: 'v2',
@@ -89,6 +91,20 @@ test('the package is only three immutable verified references and scores them eq
   ]);
   assert.ok(model.packageReferences.every((reference) => !Object.hasOwn(reference, 'fields')));
   assert.equal(new Set(model.packageReferences.map(({ taskId }) => taskId)).size, 3);
+  assert.deepEqual(model.items.map(({ detailHref }) => detailHref), [
+    '/student/projects/p1/portfolio/P01',
+    '/student/projects/p1/portfolio/P02',
+    '/student/projects/p1/portfolio/P03',
+  ]);
+});
+
+test('an unformed task still links to its truthful reason instead of a silent fallback', () => {
+  const model = buildP1PortfolioViewModel(projectFixture({
+    outputs: { P01: {}, P02: {}, P03: {} },
+  }));
+
+  assert.equal(model.items[0]?.detailHref, '/student/projects/p1/portfolio/P01');
+  assert.equal(model.items[0]?.detailActionLabel, '查看未形成原因');
 });
 
 function projectFixture({
