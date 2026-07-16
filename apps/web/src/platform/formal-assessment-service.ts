@@ -198,7 +198,9 @@ export class FormalAssessmentService {
       const diagnosisBase = {
         assessmentId: token.assessmentId,
         attemptId,
+        studentId,
         nodeId: token.nodeId,
+        gameId: definition.gameId,
         questionVersion: token.questionVersion,
         totalScore: graded.totalScore,
         passed: graded.totalScore >= definition.paper.passScore,

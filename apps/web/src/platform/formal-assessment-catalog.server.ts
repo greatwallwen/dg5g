@@ -3,6 +3,7 @@ import type {
   AssessmentPaper,
   RemediationTarget,
 } from './formal-assessment-contract.ts';
+import type { PersistedAssessmentValidationPolicy } from './persisted-assessment-diagnostic.ts';
 
 interface AssessmentGradingRule {
   acceptedOptionIds?: string[];
@@ -138,8 +139,203 @@ const p01N02Definition: FormalAssessmentDefinition = {
   },
 };
 
+const p02N02Definition: FormalAssessmentDefinition = {
+  paper: {
+    nodeId: 'P1T2-N02',
+    title: '室外站点与覆盖证据正式测试',
+    questionVersion: 'p02-n02-v1',
+    passScore: 80,
+    durationMinutes: 15,
+    questions: [
+      {
+        id: 'evidenceClassification',
+        dimension: 'evidenceClassification',
+        kind: 'single-choice',
+        prompt: '要证明某条室外覆盖边界来自指定采样点，哪项材料是首要的可复核证据？',
+        helpText: '选择同时固定空间位置、采样方向和测量值的材料。',
+        options: [
+          { id: 'site-panorama', label: '只显示站点外观的全景照片' },
+          { id: 'gps-bearing-sample', label: '包含坐标、方向、时间和信号读数的采样记录' },
+          { id: 'antenna-nameplate', label: '只显示天线型号的铭牌照片' },
+          { id: 'coverage-screenshot', label: '没有采样点索引的覆盖截图' },
+        ],
+      },
+      {
+        id: 'linkReconstruction',
+        dimension: 'linkReconstruction',
+        kind: 'ordering',
+        prompt: '按现场采集逻辑重建“站点—采样点—覆盖结论”的证据链。',
+        helpText: '从站点锚点开始，依次连接采样事实、边界判断与异常登记。',
+        options: [
+          { id: 'site-anchor', label: '站点与扇区锚点' },
+          { id: 'sample-point', label: '带坐标和方向的采样点' },
+          { id: 'signal-reading', label: '对应时间窗的信号读数' },
+          { id: 'coverage-boundary', label: '由连续采样形成的覆盖边界' },
+          { id: 'anomaly-marker', label: '需要复测的异常点标记' },
+        ],
+      },
+      {
+        id: 'defectiveOutputRevision',
+        dimension: 'defectiveOutputRevision',
+        kind: 'multiple-choice',
+        prompt: '一份覆盖成果把异常点直接平均掉，且缺少坐标与采样时间。应执行哪些修订？',
+        helpText: '选择能够恢复采样记录可追溯性、同时保留异常事实的动作。',
+        options: [
+          { id: 'bind-coordinate', label: '为每条读数补挂坐标和采样方向' },
+          { id: 'bind-time', label: '补录采样时间窗与路线序号' },
+          { id: 'retain-anomaly', label: '保留异常点并登记复测要求' },
+          { id: 'average-anomaly', label: '删除异常点并用均值替代原始读数' },
+        ],
+      },
+      {
+        id: 'professionalConclusion',
+        dimension: 'professionalConclusion',
+        kind: 'structured-conclusion',
+        prompt: '根据“连续采样形成覆盖边界，但一个异常点缺少复测轨迹”的事实，提交职业化结论。',
+        helpText: '分别写明已确认事实、证据缺口、误判风险和下一步复测动作。',
+      },
+    ],
+  },
+  gameId: 'P1T2-N02-server-assessment',
+  grading: {
+    evidenceClassification: {
+      acceptedOptionIds: ['gps-bearing-sample'],
+      remediationTarget: taskRemediation('P1T2-N02', 'foundation'),
+    },
+    linkReconstruction: {
+      orderedOptionIds: ['site-anchor', 'sample-point', 'signal-reading', 'coverage-boundary', 'anomaly-marker'],
+      remediationTarget: taskRemediation('P1T2-N02', 'application'),
+    },
+    defectiveOutputRevision: {
+      requiredOptionIds: ['bind-coordinate', 'bind-time', 'retain-anomaly'],
+      forbiddenOptionIds: ['average-anomaly'],
+      remediationTarget: taskRemediation('P1T2-N02', 'transfer'),
+    },
+    professionalConclusion: {
+      conclusionCriteria: {
+        confirmedFact: [['采样点', '坐标', '时间'], ['覆盖边界', '信号读数']],
+        evidenceGap: [['异常点'], ['复测', '缺口', '待复核']],
+        risk: [['误判', '风险', '错误'], ['覆盖边界', '优化结论']],
+        action: [['复测'], ['轨迹', '时间窗', '更新成果']],
+        minimumCharacters: 14,
+      },
+      remediationTarget: taskRemediation('P1T2-N02', 'transfer'),
+    },
+  },
+};
+
+const p03N02Definition: FormalAssessmentDefinition = {
+  paper: {
+    nodeId: 'P1T3-N02',
+    title: '投诉复现与原因边界正式测试',
+    questionVersion: 'p03-n02-v1',
+    passScore: 80,
+    durationMinutes: 15,
+    questions: [
+      {
+        id: 'evidenceClassification',
+        dimension: 'evidenceClassification',
+        kind: 'single-choice',
+        prompt: '开始现场投诉复现前，哪项材料能够唯一约束投诉对象、时间窗和问题描述？',
+        helpText: '选择能够把现场采集动作与原始投诉事实绑定的材料。',
+        options: [
+          { id: 'neighbour-photo', label: '投诉地点附近的环境照片' },
+          { id: 'complaint-ticket', label: '包含工单号、用户描述、地址和时间窗的投诉工单' },
+          { id: 'terminal-model', label: '只记录终端型号的便签' },
+          { id: 'signal-screenshot', label: '没有工单号和时间的信号截图' },
+        ],
+      },
+      {
+        id: 'linkReconstruction',
+        dimension: 'linkReconstruction',
+        kind: 'ordering',
+        prompt: '重建从投诉事实到原因边界的现场复现证据链。',
+        helpText: '先锁定投诉地点，再连接终端状态、无线测量与可证明的原因边界。',
+        options: [
+          { id: 'complaint-address', label: '投诉地址与时间窗' },
+          { id: 'reproduction-point', label: '现场复现点位' },
+          { id: 'terminal-state', label: '复现时终端与业务状态' },
+          { id: 'radio-measurement', label: '同一时刻的无线测量' },
+          { id: 'cause-boundary', label: '由证据支持的原因边界' },
+        ],
+      },
+      {
+        id: 'defectiveOutputRevision',
+        dimension: 'defectiveOutputRevision',
+        kind: 'multiple-choice',
+        prompt: '调查单直接写“网络故障”，但没有工单关联、时间窗和矛盾证据登记。应如何修订？',
+        helpText: '选择能够恢复投诉调查可追溯性，并避免越过证据边界的动作。',
+        options: [
+          { id: 'bind-ticket', label: '补挂投诉工单号与原始问题描述' },
+          { id: 'bind-time-window', label: '补录复现时间窗和点位' },
+          { id: 'retain-contradiction', label: '登记终端日志与无线测量的矛盾' },
+          { id: 'close-without-evidence', label: '不补证据，直接关闭为网络故障' },
+        ],
+      },
+      {
+        id: 'professionalConclusion',
+        dimension: 'professionalConclusion',
+        kind: 'structured-conclusion',
+        prompt: '根据“投诉能够复现，但终端日志与无线测量不一致”的事实，提交职业化结论。',
+        helpText: '区分已确认事实、尚未闭合的原因证据、误归因风险和下一步动作。',
+      },
+    ],
+  },
+  gameId: 'P1T3-N02-server-assessment',
+  grading: {
+    evidenceClassification: {
+      acceptedOptionIds: ['complaint-ticket'],
+      remediationTarget: taskRemediation('P1T3-N02', 'foundation'),
+    },
+    linkReconstruction: {
+      orderedOptionIds: ['complaint-address', 'reproduction-point', 'terminal-state', 'radio-measurement', 'cause-boundary'],
+      remediationTarget: taskRemediation('P1T3-N02', 'application'),
+    },
+    defectiveOutputRevision: {
+      requiredOptionIds: ['bind-ticket', 'bind-time-window', 'retain-contradiction'],
+      forbiddenOptionIds: ['close-without-evidence'],
+      remediationTarget: taskRemediation('P1T3-N02', 'transfer'),
+    },
+    professionalConclusion: {
+      conclusionCriteria: {
+        confirmedFact: [['投诉', '工单'], ['地址', '复现']],
+        evidenceGap: [['日志', '无线测量'], ['矛盾', '待复核', '原因边界']],
+        risk: [['误判', '误归因', '错误'], ['责任', '投诉结论']],
+        action: [['时间窗', '复测'], ['日志', '核验', '更新']],
+        minimumCharacters: 14,
+      },
+      remediationTarget: taskRemediation('P1T3-N02', 'transfer'),
+    },
+  },
+};
+
+const definitionsByNode = new Map([
+  p01N02Definition,
+  p02N02Definition,
+  p03N02Definition,
+].map((definition) => [definition.paper.nodeId, definition]));
+
 export function getFormalAssessmentDefinition(nodeId: string): FormalAssessmentDefinition | undefined {
-  return nodeId === p01N02Definition.paper.nodeId ? p01N02Definition : undefined;
+  return definitionsByNode.get(nodeId);
+}
+
+export function getFormalAssessmentValidationPolicy(
+  nodeId: string,
+): PersistedAssessmentValidationPolicy | undefined {
+  const definition = getFormalAssessmentDefinition(nodeId);
+  if (!definition) return undefined;
+  const seen = new Set<string>();
+  return {
+    passScore: definition.paper.passScore,
+    allowedRemediationTargets: Object.values(definition.grading)
+      .map(({ remediationTarget }) => remediationTarget)
+      .filter((target) => {
+        const key = `${target.nodeId}:${target.sectionId}:${target.activityId}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }),
+  };
 }
 
 export function projectAssessmentPaper(definition: FormalAssessmentDefinition): AssessmentPaper {
@@ -149,5 +345,16 @@ export function projectAssessmentPaper(definition: FormalAssessmentDefinition): 
       ...question,
       ...(question.options ? { options: question.options.map((option) => ({ ...option })) } : {}),
     })),
+  };
+}
+
+function taskRemediation(
+  nodeId: 'P1T2-N02' | 'P1T3-N02',
+  level: 'foundation' | 'application' | 'transfer',
+): RemediationTarget {
+  return {
+    nodeId,
+    sectionId: 'practice',
+    activityId: `${nodeId}-${level}-01`,
   };
 }
