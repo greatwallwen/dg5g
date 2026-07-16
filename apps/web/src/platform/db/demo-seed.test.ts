@@ -219,8 +219,13 @@ function assertTruthfulPersonas(database: ReturnType<typeof createTestDatabase>[
   assert.equal(versions.length, 2);
   const v1 = JSON.parse(versions[0]!.fieldsJson);
   const v2 = JSON.parse(versions[1]!.fieldsJson);
-  assert.notEqual(v1.locationEvidence, v2.locationEvidence);
-  assert.notEqual(v1.evidenceGap, v2.evidenceGap);
+  const changedP01Fields = Object.keys(v2).filter((fieldKey) => v1[fieldKey] !== v2[fieldKey]);
+  assert.deepEqual(changedP01Fields.sort(), ['evidenceGap', 'locationEvidence']);
+  assert.deepEqual(
+    evidenceLinksByField(database, completeP01.outputId, 1),
+    evidenceLinksByField(database, completeP01.outputId, 2),
+    'V1 and V2 evidence sets must not manufacture unrelated version differences',
+  );
   assert.deepEqual(database.prepare(`
     SELECT status, origin FROM output_reviews
     WHERE output_id = ? ORDER BY reviewed_at, review_id
@@ -228,6 +233,114 @@ function assertTruthfulPersonas(database: ReturnType<typeof createTestDatabase>[
     { status: 'returned', origin: 'demo' },
     { status: 'verified', origin: 'demo' },
   ]);
+
+  for (const taskId of ['P02', 'P03']) {
+    const output = database.prepare(`
+      SELECT output_id AS outputId, current_version AS currentVersion
+      FROM professional_outputs WHERE student_id = 'stu-03' AND task_id = ?
+    `).get(taskId) as { outputId: string; currentVersion: number };
+    const fields = JSON.parse(database.prepare(`
+      SELECT fields_json FROM professional_output_versions
+      WHERE output_id = ? AND version = ?
+    `).pluck().get(output.outputId, output.currentVersion) as string) as Record<string, unknown>;
+    const links = database.prepare(`
+      SELECT link.field_key AS fieldKey, link.evidence_id AS evidenceId
+      FROM output_evidence_links AS link
+      INNER JOIN evidence_library AS evidence ON evidence.evidence_id = link.evidence_id
+      WHERE link.output_id = ? AND link.version = ?
+      ORDER BY link.field_key, link.evidence_id
+    `).all(output.outputId, output.currentVersion) as Array<{ fieldKey: string; evidenceId: string }>;
+    assert.equal(links.length >= 2, true, `${taskId} must link real built-in evidence`);
+    assert.equal(links.every(({ fieldKey }) => Object.hasOwn(fields, fieldKey)), true);
+  }
+
+  const dimensionKeys = [
+    'evidenceClassification', 'linkReconstruction',
+    'defectiveOutputRevision', 'professionalConclusion',
+  ];
+  for (const nodeId of ['P1T2-N02', 'P1T3-N02']) {
+    const attempt = database.prepare(`
+      SELECT attempt_id AS attemptId, assessment_id AS assessmentId, node_id AS nodeId,
+        question_version AS questionVersion, completed_at AS completedAt,
+        diagnostics_json AS diagnosticsJson, origin
+      FROM formal_attempts WHERE student_id = 'stu-03' AND node_id = ?
+    `).get(nodeId) as {
+      attemptId: string; assessmentId: string; nodeId: string; questionVersion: string;
+      completedAt: string; diagnosticsJson: string; origin: string;
+    };
+    const diagnostics = JSON.parse(attempt.diagnosticsJson) as Record<string, any>;
+    assert.deepEqual({
+      attemptId: diagnostics.attemptId,
+      assessmentId: diagnostics.assessmentId,
+      nodeId: diagnostics.nodeId,
+      questionVersion: diagnostics.questionVersion,
+      completedAt: diagnostics.completedAt,
+      origin: diagnostics.origin,
+    }, {
+      attemptId: attempt.attemptId,
+      assessmentId: attempt.assessmentId,
+      nodeId: attempt.nodeId,
+      questionVersion: attempt.questionVersion,
+      completedAt: attempt.completedAt,
+      origin: 'demo',
+    });
+    assert.deepEqual(Object.keys(diagnostics.dimensions).sort(), [...dimensionKeys].sort());
+    assert.equal(Object.values(diagnostics.dimensions).every((dimension: any) => (
+      Number.isFinite(dimension.score)
+      && dimension.maxScore === 25
+      && typeof dimension.feedback === 'string'
+      && dimension.feedback.trim().length > 0
+    )), true);
+    assert.deepEqual(diagnostics.remediationTargets, []);
+  }
+
+  const frozenLinks = database.prepare(`
+    SELECT score.task_id AS taskId, score.details_json AS detailsJson,
+      attempt.attempt_id AS attemptId, attempt.assessment_id AS assessmentId,
+      attempt.question_version AS questionVersion
+    FROM frozen_task_scores AS score
+    INNER JOIN formal_attempts AS attempt
+      ON attempt.student_id = score.student_id
+      AND attempt.node_id = CASE score.task_id
+        WHEN 'P01' THEN 'P1T1-N02'
+        WHEN 'P02' THEN 'P1T2-N02'
+        WHEN 'P03' THEN 'P1T3-N02'
+      END
+    WHERE score.student_id = 'stu-03'
+    ORDER BY score.task_id
+  `).all() as Array<{
+    taskId: string; detailsJson: string; attemptId: string;
+    assessmentId: string; questionVersion: string;
+  }>;
+  assert.equal(frozenLinks.length, 3);
+  for (const link of frozenLinks) {
+    const details = JSON.parse(link.detailsJson) as Record<string, unknown>;
+    assert.deepEqual({
+      nodeTestAttemptId: details.nodeTestAttemptId,
+      assessmentId: details.assessmentId,
+      questionVersion: details.questionVersion,
+    }, {
+      nodeTestAttemptId: link.attemptId,
+      assessmentId: link.assessmentId,
+      questionVersion: link.questionVersion,
+    }, `${link.taskId} frozen score must identify its exact formal diagnostic`);
+  }
+}
+
+function evidenceLinksByField(
+  database: ReturnType<typeof createTestDatabase>['database'],
+  outputId: string,
+  version: number,
+) {
+  const rows = database.prepare(`
+    SELECT field_key AS fieldKey, evidence_id AS evidenceId
+    FROM output_evidence_links WHERE output_id = ? AND version = ?
+    ORDER BY field_key, evidence_id
+  `).all(outputId, version) as Array<{ fieldKey: string; evidenceId: string }>;
+  return rows.reduce<Record<string, string[]>>((projection, { fieldKey, evidenceId }) => {
+    (projection[fieldKey] ??= []).push(evidenceId);
+    return projection;
+  }, {});
 }
 
 function mutableCounts(database: ReturnType<typeof createTestDatabase>['database']) {
