@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import type { GameConfig } from '@dgbook/edugame-core';
 import type { DemoTaskProfile } from '@/features/platform/deep-textbook-demo-data';
-import { EduGamePracticePanel } from '@/features/learning/edugame-practice-panel';
 import { ProfessionalOutputForm } from '@/features/portfolio/professional-output-form';
 import type { ProfessionalOutputSchema } from '@/features/portfolio/output-schema';
 import { getNodeLearningPolicy } from '@/platform/learning-policy';
@@ -18,9 +18,6 @@ export function ChallengeScene({
   nodeProgress,
   outputSchema,
   unit,
-  studentId,
-  studentVersion,
-  onProgress,
   onContinue,
   onReturnToMap,
 }: {
@@ -64,12 +61,22 @@ export function ChallengeScene({
       </header>
       <div className="challenge-layout">
         <div className="challenge-game-stage">
-          <EduGamePracticePanel bestScore={nodeProgress?.bestGameScore} gameConfig={gameConfig} nodeId={unit.capabilityNodeId} nodeProgress={nodeProgress} onProgress={onProgress} primaryAction={!passed} studentId={studentId} studentVersion={studentVersion} />
+          <section className="formal-assessment-entry" data-assessment-entry={unit.capabilityNodeId}>
+            <span><Icon name="target" size={28} /></span>
+            <div>
+              <small>独立正式测试 · 服务端判分</small>
+              <h2>题面与学习场景分离</h2>
+              <p>进入后将生成一次性测试凭证。页面只提交实际作答，四项诊断与成绩由服务端形成。</p>
+            </div>
+            <Link data-primary-action={!passed ? 'true' : undefined} href={`/learn/${unit.capabilityNodeId}/test`}>
+              {passed ? '查看并再次测试' : '进入正式测试'}
+            </Link>
+          </section>
         </div>
         <aside className="challenge-evidence-panel">
           <span>正式测试记录</span>
           <h2>{unit.title}</h2>
-          <p>正式机会最多三次；首分、最高分、最近分与用时均保留。</p>
+          <p>每次正式作答均保留；未达标后完成定向再学即可再次测试。</p>
           <div className="formal-score-grid"><div><small>首分</small><strong>{formalScoreLabel(nodeProgress?.firstGameScore)}</strong></div><div><small>最高分</small><strong>{formalScoreLabel(bestFormalScore)}</strong></div><div><small>最近分</small><strong>{formalScoreLabel(nodeProgress?.latestGameScore)}</strong></div></div>
           <ol className="formal-attempt-list">{attempts.length ? attempts.map((attempt, index) => <li key={attempt.attemptId}><span>第{index + 1}次</span><strong>{attempt.score}分</strong><small>{formalDurationLabel(attempt.durationSeconds)}</small></li>) : <li><span>尚未提交</span><small>完成三阶段后形成第1次成绩</small></li>}</ol>
           <div className="challenge-gate-list">

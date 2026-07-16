@@ -859,7 +859,7 @@ function checkHomeRoleGatewayContract() {
       [files.overview, ['CourseGraphStage', '/api/snapshot?audience=graph', 'projectGraphSnapshot', 'data-graph-progress', 'data-snapshot-version']],
       [files.scene, ['WebPlaybackDock', 'playbackScenes', 'data-narration-track', "setMode('challenge')", "fetchAuthoritativeSnapshot('student', sessionId)", 'projectStudentLearningSnapshot(studentCut.me.learning)']],
       [files.learnPage, ['AuthoritativeSnapshotReader', "read(actor, 'student')", 'projectStudentLearningSnapshot(studentCut.me.learning)', 'initialSnapshot={initialSnapshot}', 'sessionId={studentCut.classroom.sessionId}']],
-      [files.game, ['studentVersion: number', '}, studentVersion);']],
+      [files.game, ['studentVersion: number', 'data-formal-test="retired"', '/test']],
       [files.store, ['LearningRepository', 'LearningReadModel', 'projectStudentLearningSnapshot']],
       [files.client, ['/api/learning/me', '/api/learning/class/', '/api/learning/nodes/']],
       [files.route, ['export async function GET', 'export async function POST', 'status: 410']],
@@ -1049,9 +1049,11 @@ function checkP1LearningLoopContract() {
       if (!projectorText.includes(snippet)) fail(`projector-client.tsx must expose authoritative narration through ${snippet}`);
     }
     const practicePanelText = readFileSync(practicePanelFile, 'utf8');
-    if (!practicePanelText.includes('data-skill-game={nodeId}')) fail('edugame-practice-panel.tsx must preserve the Pixi identity through data-skill-game={nodeId}');
-    for (const snippet of ['progressLoading = nodeProgress === undefined', "data-skill-game-result={progressLoading ? 'loading'", '{progressLoading ? (', 'data-game-progress-loading={nodeId}', 'localAttemptState', 'Math.min(3', '!syncing', 'disabled={!canRetry}', 'error.status === 409', 'attemptsExhausted = attemptCount >= 3 && !passed', 'data-game-attempts-exhausted={nodeId}', ') : attemptsExhausted ? (']) {
-      if (!practicePanelText.includes(snippet)) fail(`edugame-practice-panel.tsx must enforce the local three-attempt cutoff through ${snippet}`);
+    for (const snippet of ['data-skill-game={nodeId}', 'data-formal-test="retired"', '`/learn/${nodeId}/test`']) {
+      if (!practicePanelText.includes(snippet)) fail(`edugame-practice-panel.tsx must hand off formal grading through ${snippet}`);
+    }
+    for (const forbidden of ['recordSkillEvent', 'Math.min(3', 'attemptsExhausted', 'score: nextRecord.score']) {
+      if (practicePanelText.includes(forbidden)) fail(`edugame-practice-panel.tsx must not retain client scoring or an attempt cap: ${forbidden}`);
     }
     const sceneCssText = readFileSync(sceneCssFile, 'utf8');
     if (sceneCssText.includes('.student-formal-test-launch')) fail('textbook-scene.css must remove obsolete link-away-only student-formal-test-launch selectors');
@@ -1131,8 +1133,8 @@ function checkP1LearningLoopContract() {
   }
   if (exists(gamePanelFile)) {
     const text = readFileSync(gamePanelFile, 'utf8');
-    for (const snippet of ['variant="embedded"', "type: 'game_completed'", "sectionId: 'practice'", 'mistakeKnowledgePointIds']) {
-      if (!text.includes(snippet)) fail(`edugame-practice-panel.tsx must return skill-aligned game evidence via ${snippet}`);
+    for (const snippet of ['data-formal-test="retired"', '`/learn/${nodeId}/test`']) {
+      if (!text.includes(snippet)) fail(`edugame-practice-panel.tsx must hand off formal grading via ${snippet}`);
     }
   }
   if (exists(gameFixtureFile)) {

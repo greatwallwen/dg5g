@@ -1,46 +1,21 @@
-export const assessmentDimensionKeys = [
-  'evidenceClassification',
-  'linkReconstruction',
-  'defectiveOutputRevision',
-  'professionalConclusion',
-] as const;
-
-export type AssessmentDimensionKey = (typeof assessmentDimensionKeys)[number];
-
-export interface RemediationTarget {
-  nodeId: string;
-  sectionId: string;
-}
-
-export interface AssessmentOption {
-  id: string;
-  label: string;
-}
-
-export type AssessmentQuestion = {
-  id: AssessmentDimensionKey;
-  dimension: AssessmentDimensionKey;
-  prompt: string;
-  helpText: string;
-  kind: 'single-choice' | 'ordering' | 'multiple-choice' | 'long-text';
-  options?: AssessmentOption[];
-};
-
-export interface AssessmentPaper {
-  nodeId: string;
-  title: string;
-  questionVersion: string;
-  passScore: number;
-  durationMinutes: number;
-  questions: AssessmentQuestion[];
-}
+import type {
+  AssessmentDimensionKey,
+  AssessmentPaper,
+  RemediationTarget,
+} from './formal-assessment-contract.ts';
 
 interface AssessmentGradingRule {
   acceptedOptionIds?: string[];
   orderedOptionIds?: string[];
   requiredOptionIds?: string[];
   forbiddenOptionIds?: string[];
-  conclusionCriteria?: string[][];
+  conclusionCriteria?: {
+    confirmedFact: string[][];
+    evidenceGap: string[][];
+    risk: string[][];
+    action: string[][];
+    minimumCharacters: number;
+  };
   remediationTarget: RemediationTarget;
 }
 
@@ -101,7 +76,7 @@ const p01N02Definition: FormalAssessmentDefinition = {
       {
         id: 'professionalConclusion',
         dimension: 'professionalConclusion',
-        kind: 'long-text',
+        kind: 'structured-conclusion',
         prompt: '根据“设备铭牌可识别、源端口清晰、对端端口照片模糊”的情况，写出职业化复核结论。',
         helpText: '结论应说明已确认事实、证据缺口、风险和下一步动作。',
       },
@@ -123,13 +98,25 @@ const p01N02Definition: FormalAssessmentDefinition = {
       remediationTarget: { nodeId: 'P1T1-N02', sectionId: 'practice' },
     },
     professionalConclusion: {
-      conclusionCriteria: [
-        ['铭牌', '设备身份', '序列号'],
-        ['源端口', '源端'],
-        ['对端口', '对端端口', '对端'],
-        ['模糊', '缺口', '无法确认', '待复核'],
-        ['补拍', '复核', '核验', '整改'],
-      ],
+      conclusionCriteria: {
+        confirmedFact: [
+          ['铭牌', '设备身份', '序列号'],
+          ['源端口', '源端'],
+        ],
+        evidenceGap: [
+          ['对端口', '对端端口', '对端'],
+          ['模糊', '缺口', '无法确认', '待复核'],
+        ],
+        risk: [
+          ['风险', '错误', '误判', '影响', '无法交付'],
+          ['链路', '配置', '成果', '端口'],
+        ],
+        action: [
+          ['补拍', '重新拍摄', '复核', '核验', '整改'],
+          ['对端口', '对端端口', '照片', '编号'],
+        ],
+        minimumCharacters: 14,
+      },
       remediationTarget: { nodeId: 'P1T1-N02', sectionId: 'understand' },
     },
   },

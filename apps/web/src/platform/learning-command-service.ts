@@ -72,17 +72,6 @@ export class FormalAttemptPolicyError extends Error {
   }
 }
 
-export class FormalAttemptLimitError extends Error {
-  readonly nodeId: string;
-  readonly limit = 3;
-
-  constructor(nodeId: string) {
-    super(`A node allows at most three formal attempts: ${nodeId}.`);
-    this.name = 'FormalAttemptLimitError';
-    this.nodeId = nodeId;
-  }
-}
-
 export class LearningCommandService {
   private readonly readModel: LearningReadModel;
 
@@ -129,9 +118,6 @@ export class LearningCommandService {
     const isReplay = currentNode?.attempts.some((attempt) => attempt.attemptId === command.attemptId) ?? false;
     if (!isReplay && !currentNode?.stateTrail.includes('micro-practice-passed')) {
       throw new LearningCommandValidationError('Formal attempts require micro-practice-passed first.');
-    }
-    if (!isReplay && (currentNode?.attempts.length ?? 0) >= 3) {
-      throw new FormalAttemptLimitError(command.nodeId);
     }
     this.repository.recordFormalAttempt({ ...command, studentId }, command.expectedVersion);
     return this.readModel.readStudentSnapshot(studentId);
@@ -231,9 +217,6 @@ export function describeLearningCommandError(error: unknown): LearningCommandPro
           : {}),
       },
     };
-  }
-  if (error instanceof FormalAttemptLimitError) {
-    return { status: 409, body: { error: error.message, nodeId: error.nodeId, limit: error.limit } };
   }
   if (error instanceof LearningVersionConflictError) {
     return {

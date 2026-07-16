@@ -1,7 +1,5 @@
 import type { AchievementLevel, GameAttemptSummary } from './models';
 
-export const MAX_FORMAL_ATTEMPTS = 3;
-
 export interface AchievementInput {
   lessonComplete: boolean;
   hasFormalTest: boolean;
@@ -12,7 +10,6 @@ export interface AchievementInput {
 export interface FormalAttemptSummary {
   attempts: GameAttemptSummary[];
   attemptCount: number;
-  remainingAttempts: number;
   firstScore?: number;
   bestScore?: number;
   latestScore?: number;
@@ -32,8 +29,7 @@ export function deriveAchievementLevel(input: AchievementInput): AchievementLeve
 export function summarizeFormalAttempts(attempts: GameAttemptSummary[]): FormalAttemptSummary {
   const formal = attempts
     .filter((attempt) => attempt.formal)
-    .sort((left, right) => left.completedAt.localeCompare(right.completedAt))
-    .slice(0, MAX_FORMAL_ATTEMPTS);
+    .sort((left, right) => left.completedAt.localeCompare(right.completedAt));
   const scores = formal.map((attempt) => attempt.score);
   const durations = formal
     .map((attempt) => attempt.durationSeconds)
@@ -41,16 +37,11 @@ export function summarizeFormalAttempts(attempts: GameAttemptSummary[]): FormalA
   return {
     attempts: formal,
     attemptCount: formal.length,
-    remainingAttempts: Math.max(0, MAX_FORMAL_ATTEMPTS - formal.length),
     ...(scores[0] === undefined ? {} : { firstScore: scores[0] }),
     ...(scores.length ? { bestScore: Math.max(...scores) } : {}),
     ...(scores.at(-1) === undefined ? {} : { latestScore: scores.at(-1) }),
     ...(durations.length ? { bestDurationSeconds: Math.min(...durations) } : {}),
   };
-}
-
-export function canStartFormalAttempt(attemptCount: number): boolean {
-  return attemptCount < MAX_FORMAL_ATTEMPTS;
 }
 
 export interface TaskScoreProjection {

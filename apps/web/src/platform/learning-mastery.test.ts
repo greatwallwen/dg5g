@@ -2,10 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { GameAttemptSummary } from './models.ts';
 import {
-  MAX_FORMAL_ATTEMPTS,
   calculateProjectCompositeScore,
   calculateTaskCompositeScore,
-  canStartFormalAttempt,
   deriveAchievementLevel,
   summarizeFormalAttempts,
 } from './learning-mastery.ts';
@@ -19,7 +17,7 @@ test('deriveAchievementLevel separates learned, passed, mastered and excellent',
   assert.equal(deriveAchievementLevel({ lessonComplete: true, hasFormalTest: false }), 'learned');
 });
 
-test('summarizeFormalAttempts ignores practice and preserves first, best and latest formal scores', () => {
+test('summarizeFormalAttempts ignores practice and preserves every formal attempt without a permanent cap', () => {
   const summary = summarizeFormalAttempts([
     attempt('practice-1', 100, false, '2026-07-11T09:00:00.000Z', 120),
     attempt('formal-1', 64, true, '2026-07-11T10:00:00.000Z', 390),
@@ -27,13 +25,12 @@ test('summarizeFormalAttempts ignores practice and preserves first, best and lat
     attempt('formal-3', 78, true, '2026-07-11T12:00:00.000Z', 350),
     attempt('formal-4', 99, true, '2026-07-11T13:00:00.000Z', 200),
   ]);
-  assert.equal(summary.attemptCount, MAX_FORMAL_ATTEMPTS);
+  assert.equal(summary.attemptCount, 4);
+  assert.equal(summary.attempts.length, 4);
   assert.equal(summary.firstScore, 64);
-  assert.equal(summary.bestScore, 86);
-  assert.equal(summary.latestScore, 78);
-  assert.equal(summary.bestDurationSeconds, 350);
-  assert.equal(summary.remainingAttempts, 0);
-  assert.equal(canStartFormalAttempt(summary.attemptCount), false);
+  assert.equal(summary.bestScore, 99);
+  assert.equal(summary.latestScore, 99);
+  assert.equal(summary.bestDurationSeconds, 200);
 });
 
 test('an empty formal-attempt summary keeps score and duration facts unformed', () => {

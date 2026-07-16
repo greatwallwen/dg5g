@@ -19,6 +19,7 @@ import './annotated-engineering-figure.css';
 import './self-study-textbook.css';
 import './learning-activities.css';
 import './professional-output.css';
+import './formal-assessment.css';
 
 export const metadata: Metadata = {
   title: 'DGBook 5G网络优化（高级）数字教材',

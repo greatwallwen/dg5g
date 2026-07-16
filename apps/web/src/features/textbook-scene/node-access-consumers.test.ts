@@ -75,7 +75,8 @@ test('self-study consumes the student cut while command clients remain actor sco
   assert.match(shell, /projectStudentLearningSnapshot\(studentCut\.me\.learning\)/);
   assert.doesNotMatch(shell, /fetchLearningProgress/);
   assert.match(game, /studentVersion: number/);
-  assert.match(game, /}, studentVersion\);/);
+  assert.match(game, /\/learn\/\$\{nodeId\}\/test/);
+  assert.doesNotMatch(game, /recordSkillEvent|score:\s*nextRecord\.score/);
   assert.doesNotMatch(game, /fetchLearningProgress/);
   assert.match(teacherConsumers, /useAuthoritativeSnapshot/);
   assert.doesNotMatch(teacherConsumers, /fetchClassLearningProgress/);

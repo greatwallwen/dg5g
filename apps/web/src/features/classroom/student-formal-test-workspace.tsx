@@ -1,7 +1,7 @@
 'use client';
 
+import Link from 'next/link';
 import type { ClassSession, SkillProgress } from '@/platform/models';
-import { EduGamePracticePanel } from '@/features/learning/edugame-practice-panel';
 import { skillGameForNode } from '@/platform/fixtures/skill-game-fixtures';
 import { Icon } from '@/ui/foundation/icons';
 import { projectChallengeScene } from '@/features/textbook-scene/challenge-scene-model';
@@ -9,15 +9,11 @@ import { projectChallengeScene } from '@/features/textbook-scene/challenge-scene
 export function StudentFormalTestWorkspace({
   evidence,
   evidenceState,
-  gameConfig,
   nodeId,
   onEvidenceChange,
   onEvidenceSubmit,
-  onProgress,
   progress,
   student,
-  studentId,
-  studentVersion,
   title,
 }: {
   evidence: string;
@@ -63,16 +59,12 @@ export function StudentFormalTestWorkspace({
       <div className="student-test-main">
         <span>教师已启动正式测试</span>
         <h1>{title}</h1>
-        <p>{nodeId} · 6分钟 · 三阶段 · 最多提交三次</p>
-        <EduGamePracticePanel
-          bestScore={progress?.bestGameScore}
-          gameConfig={gameConfig}
-          nodeId={nodeId}
-          nodeProgress={progress}
-          onProgress={onProgress}
-          studentId={studentId}
-          studentVersion={studentVersion}
-        />
+        <p>{nodeId} · 四项诊断 · 服务端判分</p>
+        <section className="formal-assessment-entry" data-classroom-assessment-entry={nodeId}>
+          <span><Icon name="target" size={26} /></span>
+          <div><small>独立正式测试</small><h2>进入安全测试页完成实际作答</h2><p>课堂状态继续同步；题面、一次性凭证与成绩由测试服务管理。</p></div>
+          <Link href={`/learn/${nodeId}/test`}>进入正式测试</Link>
+        </section>
       </div>
       {challenge.requiresProfessionalOutput ? <aside className="student-evidence-workspace">
         <small>专业产出</small>

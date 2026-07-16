@@ -67,7 +67,7 @@ function StudentRosterRow({ isSelected, onSelectStudent, student, session }: { i
         <span>{submissionLabel(student.submissionState)}</span>
         <span>证据 {student.evidenceCount}</span>
         <span className={formalScorePassed ? 'is-score-pass' : 'is-score-watch'}>最高 {formalScoreLabel(student.bestGameScore)}</span>
-        <span data-attempt-state={student.attemptCount === undefined ? 'untested' : 'formed'}>{student.attemptCount === undefined ? '尚未测试' : `第 ${student.attemptCount}/3 次`}</span>
+        <span data-attempt-state={student.attemptCount === undefined ? 'untested' : 'formed'}>{student.attemptCount === undefined ? '尚未测试' : `第 ${student.attemptCount} 次`}</span>
       </div>
       <p>{student.lastAction}</p>
     </button>

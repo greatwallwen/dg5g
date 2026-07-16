@@ -88,7 +88,7 @@ test('formal attempts are accepted only on the policy-defined N02 node test', ()
   }
 });
 
-test('a student gets at most three distinct formal attempts while exact replay stays idempotent', () => {
+test('formal attempt storage has no permanent three-attempt lock while exact replay stays idempotent', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
@@ -114,18 +114,19 @@ test('a student gets at most three distinct formal attempts while exact replay s
     });
     version += 1;
 
-    assert.throws(() => service.recordFormalAttempt(studentOne, {
+    const fourth = service.recordFormalAttempt(studentOne, {
       attemptId: 'command-service-attempt-4',
       nodeId: 'P1T1-N02',
       gameId: 'node-test',
       score: 95,
       expectedVersion: version,
-    }), /three formal attempts/i);
-    assert.equal(repository.readTopicVersion('learning:stu-01'), version);
+    });
+    version += 1;
+    assert.equal(fourth.version, version);
 
     const replay = service.recordFormalAttempt(studentOne, second);
     assert.equal(replay.version, version);
-    assert.equal(replay.nodes.find((node) => node.nodeId === 'P1T1-N02')?.attempts.length, 3);
+    assert.equal(replay.nodes.find((node) => node.nodeId === 'P1T1-N02')?.attempts.length, 4);
   } finally {
     fixture.cleanup();
   }

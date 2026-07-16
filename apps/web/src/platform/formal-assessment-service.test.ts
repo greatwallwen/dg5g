@@ -4,6 +4,10 @@ import type { AuthenticatedActor } from './auth/actor.ts';
 import { createTestDatabase } from './db/test-database.ts';
 import { migrateDatabase } from './db/migrations.ts';
 import { seedDemo } from './db/demo-seed.ts';
+import { closeDatabase } from './db/database.ts';
+import { AuthService } from './auth/auth-service.ts';
+import { AUTH_COOKIE_NAME } from './auth/cookie.ts';
+import { LearningRepository } from './learning-repository.ts';
 import {
   AssessmentRemediationRequiredError,
   AssessmentTokenError,
@@ -30,10 +34,27 @@ const studentTwo: AuthenticatedActor = {
 
 const wrongAnswers: AssessmentAnswers = {
   evidenceClassification: 'environment-note',
-  linkReconstruction: ['management', 'device', 'port-a', 'port-b', 'room'],
-  defectiveOutputRevision: [],
-  professionalConclusion: '没有问题。',
-};
+  linkReconstruction: ['peer-device', 'peer-port', 'cable-label', 'source-port', 'source-device'],
+  defectiveOutputRevision: ['erase-gap'],
+  professionalConclusion: {
+    confirmedFact: '现场已经看到机柜，但尚未形成能够唯一识别设备身份的证据。',
+    evidenceGap: '当前材料缺少清晰的设备铭牌和对端端口照片，证据链不完整。',
+    risk: '如果直接确认链路，可能把错误设备或端口写入交付成果。',
+    action: '重新拍摄设备铭牌和对端端口，核对编号后再更新结论。',
+  },
+} as unknown as AssessmentAnswers;
+
+const passingAnswers = {
+  evidenceClassification: 'nameplate-photo',
+  linkReconstruction: ['source-device', 'source-port', 'cable-label', 'peer-port', 'peer-device'],
+  defectiveOutputRevision: ['restore-source', 'add-photo-index', 'record-direction'],
+  professionalConclusion: {
+    confirmedFact: '设备铭牌可识别，源端口照片清晰，已经确认源设备身份和源端口。',
+    evidenceGap: '对端端口照片模糊，当前无法确认对端端口编号。',
+    risk: '若直接交付，链路关系可能错误并造成后续配置风险。',
+    action: '重新拍摄对端端口并核验编号，补齐照片索引后更新成果表。',
+  },
+} as unknown as AssessmentAnswers;
 
 test('issues an answer-free paper and grades and persists only on the server', () => {
   const fixture = createTestDatabase();
@@ -102,6 +123,193 @@ test('binds a single-use token to one student, node, version, and assessment ins
   }
 });
 
+test('issuing a new paper atomically retires the prior paper so remediation cannot be bypassed', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    const service = new FormalAssessmentService(fixture.database, deterministicOptions());
+    const first = service.issuePaper(studentOne, 'P1T1-N02');
+    const parallel = service.issuePaper(studentOne, 'P1T1-N02');
+
+    assert.throws(
+      () => service.submitAnswers(studentOne, first.attemptToken, wrongAnswers),
+      (error) => error instanceof AssessmentTokenError && error.code === 'used-token',
+    );
+    const stale = fixture.database.prepare(`
+      SELECT token.used_at AS usedAt, instance.status
+      FROM formal_assessment_tokens AS token
+      INNER JOIN formal_assessment_instances AS instance
+        ON instance.assessment_id = token.assessment_id
+      WHERE token.assessment_id = ?
+    `).get(first.assessmentId) as { usedAt: string | null; status: string };
+    assert.notEqual(stale.usedAt, null);
+    assert.equal(stale.status, 'closed');
+
+    service.submitAnswers(studentOne, parallel.attemptToken, wrongAnswers);
+    assert.throws(
+      () => service.issuePaper(studentOne, 'P1T1-N02'),
+      (error) => error instanceof AssessmentRemediationRequiredError,
+    );
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('validates all choice and ordering values against the bound paper before grading', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    const service = new FormalAssessmentService(fixture.database, deterministicOptions());
+    const issued = service.issuePaper(studentOne, 'P1T1-N02');
+    const invalidAnswers = [
+      { ...wrongAnswers, evidenceClassification: 'forged-answer-id' },
+      {
+        ...wrongAnswers,
+        linkReconstruction: ['source-device', 'source-port', 'forged-answer-id', 'peer-port', 'peer-device'],
+      },
+      {
+        ...wrongAnswers,
+        linkReconstruction: ['source-device', 'source-port', 'cable-label', 'peer-port', 'peer-port'],
+      },
+      { ...wrongAnswers, defectiveOutputRevision: ['restore-source', 'forged-answer-id'] },
+    ] as AssessmentAnswers[];
+
+    for (const invalid of invalidAnswers) {
+      assert.throws(
+        () => service.submitAnswers(studentOne, issued.attemptToken, invalid),
+        (error) => error instanceof TypeError && /option/i.test(error.message),
+      );
+    }
+    assert.equal(fixture.database.prepare(`
+      SELECT used_at FROM formal_assessment_tokens WHERE assessment_id = ?
+    `).pluck().get(issued.assessmentId), null);
+    assert.equal(service.submitAnswers(studentOne, issued.attemptToken, wrongAnswers).passed, false);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('requires a coherent four-part professional conclusion instead of keyword stuffing', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    const service = new FormalAssessmentService(fixture.database, deterministicOptions());
+    const issued = service.issuePaper(studentOne, 'P1T1-N02');
+    const result = service.submitAnswers(studentOne, issued.attemptToken, passingAnswers);
+    assert.equal(result.dimensions.professionalConclusion.score, 25);
+    assert.equal(result.totalScore, 100);
+
+    const secondStudent = service.issuePaper(studentTwo, 'P1T1-N02');
+    const stuffed = {
+      ...passingAnswers,
+      professionalConclusion: {
+        confirmedFact: '铭牌 源端 对端 模糊 复核',
+        evidenceGap: '铭牌 源端 对端 模糊 复核',
+        risk: '铭牌 源端 对端 模糊 复核',
+        action: '铭牌 源端 对端 模糊 复核',
+      },
+    } as unknown as AssessmentAnswers;
+    const stuffedResult = service.submitAnswers(studentTwo, secondStudent.attemptToken, stuffed);
+    assert.ok(stuffedResult.dimensions.professionalConclusion.score < 25);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('stores only a token hash and rejects expiry plus node, version, and instance tampering', () => {
+  const fixture = createTestDatabase();
+  let now = new Date('2026-07-16T10:00:00.000Z');
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    const service = new FormalAssessmentService(fixture.database, {
+      ...deterministicOptions(),
+      now: () => now,
+      tokenTtlMs: 60_000,
+    });
+    const issued = service.issuePaper(studentOne, 'P1T1-N02');
+    const storedHash = fixture.database.prepare(`
+      SELECT token_hash FROM formal_assessment_tokens WHERE assessment_id = ?
+    `).pluck().get(issued.assessmentId) as string;
+    assert.equal(storedHash.length, 64);
+    assert.notEqual(storedHash, issued.attemptToken);
+    assert.equal(JSON.stringify(fixture.database.prepare(`
+      SELECT * FROM formal_assessment_tokens WHERE assessment_id = ?
+    `).get(issued.assessmentId)).includes(issued.attemptToken), false);
+
+    assert.throws(
+      () => service.submitAnswers(studentOne, issued.attemptToken, wrongAnswers, 'P1T1-N03'),
+      (error) => error instanceof AssessmentTokenError && error.code === 'invalid-token',
+    );
+    fixture.database.prepare(`
+      UPDATE formal_assessment_tokens SET question_version = 'tampered-version'
+      WHERE assessment_id = ?
+    `).run(issued.assessmentId);
+    assert.throws(
+      () => service.submitAnswers(studentOne, issued.attemptToken, wrongAnswers),
+      (error) => error instanceof AssessmentTokenError && error.code === 'invalid-token',
+    );
+    fixture.database.prepare(`
+      UPDATE formal_assessment_tokens SET question_version = ? WHERE assessment_id = ?
+    `).run(issued.paper.questionVersion, issued.assessmentId);
+    fixture.database.prepare(`
+      UPDATE formal_assessment_instances SET node_id = 'tampered-node' WHERE assessment_id = ?
+    `).run(issued.assessmentId);
+    assert.throws(
+      () => service.submitAnswers(studentOne, issued.attemptToken, wrongAnswers),
+      (error) => error instanceof AssessmentTokenError && error.code === 'invalid-token',
+    );
+    fixture.database.prepare(`
+      UPDATE formal_assessment_instances SET node_id = ? WHERE assessment_id = ?
+    `).run(issued.paper.nodeId, issued.assessmentId);
+    now = new Date('2026-07-16T10:02:00.000Z');
+    assert.throws(
+      () => service.submitAnswers(studentOne, issued.attemptToken, wrongAnswers),
+      (error) => error instanceof AssessmentTokenError && error.code === 'expired-token',
+    );
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('rolls back token consumption and assessment closure when persistence fails', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    const service = new FormalAssessmentService(fixture.database, deterministicOptions());
+    const issued = service.issuePaper(studentOne, 'P1T1-N02');
+    fixture.database.exec(`
+      CREATE TRIGGER fail_formal_attempt_insert
+      BEFORE INSERT ON formal_attempts
+      BEGIN
+        SELECT RAISE(ABORT, 'forced persistence failure');
+      END
+    `);
+    assert.throws(
+      () => service.submitAnswers(studentOne, issued.attemptToken, wrongAnswers),
+      /forced persistence failure/,
+    );
+    assert.deepEqual(fixture.database.prepare(`
+      SELECT token.used_at AS usedAt, instance.status
+      FROM formal_assessment_tokens AS token
+      INNER JOIN formal_assessment_instances AS instance
+        ON instance.assessment_id = token.assessment_id
+      WHERE token.assessment_id = ?
+    `).get(issued.assessmentId), { usedAt: null, status: 'running' });
+    assert.equal(fixture.database.prepare(`
+      SELECT COUNT(*) FROM formal_attempts WHERE assessment_id = ?
+    `).pluck().get(issued.assessmentId), 0);
+    fixture.database.exec('DROP TRIGGER fail_formal_attempt_insert');
+    assert.equal(service.submitAnswers(studentOne, issued.attemptToken, wrongAnswers).passed, false);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
 test('requires targeted relearning after a failed user attempt and unlocks from stable remediation targets', () => {
   const fixture = createTestDatabase();
   try {
@@ -140,6 +348,69 @@ test('requires targeted relearning after a failed user attempt and unlocks from 
   }
 });
 
+test('assessment route rejects forged scores and accepts an answer-only submission', async () => {
+  const fixture = createTestDatabase();
+  const previousPath = process.env.DGBOOK_SQLITE_PATH;
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
+    closeDatabase();
+    const auth = new AuthService(fixture.database);
+    const session = auth.login({ username: 'student01', password: '123456' });
+    assert.ok(session);
+    const cookie = `${AUTH_COOKIE_NAME}=${session.token}`;
+    const route = await import('../app/api/learning/nodes/[nodeId]/assessment/route.ts');
+    const legacyAttemptRoute = await import('../app/api/learning/nodes/[nodeId]/attempts/route.ts');
+
+    const paperResponse = route.GET(routeRequest('GET', cookie), routeContext());
+    assert.equal(paperResponse.status, 200);
+    const issued = await paperResponse.json() as { attemptToken: string; paper: unknown };
+    assert.equal(JSON.stringify(issued.paper).includes('correct'), false);
+
+    const forged = await route.POST(routeRequest('POST', cookie, {
+      score: 100,
+      answers: wrongAnswers,
+    }, issued.attemptToken), routeContext());
+    assert.equal(forged.status, 400);
+
+    const nestedForged = await route.POST(routeRequest('POST', cookie, {
+      answers: { ...wrongAnswers, score: 100 },
+    }, issued.attemptToken), routeContext());
+    assert.equal(nestedForged.status, 400);
+
+    const repository = new LearningRepository(fixture.database);
+    const legacy = await legacyAttemptRoute.POST(new Request(
+      'http://localhost/api/learning/nodes/P1T1-N02/attempts',
+      {
+        method: 'POST',
+        headers: { cookie, 'content-type': 'application/json' },
+        body: JSON.stringify({
+          attemptId: 'forged-legacy-score',
+          gameId: 'node-test',
+          score: 100,
+          expectedVersion: repository.readTopicVersion('learning:stu-01'),
+        }),
+      },
+    ), routeContext());
+    assert.equal(legacy.status, 400);
+    assert.equal(repository.readStudentFacts('stu-01').attempts.some(
+      ({ attemptId }) => attemptId === 'forged-legacy-score',
+    ), false);
+
+    const submitted = await route.POST(routeRequest('POST', cookie, {
+      answers: wrongAnswers,
+    }, issued.attemptToken), routeContext());
+    assert.equal(submitted.status, 200);
+    assert.notEqual((await submitted.json()).totalScore, 100);
+  } finally {
+    closeDatabase();
+    if (previousPath === undefined) delete process.env.DGBOOK_SQLITE_PATH;
+    else process.env.DGBOOK_SQLITE_PATH = previousPath;
+    fixture.cleanup();
+  }
+});
+
 function deterministicOptions() {
   let sequence = 0;
   return {
@@ -147,4 +418,20 @@ function deterministicOptions() {
     randomId: () => `assessment-sequence-${++sequence}`,
     randomToken: () => `token-sequence-${++sequence}-0123456789abcdef`,
   };
+}
+
+function routeRequest(method: string, cookie: string, body?: unknown, token?: string): Request {
+  return new Request('http://localhost/api/learning/nodes/P1T1-N02/assessment', {
+    method,
+    headers: {
+      cookie,
+      ...(body === undefined ? {} : { 'content-type': 'application/json' }),
+      ...(token === undefined ? {} : { 'x-assessment-token': token }),
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+}
+
+function routeContext() {
+  return { params: { nodeId: 'P1T1-N02' } };
 }

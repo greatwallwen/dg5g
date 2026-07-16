@@ -3,55 +3,32 @@ import type { AuthenticatedActor } from './auth/actor.ts';
 import { getDatabase, type AppDatabase } from './db/database.ts';
 import {
   assessmentDimensionKeys,
+  type AssessmentAnswers,
+  type AssessmentDimensionKey,
+  type AssessmentDiagnosis,
+  type AssessmentDimensionDiagnosis,
+  type AssessmentPaper,
+  type IssuedAssessmentPaper,
+  type ProfessionalConclusionAnswer,
+  type RemediationTarget,
+} from './formal-assessment-contract.ts';
+import {
   getFormalAssessmentDefinition,
   projectAssessmentPaper,
-  type AssessmentDimensionKey,
-  type AssessmentPaper,
   type FormalAssessmentDefinition,
-  type RemediationTarget,
-} from './formal-assessment-catalog.ts';
+} from './formal-assessment-catalog.server.ts';
 import { createLearningCommandService, LearningAuthorizationError } from './learning-command-service.ts';
 import { getNodeLearningPolicy } from './learning-policy.ts';
 import { SnapshotClock } from './snapshot-clock.ts';
 
-export type { AssessmentPaper, RemediationTarget } from './formal-assessment-catalog.ts';
-
-export interface AssessmentAnswers {
-  evidenceClassification: string;
-  linkReconstruction: string[];
-  defectiveOutputRevision: string[];
-  professionalConclusion: string;
-}
-
-export interface AssessmentDimensionDiagnosis {
-  score: number;
-  maxScore: 25;
-  feedback: string;
-  remediationTarget?: RemediationTarget;
-}
-
-export interface AssessmentDiagnosis {
-  assessmentId: string;
-  attemptId: string;
-  nodeId: string;
-  questionVersion: string;
-  totalScore: number;
-  passed: boolean;
-  dimensions: Record<AssessmentDimensionKey, AssessmentDimensionDiagnosis>;
-  remediationTargets: RemediationTarget[];
-  origin: 'user';
-  completedAt: string;
-  version: number;
-  globalVersion: number;
-  paper: AssessmentPaper;
-}
-
-export interface IssuedAssessmentPaper {
-  paper: AssessmentPaper;
-  attemptToken: string;
-  assessmentId: string;
-  expiresAt: string;
-}
+export type {
+  AssessmentAnswers,
+  AssessmentDiagnosis,
+  AssessmentDimensionDiagnosis,
+  AssessmentPaper,
+  IssuedAssessmentPaper,
+  RemediationTarget,
+} from './formal-assessment-contract.ts';
 
 export interface FormalAssessmentServiceOptions {
   now?: () => Date;
@@ -128,9 +105,6 @@ export class FormalAssessmentService {
     if (!policy?.requiresFormalTest || policy.assessmentRole !== 'node-test') {
       throw new AssessmentCatalogError(nodeId);
     }
-    const missingTargets = this.readMissingRemediationTargets(studentId, definition);
-    if (missingTargets.length > 0) throw new AssessmentRemediationRequiredError(missingTargets);
-
     const now = this.now();
     const openedAt = now.toISOString();
     const expiresAt = new Date(now.getTime() + this.tokenTtlMs).toISOString();
@@ -138,7 +112,23 @@ export class FormalAssessmentService {
     const attemptToken = this.randomToken();
     if (attemptToken.trim().length < 24) throw new Error('Formal assessment token entropy is insufficient.');
 
-    this.database.transaction(() => {
+    return this.database.transaction(() => {
+      const missingTargets = this.readMissingRemediationTargets(studentId, definition);
+      if (missingTargets.length > 0) throw new AssessmentRemediationRequiredError(missingTargets);
+
+      this.database.prepare(`
+        UPDATE formal_assessment_tokens
+        SET used_at = ?
+        WHERE student_id = ? AND node_id = ? AND used_at IS NULL
+      `).run(openedAt, studentId, nodeId);
+      this.database.prepare(`
+        UPDATE formal_assessment_instances
+        SET status = 'closed', closed_at = ?
+        WHERE status = 'running' AND assessment_id IN (
+          SELECT assessment_id FROM formal_assessment_tokens
+          WHERE student_id = ? AND node_id = ?
+        )
+      `).run(openedAt, studentId, nodeId);
       this.database.prepare(`
         INSERT INTO formal_assessment_instances (
           assessment_id, node_id, game_id, question_version, status, opened_at, created_at
@@ -164,14 +154,13 @@ export class FormalAssessmentService {
         openedAt,
         expiresAt,
       );
+      return {
+        paper: projectAssessmentPaper(definition),
+        attemptToken,
+        assessmentId,
+        expiresAt,
+      };
     })();
-
-    return {
-      paper: projectAssessmentPaper(definition),
-      attemptToken,
-      assessmentId,
-      expiresAt,
-    };
   }
 
   submitAnswers(
@@ -208,6 +197,7 @@ export class FormalAssessmentService {
       if (definition.paper.questionVersion !== token.questionVersion) {
         throw new AssessmentTokenError('invalid-token');
       }
+      validateAnswerOptions(definition, normalizedAnswers);
       const graded = gradeAnswers(definition, normalizedAnswers);
       const attemptId = `formal-attempt-${this.randomId()}`;
       const diagnosisBase = {
@@ -232,6 +222,10 @@ export class FormalAssessmentService {
       `).run(completedAt, tokenHash);
       if (consumed.changes !== 1) throw new AssessmentTokenError('used-token');
       this.database.prepare(`
+        UPDATE formal_assessment_tokens SET used_at = ?
+        WHERE student_id = ? AND node_id = ? AND used_at IS NULL
+      `).run(completedAt, studentId, token.nodeId);
+      this.database.prepare(`
         INSERT INTO formal_attempts (
           attempt_id, student_id, node_id, assessment_id, game_id, score, duration_seconds,
           mistake_knowledge_point_ids_json, completed_at, question_version, answers_json,
@@ -254,8 +248,11 @@ export class FormalAssessmentService {
       this.database.prepare(`
         UPDATE formal_assessment_instances
         SET status = 'closed', closed_at = ?
-        WHERE assessment_id = ? AND status = 'running'
-      `).run(completedAt, token.assessmentId);
+        WHERE status = 'running' AND assessment_id IN (
+          SELECT assessment_id FROM formal_assessment_tokens
+          WHERE student_id = ? AND node_id = ?
+        )
+      `).run(completedAt, studentId, token.nodeId);
       const versions = new SnapshotClock(this.database).advance(
         [`learning:${studentId}`],
         completedAt,
@@ -361,15 +358,59 @@ function normalizeAnswers(value: AssessmentAnswers): AssessmentAnswers {
     || record.linkReconstruction.some((item) => typeof item !== 'string')
     || !Array.isArray(record.defectiveOutputRevision)
     || record.defectiveOutputRevision.some((item) => typeof item !== 'string')
-    || typeof record.professionalConclusion !== 'string') {
+    || !record.professionalConclusion
+    || typeof record.professionalConclusion !== 'object'
+    || Array.isArray(record.professionalConclusion)) {
     throw new TypeError('Assessment answers have invalid value types.');
   }
   return {
     evidenceClassification: record.evidenceClassification,
     linkReconstruction: [...record.linkReconstruction] as string[],
     defectiveOutputRevision: [...record.defectiveOutputRevision] as string[],
-    professionalConclusion: record.professionalConclusion.trim(),
+    professionalConclusion: normalizeProfessionalConclusion(record.professionalConclusion),
   };
+}
+
+function normalizeProfessionalConclusion(value: object): ProfessionalConclusionAnswer {
+  const record = value as Record<string, unknown>;
+  const keys = ['confirmedFact', 'evidenceGap', 'risk', 'action'] as const;
+  if (Object.keys(record).length !== keys.length
+    || keys.some((key) => !Object.hasOwn(record, key) || typeof record[key] !== 'string')) {
+    throw new TypeError('Professional conclusion must contain exactly four text fields.');
+  }
+  const normalized = Object.fromEntries(
+    keys.map((key) => [key, (record[key] as string).trim()]),
+  ) as unknown as ProfessionalConclusionAnswer;
+  if (keys.some((key) => normalized[key].length > 2_000)) {
+    throw new TypeError('Professional conclusion fields must not exceed 2000 characters.');
+  }
+  return normalized;
+}
+
+function validateAnswerOptions(
+  definition: FormalAssessmentDefinition,
+  answers: AssessmentAnswers,
+): void {
+  const allowedFor = (dimension: AssessmentDimensionKey) => new Set(
+    definition.paper.questions.find(({ id }) => id === dimension)?.options?.map(({ id }) => id) ?? [],
+  );
+  const evidenceOptions = allowedFor('evidenceClassification');
+  if (!evidenceOptions.has(answers.evidenceClassification)) {
+    throw new TypeError('Evidence classification contains an unknown option.');
+  }
+
+  const linkOptions = allowedFor('linkReconstruction');
+  if (answers.linkReconstruction.length !== linkOptions.size
+    || new Set(answers.linkReconstruction).size !== linkOptions.size
+    || answers.linkReconstruction.some((optionId) => !linkOptions.has(optionId))) {
+    throw new TypeError('Link reconstruction must contain each allowed option exactly once.');
+  }
+
+  const revisionOptions = allowedFor('defectiveOutputRevision');
+  if (new Set(answers.defectiveOutputRevision).size !== answers.defectiveOutputRevision.length
+    || answers.defectiveOutputRevision.some((optionId) => !revisionOptions.has(optionId))) {
+    throw new TypeError('Defective output revision contains an unknown or duplicate option.');
+  }
 }
 
 function gradeAnswers(definition: FormalAssessmentDefinition, answers: AssessmentAnswers) {
@@ -406,10 +447,15 @@ function gradeAnswers(definition: FormalAssessmentDefinition, answers: Assessmen
     definition.grading.defectiveOutputRevision.remediationTarget,
   );
 
-  const conclusion = answers.professionalConclusion.toLocaleLowerCase('zh-CN');
-  const criteria = definition.grading.professionalConclusion.conclusionCriteria ?? [];
-  const conclusionMatches = criteria.filter((variants) => variants.some((term) => conclusion.includes(term))).length;
-  const conclusionScore = Math.min(25, conclusionMatches * 5);
+  const criteria = definition.grading.professionalConclusion.conclusionCriteria;
+  const conclusionFields = ['confirmedFact', 'evidenceGap', 'risk', 'action'] as const;
+  const conclusionMatches = criteria ? conclusionFields.filter((field) => {
+    const answer = answers.professionalConclusion[field].toLocaleLowerCase('zh-CN');
+    const meaningfulCharacters = Array.from(answer.replace(/\s/g, '')).length;
+    return meaningfulCharacters >= criteria.minimumCharacters
+      && criteria[field].every((variants) => variants.some((term) => answer.includes(term)));
+  }).length : 0;
+  const conclusionScore = Math.round(conclusionMatches * 25 / conclusionFields.length);
   dimensions.professionalConclusion = diagnosis(
     conclusionScore,
     conclusionScore === 25 ? '结论区分了已确认事实、证据缺口、风险与复核动作。' : '职业结论需要说明已确认事实、未确认风险和可执行的复核动作。',

@@ -252,7 +252,7 @@ test('event POST derives student identity only from the HttpOnly session actor',
   });
 });
 
-test('formal-attempt POST persists an N02 attempt and returns the direct student snapshot', async () => {
+test('legacy formal-attempt POST rejects a client-provided score without mutation', async () => {
   await withAuthenticatedFixture(async ({ database, studentCookie }) => {
     const repository = new LearningRepository(database);
     const before = repository.readTopicVersion('learning:stu-01');
@@ -270,11 +270,10 @@ test('formal-attempt POST persists an N02 attempt and returns the direct student
       }),
     }), { params: { nodeId: 'P1T1-N02' } });
 
-    assert.equal(response.status, 200);
-    const snapshot = await response.json();
-    assert.equal(snapshot.studentId, 'stu-01');
-    assert.equal(snapshot.version, before + 1);
-    assert.equal(snapshot.nodes.find((node: { nodeId: string }) => node.nodeId === 'P1T1-N02').bestFormalScore, 84);
+    assert.equal(response.status, 400);
+    assert.match((await response.json()).error, /Client-scored formal attempts/i);
+    assert.equal(repository.readTopicVersion('learning:stu-01'), before);
+    assert.equal(repository.readStudentFacts('stu-01').attempts.some((attempt) => attempt.attemptId === 'route-formal-attempt'), false);
     assert.equal(repository.readStudentFacts('stu-02').attempts.some((attempt) => attempt.attemptId === 'route-formal-attempt'), false);
   });
 });
@@ -387,7 +386,7 @@ test('write endpoints reject teacher commands and non-authoritative evidence eve
   });
 });
 
-test('event and attempt ID replay stays 200 with a stale expectedVersion and does not advance versions', async () => {
+test('event ID replay stays 200 while the retired attempt route rejects score replay', async () => {
   await withAuthenticatedFixture(async ({ database, studentCookie }) => {
     const repository = new LearningRepository(database);
     const initialVersion = repository.readTopicVersion('learning:stu-01');
@@ -419,41 +418,33 @@ test('event and attempt ID replay stays 200 with a stale expectedVersion and doe
     const firstAttempt = await attemptRoute.POST(jsonRequest(
       'http://localhost/api/learning/nodes/P1T1-N02/attempts', studentCookie, attemptBody,
     ), { params: { nodeId: 'P1T1-N02' } });
-    const attemptVersion = (await firstAttempt.json()).version;
+    assert.equal(firstAttempt.status, 400);
     const globalAfterAttempt = repository.readTopicVersion('global');
     const replayAttempt = await attemptRoute.POST(jsonRequest(
       'http://localhost/api/learning/nodes/P1T1-N02/attempts', studentCookie, attemptBody,
     ), { params: { nodeId: 'P1T1-N02' } });
-    assert.equal(replayAttempt.status, 200);
-    assert.equal((await replayAttempt.json()).version, attemptVersion);
+    assert.equal(replayAttempt.status, 400);
     assert.equal(repository.readTopicVersion('global'), globalAfterAttempt);
+    assert.equal(repository.readStudentFacts('stu-01').attempts.some(
+      ({ attemptId }) => attemptId === attemptBody.attemptId,
+    ), false);
   });
 });
 
-test('the fourth distinct N02 attempt returns 409 without persisting facts or advancing versions', async () => {
+test('the retired attempt route returns 410 for score-free bodies without persisting facts', async () => {
   await withAuthenticatedFixture(async ({ database, studentCookie }) => {
     const repository = new LearningRepository(database);
-    let version = repository.readTopicVersion('learning:stu-01');
-    for (const [attemptId, score] of [['route-attempt-2', 82], ['route-attempt-3', 91]] as const) {
-      const response = await attemptRoute.POST(jsonRequest(
-        'http://localhost/api/learning/nodes/P1T1-N02/attempts',
-        studentCookie,
-        { attemptId, gameId: 'node-test', score, expectedVersion: version },
-      ), { params: { nodeId: 'P1T1-N02' } });
-      assert.equal(response.status, 200);
-      version = (await response.json()).version;
-    }
-    const globalBeforeFourth = repository.readTopicVersion('global');
-    const fourth = await attemptRoute.POST(jsonRequest(
+    const version = repository.readTopicVersion('learning:stu-01');
+    const globalVersion = repository.readTopicVersion('global');
+    const response = await attemptRoute.POST(jsonRequest(
       'http://localhost/api/learning/nodes/P1T1-N02/attempts',
       studentCookie,
-      { attemptId: 'route-attempt-4', gameId: 'node-test', score: 95, expectedVersion: version },
+      { answers: {} },
     ), { params: { nodeId: 'P1T1-N02' } });
 
-    assert.equal(fourth.status, 409);
+    assert.equal(response.status, 410);
     assert.equal(repository.readTopicVersion('learning:stu-01'), version);
-    assert.equal(repository.readTopicVersion('global'), globalBeforeFourth);
-    assert.equal(repository.readStudentFacts('stu-01').attempts.some(({ attemptId }) => attemptId === 'route-attempt-4'), false);
+    assert.equal(repository.readTopicVersion('global'), globalVersion);
   });
 });
 
