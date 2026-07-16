@@ -729,11 +729,11 @@ body:has(.p1-portfolio-detail-shell) { background: #061726; }
 .p1-detail-evidence-list img { width: 100%; height: 94px; display: block; object-fit: cover; }
 .p1-detail-evidence-list figcaption { display: grid; gap: 3px; padding: 7px; }
 .p1-detail-evidence-list figcaption strong { overflow: hidden; color: #d8e8ed; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
-.p1-detail-evidence-list figcaption span { color: #e4bd70; font-size: 11px; }
+.p1-detail-evidence-list figcaption span { color: #e4bd70; font-size: 12px; }
 .p1-detail-source-list { display: flex; flex-wrap: wrap; gap: 6px; }
-.p1-detail-source-list a { display: inline-flex; align-items: center; gap: 5px; border-radius: 4px; padding: 5px 7px; color: #7ce0da; background: #12384a; font-size: 11px; font-weight: 850; }
+.p1-detail-source-list a { display: inline-flex; align-items: center; gap: 5px; border-radius: 4px; padding: 5px 7px; color: #7ce0da; background: #12384a; font-size: 12px; font-weight: 850; }
 .p1-detail-field-grid blockquote { margin: 0; border-left: 3px solid #dc9653; padding: 8px 10px; background: #2c291f; }
-.p1-detail-field-grid blockquote span { color: #efbd78; font-size: 11px; font-weight: 900; }
+.p1-detail-field-grid blockquote span { color: #efbd78; font-size: 12px; font-weight: 900; }
 .p1-detail-field-grid blockquote p { min-height: 0; margin: 4px 0 0; color: #d7c6a7; font-size: 12px; }
 .p1-detail-reviews ol { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; margin: 0; padding: 0; list-style: none; }
 .p1-detail-reviews li { border: 1px solid #2e5166; border-radius: 6px; padding: 13px; background: #0a2235; }
