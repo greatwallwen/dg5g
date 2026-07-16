@@ -54,7 +54,7 @@ def _practice(
         "correctionPath": correction_path,
         "retryable": True,
     }
-    activity_spec = P01_ACTIVITY_SPECS.get(practice_id)
+    activity_spec = P1_ACTIVITY_SPECS.get(practice_id)
     if activity_spec is not None:
         practice.update(activity_spec)
     return practice
@@ -258,6 +258,140 @@ P01_ACTIVITY_SPECS: dict[str, dict[str, Any]] = {
         },
         "transferTarget": "输出可进入 P01 室内设备与链路证据表的修订记录。",
     },
+}
+
+
+def _structured_record_activity(
+    material_id: str,
+    material_label: str,
+    material_detail: str,
+    passed: str,
+    failed: str,
+    transfer_target: str,
+) -> dict[str, Any]:
+    return {
+        "activityKind": "structured-record",
+        "materials": [{
+            "id": material_id,
+            "label": material_label,
+            "detail": material_detail,
+        }],
+        "interaction": {
+            "type": "record-form",
+            "fields": [{
+                "id": "response",
+                "label": "岗位记录",
+                "placeholder": "根据材料写出证据、判断依据和下一步动作",
+            }],
+        },
+        "targetedFeedback": {"passed": passed, "failed": failed},
+        "transferTarget": transfer_target,
+    }
+
+
+P23_ACTIVITY_SPECS: dict[str, dict[str, Any]] = {
+    "P1T2-N01-micro-01": _structured_record_activity(
+        "outdoor-base-map",
+        "HY-02 室外采集底图",
+        "底图给出站点坐标、0/120/240度三个扇区、道路热点H1与H2、邻区边界；任务要求圈定本次采样范围。",
+        "站点、扇区、热点和采样边界已落在同一坐标口径中。",
+        "记录尚不能指导到哪里、采哪个扇区；请补齐坐标、扇区方向、热点与边界。",
+        "把空间边界记录汇入 P02 室外站点与覆盖采集表。",
+    ),
+    "P1T2-N02-foundation-01": _structured_record_activity(
+        "sector-parameter-pack",
+        "扇区2姿态证据包",
+        "工参为方位角120度、机械下倾2度、电下倾4度、挂高32米；现场提供罗盘北向、支架刻度、RET网管截面和地面起算照片。",
+        "四项参数均绑定了扇区身份、测量基准和对应证据。",
+        "仍有参数只写数值没有基准或来源；请分别核对方位角、两类下倾和挂高。",
+        "形成可写入 P02 成果表的扇区姿态记录。",
+    ),
+    "P1T2-N02-application-01": _structured_record_activity(
+        "coverage-direction-case",
+        "主瓣与投诉路段比对材料",
+        "扇区2方位角120度，投诉道路中心线125度，机械/电下倾为2/4度，挂高32米；现场罗盘基准和RET采集时间缺失。",
+        "判断已同时解释水平指向、垂直姿态、挂高关系和待补证项。",
+        "请不要只凭一个角度下结论；补齐扇区、道路、下倾、挂高和证据缺口。",
+        "把方向判断和缺口登记到 P02 判断字段。",
+    ),
+    "P1T2-N02-transfer-01": _structured_record_activity(
+        "concealed-antenna-pack",
+        "美化罩天线复核材料",
+        "美化罩不可拆，现场可用站点工单、扇区标签、外部罗盘测向、RET网管参数、挂高与周边遮挡记录。",
+        "方案遵守不拆罩约束，并用独立证据交叉确认身份、方向和不确定性。",
+        "方案仍依赖不可见读数或单一工参；请增加测向、RET、挂高、遮挡与待复核说明。",
+        "形成美化罩场景的替代证据复核方案。",
+    ),
+    "P1T2-N03-micro-01": _structured_record_activity(
+        "obstruction-risk-pack",
+        "遮挡风险照片组",
+        "扇区主瓣120度指向东南，楼体位于热点H2与站点之间；材料给出楼体两侧可布设的风险点和对照点。",
+        "遮挡、主瓣、热点与验证点已组成可验证风险假设。",
+        "仍是目测结论；请补写方向关系、热点位置、风险点、对照点和验证动作。",
+        "把遮挡假设转成 P02 路线设计的验证条件。",
+    ),
+    "P1T2-N04-micro-01": _structured_record_activity(
+        "route-candidates",
+        "DT/CQT 候选路线",
+        "路线A绕开风险区；路线B穿越遮挡边界并经过热点H2，楼体两侧可设对照点；路线C只有热点、没有对照点。",
+        "所选路线能够穿越风险边界，并包含CQT热点、对照点、时间窗和指标。",
+        "路线尚不能验证风险假设；请明确路线、风险边界、CQT点、对照点和验收指标。",
+        "把路线和CQT点写入 P02 专业成果。",
+    ),
+    "P1T3-N01-micro-01": _structured_record_activity(
+        "complaint-narrative",
+        "原始投诉口述",
+        "用户称工作日18:00-19:00在A座18层会议室使用视频会议，5次中4次卡顿；终端型号和5G模式尚未确认。",
+        "口述已拆成可复测事实，并明确列出必须追问的终端缺项。",
+        "记录仍混入原因猜测或缺少时间、地点、业务、现象、频次和追问项。",
+        "形成 P03 投诉基线与复测边界。",
+    ),
+    "P1T3-N02-foundation-01": _structured_record_activity(
+        "retest-comparison-set",
+        "四份复测记录",
+        "记录A满足同地点、同业务、同终端；B更换地点，C更换业务，D更换终端。需区分条件不等价与真正未复现。",
+        "四份记录已逐项核对三同条件，并正确区分不等价与未复现。",
+        "请逐份写出地点、业务、终端是否一致，不能把条件变化误写成未复现。",
+        "形成 P03 复现条件比对记录。",
+    ),
+    "P1T3-N02-application-01": _structured_record_activity(
+        "fifteen-minute-retest",
+        "15分钟投诉复测任务单",
+        "任务要求固定投诉地点、终端和视频会议业务，把用户操作、业务日志、服务小区、RSRP、SINR和现象时刻对齐。",
+        "脚本具有分钟级步骤，并能把业务现象与网络采样放到同一时间轴。",
+        "脚本仍不可重复执行；请补齐时间、操作、服务小区、无线指标、业务日志和复核步骤。",
+        "生成可直接执行的15分钟复测脚本。",
+    ),
+    "P1T3-N02-transfer-01": _structured_record_activity(
+        "rail-call-drop-case",
+        "高速列车掉线迁移案例",
+        "投诉发生在固定车次与运行区段，需保持通话业务和终端一致，记录沿途服务小区、切换轨迹、掉线时刻并重复路线。",
+        "复现条件已从固定地点迁移为车次、区段、时间段和可重复轨迹。",
+        "方案仍把移动场景当成固定点；请补齐车次、区段、业务终端、服务小区和掉线时刻。",
+        "形成高速移动场景的可重复复测方案。",
+    ),
+    "P1T3-N03-micro-01": _structured_record_activity(
+        "evidence-timeline",
+        "18:07 同窗证据组",
+        "18:07业务日志记录卡顿，同窗SINR为-3dB、服务小区拥塞KPI升高，但告警系统无当前告警；需保留支持与冲突线索。",
+        "业务侧和网络侧证据已按同一时间窗与服务小区交叉，并保留冲突。",
+        "仍是单条证据定因；请补齐时窗、服务小区、独立来源和无告警冲突。",
+        "形成 P03 可审计的证据交叉时间轴。",
+    ),
+    "P1T3-N04-micro-01": _structured_record_activity(
+        "vague-closure-order",
+        "待修订的投诉处理建议",
+        "原建议只有“建议优化”。现有材料包括业务日志、网络KPI、无线优化负责人、24小时时限、同条件复测和用户回访要求。",
+        "建议已改写为有证据、有责任人、有时限、有复测回访和验收条件的闭环记录。",
+        "记录仍不可派单或验收；请补齐证据、责任人、时限、复测、回访和闭环标准。",
+        "生成可进入 P03 成果表的投诉闭环记录。",
+    ),
+}
+
+
+P1_ACTIVITY_SPECS: dict[str, dict[str, Any]] = {
+    **P01_ACTIVITY_SPECS,
+    **P23_ACTIVITY_SPECS,
 }
 
 

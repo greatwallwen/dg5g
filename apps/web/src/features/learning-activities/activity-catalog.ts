@@ -4,7 +4,7 @@ import {
   type ActivityPublicDto,
 } from './activity-definition.ts';
 import {
-  p01ActivityRules,
+  p1ActivityRules,
   type ServerActivityDefinition,
 } from './activity-rules.ts';
 
@@ -26,18 +26,17 @@ function practicesForNode(node: ReturnType<typeof loadP1DemoContent>['tasks'][nu
   ];
 }
 
-function buildP01Catalog(): ServerActivityDefinition[] {
-  const task = loadP1DemoContent().tasks[0];
-  const publicActivities = task.nodes.flatMap((node) => practicesForNode(node).map((practice) => (
+function buildP1Catalog(): ServerActivityDefinition[] {
+  const publicActivities = loadP1DemoContent().tasks.flatMap((task) => task.nodes.flatMap((node) => practicesForNode(node).map((practice) => (
     publicActivityFromPractice(practice, node.id as P1NodeId)
-  )).filter((activity): activity is ActivityPublicDto => activity !== undefined));
+  )).filter((activity): activity is ActivityPublicDto => activity !== undefined)));
   const activities = publicActivities.map((activity) => {
-    const rule = p01ActivityRules[activity.id];
-    if (!rule) throw new Error(`P01 activity rule is missing: ${activity.id}.`);
+    const rule = p1ActivityRules[activity.id];
+    if (!rule) throw new Error(`P1 activity rule is missing: ${activity.id}.`);
     return { activity, rule };
   });
   if (new Set(activities.map(({ activity }) => activity.id)).size !== activities.length) {
-    throw new Error('P01 activity catalog must contain unique activity IDs.');
+    throw new Error('P1 activity catalog must contain unique activity IDs.');
   }
   const requiredIds = new Set<string>(p01RequiredBaseActivityIds);
   const observedBaseIds = activities
@@ -49,14 +48,15 @@ function buildP01Catalog(): ServerActivityDefinition[] {
   return activities;
 }
 
-export const p01Activities = buildP01Catalog();
-const p01ActivityById = new Map(p01Activities.map((definition) => [definition.activity.id, definition]));
+export const p1Activities = buildP1Catalog();
+const p1ActivityById = new Map(p1Activities.map((definition) => [definition.activity.id, definition]));
+export const p01Activities = p1Activities.filter(({ activity }) => activity.nodeId.startsWith('P1T1-'));
 export const p01BaseActivities = p01RequiredBaseActivityIds.map((activityId) => {
-  const definition = p01ActivityById.get(activityId);
+  const definition = p1ActivityById.get(activityId);
   if (!definition) throw new Error(`P01 required base activity is missing: ${activityId}.`);
   return definition;
 });
 
 export function readActivityDefinition(activityId: string): ServerActivityDefinition | undefined {
-  return p01ActivityById.get(activityId);
+  return p1ActivityById.get(activityId);
 }

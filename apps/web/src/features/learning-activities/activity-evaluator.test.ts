@@ -206,3 +206,102 @@ test('targeted remediation activities require their own defect and conclusion re
     },
   }).passed, true);
 });
+
+const p02AndP03ActivityIds = [
+  'P1T2-N01-micro-01',
+  'P1T2-N02-foundation-01',
+  'P1T2-N02-application-01',
+  'P1T2-N02-transfer-01',
+  'P1T2-N03-micro-01',
+  'P1T2-N04-micro-01',
+  'P1T3-N01-micro-01',
+  'P1T3-N02-foundation-01',
+  'P1T3-N02-application-01',
+  'P1T3-N02-transfer-01',
+  'P1T3-N03-micro-01',
+  'P1T3-N04-micro-01',
+] as const;
+
+const validStructuredResponses: Record<typeof p02AndP03ActivityIds[number], string> = {
+  'P1T2-N01-micro-01': '采用站点坐标统一底图，标出三个扇区方向、道路热点 H1/H2、邻区边界和本次采样范围。',
+  'P1T2-N02-foundation-01': '扇区2方位角以正北为基准，机械下倾用支架刻度，电下倾读取 RET，挂高从地面起算并绑定照片。',
+  'P1T2-N02-application-01': '扇区2方位角120度与投诉路段125度接近，机械下倾2度、电下倾4度和挂高32米支持主瓣方向判断；仍需补罗盘基准与 RET 采集时间。',
+  'P1T2-N02-transfer-01': '不拆美化罩，先用站点工单和扇区标签确认身份，再用罗盘测向、RET 网管参数和挂高测量交叉复核，并把遮挡与不确定性登记为待复核。',
+  'P1T2-N03-micro-01': '照片显示扇区主瓣120度指向东南，遮挡楼体位于热点 H2 前方；在楼体两侧设置风险点和对照点采样，结论为待验证遮挡假设。',
+  'P1T2-N04-micro-01': '选择路线B：路线穿越遮挡风险边界，在 H2 设置 CQT 热点点位并在楼体两侧设置对照点，规定18:00-19:00采样 RSRP 和 SINR 作为验收指标。',
+  'P1T3-N01-micro-01': '事实：18:00-19:00在A座18层会议室使用视频会议时5次中4次卡顿；仍缺终端型号和5G模式，需要追问并按同地点同业务条件复测。',
+  'P1T3-N02-foundation-01': '记录A满足同地点、同业务、同终端；记录B地点不同，记录C业务不同，记录D终端不同。后三份条件不等价，不能写成未复现。',
+  'P1T3-N02-application-01': '0-2分钟确认地点、终端和视频会议业务；2-12分钟重复入会并记录卡顿时刻；全程采集服务小区、RSRP、SINR和业务日志；12-15分钟复核时间轴。',
+  'P1T3-N02-transfer-01': '按相同车次和运行区段复测，保持通话业务与终端一致，记录沿途服务小区、切换轨迹和掉线时刻，并用相同时间段重复路线。',
+  'P1T3-N03-micro-01': '将18:07业务卡顿日志、同时窗 SINR -3dB、服务小区拥塞 KPI 和告警放到统一时间轴；业务侧与网络侧独立来源共同支持假设，同时保留无告警这条冲突线索。',
+  'P1T3-N04-micro-01': '依据业务日志与网络 KPI 形成可派单结论：由无线优化负责人在24小时内复核拥塞参数，完成后按同地点同业务同终端复测并回访用户，以卡顿不再复现作为闭环验收。',
+};
+
+test('P02 and P03 expose one-field structured records while keeping text criteria server-only', () => {
+  for (const activityId of p02AndP03ActivityIds) {
+    const definition = readActivityDefinition(activityId);
+    assert.ok(definition, `missing ${activityId}`);
+    assert.equal(definition.activity.kind, 'structured-record');
+    assert.equal(definition.activity.interaction.type, 'record-form');
+    assert.deepEqual(definition.activity.interaction.fields.map(({ id }) => id), ['response']);
+    assert.ok(definition.activity.materials.length > 0);
+    assert.equal(definition.rule.type, 'text-criteria-map');
+    if (definition.rule.type === 'text-criteria-map') {
+      assert.deepEqual(Object.keys(definition.rule.constraints), ['response']);
+      assert.ok(definition.rule.constraints.response!.minimumCharacters >= 20);
+      assert.ok(definition.rule.constraints.response!.groups.length >= 3);
+    }
+    const publicPayload = JSON.stringify(definition.activity);
+    assert.doesNotMatch(publicPayload, /textCriteriaRules|minimumCharacters|constraints|groups/i);
+    assert.equal(evaluateActivity(definition, { fields: { response: '' } }).passed, false);
+    assert.equal(evaluateActivity(definition, {
+      fields: { response: validStructuredResponses[activityId] },
+    }).passed, true, activityId);
+  }
+});
+
+test('repository records targeted failure and successful retry for P02 and P03 activities', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    const repository = new ActivityRepository(fixture.database);
+    for (const activityId of ['P1T2-N03-micro-01', 'P1T3-N04-micro-01'] as const) {
+      const activity = readActivityDefinition(activityId);
+      assert.ok(activity);
+      const attemptId = `retry-${activityId}`;
+      const failed = repository.recordEvaluatedAttempt({
+        attemptId,
+        studentId: 'stu-01',
+        activity,
+        response: { fields: { response: '只有一个主观结论' } },
+        expectedVersion: 0,
+      });
+      assert.equal(failed.passed, false);
+      assert.equal(failed.feedback, activity.activity.feedback.failed);
+      assert.ok(failed.correctionPath.length > 0);
+
+      const passed = repository.recordEvaluatedAttempt({
+        attemptId,
+        studentId: 'stu-01',
+        activity,
+        response: { fields: { response: validStructuredResponses[activityId] } },
+        expectedVersion: 1,
+      });
+      assert.equal(passed.passed, true);
+      assert.equal(passed.version, 2);
+      assert.equal(passed.feedback, activity.activity.feedback.passed);
+      assert.deepEqual(fixture.database.prepare(`
+        SELECT activity_id AS activityId, node_id AS nodeId, passed, origin
+        FROM practice_attempts WHERE attempt_id = ?
+      `).get(attemptId), {
+        activityId,
+        nodeId: activity.activity.nodeId,
+        passed: 1,
+        origin: 'user',
+      });
+    }
+  } finally {
+    fixture.cleanup();
+  }
+});
