@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { loadP1DemoContent } from '../features/platform/p1-content.ts';
 import {
   deriveNodeLearningProjection,
   getNodeLearningPolicy,
@@ -112,5 +113,21 @@ test('every published P1 node requires exactly its generated base activities', (
     assert.equal(policy.publicationStatus, 'published');
     assert.ok(policy.requiredActivityIds.length > 0, policy.nodeId);
     assert.deepEqual(policy.requiredActivityIds, expected[policy.nodeId], policy.nodeId);
+  }
+
+  const generatedBaseActivities = new Map(loadP1DemoContent().tasks.flatMap((task) => (
+    task.nodes.map((node) => {
+      const practices = node.selfStudy.kind === 'standard'
+        ? node.selfStudy.microPractice
+        : [
+            node.selfStudy.practices.foundation[0]!,
+            node.selfStudy.practices.application[0]!,
+            node.selfStudy.practices.transfer[0]!,
+          ];
+      return [node.id, practices.map(({ id }) => id)] as const;
+    })
+  )));
+  for (const policy of nodeLearningPolicies) {
+    assert.deepEqual(policy.requiredActivityIds, generatedBaseActivities.get(policy.nodeId), policy.nodeId);
   }
 });
