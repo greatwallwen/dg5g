@@ -2,10 +2,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { assessmentDimensionKeys } from './formal-assessment-contract.ts';
 import { seedP01EvidenceLibrary } from '../features/portfolio/evidence-library.ts';
+import { p01OutputFieldKeys } from '../features/portfolio/p01-output-definition.ts';
 import { seedBase } from './db/demo-seed.ts';
 import { migrateDatabase } from './db/migrations.ts';
 import { createTestDatabase } from './db/test-database.ts';
 import { ProfessionalOutputPortfolioReader } from './professional-output-portfolio-reader.ts';
+import { ProfessionalOutputRepository } from './professional-output-repository.ts';
 
 test('reads only the owned output with immutable evidence, sources, annotations, and the frozen diagnosis', () => {
   const fixture = createTestDatabase();
@@ -61,6 +63,40 @@ test('returns an explicit unformed fact set and never crosses the student plus t
     assert.deepEqual(reader.read('stu-03', 'P01'), { taskId: 'P01' });
     assert.equal(reader.read('stu-02', 'P01').output?.head.outputId, 'output-stu-02');
     assert.equal(reader.read('stu-01', 'P02').output, undefined);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('production verification freezes and reads the exact highest valid attempt rather than a later lower attempt', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    seedP01EvidenceLibrary(fixture.database);
+    const repository = new ProfessionalOutputRepository(fixture.database, () => 'output-production-reader');
+    const fields = Object.fromEntries(p01OutputFieldKeys.map((key) => [key, `已填写：${key}`]));
+    repository.saveDraft({
+      studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
+      fields, upstreamRefs: [],
+    });
+    repository.submit({
+      outputId: 'output-production-reader', studentId: 'stu-01', taskId: 'P01',
+      expectedStateRevision: 1, fields, upstreamRefs: [],
+    });
+    insertFormal(fixture.database, 'formal-production-92', 'assessment-production-92', 'stu-01', 92, 'user', '2026-07-16T07:00:00.000Z');
+    insertFormal(fixture.database, 'formal-production-later-84', 'assessment-production-later-84', 'stu-01', 84, 'user', '2026-07-16T10:00:00.000Z');
+    const reviewed = repository.reviewSubmitted({
+      teacherId: 'teacher-01', classId: 'demo-class', outputId: 'output-production-reader',
+      expectedStateRevision: 2, action: 'verify', feedback: '证据闭环。',
+      rubricScores: { evidence: 94 },
+    });
+
+    assert.equal(reviewed.frozenTaskScore?.details.nodeTestAttemptId, 'formal-production-92');
+    assert.equal(reviewed.frozenTaskScore?.details.assessmentId, 'assessment-production-92');
+    const facts = new ProfessionalOutputPortfolioReader(fixture.database).read('stu-01', 'P01');
+    assert.equal(facts.assessment?.attemptId, 'formal-production-92');
+    assert.equal(facts.assessment?.totalScore, 92);
   } finally {
     fixture.cleanup();
   }

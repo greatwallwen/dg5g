@@ -13,6 +13,7 @@ import { createTestDatabase } from './db/test-database.ts';
 import { ProfessionalOutputRepository } from './professional-output-repository.ts';
 import { loadSelfStudyCatalog } from '../features/textbook-scene/self-study-content.ts';
 import { professionalOutputSchemaForTask } from '../features/portfolio/output-schema.ts';
+import { assessmentDimensionKeys } from './formal-assessment-contract.ts';
 
 registerHooks({
   resolve(specifier, context, nextResolve) {
@@ -86,10 +87,7 @@ test('teacher lists a submitted class output and verifies it through the unique 
       outputId: draft.head.outputId, studentId: 'stu-01', taskId: 'P01',
       expectedStateRevision: 1, fields: draft.versions[0]!.fields, upstreamRefs: [],
     });
-    fixture.database.prepare(`
-      INSERT INTO formal_attempts (attempt_id, student_id, node_id, score, origin)
-      VALUES ('api-review-attempt', 'stu-01', 'P1T1-N02', 80, 'user')
-    `).run();
+    insertUserFormalAssessment(fixture.database, 'api-review-attempt', 80);
     const teacher = new AuthService(fixture.database).login({
       username: 'teacher01', password: process.env.DGBOOK_DEMO_PASSWORD ?? '123456',
     });
@@ -177,4 +175,31 @@ function jsonRequest(url: string, cookie: string, body: unknown): Request {
     headers: { cookie, 'content-type': 'application/json' },
     body: JSON.stringify(body),
   });
+}
+
+function insertUserFormalAssessment(
+  database: ReturnType<typeof createTestDatabase>['database'],
+  attemptId: string,
+  score: number,
+): void {
+  const assessmentId = `assessment-${attemptId}`;
+  const completedAt = '2026-07-16T08:00:00.000Z';
+  database.prepare(`
+    INSERT INTO formal_assessment_instances (
+      assessment_id, node_id, game_id, question_version, status, closed_at
+    ) VALUES (?, 'P1T1-N02', 'p01-n02-formal', 'p01-n02-v1', 'closed', ?)
+  `).run(assessmentId, completedAt);
+  const dimensions = Object.fromEntries(assessmentDimensionKeys.map((key) => [key, {
+    score: score / 4, maxScore: 25, feedback: `${key} feedback`,
+  }]));
+  database.prepare(`
+    INSERT INTO formal_attempts (
+      attempt_id, student_id, node_id, assessment_id, game_id, score,
+      completed_at, question_version, answers_json, diagnostics_json, origin
+    ) VALUES (?, 'stu-01', 'P1T1-N02', ?, 'p01-n02-formal', ?, ?, 'p01-n02-v1', '{}', ?, 'user')
+  `).run(attemptId, assessmentId, score, completedAt, JSON.stringify({
+    assessmentId, attemptId, nodeId: 'P1T1-N02', questionVersion: 'p01-n02-v1',
+    totalScore: score, passed: true, dimensions, remediationTargets: [],
+    origin: 'user', completedAt,
+  }));
 }

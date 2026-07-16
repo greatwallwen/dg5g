@@ -37,6 +37,9 @@ export interface FrozenTaskScore {
   officialScore: number;
   details: {
     nodeId: string;
+    nodeTestAttemptId: string;
+    assessmentId: string;
+    questionVersion: string;
     nodeTestHighestScore: number;
     outputId: string;
     outputVersion: number;
@@ -347,17 +350,43 @@ export class ProfessionalOutputReviewStore {
     stateRevision: number,
   ): FrozenTaskScore | undefined {
     const nodeId = testNodeByTask[head.taskId];
-    const nodeTestHighestScore = this.database.prepare(`
-      SELECT MAX(score) FROM formal_attempts
-      WHERE student_id = ? AND node_id = ? AND origin = 'user'
-    `).pluck().get(head.studentId, nodeId) as number | null;
-    if (nodeTestHighestScore === null || nodeTestHighestScore === undefined) return undefined;
+    const formalAttempt = this.database.prepare(`
+      SELECT attempt.attempt_id AS attemptId, attempt.assessment_id AS assessmentId,
+        attempt.question_version AS questionVersion, attempt.score
+      FROM formal_attempts AS attempt
+      INNER JOIN formal_assessment_instances AS assessment
+        ON assessment.assessment_id = attempt.assessment_id
+        AND assessment.node_id = attempt.node_id
+        AND assessment.question_version = attempt.question_version
+      WHERE attempt.student_id = ? AND attempt.node_id = ? AND attempt.origin = 'user'
+        AND json_extract(attempt.diagnostics_json, '$.attemptId') = attempt.attempt_id
+        AND json_extract(attempt.diagnostics_json, '$.assessmentId') = attempt.assessment_id
+        AND json_extract(attempt.diagnostics_json, '$.nodeId') = attempt.node_id
+        AND json_extract(attempt.diagnostics_json, '$.questionVersion') = attempt.question_version
+        AND json_extract(attempt.diagnostics_json, '$.totalScore') = attempt.score
+        AND json_extract(attempt.diagnostics_json, '$.origin') = 'user'
+        AND json_type(attempt.diagnostics_json, '$.dimensions.evidenceClassification') = 'object'
+        AND json_type(attempt.diagnostics_json, '$.dimensions.linkReconstruction') = 'object'
+        AND json_type(attempt.diagnostics_json, '$.dimensions.defectiveOutputRevision') = 'object'
+        AND json_type(attempt.diagnostics_json, '$.dimensions.professionalConclusion') = 'object'
+      ORDER BY attempt.score DESC, julianday(attempt.completed_at) DESC, attempt.attempt_id DESC
+      LIMIT 1
+    `).get(head.studentId, nodeId) as {
+      attemptId: string;
+      assessmentId: string;
+      questionVersion: string;
+      score: number;
+    } | undefined;
+    if (!formalAttempt) return undefined;
+    const nodeTestHighestScore = formalAttempt.score;
     const taskCompositeScore = calculateTaskCompositeScore({
       nodeTestHighestScore, outputRubricScore,
     }).taskCompositeScore;
     if (taskCompositeScore === undefined) return undefined;
     const details: FrozenTaskScore['details'] = {
-      nodeId, nodeTestHighestScore, outputId: head.outputId, outputVersion: head.currentVersion,
+      nodeId, nodeTestAttemptId: formalAttempt.attemptId,
+      assessmentId: formalAttempt.assessmentId, questionVersion: formalAttempt.questionVersion,
+      nodeTestHighestScore, outputId: head.outputId, outputVersion: head.currentVersion,
       outputRubricScore, rubricScores, taskCompositeScore,
       weights: { nodeTest: 0.4, professionalOutput: 0.6 },
     };

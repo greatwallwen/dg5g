@@ -4,6 +4,7 @@ import { seedBase } from './db/demo-seed.ts';
 import { migrateDatabase } from './db/migrations.ts';
 import { createTestDatabase } from './db/test-database.ts';
 import { p01OutputFieldKeys } from '../features/portfolio/p01-output-definition.ts';
+import { assessmentDimensionKeys } from './formal-assessment-contract.ts';
 import { ProfessionalOutputRepository } from './professional-output-repository.ts';
 
 test('teacher verification freezes 80/90 as 86 without changing the N02 attempt history', () => {
@@ -27,10 +28,8 @@ test('teacher verification freezes 80/90 as 86 without changing the N02 attempt 
       fields: draft.versions[0]!.fields,
       upstreamRefs: [],
     });
-    fixture.database.prepare(`
-      INSERT INTO formal_attempts (attempt_id, student_id, node_id, game_id, score, origin)
-      VALUES ('attempt-review-80', 'stu-01', 'P1T1-N02', 'node-test', 80, 'user')
-    `).run();
+    insertUserFormalAssessment(fixture.database, 'attempt-review-80', 80, '2026-07-16T08:00:00.000Z');
+    insertUserFormalAssessment(fixture.database, 'attempt-review-later-70', 70, '2026-07-16T09:00:00.000Z');
     const attemptsBefore = fixture.database.prepare(`
       SELECT attempt_id AS attemptId, score FROM formal_attempts
       WHERE student_id = 'stu-01' AND node_id = 'P1T1-N02' ORDER BY attempt_id
@@ -58,6 +57,9 @@ test('teacher verification freezes 80/90 as 86 without changing the N02 attempt 
       officialScore: 86,
       details: {
         nodeId: 'P1T1-N02',
+        nodeTestAttemptId: 'attempt-review-80',
+        assessmentId: 'assessment-attempt-review-80',
+        questionVersion: 'p01-n02-v1',
         nodeTestHighestScore: 80,
         outputId: submitted.head.outputId,
         outputVersion: 1,
@@ -236,10 +238,7 @@ test('portfolio facts expose the current head, current-version review, and froze
       studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 1,
       fields: draft.versions[0]!.fields, upstreamRefs: [],
     });
-    fixture.database.prepare(`
-      INSERT INTO formal_attempts (attempt_id, student_id, node_id, score, origin)
-      VALUES ('portfolio-attempt', 'stu-01', 'P1T1-N02', 80, 'user')
-    `).run();
+    insertUserFormalAssessment(fixture.database, 'portfolio-attempt', 80, '2026-07-16T08:00:00.000Z');
     repository.reviewSubmitted({
       teacherId: 'teacher-01', classId: 'demo-class', outputId: submitted.head.outputId,
       expectedStateRevision: 2, action: 'verify', feedback: '通过', rubricScores: { result: 90 },
@@ -270,4 +269,31 @@ test('portfolio facts expose the current head, current-version review, and froze
 
 function completeP01Fields(value: string): Record<string, string> {
   return Object.fromEntries(p01OutputFieldKeys.map((fieldKey) => [fieldKey, `${value}: ${fieldKey}`]));
+}
+
+function insertUserFormalAssessment(
+  database: ReturnType<typeof createTestDatabase>['database'],
+  attemptId: string,
+  score: number,
+  completedAt: string,
+): void {
+  const assessmentId = `assessment-${attemptId}`;
+  database.prepare(`
+    INSERT INTO formal_assessment_instances (
+      assessment_id, node_id, game_id, question_version, status, closed_at
+    ) VALUES (?, 'P1T1-N02', 'p01-n02-formal', 'p01-n02-v1', 'closed', ?)
+  `).run(assessmentId, completedAt);
+  const dimensions = Object.fromEntries(assessmentDimensionKeys.map((key) => [key, {
+    score: score / 4, maxScore: 25, feedback: `${key} feedback`,
+  }]));
+  database.prepare(`
+    INSERT INTO formal_attempts (
+      attempt_id, student_id, node_id, assessment_id, game_id, score,
+      completed_at, question_version, answers_json, diagnostics_json, origin
+    ) VALUES (?, 'stu-01', 'P1T1-N02', ?, 'p01-n02-formal', ?, ?, 'p01-n02-v1', '{}', ?, 'user')
+  `).run(attemptId, assessmentId, score, completedAt, JSON.stringify({
+    assessmentId, attemptId, nodeId: 'P1T1-N02', questionVersion: 'p01-n02-v1',
+    totalScore: score, passed: score >= 80, dimensions, remediationTargets: [],
+    origin: 'user', completedAt,
+  }));
 }
