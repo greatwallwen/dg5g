@@ -246,10 +246,33 @@ test('a published node with an empty activity policy fails closed on legacy gene
       new LearningReadModel(new LearningRepository(fixture.database)).readStudentSnapshot('stu-01'),
       'P1T1-N01',
     );
-    assert.equal(node.state, 'learning');
+    assert.equal(node.state, 'available');
     assert.equal(node.stateTrail.includes('micro-practice-passed'), false);
   } finally {
     policy.requiredActivityIds = originalActivityIds;
+    fixture.cleanup();
+  }
+});
+
+test('legacy demo pass history neither advances nor taints a user activity milestone', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    fixture.database.exec(`
+      INSERT INTO learning_events (
+        event_id, student_id, node_id, channel, event_type, payload_json, origin
+      ) VALUES ('legacy-demo-history', 'stu-01', 'P1T1-N01', 'self-study',
+        'micro_practice_passed', '{"demo":true}', 'demo');
+    `);
+    insertPassedPractice(fixture.database, 'stu-01', 'P1T1-N01-micro-01', 'P1T1-N01');
+    const node = requiredNode(
+      new LearningReadModel(new LearningRepository(fixture.database)).readStudentSnapshot('stu-01'),
+      'P1T1-N01',
+    );
+    assert.equal(node.state, 'achieved');
+    assert.equal(node.origin, 'user');
+  } finally {
     fixture.cleanup();
   }
 });

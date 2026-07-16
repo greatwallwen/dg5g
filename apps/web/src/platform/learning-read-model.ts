@@ -136,13 +136,14 @@ function projectStudentLearningFacts(facts: StudentLearningFacts): StudentLearni
 
   for (const policy of nodeLearningPolicies) {
     const events = preferUserOrigin(facts.events.filter(({ nodeId }) => nodeId === policy.nodeId));
+    const progressEvents = events.filter(({ eventType }) => eventType !== 'micro_practice_passed');
     const practiceAttempts = preferUserOrigin(
       facts.practiceAttempts.filter(({ nodeId }) => nodeId === policy.nodeId),
     );
     const storedAttempts = preferUserOrigin(facts.attempts.filter(({ nodeId }) => nodeId === policy.nodeId));
     const attempts = storedAttempts.map(toAttemptProjection);
-    const sections = completedSections(events);
-    const classroomSubmitted = events.some(isCompletedClassroomSubmission);
+    const sections = completedSections(progressEvents);
+    const classroomSubmitted = progressEvents.some(isCompletedClassroomSubmission);
     const evidence = latestOutputForNode(facts.outputs, policy.nodeId);
     const storedReview = evidence
       ? latestReviewForOutput(facts.reviews, evidence.outputId, evidence.currentVersion)
@@ -170,24 +171,47 @@ function projectStudentLearningFacts(facts: StudentLearningFacts): StudentLearni
       ? Math.max(...storedAttempts.map(({ score }) => score))
       : undefined;
     const projection = deriveNodeLearningProjection(policy, {
-      hasActivity: events.length > 0 || practiceAttempts.length > 0
+      hasActivity: progressEvents.length > 0 || practiceAttempts.length > 0
         || storedAttempts.length > 0 || evidence !== undefined,
-      microPracticePassed: microPracticePassed(policy.requiredActivityIds, practiceAttempts, events),
+      microPracticePassed: microPracticePassed(policy.requiredActivityIds, practiceAttempts),
       bestFormalTestScore: bestFormalScore,
       evidenceReviewStatus: evidenceReviewState(evidence, review),
     }, prerequisiteProgress);
-    const origin = activeOrigin(
-      prerequisites.flatMap((prerequisite) => {
-        if (!prerequisite.met) return [];
-        const prerequisiteOrigin = snapshots.get(prerequisite.nodeId)?.origin;
-        return prerequisiteOrigin ? [{ origin: prerequisiteOrigin }] : [];
-      }),
-      events,
-      practiceAttempts,
-      storedAttempts,
-      evidence ? [evidence] : [],
-      storedReview ? [storedReview] : [],
-    );
+    const prerequisiteOriginFacts = prerequisites.flatMap((prerequisite) => {
+      if (!prerequisite.met) return [];
+      const prerequisiteOrigin = snapshots.get(prerequisite.nodeId)?.origin;
+      return prerequisiteOrigin ? [{ origin: prerequisiteOrigin }] : [];
+    });
+    const passedPracticeFacts = policy.requiredActivityIds.flatMap((activityId) => (
+      practiceAttempts.filter((attempt) => attempt.activityId === activityId && attempt.passed)
+    ));
+    const milestoneOriginGroups: Array<Array<{ origin: LearningOrigin }>> = [
+      prerequisiteOriginFacts,
+      passedPracticeFacts,
+    ];
+    if (projection.stateTrail.includes('formal-test-passed')) {
+      milestoneOriginGroups.push(storedAttempts.filter((attempt) => (
+        attempt.score >= (policy.formalPassScore ?? Number.POSITIVE_INFINITY)
+      )));
+    }
+    if (projection.stateTrail.includes('evidence-submitted') && evidence) {
+      milestoneOriginGroups.push([evidence]);
+    }
+    if ((projection.state === 'returned' || projection.stateTrail.includes('teacher-verified')) && storedReview) {
+      milestoneOriginGroups.push([storedReview]);
+    }
+    const origin = projection.state === 'locked'
+      ? undefined
+      : projection.state === 'learning'
+        ? activeOrigin(
+            prerequisiteOriginFacts,
+            progressEvents,
+            practiceAttempts,
+            storedAttempts,
+            evidence ? [evidence] : [],
+            storedReview ? [storedReview] : [],
+          )
+        : activeOrigin(...milestoneOriginGroups);
     const node: StudentNodeLearningSnapshot = {
       nodeId: policy.nodeId,
       state: projection.state,
@@ -354,7 +378,6 @@ function prerequisiteMet(prior: StudentNodeLearningSnapshot | undefined): boolea
 function microPracticePassed(
   requiredActivityIds: readonly string[],
   attempts: StoredPracticeAttempt[],
-  _events: StoredLearningEvent[],
 ): boolean {
   if (requiredActivityIds.length === 0) return false;
   return requiredActivityIds.every((activityId) => attempts.some((attempt) => (
