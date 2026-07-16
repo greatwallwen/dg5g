@@ -104,10 +104,10 @@ test('a forged user frozen task fact cannot shadow a valid task score or certify
     `);
     const snapshot = new LearningReadModel(new LearningRepository(fixture.database))
       .readStudentSnapshot('stu-03');
-    assert.equal(snapshot.tasks[0]?.taskCompositeScore, undefined);
-    assert.equal(snapshot.tasks[0]?.origin, undefined);
+    assert.equal(snapshot.tasks[0]?.taskCompositeScore, 94);
+    assert.equal(snapshot.tasks[0]?.origin, 'demo');
     assert.equal(snapshot.tasks[0]?.realTaskCertified, false);
-    assert.equal(snapshot.tasks[0]?.demoTaskCertified, false);
+    assert.equal(snapshot.tasks[0]?.demoTaskCertified, true);
     assert.equal(fixture.database.prepare(`
       SELECT COUNT(*) FROM frozen_task_scores
       WHERE student_id = 'stu-03' AND task_id = 'P01' AND origin = 'demo'
@@ -306,30 +306,26 @@ test('node origin stays demo until every required fact and prerequisite is user-
   }
 });
 
-test('project origin is user only when all three frozen task scores are user-origin', () => {
+test('forged user frozen scores cannot replace the fully certified demo project origin', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
-    seedBase(fixture.database);
-    fixture.database.exec(`
-      INSERT INTO frozen_task_scores (
-        score_id, student_id, task_id, snapshot_version,
-        provisional_score, official_score, details_json, origin
-      ) VALUES
-        ('user-p01', 'stu-01', 'P01', 1, 90, 90, '{"taskCompositeScore":90}', 'user'),
-        ('user-p02', 'stu-01', 'P02', 1, 90, 90, '{"taskCompositeScore":90}', 'user'),
-        ('demo-p03', 'stu-01', 'P03', 1, 90, 90, '{"taskCompositeScore":90}', 'demo');
-    `);
+    seedDemo(fixture.database);
     const model = new LearningReadModel(new LearningRepository(fixture.database));
-    assert.equal(model.readStudentSnapshot('stu-01').projectCompositeOrigin, 'demo');
+    const before = model.readStudentSnapshot('stu-03');
+    assert.equal(before.projectCompositeOrigin, 'demo');
+    assert.equal(before.tasks.every(({ demoTaskCertified }) => demoTaskCertified), true);
 
     fixture.database.exec(`
       INSERT INTO frozen_task_scores (
         score_id, student_id, task_id, snapshot_version,
         provisional_score, official_score, details_json, origin
-      ) VALUES ('user-p03', 'stu-01', 'P03', 2, 90, 90, '{"taskCompositeScore":90}', 'user');
+      ) VALUES ('forged-user-p03', 'stu-03', 'P03', 99, 100, 100, '{"taskCompositeScore":100}', 'user');
     `);
-    assert.equal(model.readStudentSnapshot('stu-01').projectCompositeOrigin, 'user');
+    const after = model.readStudentSnapshot('stu-03');
+    assert.equal(after.projectCompositeOrigin, 'demo');
+    assert.equal(after.tasks.every(({ demoTaskCertified }) => demoTaskCertified), true);
+    assert.equal(after.tasks.some(({ realTaskCertified }) => realTaskCertified), false);
   } finally {
     fixture.cleanup();
   }
