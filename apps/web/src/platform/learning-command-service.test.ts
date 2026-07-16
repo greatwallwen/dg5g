@@ -9,7 +9,10 @@ import { LearningRepository } from './learning-repository.ts';
 import { LearningCommandService } from './learning-command-service.ts';
 import { NodeRouteAccessError } from './access-control.ts';
 import { p01OutputFieldKeys } from '../features/portfolio/p01-output-definition.ts';
-import { p01EvidenceLibrary } from '../features/portfolio/evidence-library.ts';
+import {
+  evidenceLibraryForTask,
+  p01EvidenceLibrary,
+} from '../features/portfolio/evidence-library.ts';
 import {
   ProfessionalOutputNotFoundError,
   ProfessionalOutputRepository,
@@ -352,6 +355,14 @@ test('professional output commands reuse node access and derive ownership from t
       ({ sourceAttemptId }) => sourceAttemptId === 'demo-stu2-n01',
     ), true);
     assert.equal(envelope.evidenceLibrary.length, p01EvidenceLibrary.length);
+    for (const taskId of ['P02', 'P03'] as const) {
+      const taskEnvelope = service.readProfessionalOutput(studentThree, taskId);
+      assert.deepEqual(taskEnvelope.prefill, {});
+      assert.deepEqual(
+        taskEnvelope.evidenceLibrary.map(({ evidenceId }) => evidenceId),
+        evidenceLibraryForTask(taskId).map(({ evidenceId }) => evidenceId),
+      );
+    }
   } finally {
     fixture.cleanup();
   }

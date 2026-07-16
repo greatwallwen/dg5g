@@ -5,7 +5,7 @@ import type {
   ProfessionalOutputStatus,
   ProfessionalOutputUpstreamRef,
 } from '@/platform/professional-output-repository';
-import type { P01EvidenceDefinition } from './evidence-library';
+import type { EvidenceDefinition } from './evidence-library';
 import type { ProfessionalOutputFields, ProfessionalOutputSchema } from './output-schema';
 import {
   projectOutputWorkflow,
@@ -17,7 +17,7 @@ export interface ProfessionalOutputFormState {
   fields: ProfessionalOutputFields;
   evidenceLinks: Record<string, string[]>;
   fieldSources: ProfessionalOutputFieldSource[];
-  evidenceLibrary: P01EvidenceDefinition[];
+  evidenceLibrary: EvidenceDefinition[];
   outputId?: string;
   currentVersion: number;
   stateRevision: number;

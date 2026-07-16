@@ -2,7 +2,7 @@
 
 import React from 'react';
 import type { ProfessionalOutputFieldSource } from '@/platform/professional-output-repository';
-import type { P01EvidenceDefinition } from './evidence-library';
+import type { EvidenceDefinition } from './evidence-library';
 import type { ProfessionalOutputFields, ProfessionalOutputSchema } from './output-schema';
 
 export function OutputFieldsets({
@@ -19,7 +19,7 @@ export function OutputFieldsets({
   values: ProfessionalOutputFields;
   readOnly: boolean;
   onFieldChange: (key: string, value: string) => void;
-  evidenceLibrary?: P01EvidenceDefinition[];
+  evidenceLibrary?: EvidenceDefinition[];
   evidenceLinks?: Record<string, string[]>;
   fieldSources?: ProfessionalOutputFieldSource[];
   onEvidenceChange?: (fieldKey: string, evidenceIds: string[]) => void;
@@ -35,7 +35,7 @@ export function OutputFieldsets({
           const selectedIds = evidenceLinks[field.key] ?? [];
           const selectedEvidence = selectedIds
             .map((evidenceId) => evidenceById.get(evidenceId))
-            .filter((evidence): evidence is P01EvidenceDefinition => evidence !== undefined);
+            .filter((evidence): evidence is EvidenceDefinition => evidence !== undefined);
           const availableEvidence = evidenceLibrary.filter((evidence) => (
             evidence.allowedFieldKeys.some((fieldKey) => fieldKey === field.key)
             && !selectedIds.includes(evidence.evidenceId)

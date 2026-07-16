@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { p01Activities } from '../features/learning-activities/activity-catalog.ts';
 import type { ActivityArtifact } from '../features/learning-activities/activity-definition.ts';
-import { readP01EvidenceDefinition } from '../features/portfolio/evidence-library.ts';
+import { readEvidenceDefinition } from '../features/portfolio/evidence-library.ts';
 import {
   isP01OutputFieldKey,
   projectP01OutputPrefill,
@@ -412,13 +412,8 @@ export class ProfessionalOutputRepository {
           `Evidence field must exist in this output version: ${fieldKey}.`,
         );
       }
-      if (command.taskId !== 'P01' || !isP01OutputFieldKey(fieldKey)) {
-        throw new ProfessionalOutputEvidenceError(
-          `Evidence links are not supported for output field: ${fieldKey}.`,
-        );
-      }
       for (const evidenceId of evidenceIds) {
-        const definition = readP01EvidenceDefinition(evidenceId);
+        const definition = readEvidenceDefinition(command.taskId, evidenceId);
         if (!definition || !definition.allowedFieldKeys.includes(fieldKey)) {
           throw new ProfessionalOutputEvidenceError(
             `Evidence ${evidenceId} cannot be linked to ${fieldKey}.`,
@@ -722,14 +717,8 @@ function normalizeWrite(input: WriteProfessionalOutputInput): NormalizedWrite {
   });
   const evidenceInput = input.evidenceLinks ?? {};
   if (!isRecord(evidenceInput)) throw new TypeError('evidenceLinks must be an object.');
-  if (input.taskId !== 'P01' && Object.keys(evidenceInput).length > 0) {
-    throw new ProfessionalOutputEvidenceError(`${input.taskId} does not support P01 evidence links.`);
-  }
   const evidenceLinks = Object.fromEntries(Object.entries(evidenceInput).map(([fieldKey, value]) => {
     assertNonEmpty('evidence field name', fieldKey);
-    if (!isP01OutputFieldKey(fieldKey)) {
-      throw new ProfessionalOutputEvidenceError(`Unknown evidence field: ${fieldKey}.`);
-    }
     if (!Array.isArray(value)) {
       throw new TypeError(`evidenceLinks.${fieldKey} must be an array.`);
     }
@@ -740,7 +729,7 @@ function normalizeWrite(input: WriteProfessionalOutputInput): NormalizedWrite {
       return evidenceId.trim();
     });
     return [fieldKey, [...new Set(ids)].sort()];
-  })) as Record<P01OutputFieldKey, string[]>;
+  })) as Record<string, string[]>;
   return {
     ...(input.outputId === undefined ? {} : { outputId: input.outputId }),
     studentId: input.studentId,

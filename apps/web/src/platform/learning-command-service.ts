@@ -1,7 +1,7 @@
 import type { AuthenticatedActor } from './auth/actor.ts';
 import {
-  p01EvidenceLibrary,
-  type P01EvidenceDefinition,
+  evidenceLibraryForTask,
+  type EvidenceDefinition,
 } from '../features/portfolio/evidence-library.ts';
 import type { P01OutputPrefill } from '../features/portfolio/p01-output-definition.ts';
 import { classifyNodeRoute, NodeRouteAccessError, type NodeRouteClassification } from './access-control.ts';
@@ -48,7 +48,7 @@ export interface ProfessionalOutputCommand extends Omit<
 export interface ProfessionalOutputEnvelope {
   output: ProfessionalOutputAggregate | null;
   prefill: P01OutputPrefill;
-  evidenceLibrary: P01EvidenceDefinition[];
+  evidenceLibrary: EvidenceDefinition[];
 }
 
 export type ProfessionalOutputFieldValidator = (
@@ -167,7 +167,7 @@ export class LearningCommandService {
     return {
       output: repository.read(studentId, canonicalTaskId, outputId) ?? null,
       prefill: canonicalTaskId === 'P01' ? repository.readP01Prefill(studentId) : {},
-      evidenceLibrary: canonicalTaskId === 'P01' ? p01EvidenceLibrary : [],
+      evidenceLibrary: evidenceLibraryForTask(canonicalTaskId),
     };
   }
 

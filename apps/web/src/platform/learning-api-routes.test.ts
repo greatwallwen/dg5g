@@ -14,7 +14,10 @@ import { LearningRepository } from './learning-repository.ts';
 import { loadSelfStudyCatalog } from '../features/textbook-scene/self-study-content.ts';
 import { professionalOutputSchemaForTask } from '../features/portfolio/output-schema.ts';
 import { p01Activities } from '../features/learning-activities/activity-catalog.ts';
-import { p01EvidenceLibrary } from '../features/portfolio/evidence-library.ts';
+import {
+  evidenceLibraryForTask,
+  p01EvidenceLibrary,
+} from '../features/portfolio/evidence-library.ts';
 import { ActivityRepository } from '../features/learning-activities/activity-repository.ts';
 
 registerHooks({
@@ -298,7 +301,7 @@ test('a returned output maps unchanged resubmission to 422 and accepts a semanti
   });
 });
 
-test('P02 reads retain the same envelope with no P01 prefill or evidence catalog', async () => {
+test('P02 reads retain the same envelope with no P01 prefill and the P02 evidence catalog', async () => {
   await withAuthenticatedFixture(async ({ studentThreeCookie }) => {
     const response = outputRoute.GET(new Request(
       'http://localhost/api/outputs/P02',
@@ -308,7 +311,10 @@ test('P02 reads retain the same envelope with no P01 prefill or evidence catalog
     const envelope = await response.json();
     assert.equal(envelope.output.head.taskId, 'P02');
     assert.deepEqual(envelope.prefill, {});
-    assert.deepEqual(envelope.evidenceLibrary, []);
+    assert.deepEqual(
+      envelope.evidenceLibrary.map(({ evidenceId }: { evidenceId: string }) => evidenceId),
+      evidenceLibraryForTask('P02').map(({ evidenceId }) => evidenceId),
+    );
   });
 });
 

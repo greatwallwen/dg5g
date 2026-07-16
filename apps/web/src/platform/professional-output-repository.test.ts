@@ -6,10 +6,15 @@ import { createTestDatabase } from './db/test-database.ts';
 import { p01Activities } from '../features/learning-activities/activity-catalog.ts';
 import { ActivityRepository } from '../features/learning-activities/activity-repository.ts';
 import {
+  evidenceLibraryForTask,
   p01EvidenceLibrary,
+  readEvidenceDefinition,
+  seedEvidenceLibrary,
   seedP01EvidenceLibrary,
 } from '../features/portfolio/evidence-library.ts';
 import { p01OutputFieldKeys } from '../features/portfolio/p01-output-definition.ts';
+import { loadSelfStudyCatalog } from '../features/textbook-scene/self-study-content.ts';
+import { professionalOutputSchemaForTask } from '../features/portfolio/output-schema.ts';
 import {
   ProfessionalOutputEvidenceError,
   ProfessionalOutputRepository,
@@ -231,6 +236,89 @@ test('P02 and P03 persist real same-student upstream output versions and reject 
     });
     assert.deepEqual(p02.versions[0]?.upstreamRefs, [{ outputId: 'stu-01-p01', version: 1 }]);
     assert.deepEqual(p03.versions[0]?.upstreamRefs, [{ outputId: 'stu-01-p02', version: 1 }]);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('P02 and P03 save and submit task-scoped evidence through the real repository', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    seedEvidenceLibrary(fixture.database);
+    const outputIds = ['evidence-p01', 'evidence-p02', 'evidence-p03'];
+    const repository = new ProfessionalOutputRepository(fixture.database, () => outputIds.shift()!);
+    const p01 = repository.saveDraft({
+      studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
+      fields: completeP01Fields(), upstreamRefs: [],
+    });
+
+    let upstream = { outputId: p01.head.outputId, version: p01.head.currentVersion };
+    for (const taskId of ['P02', 'P03'] as const) {
+      const fields = completeGeneratedFields(taskId);
+      const evidenceLinks = evidenceForEveryGeneratedField(taskId);
+      const draft = repository.saveDraft({
+        studentId: 'stu-01', taskId, expectedStateRevision: 0,
+        fields, upstreamRefs: [upstream], evidenceLinks,
+      });
+      const submitted = repository.submit({
+        outputId: draft.head.outputId, studentId: 'stu-01', taskId,
+        expectedStateRevision: 1, fields, upstreamRefs: [upstream], evidenceLinks,
+      });
+      assert.equal(submitted.head.status, 'submitted');
+      assert.equal(submitted.head.currentVersion, 1);
+      assert.equal(submitted.submissionCount, 1);
+      assert.deepEqual(submitted.versions[0]?.evidenceLinks, evidenceLinks);
+      upstream = { outputId: submitted.head.outputId, version: submitted.head.currentVersion };
+    }
+
+    assert.deepEqual(fixture.database.prepare(`
+      SELECT json_extract(payload_json, '$.taskId') AS taskId,
+        event_type AS eventType
+      FROM learning_events
+      WHERE student_id = 'stu-01'
+        AND json_extract(payload_json, '$.taskId') IN ('P02', 'P03')
+      ORDER BY taskId, occurred_at, event_id
+    `).all(), [
+      { taskId: 'P02', eventType: 'evidence_draft_saved' },
+      { taskId: 'P02', eventType: 'evidence_submitted' },
+      { taskId: 'P03', eventType: 'evidence_draft_saved' },
+      { taskId: 'P03', eventType: 'evidence_submitted' },
+    ]);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('P02 and P03 reject cross-task and cross-field evidence before writing any fact', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    seedEvidenceLibrary(fixture.database);
+    const outputIds = ['invalid-upstream-p01', 'invalid-task-evidence'];
+    const repository = new ProfessionalOutputRepository(fixture.database, () => outputIds.shift()!);
+    const p01 = repository.saveDraft({
+      studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
+      fields: completeP01Fields(), upstreamRefs: [],
+    });
+    const fields = completeGeneratedFields('P02');
+    const p01EvidenceId = p01EvidenceLibrary[0]!.evidenceId;
+    const wrongP02Definition = evidenceLibraryForTask('P02')
+      .find(({ allowedFieldKeys }) => !allowedFieldKeys.includes('sectorIdentity'));
+    assert.ok(wrongP02Definition);
+
+    for (const evidenceId of [p01EvidenceId, wrongP02Definition.evidenceId]) {
+      assert.throws(() => repository.saveDraft({
+        studentId: 'stu-01', taskId: 'P02', expectedStateRevision: 0,
+        fields, upstreamRefs: [{ outputId: p01.head.outputId, version: 1 }],
+        evidenceLinks: { sectorIdentity: [evidenceId] },
+      }), ProfessionalOutputEvidenceError);
+      assert.deepEqual(mutationCounts(fixture.database, 'invalid-task-evidence'), {
+        heads: 0, versions: 0, links: 0, sources: 0, events: 0,
+      });
+    }
   } finally {
     fixture.cleanup();
   }
@@ -551,6 +639,21 @@ function evidenceFor(fieldKey: (typeof p01OutputFieldKeys)[number]): string[] {
   return p01EvidenceLibrary
     .filter(({ allowedFieldKeys }) => allowedFieldKeys.includes(fieldKey))
     .map(({ evidenceId }) => evidenceId);
+}
+
+function completeGeneratedFields(taskId: 'P02' | 'P03'): Record<string, string> {
+  return Object.fromEntries(professionalOutputSchemaForTask(loadSelfStudyCatalog(), taskId)
+    .fields.map(({ key }) => [key, `${taskId} 已填写：${key}`]));
+}
+
+function evidenceForEveryGeneratedField(taskId: 'P02' | 'P03'): Record<string, string[]> {
+  return Object.fromEntries(professionalOutputSchemaForTask(loadSelfStudyCatalog(), taskId)
+    .fields.map(({ key }) => {
+      const evidence = evidenceLibraryForTask(taskId)
+        .find(({ allowedFieldKeys }) => allowedFieldKeys.includes(key));
+      assert.ok(evidence && readEvidenceDefinition(taskId, evidence.evidenceId));
+      return [key, [evidence.evidenceId]];
+    }));
 }
 
 function seedPassedP01Activities(
