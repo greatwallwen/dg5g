@@ -6,6 +6,10 @@ import type {
   ActivityPublicDto,
 } from './activity-definition.ts';
 import { ActivityControl } from './activity-controls.tsx';
+import {
+  activityPracticeCardState,
+  practiceCardClassName,
+} from './practice-card-state.ts';
 
 export function ActivityWorkbench({ activity, level, levelLabel, passed, onPass }: {
   activity: ActivityPublicDto;
@@ -67,13 +71,9 @@ export function ActivityWorkbench({ activity, level, levelLabel, passed, onPass 
     setRequestError('');
   }
 
-  const practiceStateClass = result?.passed || passed
-    ? 'is-correct'
-    : result ? 'is-wrong' : 'is-idle';
-
   return (
     <article
-      className={`self-study-practice-card ${practiceStateClass}`}
+      className={practiceCardClassName(activityPracticeCardState({ persistedPassed: passed, result }))}
       data-activity-kind={activity.kind}
       data-practice-level={level}
     >

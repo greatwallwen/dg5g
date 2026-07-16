@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { publicActivityFromPractice } from '../learning-activities/activity-definition.ts';
 import { ActivityWorkbench } from '../learning-activities/activity-workbench.tsx';
+import { practiceCardClassName } from '../learning-activities/practice-card-state.ts';
 import { Icon } from '../../ui/foundation/icons.tsx';
 import type { SelfStudyDocument, SelfStudyPractice } from './self-study-types.ts';
 
@@ -63,12 +64,8 @@ function WrittenPracticeCard({ level, levelLabel, practice, passed, onPass }: {
     onPass();
   }
 
-  const practiceStateClass = answer === 'correct'
-    ? 'is-correct'
-    : answer === 'wrong' ? 'is-wrong' : 'is-idle';
-
   return (
-    <article className={`self-study-practice-card ${practiceStateClass}`} data-practice-level={level}>
+    <article className={practiceCardClassName(answer)} data-practice-level={level}>
       <header><span>{levelLabel}</span><strong>{practice.prompt}</strong></header>
       <div className="self-study-practice-options">
         <label>

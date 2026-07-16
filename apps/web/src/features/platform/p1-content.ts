@@ -7,29 +7,96 @@ export type P1RuntimeTaskId = 'P1T1' | 'P1T2' | 'P1T3';
 export type P1AssessmentRole = AssessmentRole;
 export type P1NodeId = `P1T${1 | 2 | 3}-N0${1 | 2 | 3 | 4}`;
 
-export interface P1SelfStudyPractice {
+type P1NonEmptyArray<Value> = [Value, ...Value[]];
+
+interface P1PracticeBase {
   id: string;
   prompt: string;
   expectedEvidence: string[];
   feedback: string;
   correctionPath: string[];
   retryable: true;
-  activityKind?:
-    | 'scope-classification'
-    | 'evidence-classification'
-    | 'link-reconstruction'
-    | 'structured-record'
-    | 'four-state-judgement'
-    | 'defective-sheet-revision';
-  materials?: Array<{ id: string; label: string; detail: string; sourceValue?: string }>;
-  interaction?: {
-    type: 'classification-board' | 'sequence-builder' | 'record-form' | 'state-matrix' | 'revision-form';
-    categories?: Array<{ id: string; label: string }>;
-    fields?: Array<{ id: string; label: string; placeholder: string }>;
-  };
-  targetedFeedback?: { passed: string; failed: string };
-  transferTarget?: string;
 }
+
+interface P1ActivityMaterial {
+  id: string;
+  label: string;
+  detail: string;
+  sourceValue?: string;
+}
+
+interface P1RevisionActivityMaterial extends P1ActivityMaterial {
+  sourceValue: string;
+}
+
+interface P1ActivityCategory {
+  id: string;
+  label: string;
+}
+
+interface P1ActivityField {
+  id: string;
+  label: string;
+  placeholder: string;
+}
+
+interface P1ActivityPracticeBase extends P1PracticeBase {
+  targetedFeedback: { passed: string; failed: string };
+  transferTarget: string;
+}
+
+type P1ActivityPractice =
+  | (P1ActivityPracticeBase & {
+      activityKind: 'scope-classification' | 'evidence-classification';
+      materials: P1NonEmptyArray<P1ActivityMaterial>;
+      interaction: {
+        type: 'classification-board';
+        categories: P1NonEmptyArray<P1ActivityCategory>;
+        fields?: never;
+      };
+    })
+  | (P1ActivityPracticeBase & {
+      activityKind: 'link-reconstruction';
+      materials: P1NonEmptyArray<P1ActivityMaterial>;
+      interaction: { type: 'sequence-builder'; categories?: never; fields?: never };
+    })
+  | (P1ActivityPracticeBase & {
+      activityKind: 'structured-record';
+      materials: P1NonEmptyArray<P1ActivityMaterial>;
+      interaction: {
+        type: 'record-form';
+        categories?: never;
+        fields: P1NonEmptyArray<P1ActivityField>;
+      };
+    })
+  | (P1ActivityPracticeBase & {
+      activityKind: 'four-state-judgement';
+      materials: P1NonEmptyArray<P1ActivityMaterial>;
+      interaction: {
+        type: 'state-matrix';
+        categories: P1NonEmptyArray<P1ActivityCategory>;
+        fields?: never;
+      };
+    })
+  | (P1ActivityPracticeBase & {
+      activityKind: 'defective-sheet-revision';
+      materials: P1NonEmptyArray<P1RevisionActivityMaterial>;
+      interaction: {
+        type: 'revision-form';
+        categories?: never;
+        fields: P1NonEmptyArray<P1ActivityField>;
+      };
+    });
+
+type P1WrittenPractice = P1PracticeBase & {
+  activityKind?: never;
+  materials?: never;
+  interaction?: never;
+  targetedFeedback?: never;
+  transferTarget?: never;
+};
+
+export type P1SelfStudyPractice = P1WrittenPractice | P1ActivityPractice;
 
 export interface P1DeepNodeContent {
   kind: 'deep';
@@ -465,48 +532,85 @@ function validatePractices(value: unknown, path: string): void {
 }
 
 function validateActivityPractice(practice: Record<string, unknown>, path: string): void {
+  const activityKind = nonEmptyString(practice.activityKind, `${path}.activityKind`);
   if (![
     'scope-classification', 'evidence-classification', 'link-reconstruction',
     'structured-record', 'four-state-judgement', 'defective-sheet-revision',
-  ].includes(String(practice.activityKind))) invalid(`${path}.activityKind`, 'expected a supported activity kind');
+  ].includes(activityKind)) invalid(`${path}.activityKind`, 'expected a supported activity kind');
   const materials = arrayValue(practice.materials, `${path}.materials`);
   minimumItems(materials, 1, `${path}.materials`);
   materials.forEach((value, index) => {
     const materialPath = `${path}.materials[${index}]`;
     const material = objectValue(value, materialPath);
-    exactKeys(material, 'sourceValue' in material
+    const requiresSourceValue = activityKind === 'defective-sheet-revision';
+    exactKeys(material, requiresSourceValue || 'sourceValue' in material
       ? ['id', 'label', 'detail', 'sourceValue']
       : ['id', 'label', 'detail'], materialPath);
     nonEmptyString(material.id, `${materialPath}.id`);
     nonEmptyString(material.label, `${materialPath}.label`);
     nonEmptyString(material.detail, `${materialPath}.detail`);
-    if ('sourceValue' in material) nonEmptyString(material.sourceValue, `${materialPath}.sourceValue`);
+    if (requiresSourceValue || 'sourceValue' in material) {
+      nonEmptyString(material.sourceValue, `${materialPath}.sourceValue`);
+    }
   });
   const interaction = objectValue(practice.interaction, `${path}.interaction`);
-  const interactionKeys = Object.keys(interaction);
-  if (!interactionKeys.includes('type') || interactionKeys.some((key) => !['type', 'categories', 'fields'].includes(key))) {
-    invalid(`${path}.interaction`, 'expected type with optional categories or fields');
-  }
-  if (!['classification-board', 'sequence-builder', 'record-form', 'state-matrix', 'revision-form']
-    .includes(String(interaction.type))) invalid(`${path}.interaction.type`, 'expected a supported interaction type');
-  for (const collectionKey of ['categories', 'fields'] as const) {
-    if (!(collectionKey in interaction)) continue;
-    const values = arrayValue(interaction[collectionKey], `${path}.interaction.${collectionKey}`);
-    minimumItems(values, 1, `${path}.interaction.${collectionKey}`);
-    values.forEach((value, index) => {
-      const itemPath = `${path}.interaction.${collectionKey}[${index}]`;
-      const item = objectValue(value, itemPath);
-      exactKeys(item, collectionKey === 'fields' ? ['id', 'label', 'placeholder'] : ['id', 'label'], itemPath);
-      nonEmptyString(item.id, `${itemPath}.id`);
-      nonEmptyString(item.label, `${itemPath}.label`);
-      if (collectionKey === 'fields') nonEmptyString(item.placeholder, `${itemPath}.placeholder`);
-    });
+  switch (activityKind) {
+    case 'scope-classification':
+    case 'evidence-classification':
+      exactKeys(interaction, ['type', 'categories'], `${path}.interaction`);
+      exactValue(interaction.type, 'classification-board', `${path}.interaction.type`);
+      validateActivityCategories(interaction.categories, `${path}.interaction.categories`);
+      break;
+    case 'link-reconstruction':
+      exactKeys(interaction, ['type'], `${path}.interaction`);
+      exactValue(interaction.type, 'sequence-builder', `${path}.interaction.type`);
+      break;
+    case 'structured-record':
+      exactKeys(interaction, ['type', 'fields'], `${path}.interaction`);
+      exactValue(interaction.type, 'record-form', `${path}.interaction.type`);
+      validateActivityFields(interaction.fields, `${path}.interaction.fields`);
+      break;
+    case 'four-state-judgement':
+      exactKeys(interaction, ['type', 'categories'], `${path}.interaction`);
+      exactValue(interaction.type, 'state-matrix', `${path}.interaction.type`);
+      validateActivityCategories(interaction.categories, `${path}.interaction.categories`);
+      break;
+    case 'defective-sheet-revision':
+      exactKeys(interaction, ['type', 'fields'], `${path}.interaction`);
+      exactValue(interaction.type, 'revision-form', `${path}.interaction.type`);
+      validateActivityFields(interaction.fields, `${path}.interaction.fields`);
+      break;
   }
   const feedback = objectValue(practice.targetedFeedback, `${path}.targetedFeedback`);
   exactKeys(feedback, ['passed', 'failed'], `${path}.targetedFeedback`);
   nonEmptyString(feedback.passed, `${path}.targetedFeedback.passed`);
   nonEmptyString(feedback.failed, `${path}.targetedFeedback.failed`);
   nonEmptyString(practice.transferTarget, `${path}.transferTarget`);
+}
+
+function validateActivityCategories(value: unknown, path: string): void {
+  const categories = arrayValue(value, path);
+  minimumItems(categories, 1, path);
+  categories.forEach((value, index) => {
+    const itemPath = `${path}[${index}]`;
+    const item = objectValue(value, itemPath);
+    exactKeys(item, ['id', 'label'], itemPath);
+    nonEmptyString(item.id, `${itemPath}.id`);
+    nonEmptyString(item.label, `${itemPath}.label`);
+  });
+}
+
+function validateActivityFields(value: unknown, path: string): void {
+  const fields = arrayValue(value, path);
+  minimumItems(fields, 1, path);
+  fields.forEach((value, index) => {
+    const itemPath = `${path}[${index}]`;
+    const item = objectValue(value, itemPath);
+    exactKeys(item, ['id', 'label', 'placeholder'], itemPath);
+    nonEmptyString(item.id, `${itemPath}.id`);
+    nonEmptyString(item.label, `${itemPath}.label`);
+    nonEmptyString(item.placeholder, `${itemPath}.placeholder`);
+  });
 }
 
 function glossary(value: unknown, path: string): void {

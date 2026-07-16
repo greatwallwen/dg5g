@@ -11,6 +11,8 @@ export const activityKinds = [
 
 export type ActivityKind = typeof activityKinds[number];
 
+export type NonEmptyArray<Value> = [Value, ...Value[]];
+
 export interface ActivityMaterial {
   id: string;
   label: string;
@@ -18,29 +20,84 @@ export interface ActivityMaterial {
   sourceValue?: string;
 }
 
-export interface ActivityInteraction {
-  type: 'classification-board' | 'sequence-builder' | 'record-form' | 'state-matrix' | 'revision-form';
-  categories?: Array<{ id: string; label: string }>;
-  fields?: Array<{ id: string; label: string; placeholder: string }>;
+export interface RevisionActivityMaterial extends ActivityMaterial {
+  sourceValue: string;
 }
+
+export interface ActivityCategory {
+  id: string;
+  label: string;
+}
+
+export interface ActivityField {
+  id: string;
+  label: string;
+  placeholder: string;
+}
+
+export type ActivityInteraction =
+  | {
+      type: 'classification-board';
+      categories: NonEmptyArray<ActivityCategory>;
+      fields?: never;
+    }
+  | {
+      type: 'sequence-builder';
+      categories?: never;
+      fields?: never;
+    }
+  | {
+      type: 'record-form';
+      categories?: never;
+      fields: NonEmptyArray<ActivityField>;
+    }
+  | {
+      type: 'state-matrix';
+      categories: NonEmptyArray<ActivityCategory>;
+      fields?: never;
+    }
+  | {
+      type: 'revision-form';
+      categories?: never;
+      fields: NonEmptyArray<ActivityField>;
+    };
 
 export interface ActivityFeedback {
   passed: string;
   failed: string;
 }
 
-export interface ActivityPublicDto {
+interface ActivityPublicDtoBase {
   id: string;
   nodeId: P1NodeId;
-  kind: ActivityKind;
   prompt: string;
-  materials: ActivityMaterial[];
-  interaction: ActivityInteraction;
   feedback: ActivityFeedback;
   correctionPath: string[];
   transferTarget: string;
   retryable: true;
 }
+
+type ActivityPublicVariant<
+  Kind extends ActivityKind,
+  Interaction extends ActivityInteraction,
+  Material extends ActivityMaterial = ActivityMaterial,
+> = ActivityPublicDtoBase & {
+  kind: Kind;
+  materials: NonEmptyArray<Material>;
+  interaction: Interaction;
+};
+
+export type ActivityPublicDto =
+  | ActivityPublicVariant<'scope-classification', Extract<ActivityInteraction, { type: 'classification-board' }>>
+  | ActivityPublicVariant<'evidence-classification', Extract<ActivityInteraction, { type: 'classification-board' }>>
+  | ActivityPublicVariant<'link-reconstruction', Extract<ActivityInteraction, { type: 'sequence-builder' }>>
+  | ActivityPublicVariant<'structured-record', Extract<ActivityInteraction, { type: 'record-form' }>>
+  | ActivityPublicVariant<'four-state-judgement', Extract<ActivityInteraction, { type: 'state-matrix' }>>
+  | ActivityPublicVariant<
+      'defective-sheet-revision',
+      Extract<ActivityInteraction, { type: 'revision-form' }>,
+      RevisionActivityMaterial
+    >;
 
 export interface ActivityArtifact {
   type: 'learning-activity-artifact';
@@ -64,19 +121,27 @@ export function publicActivityFromPractice(
   nodeId: P1NodeId,
 ): ActivityPublicDto | undefined {
   if (!practice.activityKind) return undefined;
-  return {
+  const common = {
     id: practice.id,
     nodeId,
-    kind: practice.activityKind,
     prompt: practice.prompt,
-    materials: practice.materials ?? [],
-    interaction: practice.interaction ?? { type: 'record-form' },
-    feedback: practice.targetedFeedback ?? {
-      passed: practice.feedback,
-      failed: practice.feedback,
-    },
+    feedback: practice.targetedFeedback,
     correctionPath: practice.correctionPath,
-    transferTarget: practice.transferTarget ?? '',
+    transferTarget: practice.transferTarget,
     retryable: true,
-  };
+  } as const;
+  switch (practice.activityKind) {
+    case 'scope-classification':
+      return { ...common, kind: practice.activityKind, materials: practice.materials, interaction: practice.interaction };
+    case 'evidence-classification':
+      return { ...common, kind: practice.activityKind, materials: practice.materials, interaction: practice.interaction };
+    case 'link-reconstruction':
+      return { ...common, kind: practice.activityKind, materials: practice.materials, interaction: practice.interaction };
+    case 'structured-record':
+      return { ...common, kind: practice.activityKind, materials: practice.materials, interaction: practice.interaction };
+    case 'four-state-judgement':
+      return { ...common, kind: practice.activityKind, materials: practice.materials, interaction: practice.interaction };
+    case 'defective-sheet-revision':
+      return { ...common, kind: practice.activityKind, materials: practice.materials, interaction: practice.interaction };
+  }
 }

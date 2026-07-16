@@ -179,7 +179,93 @@
       },
       "dependentRequired": {
         "activityKind": ["materials", "interaction", "targetedFeedback", "transferTarget"]
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["activityKind"],
+            "properties": {
+              "activityKind": { "enum": ["scope-classification", "evidence-classification"] }
+            }
+          },
+          "then": {
+            "properties": {
+              "interaction": {
+                "required": ["type", "categories"],
+                "properties": { "type": { "const": "classification-board" } },
+                "not": { "required": ["fields"] }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["activityKind"],
+            "properties": { "activityKind": { "const": "link-reconstruction" } }
+          },
+          "then": {
+            "properties": {
+              "interaction": {
+                "properties": { "type": { "const": "sequence-builder" } },
+                "not": {
+                  "anyOf": [
+                    { "required": ["categories"] },
+                    { "required": ["fields"] }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["activityKind"],
+            "properties": { "activityKind": { "const": "structured-record" } }
+          },
+          "then": {
+            "properties": {
+              "interaction": {
+                "required": ["type", "fields"],
+                "properties": { "type": { "const": "record-form" } },
+                "not": { "required": ["categories"] }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["activityKind"],
+            "properties": { "activityKind": { "const": "four-state-judgement" } }
+          },
+          "then": {
+            "properties": {
+              "interaction": {
+                "required": ["type", "categories"],
+                "properties": { "type": { "const": "state-matrix" } },
+                "not": { "required": ["fields"] }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["activityKind"],
+            "properties": { "activityKind": { "const": "defective-sheet-revision" } }
+          },
+          "then": {
+            "properties": {
+              "materials": {
+                "items": { "required": ["sourceValue"] }
+              },
+              "interaction": {
+                "required": ["type", "fields"],
+                "properties": { "type": { "const": "revision-form" } },
+                "not": { "required": ["categories"] }
+              }
+            }
+          }
+        }
+      ]
     },
     "example": {
       "type": "object",

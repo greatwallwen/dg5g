@@ -28,7 +28,7 @@ export function ActivityControl({ activity, values, order, onValueChange, onOrde
   if (activity.kind === 'structured-record') {
     return (
       <div className="activity-record-form" data-structured-record-form="true">
-        {(activity.interaction.fields ?? []).map((field) => (
+        {activity.interaction.fields.map((field) => (
           <label key={field.id}>
             <span>{field.label}</span>
             <input
@@ -44,7 +44,7 @@ export function ActivityControl({ activity, values, order, onValueChange, onOrde
   }
 
   if (activity.kind === 'four-state-judgement') {
-    const categories = activity.interaction.categories ?? [];
+    const { categories } = activity.interaction;
     return (
       <table className="activity-state-matrix" data-four-state-matrix="true">
         <thead>
@@ -77,7 +77,7 @@ export function ActivityControl({ activity, values, order, onValueChange, onOrde
   }
 
   if (activity.kind === 'defective-sheet-revision') {
-    const fields = activity.interaction.fields ?? [];
+    const { fields } = activity.interaction;
     return (
       <table className="activity-revision-table" data-defective-sheet-revision="true">
         <thead>
@@ -118,7 +118,7 @@ export function ActivityControl({ activity, values, order, onValueChange, onOrde
       {activity.materials.map((material) => (
         <fieldset key={material.id}>
           <legend><strong>{material.label}</strong><small>{material.detail}</small></legend>
-          {(activity.interaction.categories ?? []).map((category) => (
+          {activity.interaction.categories.map((category) => (
             <label key={category.id}>
               <input
                 checked={values[material.id] === category.id}
