@@ -23,7 +23,7 @@ test('semantic edges use tested orthogonal routing and auditable endpoint marker
 });
 
 test('graph nodes retain Enter and Space keyboard activation', () => {
-  assert.match(elements, /event\.key === 'Enter' \|\| event\.key === ' '/);
+  assert.match(elements, /isGraphNodeKeyboardActivation\(event\.key\)/);
   assert.match(elements, /event\.preventDefault\(\)/);
   assert.match(elements, /tabIndex=\{access\.disabled \? -1 : 0\}/);
 });
@@ -31,6 +31,10 @@ test('graph nodes retain Enter and Space keyboard activation', () => {
 test('graph nodes distinguish a short pointer activation from D3 graph panning', () => {
   assert.match(elements, /onPointerDownCapture=\{startPointer\}/);
   assert.match(elements, /onPointerUpCapture=\{finishPointer\}/);
-  assert.match(elements, /Math\.hypot\([\s\S]*?\) <= 6/);
-  assert.doesNotMatch(elements, /\s+onClick=/);
+  assert.match(elements, /isGraphNodePointerActivation\(start,/);
+});
+
+test('graph nodes retain a synthetic assistive click without duplicating physical clicks', () => {
+  assert.match(elements, /onClick=\{finishSyntheticClick\}/);
+  assert.match(elements, /isGraphNodeSyntheticClick\(event\.detail\)/);
 });

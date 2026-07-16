@@ -34,6 +34,12 @@
           }
         ],
         "mediaRefs": [
+          "/media/5g/image2.jpeg",
+          "/media/5g/image29.png",
+          "/media/5g/image3.png",
+          "/media/5g/image30.png",
+          "/media/5g/image31.png",
+          "/media/5g/image4.png",
           "/media/manim/p01/p01-site-survey-map/manifest.json",
           "/media/manim/p01/p01-site-survey-map/p01-p01-site-survey-map.webm",
           "/media/manim/p01/p01-site-survey-map/poster.png"
@@ -944,6 +950,13 @@
           }
         ],
         "mediaRefs": [
+          "/media/5g/image54.jpeg",
+          "/media/5g/image55.png",
+          "/media/5g/image56.png",
+          "/media/5g/image57.png",
+          "/media/5g/image58.jpeg",
+          "/media/5g/image62.png",
+          "/media/5g/image65.png",
           "/media/manim/p02/p02-outdoor-site-survey/manifest.json",
           "/media/manim/p02/p02-outdoor-site-survey/p02-p02-outdoor-site-survey.webm",
           "/media/manim/p02/p02-outdoor-site-survey/poster.png"

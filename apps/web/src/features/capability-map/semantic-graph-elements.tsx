@@ -3,6 +3,12 @@ import { useRef } from 'react';
 import { nodeLearningStateLabel } from '@/platform/learning-status';
 import { getNodeLearningPolicy } from '@/platform/learning-policy';
 import { projectFutureContentAccess, projectNodeAccess, projectTaskAccess, type NodeAccessProgress, type NodeAccessProjection } from '@/platform/node-access-projection';
+import {
+  isGraphNodeKeyboardActivation,
+  isGraphNodePointerActivation,
+  isGraphNodeSyntheticClick,
+  type GraphNodePointerPoint,
+} from './graph-node-activation';
 import { edgeBoundaryPoints, placeEdgeLabel, routeSemanticEdge, semanticZoomLevel } from './graph-geometry';
 import type {
   CanonicalGraphNodeProgress,
@@ -73,7 +79,7 @@ export function GraphNode({ node, selected, current, path, achievement, access, 
   const taskScore = node.kind === 'achievement' ? achievementTask?.taskCompositeScore : undefined;
   const title = node.kind === 'achievement' ? `任务综合分 ${taskScore === undefined ? '尚未形成' : `${taskScore}分`}` : node.title;
   const showSubtitle = zoomLevel === 'detail' && node.subtitle && !access.disabled;
-  const pointerStart = useRef<{ id: number; x: number; y: number }>();
+  const pointerStart = useRef<GraphNodePointerPoint>();
   // D3 zoom suppresses the SVG click after its mouse gesture. Pointer events let
   // a short press activate while still distinguishing it from graph panning.
   function startPointer(event: React.PointerEvent<SVGGElement>) {
@@ -82,8 +88,15 @@ export function GraphNode({ node, selected, current, path, achievement, access, 
   function finishPointer(event: React.PointerEvent<SVGGElement>) {
     const start = pointerStart.current;
     pointerStart.current = undefined;
-    if (!start || start.id !== event.pointerId || access.disabled) return;
-    if (Math.hypot(event.clientX - start.x, event.clientY - start.y) <= 6) onChoose(node);
+    if (!start || access.disabled) return;
+    if (isGraphNodePointerActivation(start, {
+      id: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+    })) onChoose(node);
+  }
+  function finishSyntheticClick(event: React.MouseEvent<SVGGElement>) {
+    if (!access.disabled && isGraphNodeSyntheticClick(event.detail)) onChoose(node);
   }
   return (
     <g
@@ -93,10 +106,11 @@ export function GraphNode({ node, selected, current, path, achievement, access, 
       data-graph-node-id={node.id}
       data-graph-node-label={access.label}
       data-graph-node-state={access.kind}
+      onClick={finishSyntheticClick}
       onPointerCancel={() => { pointerStart.current = undefined; }}
       onPointerDownCapture={startPointer}
       onPointerUpCapture={finishPointer}
-      onKeyDown={(event) => { if (!access.disabled && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); onChoose(node); } }}
+      onKeyDown={(event) => { if (!access.disabled && isGraphNodeKeyboardActivation(event.key)) { event.preventDefault(); onChoose(node); } }}
       role="button"
       tabIndex={access.disabled ? -1 : 0}
       transform={`translate(${node.x} ${node.y})`}

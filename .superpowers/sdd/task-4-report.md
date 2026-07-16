@@ -18,14 +18,15 @@ Task 4 is complete and its focused, full-unit, type, structure, production-build
   - defect diagnosis and revision (`P1T1-N02-remediation-revision-01`), requiring revised source evidence, photo indices, and direction;
   - professional conclusion (`P1T1-N02-remediation-conclusion-01`), requiring confirmed fact, evidence gap, risk, and action.
 - Generated the two new remediation activities through `scripts/import_5g/p1_demo_content.py`; generated textbook content was not edited as an independent source.
+- When the ignored authoring media root is absent, the importer now recovers source ownership from persisted lesson-AST relationship IDs and the authoritative DOCX, then intersects that ownership with the tracked runtime closure. This restores the exact 13 `/media/5g/*` references without admitting the unrelated topology asset or modifying media files.
 - Preserved the Task 3 invariant of exactly six base P01 activities while allowing the two transfer/remediation-only activities in the complete catalog.
 - Remediation links now use `/learn/P1T1-N02?section=practice&activityId=...`; the learning page validates the target, opens practice, and focuses the exact activity card.
-- The `game-topology` graph node now opens `/learn/P1T1-N02/test`. Pointer activation distinguishes a click from graph panning, and the D3 zoom behavior uses an explicit measured extent.
+- The `game-topology` graph node now opens `/learn/P1T1-N02/test`. Pointer activation distinguishes a click from graph panning, synthetic assistive clicks remain operable without double-firing physical clicks, and the D3 zoom behavior uses an explicit measured extent.
 - Challenge-mode classroom follow exposes exactly one primary formal-test action and one secondary self-study return.
 
 ## RED/GREEN evidence
 
-The review fixes were driven by failing contracts for issuance readiness, activity-specific retry evidence, semantic remediation mappings, exact remediation focus, graph routing, classroom primary-action policy, graph pointer behavior, and the explicit D3 zoom extent.
+The review fixes were driven by failing contracts for issuance readiness, activity-specific retry evidence, semantic remediation mappings, exact remediation focus, graph routing, classroom primary-action policy, exact-once pointer/keyboard/synthetic activation, the explicit D3 zoom extent, and source-owned runtime-media recovery.
 
 Focused activity and assessment suite:
 
@@ -38,10 +39,23 @@ pnpm exec tsx --test \
 23 tests, 23 pass, 0 fail
 ```
 
+Final integration regressions:
+
+```text
+python -m unittest scripts.import_5g.test_p1_demo_content -v
+1 test, 1 pass
+
+graph activation + semantic graph + P1 activity contracts
+10 tests, 10 pass, 0 fail
+
+deriveGeneratedP1MediaUrls(textbook/5g/generated/p1-demo-content.json)
+22 refs accepted: 13 source images + 9 Manim refs
+```
+
 Full verification with Node `20.20.2`:
 
 ```text
-pnpm web:test:unit       562 tests, 562 pass, 0 fail
+pnpm web:test:unit       564 tests, 564 pass, 0 fail
 pnpm typecheck           PASS
 pnpm web:check-structure PASS
 pnpm web:build           PASS
@@ -85,4 +99,4 @@ audit:capability-map: capability map v3 audit failed (1)
 - expert capability SVG asset is missing
 ```
 
-This missing protected-media asset is outside Task 4 and predates these changes. Task 4 did not modify the authoritative or verified media closure.
+This missing protected-media asset is outside Task 4 and predates these changes. Task 4 did not modify authoritative or verified media files.

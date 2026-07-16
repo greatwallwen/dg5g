@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
+from zipfile import ZipFile
+import xml.etree.ElementTree as ET
 
 from jsonschema import Draft202012Validator
 
@@ -853,9 +855,13 @@ def build_p1_demo_content(
     source_artifacts: dict[str, dict[str, Any]],
     widget_manifest: dict[str, Any],
     media_manifest: dict[str, str],
+    *,
+    source_media_fallback: dict[str, set[str]] | None = None,
 ) -> dict[str, Any]:
     widget_projects = _dict_value(widget_manifest.get("projects"), "widget manifest projects")
     stable_extracted_media = {str(url) for url in media_manifest.values()}
+    for refs in (source_media_fallback or {}).values():
+        stable_extracted_media.update(refs)
     tasks: list[dict[str, Any]] = []
     for task_spec in P1_TASK_STRUCTURE:
         task_id = str(task_spec["taskId"])
@@ -883,6 +889,7 @@ def build_p1_demo_content(
         widget_refs: list[dict[str, str]] = []
         media_refs: set[str] = set()
         _collect_media_refs(storyboard, media_refs)
+        media_refs.update((source_media_fallback or {}).get(task_id, set()))
         for widget_id in widget_ids:
             widget = widgets_by_id.get(widget_id)
             if widget is None:
@@ -966,7 +973,12 @@ def write_p1_demo_content(
     schema = json.loads(schema_path.read_text(encoding="utf-8"))
     Draft202012Validator.check_schema(schema)
 
-    content = build_p1_demo_content(source_artifacts, widget_manifest, media_manifest)
+    content = build_p1_demo_content(
+        source_artifacts,
+        widget_manifest,
+        media_manifest,
+        source_media_fallback=_source_owned_runtime_media_refs(root, source_artifacts),
+    )
     errors = sorted(
         Draft202012Validator(schema).iter_errors(content),
         key=lambda error: tuple(str(part) for part in error.absolute_path),
@@ -1014,3 +1026,63 @@ def _collect_media_refs(value: Any, refs: set[str]) -> None:
     elif isinstance(value, dict):
         for item in value.values():
             _collect_media_refs(item, refs)
+
+
+def _source_owned_runtime_media_refs(
+    root: Path,
+    source_artifacts: dict[str, dict[str, Any]],
+) -> dict[str, set[str]]:
+    if (root / "site/public/media/5g").exists():
+        return {}
+    runtime_root = root / "apps/web/public/media/5g"
+    if not runtime_root.is_dir():
+        return {}
+    available_names = {path.name for path in runtime_root.iterdir() if path.is_file()}
+    relationships_by_source: dict[Path, dict[str, str]] = {}
+    fallback: dict[str, set[str]] = {}
+    resolved_root = root.resolve()
+
+    for task_id, artifact_value in source_artifacts.items():
+        artifact = _dict_value(artifact_value, f"{task_id} source artifact")
+        lesson_ast = _dict_value(artifact.get("lessonAst"), f"{task_id} lesson AST")
+        source = _dict_value(lesson_ast.get("source"), f"{task_id} lesson source")
+        source_path = (root / _non_empty_text(source.get("path"), f"{task_id} source path")).resolve()
+        try:
+            source_path.relative_to(resolved_root)
+        except ValueError as error:
+            raise ValueError(f"{task_id} source document escapes the repository root") from error
+        relationships = relationships_by_source.get(source_path)
+        if relationships is None:
+            relationships = _docx_media_relationships(source_path)
+            relationships_by_source[source_path] = relationships
+
+        content = _dict_value(lesson_ast.get("content"), f"{task_id} lesson content")
+        blocks = _list_value(content.get("blocks"), f"{task_id} lesson blocks")
+        refs: set[str] = set()
+        for block_value in blocks:
+            block = _dict_value(block_value, f"{task_id} lesson block")
+            for relationship_id in block.get("mediaRefs", []):
+                target = relationships.get(str(relationship_id))
+                if target is None:
+                    raise ValueError(f"{task_id} references unknown DOCX media relationship {relationship_id}")
+                target_path = PurePosixPath(target)
+                if target_path.is_absolute() or ".." in target_path.parts or "\\" in target:
+                    raise ValueError(f"{task_id} references unsafe DOCX media target {target}")
+                if len(target_path.parts) != 2 or target_path.parts[0] != "media":
+                    raise ValueError(f"{task_id} references non-media DOCX target {target}")
+                if target_path.name in available_names:
+                    refs.add(f"/media/5g/{target_path.name}")
+        fallback[task_id] = refs
+    return fallback
+
+
+def _docx_media_relationships(source_path: Path) -> dict[str, str]:
+    with ZipFile(source_path) as archive:
+        relationships_xml = archive.read("word/_rels/document.xml.rels")
+    relationships_root = ET.fromstring(relationships_xml)
+    return {
+        relationship_id: target
+        for relationship in relationships_root
+        if (relationship_id := relationship.attrib.get("Id"))
+        and (target := relationship.attrib.get("Target"))
+    }
