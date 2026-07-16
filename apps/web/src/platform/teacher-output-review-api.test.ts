@@ -187,7 +187,7 @@ function insertUserFormalAssessment(
   database.prepare(`
     INSERT INTO formal_assessment_instances (
       assessment_id, node_id, game_id, question_version, status, closed_at
-    ) VALUES (?, 'P1T1-N02', 'p01-n02-formal', 'p01-n02-v1', 'closed', ?)
+    ) VALUES (?, 'P1T1-N02', 'P1T1-N02-server-assessment', 'p01-n02-v1', 'closed', ?)
   `).run(assessmentId, completedAt);
   const dimensions = Object.fromEntries(assessmentDimensionKeys.map((key) => [key, {
     score: score / 4, maxScore: 25, feedback: `${key} feedback`,
@@ -196,9 +196,10 @@ function insertUserFormalAssessment(
     INSERT INTO formal_attempts (
       attempt_id, student_id, node_id, assessment_id, game_id, score,
       completed_at, question_version, answers_json, diagnostics_json, origin
-    ) VALUES (?, 'stu-01', 'P1T1-N02', ?, 'p01-n02-formal', ?, ?, 'p01-n02-v1', '{}', ?, 'user')
+    ) VALUES (?, 'stu-01', 'P1T1-N02', ?, 'P1T1-N02-server-assessment', ?, ?, 'p01-n02-v1', '{}', ?, 'user')
   `).run(attemptId, assessmentId, score, completedAt, JSON.stringify({
-    assessmentId, attemptId, nodeId: 'P1T1-N02', questionVersion: 'p01-n02-v1',
+    assessmentId, attemptId, studentId: 'stu-01', nodeId: 'P1T1-N02',
+    gameId: 'P1T1-N02-server-assessment', questionVersion: 'p01-n02-v1',
     totalScore: score, passed: true, dimensions, remediationTargets: [],
     origin: 'user', completedAt,
   }));

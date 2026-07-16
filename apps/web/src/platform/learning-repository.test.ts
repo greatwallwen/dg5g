@@ -106,6 +106,11 @@ test('stores and replays a structurally valid formal attempt without applying co
     assert.deepEqual(repository.readStudentFacts('stu-a').attempts, [{
       ...attempt,
       score: 79.5,
+      instanceAssessmentId: 'assessment-stu-a-001',
+      instanceNodeId: 'P1T1-N02',
+      instanceGameId: 'node-test',
+      instanceQuestionVersion: 'question-v1',
+      instanceStatus: 'running',
     }]);
   } finally {
     fixture.cleanup();
