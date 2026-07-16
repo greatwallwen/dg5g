@@ -69,6 +69,18 @@ test('one authoritative transaction yields identical common facts and audience-s
     assert.equal(teacherGraph.audience, 'graph');
     assert.equal(teacherGraph.mode, 'teacher');
     assert.equal(teacherGraph.nodeHeatmap.length, 12);
+    assert.deepEqual(
+      teacherGraph.tasks.map(({ taskId, taskCompositeScore, origin }) => ({
+        taskId,
+        taskCompositeScore,
+        origin,
+      })),
+      [
+        { taskId: 'P01', taskCompositeScore: 94, origin: 'demo' },
+        { taskId: 'P02', taskCompositeScore: 92, origin: 'demo' },
+        { taskId: 'P03', taskCompositeScore: 91, origin: 'demo' },
+      ],
+    );
 
     assert.equal(projector.audience, 'projector');
     assertProjectorContainsNoPersonalData(projector);

@@ -139,7 +139,12 @@ export type AuthoritativeSnapshot =
       audience: 'graph';
       mode: 'teacher';
       nodeHeatmap: Array<{ nodeId: P1NodeId; stateCounts: Partial<Record<NodeLearningState, number>> }>;
-      tasks: Array<{ taskId: P1TaskId; stateCompletionPercent: number }>;
+      tasks: Array<{
+        taskId: P1TaskId;
+        stateCompletionPercent: number;
+        taskCompositeScore?: number;
+        origin?: LearningOrigin;
+      }>;
     });
 
 export type StudentAuthoritativeSnapshot = Extract<AuthoritativeSnapshot, { audience: 'student' }>;
@@ -398,7 +403,7 @@ export class AuthoritativeSnapshotReader {
       audience,
       mode: 'teacher',
       nodeHeatmap,
-      tasks: projectTeacherGraphTasks(nodeHeatmap),
+      tasks: projectTeacherGraphTasks(nodeHeatmap, students),
     };
   }
 }
@@ -550,7 +555,13 @@ function projectStudentTaskCompletion(
 
 function projectTeacherGraphTasks(
   heatmap: Array<{ nodeId: P1NodeId; stateCounts: Partial<Record<NodeLearningState, number>> }>,
-): Array<{ taskId: P1TaskId; stateCompletionPercent: number }> {
+  students: ProjectedStudent[],
+): Array<{
+  taskId: P1TaskId;
+  stateCompletionPercent: number;
+  taskCompositeScore?: number;
+  origin?: LearningOrigin;
+}> {
   return (['P01', 'P02', 'P03'] as const).map((taskId) => {
     const taskNodeIds = new Set(nodeLearningPolicies
       .filter((policy) => policy.taskId === taskId)
@@ -565,9 +576,24 @@ function projectTeacherGraphTasks(
         sampleCount += count ?? 0;
       }
     }
+    const scoreFacts = students.flatMap(({ learning }) => {
+      const task = learning.tasks.find((candidate) => candidate.taskId === taskId);
+      return task?.taskCompositeScore === undefined
+        ? []
+        : [{ score: task.taskCompositeScore, origin: task.origin }];
+    });
+    const scoreOrigin = scoreFacts.some(({ origin }) => origin === 'demo')
+      ? 'demo' as const
+      : scoreFacts.length > 0 && scoreFacts.every(({ origin }) => origin === 'user')
+        ? 'user' as const
+        : undefined;
     return {
       taskId,
       stateCompletionPercent: sampleCount === 0 ? 0 : Math.round(weightedTotal / sampleCount),
+      ...(scoreFacts.length === 0 ? {} : {
+        taskCompositeScore: average(scoreFacts.map(({ score }) => score)),
+      }),
+      ...(scoreOrigin ? { origin: scoreOrigin } : {}),
     };
   });
 }
