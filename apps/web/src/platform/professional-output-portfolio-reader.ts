@@ -1,0 +1,271 @@
+import type {
+  P1PortfolioDetailFacts,
+  PortfolioAssessmentFact,
+  PortfolioEvidenceFact,
+  PortfolioReviewFact,
+  PortfolioVersionFact,
+} from '../features/portfolio/p1-portfolio-detail-model.ts';
+import type { LearningOrigin } from './learning-origin.ts';
+import type {
+  P1OutputTaskId,
+  ProfessionalOutputFieldValue,
+  ProfessionalOutputStatus,
+} from './professional-output-repository.ts';
+import type { AppDatabase } from './db/database.ts';
+
+interface HeadRow {
+  outputId: string;
+  studentId: string;
+  taskId: P1OutputTaskId;
+  currentVersion: number;
+  stateRevision: number;
+  status: ProfessionalOutputStatus;
+  origin: LearningOrigin;
+}
+
+interface VersionRow {
+  outputId: string;
+  taskId: P1OutputTaskId;
+  version: number;
+  schemaVersion: 1;
+  fieldsJson: string;
+  upstreamRefsJson: string;
+}
+
+interface FormalRow {
+  attemptId: string;
+  studentId: string;
+  nodeId: string;
+  assessmentId: string | null;
+  questionVersion: string | null;
+  score: number;
+  diagnosticsJson: string;
+  origin: LearningOrigin;
+  completedAt: string;
+}
+
+const assessmentNodeByTask: Record<P1OutputTaskId, string> = {
+  P01: 'P1T1-N02',
+  P02: 'P1T2-N02',
+  P03: 'P1T3-N02',
+};
+
+export class ProfessionalOutputPortfolioReader {
+  constructor(private readonly database: AppDatabase) {}
+
+  read(studentId: string, taskId: P1OutputTaskId): P1PortfolioDetailFacts {
+    assertNonEmpty('studentId', studentId);
+    assertTaskId(taskId);
+    const head = this.readHead(studentId, taskId);
+    if (!head) return { taskId };
+    return {
+      taskId,
+      output: {
+        head,
+        versions: this.readVersions(head.outputId),
+        submissionCount: this.readSubmissionCount(head.outputId),
+        reviewHistory: this.readReviews(head.outputId),
+      },
+      ...optionalAssessment(this.readAssessment(studentId, taskId)),
+    };
+  }
+
+  private readHead(studentId: string, taskId: P1OutputTaskId): HeadRow | undefined {
+    return this.database.prepare(`
+      SELECT output_id AS outputId, student_id AS studentId, task_id AS taskId,
+        current_version AS currentVersion, state_revision AS stateRevision,
+        status, origin
+      FROM professional_outputs
+      WHERE student_id = ? AND task_id = ?
+    `).get(studentId, taskId) as HeadRow | undefined;
+  }
+
+  private readVersions(outputId: string): PortfolioVersionFact[] {
+    const rows = this.database.prepare(`
+      SELECT output_id AS outputId, task_id AS taskId, version,
+        schema_version AS schemaVersion, fields_json AS fieldsJson,
+        upstream_refs_json AS upstreamRefsJson
+      FROM professional_output_versions
+      WHERE output_id = ? ORDER BY version
+    `).all(outputId) as VersionRow[];
+    return rows.map((row) => ({
+      outputId: row.outputId,
+      taskId: row.taskId,
+      version: row.version,
+      schemaVersion: row.schemaVersion,
+      fields: parseFields(row.fieldsJson),
+      upstreamRefs: parseJsonArray(row.upstreamRefsJson),
+      evidenceLinks: this.readEvidence(row.outputId, row.version),
+      fieldSources: this.database.prepare(`
+        SELECT field_key AS fieldKey, source_node_id AS sourceNodeId,
+          source_attempt_id AS sourceAttemptId
+        FROM output_field_sources
+        WHERE output_id = ? AND version = ?
+        ORDER BY field_key, source_node_id, source_attempt_id
+      `).all(row.outputId, row.version) as PortfolioVersionFact['fieldSources'],
+    }));
+  }
+
+  private readEvidence(outputId: string, version: number): PortfolioVersionFact['evidenceLinks'] {
+    const rows = this.database.prepare(`
+      SELECT link.field_key AS fieldKey, evidence.evidence_id AS evidenceId,
+        evidence.title, evidence.kind, evidence.asset_url AS assetUrl,
+        evidence.metadata_json AS metadataJson, evidence.origin
+      FROM output_evidence_links AS link
+      INNER JOIN evidence_library AS evidence ON evidence.evidence_id = link.evidence_id
+      WHERE link.output_id = ? AND link.version = ?
+      ORDER BY link.field_key, evidence.evidence_id
+    `).all(outputId, version) as Array<Omit<PortfolioEvidenceFact, 'metadata'> & {
+      fieldKey: string;
+      metadataJson: string;
+    }>;
+    const links: PortfolioVersionFact['evidenceLinks'] = {};
+    for (const { fieldKey, metadataJson, ...row } of rows) {
+      (links[fieldKey] ??= []).push({ ...row, metadata: stringMetadata(metadataJson) });
+    }
+    return links;
+  }
+
+  private readReviews(outputId: string): PortfolioReviewFact[] {
+    const rows = this.database.prepare(`
+      SELECT review.review_id AS reviewId, review.reviewer_id AS reviewerId,
+        review.status, review.score, review.feedback, review.reviewed_at AS reviewedAt,
+        review.origin, CAST((
+          SELECT json_extract(event.payload_json, '$.version')
+          FROM learning_events AS event
+          WHERE json_extract(event.payload_json, '$.reviewId') = review.review_id
+          ORDER BY event.occurred_at DESC, event.event_id DESC LIMIT 1
+        ) AS INTEGER) AS outputVersion
+      FROM output_reviews AS review
+      WHERE review.output_id = ?
+      ORDER BY review.reviewed_at, review.review_id
+    `).all(outputId) as Array<Omit<PortfolioReviewFact, 'annotations' | 'score' | 'feedback'> & {
+      score: number | null;
+      feedback: string | null;
+      outputVersion: number | null;
+    }>;
+    return rows.flatMap((row) => row.outputVersion === null || row.outputVersion < 1 ? [] : [{
+      reviewId: row.reviewId,
+      reviewerId: row.reviewerId,
+      status: row.status,
+      outputVersion: row.outputVersion,
+      ...(row.score === null ? {} : { score: row.score }),
+      ...(row.feedback === null ? {} : { feedback: row.feedback }),
+      reviewedAt: row.reviewedAt,
+      origin: row.origin,
+      annotations: this.database.prepare(`
+        SELECT field_key AS fieldKey, comment
+        FROM output_review_annotations WHERE review_id = ? ORDER BY field_key
+      `).all(row.reviewId) as PortfolioReviewFact['annotations'],
+    }]);
+  }
+
+  private readSubmissionCount(outputId: string): number {
+    return this.database.prepare(`
+      SELECT COUNT(*) FROM learning_events
+      WHERE event_type = 'evidence_submitted'
+        AND json_extract(payload_json, '$.outputId') = ?
+    `).pluck().get(outputId) as number;
+  }
+
+  private readAssessment(studentId: string, taskId: P1OutputTaskId): PortfolioAssessmentFact | undefined {
+    const nodeId = assessmentNodeByTask[taskId];
+    const frozen = this.database.prepare(`
+      SELECT details_json AS detailsJson FROM frozen_task_scores
+      WHERE student_id = ? AND task_id = ?
+      ORDER BY CASE origin WHEN 'user' THEN 0 ELSE 1 END,
+        snapshot_version DESC, frozen_at DESC, score_id DESC LIMIT 1
+    `).get(studentId, taskId) as { detailsJson: string } | undefined;
+    const attemptId = stringProperty(parseJsonRecord(frozen?.detailsJson), 'nodeTestAttemptId');
+    const row = attemptId
+      ? this.readFormalById(studentId, nodeId, attemptId)
+      : this.readCurrentFormal(studentId, nodeId);
+    return row ? projectFormalRow(row) : undefined;
+  }
+
+  private readFormalById(studentId: string, nodeId: string, attemptId: string): FormalRow | undefined {
+    return this.database.prepare(`${formalSelect()} WHERE attempt_id = ? AND student_id = ? AND node_id = ?`)
+      .get(attemptId, studentId, nodeId) as FormalRow | undefined;
+  }
+
+  private readCurrentFormal(studentId: string, nodeId: string): FormalRow | undefined {
+    return this.database.prepare(`${formalSelect()}
+      WHERE student_id = ? AND node_id = ?
+      ORDER BY CASE origin WHEN 'user' THEN 0 ELSE 1 END,
+        julianday(completed_at) DESC, attempt_id DESC LIMIT 1
+    `).get(studentId, nodeId) as FormalRow | undefined;
+  }
+}
+
+function formalSelect(): string {
+  return `SELECT attempt_id AS attemptId, student_id AS studentId, node_id AS nodeId,
+    assessment_id AS assessmentId, question_version AS questionVersion, score,
+    diagnostics_json AS diagnosticsJson, origin, completed_at AS completedAt
+    FROM formal_attempts`;
+}
+
+function projectFormalRow(row: FormalRow): PortfolioAssessmentFact | undefined {
+  const value = parseJsonRecord(row.diagnosticsJson);
+  if (!value || row.assessmentId === null || row.questionVersion === null
+    || value.assessmentId !== row.assessmentId || value.attemptId !== row.attemptId
+    || value.nodeId !== row.nodeId || value.questionVersion !== row.questionVersion
+    || value.totalScore !== row.score || value.origin !== row.origin
+    || value.completedAt !== row.completedAt || !isRecord(value.dimensions)
+    || !Array.isArray(value.remediationTargets) || typeof value.passed !== 'boolean') return undefined;
+  return {
+    assessmentId: row.assessmentId,
+    attemptId: row.attemptId,
+    nodeId: row.nodeId,
+    questionVersion: row.questionVersion,
+    totalScore: row.score,
+    passed: value.passed,
+    dimensions: value.dimensions as PortfolioAssessmentFact['dimensions'],
+    remediationTargets: value.remediationTargets as PortfolioAssessmentFact['remediationTargets'],
+    origin: row.origin,
+    completedAt: row.completedAt,
+  };
+}
+
+function parseFields(value: string): Record<string, ProfessionalOutputFieldValue> {
+  const record = parseJsonRecord(value);
+  if (!record) return {};
+  return Object.fromEntries(Object.entries(record).filter((entry): entry is [string, ProfessionalOutputFieldValue] => {
+    const field = entry[1];
+    return typeof field === 'string' || (typeof field === 'number' && Number.isFinite(field))
+      || (Array.isArray(field) && field.every((item) => typeof item === 'string'));
+  }));
+}
+
+function stringMetadata(value: string): Record<string, string> {
+  return Object.fromEntries(Object.entries(parseJsonRecord(value) ?? {})
+    .filter((entry): entry is [string, string] => typeof entry[1] === 'string'));
+}
+
+function parseJsonRecord(value: string | undefined): Record<string, unknown> | undefined {
+  if (!value) return undefined;
+  try { const parsed: unknown = JSON.parse(value); return isRecord(parsed) ? parsed : undefined; } catch { return undefined; }
+}
+
+function parseJsonArray<T>(value: string): T[] {
+  try { const parsed: unknown = JSON.parse(value); return Array.isArray(parsed) ? parsed as T[] : []; } catch { return []; }
+}
+
+function optionalAssessment(value: PortfolioAssessmentFact | undefined): Pick<P1PortfolioDetailFacts, 'assessment'> {
+  return value ? { assessment: value } : {};
+}
+
+function stringProperty(value: Record<string, unknown> | undefined, key: string): string | undefined {
+  const item = value?.[key]; return typeof item === 'string' && item.trim() ? item : undefined;
+}
+
+function assertTaskId(value: string): asserts value is P1OutputTaskId {
+  if (value !== 'P01' && value !== 'P02' && value !== 'P03') throw new TypeError('Invalid P1 task id.');
+}
+
+function assertNonEmpty(field: string, value: string): void {
+  if (typeof value !== 'string' || !value.trim()) throw new TypeError(`${field} must be non-empty.`);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
