@@ -7,6 +7,7 @@ import { Icon } from '@/ui/foundation/icons';
 import { projectChallengeScene } from '@/features/textbook-scene/challenge-scene-model';
 
 export function StudentFormalTestWorkspace({
+  classroomSessionId,
   evidence,
   evidenceState,
   nodeId,
@@ -16,6 +17,7 @@ export function StudentFormalTestWorkspace({
   student,
   title,
 }: {
+  classroomSessionId: string;
   evidence: string;
   evidenceState: 'idle' | 'saving' | 'error';
   gameConfig: ReturnType<typeof skillGameForNode>;
@@ -63,7 +65,7 @@ export function StudentFormalTestWorkspace({
         <section className="formal-assessment-entry" data-classroom-assessment-entry={nodeId}>
           <span><Icon name="target" size={26} /></span>
           <div><small>独立正式测试</small><h2>进入安全测试页完成实际作答</h2><p>课堂状态继续同步；题面、一次性凭证与成绩由测试服务管理。</p></div>
-          <Link href={`/learn/${nodeId}/test`}>进入正式测试</Link>
+          <Link href={`/learn/${nodeId}/test?classroomSessionId=${encodeURIComponent(classroomSessionId)}`}>进入正式测试</Link>
         </section>
       </div>
       {challenge.requiresProfessionalOutput ? <aside className="student-evidence-workspace">

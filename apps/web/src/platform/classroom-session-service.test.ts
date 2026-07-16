@@ -8,6 +8,7 @@ import { createTestDatabase } from './db/test-database.ts';
 import { ClassroomSessionRepository } from './classroom-session-repository.ts';
 import { ClassroomRosterRepository } from './classroom-roster-repository.ts';
 import { getNodeLearningPolicy } from './learning-policy.ts';
+import { FormalAssessmentService, type AssessmentAnswers } from './formal-assessment-service.ts';
 
 const teacher: AuthenticatedActor = {
   userId: 'teacher-01',
@@ -84,6 +85,222 @@ test('allows only the owning teacher to apply a revision-checked lesson intent',
     assert.equal(result.session.lessonState?.revision, 1);
     assert.equal(result.command.revision, 1);
     assert.equal(result.session.syncRequestId, result.command.commandId);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('starts a formal assessment with a server-owned shared run identity and server timestamp', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    const repository = new ClassroomSessionRepository(fixture.database);
+    const service = new ClassroomSessionService(
+      repository,
+      new ClassroomRosterRepository(fixture.database),
+    );
+    const now = new Date('2026-07-16T04:00:00.000Z');
+    repository.recordHeartbeat('demo-class', {
+      deviceId: 'student-live-01',
+      actorRole: 'student',
+      studentId: 'stu-01',
+      pageState: 'ready',
+      lastAppliedRevision: 0,
+    }, now);
+    service.applyTeacherIntent(
+      teacher,
+      'demo-class',
+      { type: 'phase_changed', phase: 'lecture' },
+      0,
+      now,
+    );
+    const current = service.read(teacher, 'demo-class', 'actor', now);
+    assert.ok(current?.formalTest);
+
+    const started = service.patchTeacherState(teacher, 'demo-class', {
+      formalTest: {
+        ...current.formalTest,
+        runId: 'forged-client-run',
+        gameId: 'forged-client-game',
+        status: 'running',
+        startedAt: '1999-01-01T00:00:00.000Z',
+      },
+    }, 1, now);
+
+    assert.match(started.formalTest?.runId ?? '', /^classroom-run-/);
+    assert.notEqual(started.formalTest?.runId, 'forged-client-run');
+    assert.equal(started.formalTest?.startedAt, now.toISOString());
+    assert.equal(started.formalTest?.gameId, 'P1T1-N02-server-assessment');
+    assert.equal(started.formalTest?.status, 'running');
+    const stored = repository.readSession('demo-class');
+    assert.equal(stored?.state.formalTest?.runId, started.formalTest?.runId);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('rejects synchronized page and follow mutations while every classroom helper is offline', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    const service = new ClassroomSessionService(
+      new ClassroomSessionRepository(fixture.database),
+      new ClassroomRosterRepository(fixture.database),
+    );
+
+    assert.throws(
+      () => service.patchTeacherState(teacher, 'demo-class', {
+        currentPageId: 'P1-STUDENT-FOLLOW-N01',
+        teacherSlideId: 'P1T1-N02-S02',
+        teacherSlideIndex: 2,
+        studentSyncState: 'requested',
+      }, 0, new Date('2026-07-16T04:00:00.000Z')),
+      { name: 'ClassroomHelperUnavailableError' },
+    );
+    assert.throws(
+      () => service.applyTeacherIntent(
+        teacher,
+        'demo-class',
+        { type: 'playback_seeked', positionMs: 1_500 },
+        0,
+        new Date('2026-07-16T04:00:00.000Z'),
+      ),
+      { name: 'ClassroomHelperUnavailableError' },
+    );
+    assert.equal(fixture.database.prepare(`
+      SELECT revision FROM classroom_sessions WHERE session_id = 'demo-class'
+    `).pluck().get(), 0);
+    assert.equal(fixture.database.prepare(`
+      SELECT COUNT(*) FROM classroom_commands WHERE session_id = 'demo-class'
+    `).pluck().get(), 0);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('blocks review at zero real submissions and opens it after one valid submission in the active run', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    readyForFormalAssessment(fixture.database, 'stu-01');
+    const repository = new ClassroomSessionRepository(fixture.database);
+    const service = new ClassroomSessionService(
+      repository,
+      new ClassroomRosterRepository(fixture.database),
+    );
+    const now = new Date('2026-07-16T04:00:00.000Z');
+    repository.recordHeartbeat('demo-class', {
+      deviceId: 'student-live-review',
+      actorRole: 'student',
+      studentId: 'stu-01',
+      pageState: 'ready',
+      lastAppliedRevision: 0,
+    }, now);
+    service.applyTeacherIntent(teacher, 'demo-class', { type: 'phase_changed', phase: 'lecture' }, 0, now);
+    service.applyTeacherIntent(teacher, 'demo-class', { type: 'phase_changed', phase: 'practice' }, 1, now);
+    service.applyTeacherIntent(teacher, 'demo-class', { type: 'phase_changed', phase: 'challenge' }, 2, now);
+    const before = service.read(teacher, 'demo-class', 'actor', now);
+    assert.ok(before?.formalTest);
+    const running = service.patchTeacherState(teacher, 'demo-class', {
+      formalTest: { ...before.formalTest, status: 'running' },
+    }, 3, now);
+    assert.ok(running.formalTest?.runId);
+
+    assert.throws(
+      () => service.applyTeacherIntent(
+        teacher,
+        'demo-class',
+        { type: 'phase_changed', phase: 'review' },
+        4,
+        new Date('2026-07-16T04:01:00.000Z'),
+      ),
+      { name: 'ClassroomReviewUnavailableError' },
+    );
+    assert.equal(repository.readSession('demo-class')?.revision, 4);
+
+    let sequence = 0;
+    const assessment = new FormalAssessmentService(fixture.database, {
+      now: () => new Date('2026-07-16T04:01:30.000Z'),
+      randomId: () => `review-${++sequence}`,
+      randomToken: () => `review-token-${++sequence}-0123456789abcdef`,
+    });
+    const issued = assessment.issuePaper(student, 'P1T1-N02', {
+      classroomSessionId: 'demo-class',
+    });
+    assessment.submitAnswers(student, issued.attemptToken, wrongAssessmentAnswers());
+
+    const review = service.applyTeacherIntent(
+      teacher,
+      'demo-class',
+      { type: 'phase_changed', phase: 'review' },
+      4,
+      new Date('2026-07-16T04:02:00.000Z'),
+    );
+    assert.equal(review.session.lessonState?.phase, 'review');
+    assert.equal(review.session.reviewState, 'reviewing');
+    assert.equal(review.session.formalTest?.status, 'review');
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('applies projector page changes through one server revision and fails closed at page or helper boundaries', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    const repository = new ClassroomSessionRepository(fixture.database);
+    const service = new ClassroomSessionService(
+      repository,
+      new ClassroomRosterRepository(fixture.database),
+    );
+    const now = new Date('2026-07-16T05:00:00.000Z');
+    repository.recordHeartbeat('demo-class', {
+      deviceId: 'student-projector-control',
+      actorRole: 'student',
+      studentId: 'stu-01',
+      pageState: 'ready',
+      lastAppliedRevision: 0,
+    }, now);
+    service.applyTeacherIntent(teacher, 'demo-class', { type: 'phase_changed', phase: 'lecture' }, 0, now);
+
+    const lastPage = service.applyTeacherIntent(
+      teacher,
+      'demo-class',
+      { type: 'page_changed', pageIndex: 11 },
+      1,
+      now,
+    );
+    assert.equal(lastPage.session.lessonState?.playback.actionIndex, 11);
+    assert.equal(lastPage.session.teacherSlideIndex, 12);
+    assert.equal(lastPage.session.teacherSlideId, 'P1T1-N02-S12');
+    assert.equal(lastPage.command.revision, 2);
+
+    assert.throws(
+      () => service.applyTeacherIntent(
+        teacher,
+        'demo-class',
+        { type: 'page_changed', pageIndex: 12 },
+        2,
+        now,
+      ),
+      { name: 'ClassroomIntentError' },
+    );
+    assert.equal(repository.readSession('demo-class')?.revision, 2);
+    assert.throws(
+      () => service.applyTeacherIntent(
+        teacher,
+        'demo-class',
+        { type: 'page_changed', pageIndex: 10 },
+        2,
+        new Date('2026-07-16T05:00:10.000Z'),
+      ),
+      { name: 'ClassroomHelperUnavailableError' },
+    );
+    assert.equal(repository.readSession('demo-class')?.revision, 2);
   } finally {
     fixture.cleanup();
   }
@@ -171,6 +388,13 @@ test('startLesson atomically reopens the classroom at a fresh published teaching
     );
     const beforeDirty = service.read(teacher, 'demo-class');
     assert.ok(beforeDirty?.formalTest);
+    repository.recordHeartbeat('demo-class', {
+      deviceId: 'student-start-lesson-reset',
+      actorRole: 'student',
+      studentId: 'stu-01',
+      pageState: 'ready',
+      lastAppliedRevision: 1,
+    }, new Date('2026-07-16T03:01:00.000Z'));
     const dirty = service.patchTeacherState(teacher, 'demo-class', {
       activityState: 'reviewing',
       reviewState: 'completed',
@@ -375,3 +599,28 @@ test('startLesson returns the new-node roster projection while preserving each p
     fixture.cleanup();
   }
 });
+
+function readyForFormalAssessment(database: ReturnType<typeof createTestDatabase>['database'], studentId: string): void {
+  const insert = database.prepare(`
+    INSERT INTO practice_attempts (
+      attempt_id, student_id, activity_id, node_id, passed, origin, attempted_at
+    ) VALUES (?, ?, ?, ?, 1, 'user', '2026-07-16T03:30:00.000Z')
+  `);
+  for (const [activityId, nodeId] of [
+    ['P1T1-N01-micro-01', 'P1T1-N01'],
+    ['P1T1-N02-foundation-01', 'P1T1-N02'],
+    ['P1T1-N02-application-01', 'P1T1-N02'],
+    ['P1T1-N02-transfer-01', 'P1T1-N02'],
+  ] as const) insert.run(`ready-${studentId}-${activityId}`, studentId, activityId, nodeId);
+}
+
+function wrongAssessmentAnswers(): AssessmentAnswers {
+  return {
+    evidenceClassification: 'environment-note',
+    linkReconstruction: ['peer-device', 'peer-port', 'cable-label', 'source-port', 'source-device'],
+    defectiveOutputRevision: ['erase-gap'],
+    professionalConclusion: {
+      confirmedFact: '未说明', evidenceGap: '未说明', risk: '未说明', action: '未说明',
+    },
+  };
+}

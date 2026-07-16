@@ -110,11 +110,18 @@ export function isPlaybackCursor(
 export function isFormalTest(
   value: unknown,
 ): value is NonNullable<ClassroomSessionStateV1['formalTest']> {
-  return isRecord(value)
-    && typeof value.assessmentId === 'string'
-    && typeof value.gameId === 'string'
-    && typeof value.nodeId === 'string'
-    && (value.status === 'idle' || value.status === 'running'
-      || value.status === 'paused' || value.status === 'review')
-    && typeof value.durationSeconds === 'number';
+  if (!isRecord(value)
+    || typeof value.assessmentId !== 'string'
+    || typeof value.gameId !== 'string'
+    || typeof value.nodeId !== 'string'
+    || (value.status !== 'idle' && value.status !== 'running'
+      && value.status !== 'paused' && value.status !== 'review')
+    || typeof value.durationSeconds !== 'number') return false;
+  if (value.status === 'idle') {
+    return value.runId === undefined && value.startedAt === undefined;
+  }
+  return typeof value.runId === 'string'
+    && value.runId.trim().length > 0
+    && typeof value.startedAt === 'string'
+    && Number.isFinite(Date.parse(value.startedAt));
 }

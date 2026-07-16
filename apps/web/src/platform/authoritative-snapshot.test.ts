@@ -7,6 +7,7 @@ import { seedDemo } from './db/demo-seed.ts';
 import { migrateDatabase } from './db/migrations.ts';
 import { createTestDatabase } from './db/test-database.ts';
 import { LearningRepository } from './learning-repository.ts';
+import { FormalAssessmentService, type AssessmentAnswers } from './formal-assessment-service.ts';
 import {
   AuthoritativeSnapshotAuthorizationError,
   AuthoritativeSnapshotReader,
@@ -131,6 +132,7 @@ test('historical demo attempts never enter active assessment submission statisti
     assert.ok(classroom);
     classroom.state.formalTest = {
       assessmentId: 'demo-assessment-stu-03-p01',
+      runId: 'classroom-run-historical-proof',
       gameId: 'p01-n02-formal',
       nodeId: 'P1T1-N02',
       status: 'running',
@@ -160,7 +162,93 @@ test('historical demo attempts never enter active assessment submission statisti
   }
 });
 
-test('running assessment counts only active assessment identity within the current game and time window', () => {
+test('counts a real submission by shared classroom run while preserving its unique student assessment identity', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    readyForFormalAssessment(fixture.database, 'stu-01');
+    const classroom = new ClassroomSessionRepository(fixture.database).readSession('demo-class');
+    assert.ok(classroom);
+    classroom.state.formalTest = {
+      assessmentId: 'AS-P1T1-N02',
+      runId: 'classroom-run-shared-01',
+      gameId: 'P1T1-N02-server-assessment',
+      nodeId: 'P1T1-N02',
+      status: 'running',
+      durationSeconds: 900,
+      startedAt: '2026-07-16T01:10:00.000Z',
+    };
+    fixture.database.prepare(`
+      UPDATE classroom_sessions SET status = 'active', state_json = ?
+      WHERE session_id = 'demo-class'
+    `).run(JSON.stringify(classroom.state));
+    let sequence = 0;
+    const assessment = new FormalAssessmentService(fixture.database, {
+      now: () => new Date('2026-07-16T01:15:00.000Z'),
+      randomId: () => `live-${++sequence}`,
+      randomToken: () => `live-token-${++sequence}-0123456789abcdef`,
+    });
+    const selfIssued = assessment.issuePaper(studentActor('stu-01'), 'P1T1-N02');
+    assessment.submitAnswers(
+      studentActor('stu-01'),
+      selfIssued.attemptToken,
+      passingAssessmentAnswers(),
+    );
+    const issued = assessment.issuePaper(studentActor('stu-01'), 'P1T1-N02', {
+      classroomSessionId: 'demo-class',
+    });
+    assessment.submitAnswers(studentActor('stu-01'), issued.attemptToken, wrongAssessmentAnswers());
+
+    const snapshot = new AuthoritativeSnapshotReader(fixture.database)
+      .read(teacherActor(), 'teacher', { now });
+
+    assert.notEqual(issued.assessmentId, classroom.state.formalTest.runId);
+    const bindings = fixture.database.prepare(`
+      SELECT assessment_id AS assessmentId, classroom_run_id AS classroomRunId
+      FROM formal_assessment_instances
+      WHERE assessment_id IN (?, ?)
+      ORDER BY assessment_id
+    `).all(selfIssued.assessmentId, issued.assessmentId) as Array<{
+      assessmentId: string;
+      classroomRunId: string | null;
+    }>;
+    assert.equal(bindings.find(({ assessmentId }) => assessmentId === selfIssued.assessmentId)?.classroomRunId, null);
+    assert.equal(bindings.find(({ assessmentId }) => assessmentId === issued.assessmentId)?.classroomRunId, 'classroom-run-shared-01');
+    assert.deepEqual(snapshot.submissions.activeAssessment, {
+      status: 'running',
+      eligibleCount: 3,
+      submittedCount: 1,
+      playingCount: 2,
+      passedCount: 0,
+      submissionPercent: 33.3,
+      passRatePercent: 0,
+    });
+
+    classroom.state.formalTest.status = 'review';
+    classroom.state.reviewState = 'reviewing';
+    fixture.database.prepare(`
+      UPDATE classroom_sessions SET state_json = ? WHERE session_id = 'demo-class'
+    `).run(JSON.stringify(classroom.state));
+    const projectorReview = new AuthoritativeSnapshotReader(fixture.database)
+      .read(teacherActor(), 'projector', { now });
+    assert.deepEqual(projectorReview.submissions.activeAssessment.errorDistribution, [
+      { dimension: 'evidenceClassification', incorrectCount: 1, percent: 100 },
+      { dimension: 'linkReconstruction', incorrectCount: 1, percent: 100 },
+      { dimension: 'defectiveOutputRevision', incorrectCount: 1, percent: 100 },
+      { dimension: 'professionalConclusion', incorrectCount: 1, percent: 100 },
+    ]);
+    assertProjectorContainsNoPersonalData(projectorReview);
+    const serializedReview = JSON.stringify(projectorReview.submissions.activeAssessment);
+    for (const forbidden of ['stu-01', 'student01', 'answers', 'feedback', 'evidenceText']) {
+      assert.equal(serializedReview.includes(forbidden), false);
+    }
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('running assessment excludes unbound attempts even when their old assessment id and time appear current', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
@@ -169,6 +257,7 @@ test('running assessment counts only active assessment identity within the curre
     assert.ok(classroom);
     classroom.state.formalTest = {
       assessmentId: 'assessment-current',
+      runId: 'classroom-run-current',
       gameId: 'P1T1-N02-formal',
       nodeId: 'P1T1-N02',
       status: 'running',
@@ -237,11 +326,10 @@ test('running assessment counts only active assessment identity within the curre
     assert.deepEqual(snapshot.submissions.activeAssessment, {
       status: 'running',
       eligibleCount: 3,
-      submittedCount: 1,
-      playingCount: 2,
+      submittedCount: 0,
+      playingCount: 3,
       passedCount: 0,
-      submissionPercent: 33.3,
-      passRatePercent: 0,
+      submissionPercent: 0,
     });
   } finally {
     fixture.cleanup();
@@ -395,4 +483,46 @@ function studentActor(studentId: 'stu-01' | 'stu-02' | 'stu-03'): AuthenticatedA
     classId: 'demo-class',
     studentId,
   };
+}
+
+function readyForFormalAssessment(database: ReturnType<typeof createTestDatabase>['database'], studentId: string): void {
+  const insert = database.prepare(`
+    INSERT INTO practice_attempts (
+      attempt_id, student_id, activity_id, node_id, passed, origin, attempted_at
+    ) VALUES (?, ?, ?, ?, 1, 'user', '2026-07-16T01:00:00.000Z')
+  `);
+  for (const [activityId, nodeId] of [
+    ['P1T1-N01-micro-01', 'P1T1-N01'],
+    ['P1T1-N02-foundation-01', 'P1T1-N02'],
+    ['P1T1-N02-application-01', 'P1T1-N02'],
+    ['P1T1-N02-transfer-01', 'P1T1-N02'],
+  ] as const) insert.run(`ready-${studentId}-${activityId}`, studentId, activityId, nodeId);
+}
+
+function wrongAssessmentAnswers(): AssessmentAnswers {
+  return {
+    evidenceClassification: 'environment-note',
+    linkReconstruction: ['peer-device', 'peer-port', 'cable-label', 'source-port', 'source-device'],
+    defectiveOutputRevision: ['erase-gap'],
+    professionalConclusion: {
+      confirmedFact: '未说明',
+      evidenceGap: '未说明',
+      risk: '未说明',
+      action: '未说明',
+    },
+  };
+}
+
+function passingAssessmentAnswers(): AssessmentAnswers {
+  return {
+    evidenceClassification: 'nameplate-photo',
+    linkReconstruction: ['source-device', 'source-port', 'cable-label', 'peer-port', 'peer-device'],
+    defectiveOutputRevision: ['restore-source', 'add-photo-index', 'record-direction'],
+    professionalConclusion: {
+      confirmedFact: '设备铭牌与源端口证据清晰，设备身份和源端连接已经确认。',
+      evidenceGap: '对端端口照片仍需复核，当前不扩展未经证实的结论。',
+      risk: '证据不足时直接交付可能造成链路关系误判。',
+      action: '补拍对端端口并核验编号，完成证据索引后更新成果表。',
+    },
+  } as AssessmentAnswers;
 }

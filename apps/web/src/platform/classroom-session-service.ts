@@ -1,6 +1,8 @@
+import { randomUUID } from 'node:crypto';
 import type { AuthenticatedActor } from './auth/actor.ts';
 import {
   applyClassroomLessonIntent,
+  classroomPageActionId,
   initialLessonState,
   type ClassroomLessonIntent,
 } from './classroom-state.ts';
@@ -27,13 +29,31 @@ import {
   type NodeLearningPolicy,
 } from './learning-policy.ts';
 import type { ClassSession, ClassroomCommand, StudentProgress } from './models.ts';
+import { getFormalAssessmentDefinition } from './formal-assessment-catalog.server.ts';
+import { classroomLessonPageCount } from './classroom-lesson-page-count.ts';
 
 export class ClassroomAuthorizationError extends Error {
   override readonly name = 'ClassroomAuthorizationError';
 }
 
 export class ClassroomIntentError extends Error {
-  override readonly name = 'ClassroomIntentError';
+  override readonly name: string = 'ClassroomIntentError';
+}
+
+export class ClassroomHelperUnavailableError extends ClassroomIntentError {
+  override readonly name = 'ClassroomHelperUnavailableError';
+
+  constructor() {
+    super('Classroom helper is offline. Reconnect it before synchronizing or changing pages.');
+  }
+}
+
+export class ClassroomReviewUnavailableError extends ClassroomIntentError {
+  override readonly name = 'ClassroomReviewUnavailableError';
+
+  constructor() {
+    super('At least one real submission from the active classroom run is required before review.');
+  }
 }
 
 export class ClassroomSessionService {
@@ -92,6 +112,7 @@ export class ClassroomSessionService {
     const activeUnitId = `${policy.taskId}-ku-${policy.nodeId.slice(-2)}`;
     const nextRevision = input.expectedRevision + 1;
     const lesson = initialLessonState(activeNodeId, activeUnitId);
+    const formalDefinition = getFormalAssessmentDefinition(activeNodeId);
     lesson.revision = nextRevision;
     lesson.playback.revision = nextRevision;
     const state: ClassroomSessionStateV1 = {
@@ -111,13 +132,15 @@ export class ClassroomSessionService {
       },
       activityState: 'not_pushed',
       reviewState: 'not_started',
-      formalTest: {
-        assessmentId: `AS-${activeNodeId}`,
-        gameId: `${activeNodeId}-formal-test`,
-        nodeId: activeNodeId,
-        status: 'idle',
-        durationSeconds: 360,
-      },
+      ...(formalDefinition ? {
+        formalTest: {
+          assessmentId: `AS-${activeNodeId}`,
+          gameId: formalDefinition.gameId,
+          nodeId: activeNodeId,
+          status: 'idle' as const,
+          durationSeconds: formalDefinition.paper.durationMinutes * 60,
+        },
+      } : {}),
     };
     const mutation = this.repository.commitTeacherMutation({
       sessionId,
@@ -163,6 +186,18 @@ export class ClassroomSessionService {
         aggregate.session.revision,
       );
     }
+    if (intent.type !== 'phase_changed'
+      && !hasLiveStudentHelper(this.repository, sessionId, now)) {
+      throw new ClassroomHelperUnavailableError();
+    }
+    if (intent.type === 'phase_changed' && intent.phase === 'review') {
+      this.requireReviewSubmission(aggregate.session, now);
+    }
+    if (intent.type === 'page_changed') {
+      if (intent.pageIndex >= classroomLessonPageCount(aggregate.session.state.lesson.activeNodeId)) {
+        throw new ClassroomIntentError('Classroom page index is outside the authoritative lesson package.');
+      }
+    }
     const lesson = applyClassroomLessonIntent(aggregate.session.state.lesson, intent, now);
     if (lesson === aggregate.session.state.lesson) {
       throw new ClassroomIntentError(`Illegal classroom intent: ${intent.type}.`);
@@ -178,6 +213,18 @@ export class ClassroomSessionService {
           ...aggregate.session.state,
           lesson,
           sceneMode: sceneModeForPhase(lesson.phase),
+          ...(intent.type === 'phase_changed' && intent.phase === 'review' ? {
+            reviewState: 'reviewing' as const,
+            formalTest: {
+              ...aggregate.session.state.formalTest!,
+              status: 'review' as const,
+            },
+          } : {}),
+          ...(intent.type === 'page_changed' ? {
+            teacherSlideIndex: intent.pageIndex + 1,
+            teacherSlideId: classroomPageActionId(lesson.activeNodeId, intent.pageIndex),
+            currentSlideId: classroomPageActionId(lesson.activeNodeId, intent.pageIndex),
+          } : {}),
           playbackCursor: {
             sceneId: lesson.playback.sceneId,
             actionId: lesson.playback.actionId,
@@ -197,6 +244,24 @@ export class ClassroomSessionService {
       command: mutation.command,
       session: this.materialize(mutation.session, aggregate.roster, now),
     };
+  }
+
+  private requireReviewSubmission(session: StoredClassroomSession, now: Date): void {
+    const formalTest = session.state.formalTest;
+    if (!formalTest?.runId
+      || !formalTest.startedAt
+      || (formalTest.status !== 'running' && formalTest.status !== 'paused')) {
+      throw new ClassroomReviewUnavailableError();
+    }
+    const attempts = this.repository.readValidatedAssessmentRun({
+      sessionId: session.sessionId,
+      classroomRunId: formalTest.runId,
+      nodeId: formalTest.nodeId,
+      gameId: formalTest.gameId,
+      startedAt: new Date(formalTest.startedAt),
+      observedAt: now,
+    });
+    if (attempts.length === 0) throw new ClassroomReviewUnavailableError();
   }
 
   patchTeacherState(
@@ -222,6 +287,10 @@ export class ClassroomSessionService {
     if (normalized.studentProgress) {
       throw new ClassroomIntentError('Student progress is not part of shared classroom state.');
     }
+    if (requiresLiveHelper(normalized, aggregate.session)
+      && !hasLiveStudentHelper(this.repository, sessionId, now)) {
+      throw new ClassroomHelperUnavailableError();
+    }
     const state = { ...aggregate.session.state };
     assignOptional(state, 'currentPageId', normalized.currentPageId);
     assignOptional(state, 'currentSlideId', normalized.currentSlideId);
@@ -233,16 +302,6 @@ export class ClassroomSessionService {
     if ('playbackCursor' in normalized) state.playbackCursor = normalized.playbackCursor;
     if (normalized.activityState !== undefined) state.activityState = normalized.activityState;
     if (normalized.reviewState !== undefined) state.reviewState = normalized.reviewState;
-    if (normalized.formalTest) {
-      state.formalTest = {
-        assessmentId: normalized.formalTest.assessmentId,
-        gameId: normalized.formalTest.gameId,
-        nodeId: normalized.formalTest.nodeId,
-        status: normalized.formalTest.status,
-        durationSeconds: normalized.formalTest.durationSeconds,
-        ...(normalized.formalTest.startedAt ? { startedAt: normalized.formalTest.startedAt } : {}),
-      };
-    }
     const activeNodeId = normalized.activeNodeId
       ?? aggregate.session.activeNodeId
       ?? aggregate.session.state.lesson.activeNodeId;
@@ -250,6 +309,14 @@ export class ClassroomSessionService {
       ?? aggregate.session.activeUnitId
       ?? aggregate.session.state.lesson.activeUnitId;
     assertTeachingPosition(activeNodeId, activeUnitId);
+    if (normalized.formalTest) {
+      state.formalTest = normalizeFormalTestMutation(
+        aggregate.session.state.formalTest,
+        normalized.formalTest,
+        activeNodeId,
+        now,
+      );
+    }
     const nextRevision = expectedRevision + 1;
     state.lesson = {
       ...state.lesson,
@@ -357,6 +424,72 @@ export class ClassroomSessionService {
       throw new ClassroomAuthorizationError('Only the owning teacher can change classroom state.');
     }
   }
+}
+
+function normalizeFormalTestMutation(
+  current: ClassroomSessionStateV1['formalTest'],
+  requested: NonNullable<SessionPatch['formalTest']>,
+  activeNodeId: string,
+  now: Date,
+): NonNullable<ClassroomSessionStateV1['formalTest']> {
+  const definition = getFormalAssessmentDefinition(activeNodeId);
+  if (!definition
+    || requested.nodeId !== activeNodeId
+    || (requested.status !== 'idle' && requested.status !== 'running' && requested.status !== 'paused')) {
+    throw new ClassroomIntentError('Formal assessment mutation does not match the active classroom node.');
+  }
+  if (requested.status === 'idle') {
+    if (current && current.status !== 'idle') {
+      throw new ClassroomIntentError('An active classroom assessment cannot be reset by a client patch.');
+    }
+    return {
+      assessmentId: `AS-${activeNodeId}`,
+      gameId: definition.gameId,
+      nodeId: activeNodeId,
+      status: 'idle',
+      durationSeconds: definition.paper.durationMinutes * 60,
+    };
+  }
+  if (requested.status === 'paused') {
+    if (!current?.runId || current.status !== 'running' || !current.startedAt) {
+      throw new ClassroomIntentError('Only the active classroom assessment can be paused.');
+    }
+    return { ...current, status: 'paused' };
+  }
+  if (current?.status === 'running' && current.runId && current.startedAt) return current;
+  if (current?.status === 'review') {
+    throw new ClassroomIntentError('Start a new lesson before starting another formal assessment.');
+  }
+  return {
+    assessmentId: `AS-${activeNodeId}`,
+    runId: `classroom-run-${randomUUID()}`,
+    gameId: definition.gameId,
+    nodeId: activeNodeId,
+    status: 'running',
+    durationSeconds: definition.paper.durationMinutes * 60,
+    startedAt: now.toISOString(),
+  };
+}
+
+function requiresLiveHelper(patch: SessionPatch, session: StoredClassroomSession): boolean {
+  return patch.studentSyncState === 'requested'
+    || patch.studentSyncState === 'forced'
+    || patch.currentPageId === 'P1-STUDENT-FOLLOW-N01'
+    || (patch.teacherSlideIndex !== undefined
+      && patch.teacherSlideIndex !== session.state.teacherSlideIndex)
+    || (patch.teacherSlideId !== undefined
+      && patch.teacherSlideId !== session.state.teacherSlideId)
+    || patch.formalTest?.status === 'running';
+}
+
+function hasLiveStudentHelper(
+  repository: ClassroomSessionRepository,
+  sessionId: string,
+  now: Date,
+): boolean {
+  return repository.readDeviceSnapshot(sessionId, now).devices.some(
+    ({ actorRole, helperState }) => actorRole === 'student' && helperState === 'online',
+  );
 }
 
 function sceneModeForPhase(phase: NonNullable<ClassSession['lessonState']>['phase']): NonNullable<ClassSession['sceneMode']> {

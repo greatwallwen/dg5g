@@ -13,10 +13,10 @@ test('applies ordered migrations once and replays idempotently', () => {
       'SELECT version FROM schema_migrations ORDER BY version',
     ).all() as Array<{ version: number }>;
 
-    assert.deepEqual(first.appliedVersions, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    assert.deepEqual(first.appliedVersions, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
     assert.deepEqual(replay.appliedVersions, []);
-    assert.equal(replay.currentVersion, 10);
-    assert.deepEqual(recorded.map(({ version }) => version), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    assert.equal(replay.currentVersion, 11);
+    assert.deepEqual(recorded.map(({ version }) => version), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
   } finally {
     testDatabase.cleanup();
   }
@@ -26,10 +26,10 @@ test('rejects a database whose schema version is newer than this runtime', () =>
   const testDatabase = createTestDatabase();
 
   try {
-    testDatabase.database.pragma('user_version = 11');
+    testDatabase.database.pragma('user_version = 12');
     assert.throws(
       () => migrateDatabase(testDatabase.database),
-      /schema version 11 is newer than supported version 10/i,
+      /schema version 12 is newer than supported version 11/i,
     );
   } finally {
     testDatabase.cleanup();
@@ -41,10 +41,10 @@ test('rejects migration history ahead of PRAGMA user_version', () => {
 
   try {
     migrateDatabase(testDatabase.database);
-    testDatabase.database.pragma('user_version = 9');
+    testDatabase.database.pragma('user_version = 10');
     assert.throws(
       () => migrateDatabase(testDatabase.database),
-      /migration history version 10 does not match PRAGMA user_version 9/i,
+      /migration history version 11 does not match PRAGMA user_version 10/i,
     );
   } finally {
     testDatabase.cleanup();
@@ -56,10 +56,10 @@ test('rejects PRAGMA user_version ahead of migration history', () => {
 
   try {
     migrateDatabase(testDatabase.database);
-    testDatabase.database.prepare('DELETE FROM schema_migrations WHERE version = 10').run();
+    testDatabase.database.prepare('DELETE FROM schema_migrations WHERE version = 11').run();
     assert.throws(
       () => migrateDatabase(testDatabase.database),
-      /migration history version 9 does not match PRAGMA user_version 10/i,
+      /migration history version 10 does not match PRAGMA user_version 11/i,
     );
   } finally {
     testDatabase.cleanup();
@@ -73,11 +73,11 @@ test('rejects migration history versions unsupported by this runtime', () => {
     migrateDatabase(testDatabase.database);
     testDatabase.database.prepare(`
       INSERT INTO schema_migrations (version, name, checksum)
-        VALUES (11, 'unexpected', 'unexpected')
+        VALUES (12, 'unexpected', 'unexpected')
     `).run();
     assert.throws(
       () => migrateDatabase(testDatabase.database),
-      /migration history contains unsupported version 11/i,
+      /migration history contains unsupported version 12/i,
     );
   } finally {
     testDatabase.cleanup();
@@ -301,7 +301,7 @@ test('migration 005 promotes legacy content to immutable canonical output v1', (
     `);
 
     const result = migrateDatabase(testDatabase.database);
-    assert.deepEqual(result.appliedVersions, [5, 6, 7, 8, 9, 10]);
+    assert.deepEqual(result.appliedVersions, [5, 6, 7, 8, 9, 10, 11]);
     assert.deepEqual(testDatabase.database.prepare(`
       SELECT
         task_id AS taskId,
@@ -398,7 +398,7 @@ test('migration 006 backfills classroom revision topics without rolling a newer 
     `);
 
     const result = migrateDatabase(testDatabase.database);
-    assert.deepEqual(result.appliedVersions, [6, 7, 8, 9, 10]);
+    assert.deepEqual(result.appliedVersions, [6, 7, 8, 9, 10, 11]);
     assert.deepEqual(testDatabase.database.prepare(`
       SELECT version, updated_at AS updatedAt
       FROM snapshot_versions WHERE topic = 'classroom:session-revision-7'
@@ -436,8 +436,8 @@ test('migration 008 upgrades a v5 cursor row to the per-student per-node key wit
     `);
 
     const result = migrateDatabase(testDatabase.database);
-    assert.deepEqual(result.appliedVersions, [6, 7, 8, 9, 10]);
-    assert.equal(result.currentVersion, 10);
+    assert.deepEqual(result.appliedVersions, [6, 7, 8, 9, 10, 11]);
+    assert.equal(result.currentVersion, 11);
     const columns = testDatabase.database.prepare(`
       PRAGMA table_info(self_study_cursors)
     `).all() as Array<{ name: string; pk: number }>;
@@ -609,6 +609,25 @@ test('migration 010 stores immutable output field provenance against exact versi
     assert.equal(testDatabase.database.prepare(`
       SELECT COUNT(*) FROM evidence_library WHERE evidence_id = 'evidence-source'
     `).pluck().get(), 1);
+  } finally {
+    testDatabase.cleanup();
+  }
+});
+
+test('migration 011 gives every student assessment instance an optional shared classroom run identity', () => {
+  const testDatabase = createTestDatabase();
+
+  try {
+    migrateDatabase(testDatabase.database);
+    const columns = new Set(testDatabase.database.prepare(`
+      SELECT name FROM pragma_table_info('formal_assessment_instances')
+    `).pluck().all() as string[]);
+
+    assert.equal(columns.has('classroom_run_id'), true);
+    const indexes = new Set(testDatabase.database.prepare(`
+      SELECT name FROM pragma_index_list('formal_assessment_instances')
+    `).pluck().all() as string[]);
+    assert.equal(indexes.has('formal_assessment_instances_classroom_run_idx'), true);
   } finally {
     testDatabase.cleanup();
   }

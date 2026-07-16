@@ -49,7 +49,7 @@ export function ClassroomFollowRenderer({ model, onReturn, busy = false }: {
           className="classroom-follow-formal-test"
           data-classroom-formal-test="true"
           data-primary-action="true"
-          href={`/learn/${model.currentUnit.nodeId}/test`}
+          href={`/learn/${model.currentUnit.nodeId}/test?classroomSessionId=${encodeURIComponent(model.sessionId)}`}
         >
           进入独立正式测试
         </Link>

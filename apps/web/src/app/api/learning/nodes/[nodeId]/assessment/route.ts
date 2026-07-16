@@ -2,10 +2,15 @@ import { NextResponse } from 'next/server';
 import { readActorFromRequest } from '@/platform/auth/server-actor';
 import {
   AssessmentCatalogError,
+  AssessmentClassroomWindowError,
   AssessmentRemediationRequiredError,
   AssessmentTokenError,
   createFormalAssessmentService,
 } from '@/platform/formal-assessment-service';
+import {
+  AssessmentClassroomContextError,
+  parseAssessmentClassroomSessionId,
+} from '@/platform/assessment-classroom-context';
 import type { AssessmentAnswers } from '@/platform/formal-assessment-contract';
 import { describeLearningCommandError } from '@/platform/learning-command-service';
 
@@ -19,10 +24,27 @@ export function GET(request: Request, { params }: RouteContext) {
   const actor = readActorFromRequest(request);
   if (!actor) return response({ error: 'Authentication required' }, 401);
   try {
-    return response(createFormalAssessmentService().issuePaper(actor, params.nodeId), 200);
+    const classroomSessionId = readClassroomSessionIdQuery(request);
+    return response(createFormalAssessmentService().issuePaper(actor, params.nodeId, {
+      ...(classroomSessionId ? { classroomSessionId } : {}),
+    }), 200);
   } catch (error) {
     return assessmentError(error);
   }
+}
+
+function readClassroomSessionIdQuery(request: Request): string | undefined {
+  const searchParams = new URL(request.url).searchParams;
+  for (const key of searchParams.keys()) {
+    if (key !== 'classroomSessionId') {
+      throw new AssessmentClassroomContextError(`Unsupported assessment query: ${key}.`);
+    }
+  }
+  const values = searchParams.getAll('classroomSessionId');
+  if (values.length > 1) {
+    throw new AssessmentClassroomContextError('Only one classroom assessment session is allowed.');
+  }
+  return parseAssessmentClassroomSessionId(values[0]);
 }
 
 export async function POST(request: Request, { params }: RouteContext) {
@@ -58,6 +80,12 @@ function assessmentError(error: unknown): NextResponse {
   if (learningProblem) return response(learningProblem.body, learningProblem.status);
   if (error instanceof AssessmentRemediationRequiredError) {
     return response({ error: error.message, remediationTargets: error.targets }, 409);
+  }
+  if (error instanceof AssessmentClassroomWindowError) {
+    return response({ error: error.message, classroomWindow: 'unavailable' }, 409);
+  }
+  if (error instanceof AssessmentClassroomContextError) {
+    return response({ error: error.message }, 400);
   }
   if (error instanceof AssessmentTokenError) {
     const status = error.code === 'used-token' ? 409 : error.code === 'expired-token' ? 410 : 400;

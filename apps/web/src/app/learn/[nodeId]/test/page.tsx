@@ -6,9 +6,14 @@ import { NodeRouteAccessError, type NodeRouteClassification } from '@/platform/a
 import { requireClassRole } from '@/platform/auth/server-actor';
 import {
   AssessmentCatalogError,
+  AssessmentClassroomWindowError,
   AssessmentRemediationRequiredError,
   createFormalAssessmentService,
 } from '@/platform/formal-assessment-service';
+import {
+  AssessmentClassroomContextError,
+  parseAssessmentClassroomSessionId,
+} from '@/platform/assessment-classroom-context';
 import {
   createLearningCommandService,
   FormalAssessmentReadinessError,
@@ -16,7 +21,13 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-export default async function FormalAssessmentPage({ params }: { params: { nodeId: string } }) {
+export default async function FormalAssessmentPage({
+  params,
+  searchParams,
+}: {
+  params: { nodeId: string };
+  searchParams: { classroomSessionId?: string | string[] };
+}) {
   const actor = await requireClassRole('student');
   const learning = createLearningCommandService();
   let destination: NodeRouteClassification;
@@ -44,7 +55,10 @@ export default async function FormalAssessmentPage({ params }: { params: { nodeI
 
   const assessment = createFormalAssessmentService();
   try {
-    const issued = assessment.issuePaper(actor, params.nodeId);
+    const classroomSessionId = parseAssessmentClassroomSessionId(searchParams.classroomSessionId);
+    const issued = assessment.issuePaper(actor, params.nodeId, {
+      ...(classroomSessionId ? { classroomSessionId } : {}),
+    });
     return (
       <main className="formal-assessment-page" data-formal-assessment={params.nodeId}>
         <AccountMenu displayName={actor.displayName} role="student" />
@@ -52,6 +66,20 @@ export default async function FormalAssessmentPage({ params }: { params: { nodeI
       </main>
     );
   } catch (error) {
+    if (error instanceof AssessmentClassroomContextError
+      || error instanceof AssessmentClassroomWindowError) {
+      return (
+        <main className="formal-assessment-page is-unavailable" data-assessment-entry="classroom-window-unavailable">
+          <AccountMenu displayName={actor.displayName} role="student" />
+          <section>
+            <span>课堂正式测试不可进入</span>
+            <h1>当前课堂测试窗口已关闭或不匹配</h1>
+            <p>请返回课堂跟随页，等待教师重新启动当前节点的正式测试。</p>
+            <Link href="/student/home">返回学习首页</Link>
+          </section>
+        </main>
+      );
+    }
     if (error instanceof FormalAssessmentReadinessError) {
       return (
         <main className="formal-assessment-page is-unavailable" data-formal-assessment={params.nodeId}>

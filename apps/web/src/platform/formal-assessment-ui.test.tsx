@@ -13,7 +13,7 @@ test('independent assessment page authenticates and gates the node before issuin
   const source = read('app/learn/[nodeId]/test/page.tsx');
   const auth = source.indexOf("requireClassRole('student')");
   const gate = source.indexOf('requireNodeAccess(actor, params.nodeId)');
-  const issue = source.indexOf('issuePaper(actor, params.nodeId)');
+  const issue = source.indexOf('issuePaper(actor, params.nodeId,');
   assert.ok(auth >= 0);
   assert.ok(gate > auth);
   assert.ok(issue > gate);
@@ -134,13 +134,24 @@ test('P01 formal challenge enters the independent assessment instead of a client
 
 test('the live classroom route owns the server-graded formal assessment handoff', () => {
   const page = read('app/classroom/[sessionId]/page.tsx');
+  const assessmentPage = read('app/learn/[nodeId]/test/page.tsx');
   const client = read('features/classroom/student-follow-client.tsx');
   const renderer = read('features/classroom/classroom-follow-renderer.tsx');
   assert.match(page, /StudentFollowClient/);
   assert.match(client, /ClassroomStudentModeRenderer/);
   assert.match(renderer, /data-classroom-formal-test/);
-  assert.match(renderer, /\/learn\/\$\{model\.currentUnit\.nodeId\}\/test/);
+  assert.match(renderer, /classroomSessionId=\$\{encodeURIComponent\(model\.sessionId\)\}/);
+  assert.match(assessmentPage, /parseAssessmentClassroomSessionId\(searchParams\.classroomSessionId\)/);
+  assert.match(assessmentPage, /issuePaper\(actor, params\.nodeId, \{/);
   assert.doesNotMatch(renderer, /<EduGamePracticePanel/);
+});
+
+test('classroom formal-test workspace carries only the session id, never a client-owned run id', () => {
+  const workspace = read('features/classroom/student-formal-test-workspace.tsx');
+  const route = read('app/api/learning/nodes/[nodeId]/assessment/route.ts');
+  assert.match(workspace, /classroomSessionId=\$\{encodeURIComponent\(classroomSessionId\)\}/);
+  assert.match(route, /key !== 'classroomSessionId'/);
+  assert.doesNotMatch(`${workspace}\n${route}`, /[?&]runId=|searchParams\.get\('runId'\)/);
 });
 
 test('assessment page renders a clear micro-practice prerequisite instead of issuing content', () => {

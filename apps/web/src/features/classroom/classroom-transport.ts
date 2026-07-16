@@ -10,7 +10,7 @@ export type ClassroomTransportResult<T> =
 export interface ClassroomTransport {
   fetchSession(sessionId: string, role: SessionRole, studentId?: string): Promise<ClassroomTransportResult<ClassSession>>;
   patchSession(sessionId: string, role: Exclude<SessionRole, 'projector'>, studentId: string | undefined, patch: SessionPatch, expectedRevision?: number): Promise<ClassroomTransportResult<ClassSession>>;
-  submitIntent(sessionId: string, intent: ClassroomLessonIntent, expectedRevision: number): Promise<ClassroomTransportResult<{ session: ClassSession; command: ClassroomCommand }>>;
+  submitIntent(sessionId: string, intent: ClassroomLessonIntent, expectedRevision: number, responseView?: 'projector'): Promise<ClassroomTransportResult<{ session: ClassSession; command: ClassroomCommand }>>;
 }
 
 type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
@@ -38,10 +38,10 @@ export function createHttpClassroomTransport(fetchImpl: FetchLike = fetch): Clas
       }
       return requestSession(fetchImpl, sessionUrl(sessionId), patchInit({ patch, expectedRevision }));
     },
-    async submitIntent(sessionId, intent, expectedRevision) {
+    async submitIntent(sessionId, intent, expectedRevision, responseView) {
       const result = await requestJson<{ session?: ClassSession; command?: ClassroomCommand }>(
         fetchImpl,
-        sessionUrl(sessionId),
+        sessionUrl(sessionId, responseView),
         patchInit({ intent, expectedRevision }),
       );
       if (!result.ok) return result;

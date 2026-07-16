@@ -17,6 +17,85 @@
   background: var(--scene-navy);
 }
 
+.projector-page-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.projector-page-controls > a,
+.projector-page-controls > button {
+  border: 1px solid #45657e;
+  border-radius: 8px;
+  padding: 7px 10px;
+  color: #dbeafa;
+  background: #103552;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.projector-page-controls > button:disabled {
+  opacity: .42;
+  cursor: not-allowed;
+}
+
+.projector-control-error {
+  color: #b42318 !important;
+}
+
+.projector-review {
+  display: grid;
+  gap: 24px;
+  min-height: 100%;
+  border: 1px solid #b9c9d7;
+  border-radius: 18px;
+  padding: clamp(28px, 4vw, 56px);
+  color: #102f4b;
+  background: linear-gradient(145deg, #f7fbff, #eaf3fa);
+}
+
+.projector-review header span {
+  color: #0877bd;
+  font-weight: 800;
+}
+
+.projector-review header h1 {
+  margin: 8px 0;
+  font-size: clamp(30px, 4vw, 52px);
+}
+
+.projector-review > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.projector-review article {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  border: 1px solid #c8dae8;
+  border-radius: 14px;
+  padding: 20px;
+  background: #fff;
+}
+
+.projector-review article > i {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  height: 8px;
+  border-radius: 99px;
+  background: #deebf3;
+}
+
+.projector-review article > i > b {
+  display: block;
+  height: 100%;
+  background: #ef6c55;
+}
+
 .scene-brand { min-width: 0; display: flex; align-items: center; gap: 9px; }
 .scene-brand > span { width: 34px; height: 34px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 7px; color: #04152b; background: var(--scene-cyan); font-size: 12px; font-weight: 950; }
 .scene-brand strong { overflow: hidden; color: #f7fbff; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }

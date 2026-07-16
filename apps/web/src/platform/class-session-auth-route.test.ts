@@ -41,6 +41,7 @@ seedClassroomSessions(fixture.database, [
   'P1T1-N02-auth-student-not-joined',
   'P1T1-N02-auth-student-action',
   'P1T1-N02-auth-forged-action',
+  'P1T1-N02-auth-projector-control',
 ]);
 process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
 const auth = new AuthService(fixture.database);
@@ -112,6 +113,37 @@ test('teacher cookie receives the teacher projection and may request a sanitized
     'devicePresence', 'commandAcks', 'anonymous-', 'stu-01', 'stu-02', 'stu-03',
   ]) {
     assert.equal(serialized.includes(forbidden), false, `projector leaked ${forbidden}`);
+  }
+});
+
+test('projector page intent keeps its authenticated teacher authority but returns only a projector projection', async () => {
+  const sessionId = 'P1T1-N02-auth-projector-control';
+  activateSession(sessionId);
+  const now = new Date();
+  const repository = new (await import('./classroom-session-repository.ts')).ClassroomSessionRepository(fixture.database);
+  repository.recordHeartbeat(sessionId, {
+    deviceId: 'projector-control-student-helper',
+    actorRole: 'student',
+    studentId: 'stu-01',
+    pageState: 'ready',
+    lastAppliedRevision: 0,
+  }, now);
+
+  const response = await classRoute.PATCH(
+    request(`${sessionId}?view=projector`, {
+      intent: { type: 'page_changed', pageIndex: 1 },
+      expectedRevision: 0,
+    }, { cookie: teacherCookie }),
+    { params: { sessionId } },
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.session.teacherSlideIndex, 2);
+  assert.equal(body.session.lessonState.revision, 1);
+  const serialized = JSON.stringify(body.session);
+  for (const forbidden of ['studentRoster', 'studentProgress', 'participants', 'formalTest', 'stu-01']) {
+    assert.equal(serialized.includes(forbidden), false, `projector mutation leaked ${forbidden}`);
   }
 });
 

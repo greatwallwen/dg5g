@@ -16,6 +16,11 @@ import { nodeLearningStateCompletionPercent } from './learning-status.ts';
 import { projectP1Project, type P1ProjectProjection } from './p1-project-projection.ts';
 import { SnapshotClock } from './snapshot-clock.ts';
 import type { LearningOrigin } from './learning-origin.ts';
+import { readValidatedClassroomRunAttempts } from './classroom-assessment-run-reader.ts';
+import {
+  assessmentDimensionKeys,
+  type AssessmentDimensionKey,
+} from './formal-assessment-contract.ts';
 
 export type SnapshotAudience = 'student' | 'teacher' | 'projector' | 'graph';
 export type ScoreDistributionRange = '90-100' | 'pass-89' | '60-below-pass' | 'below-60';
@@ -33,6 +38,11 @@ export interface SnapshotSubmissionMetrics {
     passedCount: number;
     submissionPercent: number;
     passRatePercent?: number;
+    errorDistribution?: Array<{
+      dimension: AssessmentDimensionKey;
+      incorrectCount: number;
+      percent: number;
+    }>;
   };
   professionalOutputs: {
     submittedAwaitingReviewCount: number;
@@ -330,6 +340,7 @@ export class AuthoritativeSnapshotReader {
       },
       membership: { classSize: students.length, joinedCount, followingCount },
       submissions: projectSubmissionMetrics(
+        this.database,
         session,
         students,
         activeNodeId,
@@ -393,6 +404,7 @@ export class AuthoritativeSnapshotReader {
 }
 
 function projectSubmissionMetrics(
+  database: AppDatabase,
   session: StoredClassroomSession,
   students: ProjectedStudent[],
   activeNodeId: P1NodeId | undefined,
@@ -410,26 +422,23 @@ function projectSubmissionMetrics(
   const assessmentStatus = formalTest?.status ?? 'idle';
   const windowStartedAt = formalTest?.startedAt ? Date.parse(formalTest.startedAt) : Number.NaN;
   const windowObservedAt = observedAt.getTime();
-  const attemptsInWindow = assessmentStatus === 'idle'
+  const validatedAttemptsInWindow = assessmentStatus === 'idle'
     || !formalTest
+    || !formalTest.runId
     || !activeNodeId
     || !Number.isFinite(windowStartedAt)
     || !Number.isFinite(windowObservedAt)
     ? []
-    : students.flatMap(({ member, learning }) => {
-        const scores = learning.nodes.find(({ nodeId }) => nodeId === activeNodeId)?.attempts
-          .filter(({ assessmentId, completedAt, gameId, origin }) => {
-            const completedAtMs = Date.parse(completedAt);
-            return origin === 'user'
-              && assessmentId === formalTest.assessmentId
-              && gameId === formalTest.gameId
-              && Number.isFinite(completedAtMs)
-              && completedAtMs >= windowStartedAt
-              && completedAtMs <= windowObservedAt;
-          })
-          .map(({ score }) => score) ?? [];
-        return scores.length === 0 ? [] : [{ studentId: member.studentId, score: Math.max(...scores) }];
+    : readValidatedClassroomRunAttempts(database, {
+        sessionId: session.sessionId,
+        classroomRunId: formalTest.runId,
+        nodeId: activeNodeId,
+        gameId: formalTest.gameId,
+        startedAt: new Date(windowStartedAt),
+        observedAt: new Date(windowObservedAt),
       });
+  const attemptsInWindow = validatedAttemptsInWindow
+    .map(({ studentId, totalScore }) => ({ studentId, score: totalScore }));
   const submittedCount = attemptsInWindow.length;
   const passedCount = attemptsInWindow.filter(({ score }) => score >= passScore).length;
   const playingCount = assessmentStatus === 'running'
@@ -451,6 +460,14 @@ function projectSubmissionMetrics(
       passedCount,
       submissionPercent: percent(submittedCount, classSize),
       ...(submittedCount === 0 ? {} : { passRatePercent: percent(passedCount, submittedCount) }),
+      ...(assessmentStatus !== 'review' || submittedCount === 0 ? {} : {
+        errorDistribution: assessmentDimensionKeys.map((dimension) => {
+          const incorrectCount = validatedAttemptsInWindow.filter(
+            (attempt) => attempt.dimensions[dimension].score < 20,
+          ).length;
+          return { dimension, incorrectCount, percent: percent(incorrectCount, submittedCount) };
+        }),
+      }),
     },
     professionalOutputs: {
       submittedAwaitingReviewCount: professionalOutputs.filter(({ status }) => status === 'submitted').length,

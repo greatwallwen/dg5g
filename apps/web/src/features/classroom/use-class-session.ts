@@ -23,7 +23,12 @@ type SubmitClassroomIntent = (intent: ClassroomLessonIntent) => Promise<boolean>
 
 export function useClassSession(
   initial: ClassSession,
-  options: { role: SessionRole; studentId?: string; participationMode?: 'follow' | 'self' },
+  options: {
+    role: SessionRole;
+    studentId?: string;
+    participationMode?: 'follow' | 'self';
+    allowProjectorControls?: boolean;
+  },
 ): [ClassSession, UpdateSession, ClassSessionConnection, SubmitClassroomIntent] {
   const studentParam = options.role === 'student' ? options.studentId?.trim() || undefined : undefined;
   const actorKey = `${options.role}:${studentParam ?? 'shared'}`;
@@ -58,7 +63,10 @@ export function useClassSession(
 
   async function ensureTeacherRevision(key: string): Promise<boolean> {
     if (teacherRevisionSynchronizedRef.current) return true;
-    const refreshed = await transport.fetchSession(initial.sessionId, 'teacher');
+    const refreshed = await transport.fetchSession(
+      initial.sessionId,
+      options.role === 'projector' ? 'projector' : 'teacher',
+    );
     if (activeOperationKeyRef.current !== key) return false;
     if (!refreshed.ok) {
       updateConnection({
@@ -96,7 +104,10 @@ export function useClassSession(
       if (alive) {
         if (result.ok) {
           acceptSession(result.data, operationKey);
-          if (options.role === 'teacher') teacherRevisionSynchronizedRef.current = true;
+          if (options.role === 'teacher'
+            || (options.role === 'projector' && options.allowProjectorControls)) {
+            teacherRevisionSynchronizedRef.current = true;
+          }
           updateConnection({ state: 'online', lastSyncedAt: new Date().toISOString() }, operationKey);
         } else {
           updateConnection({ state: result.status === 0 ? 'offline' : 'degraded', lastError: result.error }, operationKey);
@@ -147,7 +158,7 @@ export function useClassSession(
       window.removeEventListener('offline', markOffline);
       channel?.close();
     };
-  }, [channelName, initial.sessionId, initialValue, operationKey, options.role, sourceId, studentParam, transport]);
+  }, [channelName, initial.sessionId, initialValue, operationKey, options.allowProjectorControls, options.role, sourceId, studentParam, transport]);
 
   function update(patch: SessionPatch) {
     const writableRole = options.role === 'teacher' ? 'teacher' : options.role === 'student' ? 'student' : null;
@@ -198,7 +209,9 @@ export function useClassSession(
   }
 
   async function submitIntent(intent: ClassroomLessonIntent): Promise<boolean> {
-    if (options.role !== 'teacher') return false;
+    const canSubmitIntent = options.role === 'teacher'
+      || (options.role === 'projector' && options.allowProjectorControls);
+    if (!canSubmitIntent) return false;
     const mutationKey = operationKey;
     let resolveResult: (value: boolean) => void = () => undefined;
     const resultPromise = new Promise<boolean>((resolve) => { resolveResult = resolve; });
@@ -208,7 +221,12 @@ export function useClassSession(
         return;
       }
       const expectedRevision = sessionRef.current.lessonState?.revision ?? 0;
-      const result = await transport.submitIntent(initial.sessionId, intent, expectedRevision);
+      const result = await transport.submitIntent(
+        initial.sessionId,
+        intent,
+        expectedRevision,
+        options.role === 'projector' ? 'projector' : undefined,
+      );
       if (activeOperationKeyRef.current !== mutationKey) {
         resolveResult(false);
         return;

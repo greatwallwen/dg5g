@@ -74,7 +74,7 @@ test('live challenge follow renders the independent test CTA and preserves self-
   }));
   assert.equal((html.match(/data-primary-action="true"/g) ?? []).length, 1);
   assert.match(html, /data-classroom-formal-test="true"[^>]*data-primary-action="true"|data-primary-action="true"[^>]*data-classroom-formal-test="true"/);
-  assert.match(html, /href="\/learn\/P1T1-N02\/test"/);
+  assert.match(html, /href="\/learn\/P1T1-N02\/test\?classroomSessionId=demo-class"/);
   assert.match(html, /data-return-self-study="true"/);
   assert.match(html, /data-return-href="\/learn\/P1T3-N02"/);
 

@@ -90,6 +90,7 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
   ], [unit]);
   const activePlayback = useMemo(() => ({ ...playbackSceneForLearningUnit(unit, profile.taskId), presenterId: playback.presenterId }), [playback.presenterId, profile.taskId, unit]);
   function go(index: number) {
+    if (!helperReady) return;
     const nextIndex = Math.max(0, Math.min(profile.units.length - 1, index));
     const next = profile.units[nextIndex];
     const slideId = `${session.sessionId}-S0${nextIndex + 1}`;
@@ -105,6 +106,7 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
     });
   }
   async function pushPage() {
+    if (!helperReady) return;
     update({
       currentPageId: 'P1-STUDENT-FOLLOW-N01',
       sceneMode: 'learning',
@@ -118,6 +120,7 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
     await submitIntent({ type: 'playback_seeked', positionMs: session.lessonState?.playback.positionMs ?? 0 });
   }
   async function forceFollow() {
+    if (!helperReady) return;
     const syncRequestId = `${unit.id}-force-${Date.now()}`;
     update({
       currentPageId: 'P1-STUDENT-FOLLOW-N01',
@@ -136,13 +139,19 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
     update({ studentMode: 'follow', studentSyncState: 'idle', syncRequestId: `${unit.id}-release-${Date.now()}` });
   }
   async function startFormalTest() {
-    if (!activePolicy?.requiresFormalTest) return;
+    if (!helperReady || !activePolicy?.requiresFormalTest) return;
     const formalTest = session.formalTest;
     if (!formalTest || formalTest.status === 'running') return;
     const phase = session.lessonState?.phase ?? 'prepare';
-    if (phase === 'prepare' || phase === 'review') await submitIntent({ type: 'phase_changed', phase: 'lecture' });
-    if (phase === 'prepare' || phase === 'review' || phase === 'lecture' || phase === 'question') await submitIntent({ type: 'phase_changed', phase: 'practice' });
-    if (phase !== 'challenge' && phase !== 'close') await submitIntent({ type: 'phase_changed', phase: 'challenge' });
+    if (phase === 'prepare' || phase === 'review') {
+      if (!await submitIntent({ type: 'phase_changed', phase: 'lecture' })) return;
+    }
+    if (phase === 'prepare' || phase === 'review' || phase === 'lecture' || phase === 'question') {
+      if (!await submitIntent({ type: 'phase_changed', phase: 'practice' })) return;
+    }
+    if (phase !== 'challenge' && phase !== 'close') {
+      if (!await submitIntent({ type: 'phase_changed', phase: 'challenge' })) return;
+    }
     update({
       sceneMode: 'challenge',
       formalTest: {
@@ -154,10 +163,12 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
     });
   }
   async function beginReview() {
+    if (!helperReady || snapshotModel.formalAssessment.submittedCount === 0) return;
     const phase = session.lessonState?.phase ?? 'prepare';
-    if (phase === 'prepare') await submitIntent({ type: 'phase_changed', phase: 'lecture' });
-    if (phase !== 'review' && phase !== 'close') await submitIntent({ type: 'phase_changed', phase: 'review' });
-    update({ reviewState: 'reviewing', sceneMode: 'review' });
+    if (phase === 'prepare' && !await submitIntent({ type: 'phase_changed', phase: 'lecture' })) return;
+    if (phase !== 'review' && phase !== 'close') {
+      await submitIntent({ type: 'phase_changed', phase: 'review' });
+    }
   }
   function closeInspector() { restoreInspectorFocusRef.current = true; setInspectorOpen(false); }
   return <TeacherSkillPulseProvider progress={selectedNodeProgress}><TeacherConsoleView

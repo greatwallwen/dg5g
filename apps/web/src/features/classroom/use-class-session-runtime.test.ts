@@ -37,3 +37,11 @@ test('refreshes but does not replay a non-idempotent teacher intent after a conf
   assert.match(intentBody, /ensureTeacherRevision\(mutationKey\)/);
   assert.equal((intentBody.match(/transport\.submitIntent/g) ?? []).length, 1);
 });
+
+test('allows projector page controls only through the authenticated teacher intent path and projector-safe response', () => {
+  const intentBody = source.slice(source.indexOf('async function submitIntent('), source.indexOf('return [session'));
+  assert.match(source, /allowProjectorControls\?: boolean/);
+  assert.match(intentBody, /options\.role === 'projector'\s*&&\s*options\.allowProjectorControls/);
+  assert.match(intentBody, /transport\.submitIntent\([\s\S]*options\.role === 'projector' \? 'projector' : undefined/);
+  assert.match(intentBody, /notifyPeers\('teacher'/);
+});

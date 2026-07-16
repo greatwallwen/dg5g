@@ -7,6 +7,7 @@ import {
   initialLessonState,
   materializeClassroomLessonEvent,
   playbackPositionAt,
+  parseClassroomLessonIntent,
   reduceClassroomLessonState,
 } from './classroom-state.ts';
 
@@ -168,6 +169,24 @@ test('makes the ended playback state reachable and stable', () => {
   assert.equal(current.playback.status, 'ended');
   assert.equal(current.playback.positionMs, 3_000);
   assert.equal(playbackPositionAt(current.playback, at(30_000)), 3_000);
+});
+
+test('materializes a generic server page intent for every P01 lesson page index', () => {
+  const current = stateAtPhase('lecture');
+  const parsed = parseClassroomLessonIntent({ type: 'page_changed', pageIndex: 11 });
+  assert.deepEqual(parsed, { type: 'page_changed', pageIndex: 11 });
+  assert.equal(parseClassroomLessonIntent({ type: 'page_changed', pageIndex: -1 }), null);
+  assert.equal(parseClassroomLessonIntent({ type: 'page_changed', pageIndex: 1.5 }), null);
+  assert.ok(parsed);
+
+  const next = applyClassroomLessonIntent(current, parsed, at(5_000));
+
+  assert.equal(next.revision, current.revision + 1);
+  assert.equal(next.playback.actionIndex, 11);
+  assert.equal(next.playback.actionId, 'P1T1-N02-S12');
+  assert.equal(next.playback.status, 'paused');
+  assert.equal(next.playback.startedAt, undefined);
+  assert.equal(next.playback.positionMs, 0);
 });
 
 function stateAtPhase(phase: LessonPhase): ClassroomLessonState {

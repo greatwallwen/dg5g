@@ -8,6 +8,7 @@ const structure = await source('check-web-structure.mjs');
 const runner = await source('run-web-runtime-audits.mjs');
 const consistency = await source('audit-p1-three-terminal-consistency.mjs');
 const portfolio = await source('audit-p1-output-portfolio.mjs');
+const crossContext = await source('audit-class-session-cross-context.mjs');
 
 test('runtime audit uses the authoritative four-audience snapshot and real demo-class routes', () => {
   for (const audience of ['student', 'teacher', 'projector', 'graph']) {
@@ -85,6 +86,20 @@ test('three-terminal audit uses a bounded stable-version handshake and API-to-DO
 test('P1 output portfolio audit opens the real demo-class teacher session', () => {
   assert.ok(portfolio.includes('/teacher/sessions/demo-class'));
   assert.equal(portfolio.includes('/teacher/sessions/P1T1-N02'), false);
+});
+
+test('cross-context audit proves projector page controls, follow revision, and self-cursor isolation', () => {
+  for (const proof of [
+    'data-session-action="previous-page"',
+    'data-session-action="next-page"',
+    'data-session-action="back-to-teacher"',
+    'pageSynchronization',
+    'projector page intent did not advance exactly one server revision',
+    'selfTeacherRevision',
+    'projector page revision overwrote the self-study student personal cursor',
+    'assertNoPersonLevelData',
+  ]) assert.ok(crossContext.includes(proof), `cross-context audit omits ${proof}`);
+  assert.equal(crossContext.includes("locator('[data-session-action]').count() === 0"), false);
 });
 
 async function source(name) {

@@ -120,6 +120,8 @@ export interface FormalTestParticipant {
 
 export interface FormalTestSession {
   assessmentId: string;
+  /** Shared classroom run identity; distinct from each student's assessment instance. */
+  runId?: string;
   gameId: string;
   nodeId: string;
   status: 'idle' | 'running' | 'paused' | 'review';

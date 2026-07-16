@@ -36,6 +36,10 @@ import {
   isStudentSyncState,
   normalizeTtl,
 } from './classroom-session-invariants.ts';
+import {
+  readValidatedClassroomRunAttempts,
+  type ClassroomAssessmentRunWindow,
+} from './classroom-assessment-run-reader.ts';
 
 export type ClassroomSessionStatus = 'preparing' | 'active' | 'paused' | 'closed';
 
@@ -60,7 +64,7 @@ export interface ClassroomSessionStateV1 {
   } | null;
   activityState: ActivityState;
   reviewState: ReviewState;
-  formalTest?: Pick<FormalTestSession, 'assessmentId' | 'gameId' | 'nodeId' | 'status' | 'durationSeconds' | 'startedAt'>;
+  formalTest?: Pick<FormalTestSession, 'assessmentId' | 'runId' | 'gameId' | 'nodeId' | 'status' | 'durationSeconds' | 'startedAt'>;
 }
 
 export interface StoredClassroomSession {
@@ -183,6 +187,10 @@ export class ClassroomSessionRepository {
 
   constructor(private readonly database: AppDatabase) {
     this.clock = new SnapshotClock(database);
+  }
+
+  readValidatedAssessmentRun(window: ClassroomAssessmentRunWindow) {
+    return readValidatedClassroomRunAttempts(this.database, window);
   }
 
   readSession(sessionId: string): StoredClassroomSession | undefined {

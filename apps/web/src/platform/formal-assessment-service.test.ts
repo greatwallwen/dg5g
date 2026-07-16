@@ -18,12 +18,14 @@ import {
   LearningCommandValidationError,
 } from './learning-command-service.ts';
 import {
+  AssessmentClassroomWindowError,
   AssessmentRemediationRequiredError,
   AssessmentTokenError,
   FormalAssessmentService,
   type AssessmentAnswers,
 } from './formal-assessment-service.ts';
 import { getFormalAssessmentDefinition } from './formal-assessment-catalog.server.ts';
+import { ClassroomSessionRepository } from './classroom-session-repository.ts';
 
 const studentOne: AuthenticatedActor = {
   userId: 'stu-01',
@@ -156,6 +158,94 @@ test('issues an answer-free paper and grades and persists only on the server', (
     assert.deepEqual(JSON.parse(stored.answersJson), wrongAnswers);
     assert.equal(JSON.parse(stored.diagnosticsJson).totalScore, result.totalScore);
     assert.equal(stored.origin, 'user');
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('binds a classroom-issued paper to the exact active shared run without replacing its unique assessment identity', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    readyForFormalAssessment(fixture.database, studentOne.userId);
+    const classroom = new ClassroomSessionRepository(fixture.database).readSession('demo-class');
+    assert.ok(classroom);
+    classroom.state.formalTest = {
+      assessmentId: 'AS-P1T1-N02',
+      gameId: 'P1T1-N02-server-assessment',
+      nodeId: 'P1T1-N02',
+      durationSeconds: 900,
+      runId: 'classroom-run-live-01',
+      status: 'running',
+      startedAt: '2026-07-16T01:00:00.000Z',
+    };
+    fixture.database.prepare(`
+      UPDATE classroom_sessions
+      SET status = 'active', state_json = ?
+      WHERE session_id = 'demo-class'
+    `).run(JSON.stringify(classroom.state));
+    const service = new FormalAssessmentService(fixture.database, deterministicOptions());
+
+    const issued = service.issuePaper(studentOne, 'P1T1-N02', {
+      classroomSessionId: 'demo-class',
+    });
+    const stored = fixture.database.prepare(`
+      SELECT assessment_id AS assessmentId, session_id AS sessionId,
+        classroom_run_id AS classroomRunId
+      FROM formal_assessment_instances
+      WHERE assessment_id = ?
+    `).get(issued.assessmentId);
+
+    assert.deepEqual(stored, {
+      assessmentId: issued.assessmentId,
+      sessionId: 'demo-class',
+      classroomRunId: 'classroom-run-live-01',
+    });
+    assert.notEqual(issued.assessmentId, 'classroom-run-live-01');
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('rejects a classroom-bound submission after its shared run has left the active window', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    readyForFormalAssessment(fixture.database, studentOne.userId);
+    const classroom = new ClassroomSessionRepository(fixture.database).readSession('demo-class');
+    assert.ok(classroom);
+    classroom.state.formalTest = {
+      assessmentId: 'AS-P1T1-N02',
+      gameId: 'P1T1-N02-server-assessment',
+      nodeId: 'P1T1-N02',
+      durationSeconds: 900,
+      runId: 'classroom-run-closed-before-submit',
+      status: 'running',
+      startedAt: '2026-07-16T09:55:00.000Z',
+    };
+    fixture.database.prepare(`
+      UPDATE classroom_sessions SET status = 'active', state_json = ?
+      WHERE session_id = 'demo-class'
+    `).run(JSON.stringify(classroom.state));
+    const service = new FormalAssessmentService(fixture.database, deterministicOptions());
+    const issued = service.issuePaper(studentOne, 'P1T1-N02', {
+      classroomSessionId: 'demo-class',
+    });
+
+    classroom.state.formalTest.status = 'review';
+    fixture.database.prepare(`
+      UPDATE classroom_sessions SET state_json = ? WHERE session_id = 'demo-class'
+    `).run(JSON.stringify(classroom.state));
+
+    assert.throws(
+      () => service.submitAnswers(studentOne, issued.attemptToken, passingAnswers),
+      AssessmentClassroomWindowError,
+    );
+    assert.equal(fixture.database.prepare(`
+      SELECT COUNT(*) FROM formal_attempts WHERE assessment_id = ?
+    `).pluck().get(issued.assessmentId), 0);
   } finally {
     fixture.cleanup();
   }
@@ -519,6 +609,12 @@ test('assessment route rejects forged scores and accepts an answer-only submissi
     const cookie = `${AUTH_COOKIE_NAME}=${session.token}`;
     const route = await import('../app/api/learning/nodes/[nodeId]/assessment/route.ts');
     const legacyAttemptRoute = await import('../app/api/learning/nodes/[nodeId]/attempts/route.ts');
+
+    const forgedContext = route.GET(new Request(
+      'http://localhost/api/learning/nodes/P1T1-N02/assessment?runId=forged-client-run',
+      { headers: { cookie } },
+    ), routeContext());
+    assert.equal(forgedContext.status, 400);
 
     const paperResponse = route.GET(routeRequest('GET', cookie), routeContext());
     assert.equal(paperResponse.status, 200);

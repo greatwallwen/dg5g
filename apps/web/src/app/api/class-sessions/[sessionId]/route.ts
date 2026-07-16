@@ -75,7 +75,9 @@ export async function PATCH(
         intent,
         expectedRevision,
       );
-      return noStore(result);
+      return noStore(new URL(request.url).searchParams.get('view') === 'projector'
+        ? { ...result, session: projectClassSession(result.session, 'projector') }
+        : result);
     }
 
     if (actor.role === 'student') {

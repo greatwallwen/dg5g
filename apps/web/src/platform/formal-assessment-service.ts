@@ -19,6 +19,7 @@ import {
 } from './formal-assessment-catalog.server.ts';
 import { createLearningCommandService, LearningAuthorizationError } from './learning-command-service.ts';
 import { SnapshotClock } from './snapshot-clock.ts';
+import { ClassroomSessionRepository } from './classroom-session-repository.ts';
 
 export type {
   AssessmentAnswers,
@@ -34,6 +35,10 @@ export interface FormalAssessmentServiceOptions {
   randomId?: () => string;
   randomToken?: () => string;
   tokenTtlMs?: number;
+}
+
+export interface FormalAssessmentIssueContext {
+  classroomSessionId?: string;
 }
 
 export class AssessmentCatalogError extends Error {
@@ -61,6 +66,13 @@ export class AssessmentRemediationRequiredError extends Error {
   }
 }
 
+export class AssessmentClassroomWindowError extends Error {
+  constructor(message = 'The classroom formal-assessment window is not active.') {
+    super(message);
+    this.name = 'AssessmentClassroomWindowError';
+  }
+}
+
 interface TokenRow {
   assessmentId: string;
   studentId: string;
@@ -72,6 +84,8 @@ interface TokenRow {
   instanceNodeId: string;
   instanceQuestionVersion: string;
   status: string;
+  classroomSessionId: string | null;
+  classroomRunId: string | null;
 }
 
 interface LatestAttemptRow {
@@ -96,7 +110,11 @@ export class FormalAssessmentService {
     this.tokenTtlMs = options.tokenTtlMs ?? 30 * 60 * 1_000;
   }
 
-  issuePaper(actor: AuthenticatedActor, nodeId: string): IssuedAssessmentPaper {
+  issuePaper(
+    actor: AuthenticatedActor,
+    nodeId: string,
+    context: FormalAssessmentIssueContext = {},
+  ): IssuedAssessmentPaper {
     const studentId = requireStudent(actor);
     const definition = requireDefinition(nodeId);
     createLearningCommandService(this.database).requireFormalAssessmentReadiness(actor, nodeId);
@@ -106,6 +124,9 @@ export class FormalAssessmentService {
     const assessmentId = `assessment-${this.randomId()}`;
     const attemptToken = this.randomToken();
     if (attemptToken.trim().length < 24) throw new Error('Formal assessment token entropy is insufficient.');
+    const classroomRun = context.classroomSessionId
+      ? this.requireActiveClassroomRun(actor, nodeId, context.classroomSessionId, definition)
+      : undefined;
 
     return this.database.transaction(() => {
       const missingTargets = this.readMissingRemediationTargets(studentId, definition);
@@ -126,10 +147,13 @@ export class FormalAssessmentService {
       `).run(openedAt, studentId, nodeId);
       this.database.prepare(`
         INSERT INTO formal_assessment_instances (
-          assessment_id, node_id, game_id, question_version, status, opened_at, created_at
-        ) VALUES (?, ?, ?, ?, 'running', ?, ?)
+          assessment_id, session_id, classroom_run_id, node_id, game_id,
+          question_version, status, opened_at, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, 'running', ?, ?)
       `).run(
         assessmentId,
+        classroomRun?.sessionId ?? null,
+        classroomRun?.runId ?? null,
         nodeId,
         definition.gameId,
         definition.paper.questionVersion,
@@ -156,6 +180,34 @@ export class FormalAssessmentService {
         expiresAt,
       };
     })();
+  }
+
+  private requireActiveClassroomRun(
+    actor: AuthenticatedActor,
+    nodeId: string,
+    sessionId: string,
+    definition: FormalAssessmentDefinition,
+  ): { sessionId: string; runId: string } {
+    const session = new ClassroomSessionRepository(this.database).readSession(sessionId);
+    const isMember = this.database.prepare(`
+      SELECT EXISTS(
+        SELECT 1 FROM classroom_members
+        WHERE session_id = ? AND student_id = ?
+      )
+    `).pluck().get(sessionId, actor.userId) === 1;
+    const formalTest = session?.state.formalTest;
+    if (!session
+      || session.classId !== actor.classId
+      || session.status !== 'active'
+      || !isMember
+      || session.activeNodeId !== nodeId
+      || formalTest?.status !== 'running'
+      || formalTest.nodeId !== nodeId
+      || formalTest.gameId !== definition.gameId
+      || !formalTest.runId) {
+      throw new AssessmentClassroomWindowError();
+    }
+    return { sessionId, runId: formalTest.runId };
   }
 
   submitAnswers(
@@ -187,6 +239,7 @@ export class FormalAssessmentService {
         || token.questionVersion !== token.instanceQuestionVersion) {
         throw new AssessmentTokenError('invalid-token');
       }
+      this.requireClassroomRunStillOpen(token);
 
       const definition = requireDefinition(token.nodeId);
       if (definition.paper.questionVersion !== token.questionVersion) {
@@ -271,12 +324,30 @@ export class FormalAssessmentService {
         token.issued_at AS issuedAt, token.expires_at AS expiresAt, token.used_at AS usedAt,
         instance.node_id AS instanceNodeId,
         instance.question_version AS instanceQuestionVersion,
-        instance.status
+        instance.status,
+        instance.session_id AS classroomSessionId,
+        instance.classroom_run_id AS classroomRunId
       FROM formal_assessment_tokens AS token
       INNER JOIN formal_assessment_instances AS instance
         ON instance.assessment_id = token.assessment_id
       WHERE token.token_hash = ?
     `).get(tokenHash) as TokenRow | undefined;
+  }
+
+  private requireClassroomRunStillOpen(token: TokenRow): void {
+    if (token.classroomSessionId === null && token.classroomRunId === null) return;
+    if (!token.classroomSessionId || !token.classroomRunId) {
+      throw new AssessmentTokenError('invalid-token');
+    }
+    const session = new ClassroomSessionRepository(this.database).readSession(token.classroomSessionId);
+    const formalTest = session?.state.formalTest;
+    if (!session
+      || session.status !== 'active'
+      || formalTest?.status !== 'running'
+      || formalTest.runId !== token.classroomRunId
+      || formalTest.nodeId !== token.nodeId) {
+      throw new AssessmentClassroomWindowError();
+    }
   }
 
   private readMissingRemediationTargets(

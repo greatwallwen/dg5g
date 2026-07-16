@@ -7,6 +7,7 @@ import type {
 
 export type ClassroomLessonIntent =
   | { type: 'phase_changed'; phase: LessonPhase }
+  | { type: 'page_changed'; pageIndex: number }
   | { type: 'playback_started'; actionId: string; actionIndex: number; rate: number }
   | { type: 'playback_paused' }
   | { type: 'playback_seeked'; positionMs: number }
@@ -15,6 +16,7 @@ export type ClassroomLessonIntent =
 
 export type ClassroomLessonEvent =
   | { type: 'phase_changed'; phase: LessonPhase; revision: number; at: string; positionMs: number }
+  | { type: 'page_changed'; pageIndex: number; actionId: string; revision: number; at: string; positionMs: number }
   | {
       type: 'playback_started';
       actionId: string;
@@ -68,6 +70,11 @@ export function parseClassroomLessonIntent(value: unknown): ClassroomLessonInten
   if (candidate.type === 'phase_changed' && isLessonPhase(candidate.phase)) {
     return { type: 'phase_changed', phase: candidate.phase };
   }
+  if (candidate.type === 'page_changed'
+    && Number.isInteger(candidate.pageIndex)
+    && Number(candidate.pageIndex) >= 0) {
+    return { type: 'page_changed', pageIndex: Number(candidate.pageIndex) };
+  }
   if (candidate.type === 'playback_started'
     && typeof candidate.actionId === 'string'
     && Number.isInteger(candidate.actionIndex)
@@ -117,6 +124,15 @@ export function materializeClassroomLessonEvent(
   const positionMs = playbackPositionAt(current.playback, now);
 
   if (intent.type === 'phase_changed') return { ...intent, revision, at, positionMs };
+  if (intent.type === 'page_changed') {
+    return {
+      ...intent,
+      actionId: classroomPageActionId(current.activeNodeId, intent.pageIndex),
+      revision,
+      at,
+      positionMs: 0,
+    };
+  }
   if (intent.type === 'playback_started') {
     const sameAction = current.playback.actionId === intent.actionId;
     return {
@@ -150,6 +166,16 @@ export function reduceClassroomLessonState(
         ? { ...current.playback, status: 'paused', startedAt: undefined, positionMs: clampPosition(event.positionMs), revision: event.revision }
         : { ...current.playback, revision: event.revision },
     };
+  }
+
+  if (event.type === 'page_changed') {
+    return updatePlayback(current, event.revision, {
+      actionId: event.actionId,
+      actionIndex: event.pageIndex,
+      status: 'paused',
+      startedAt: undefined,
+      positionMs: 0,
+    });
   }
 
   if (event.type === 'playback_started') {
@@ -193,6 +219,10 @@ export function reduceClassroomLessonState(
     startedAt: undefined,
     positionMs: clampPosition(event.positionMs),
   });
+}
+
+export function classroomPageActionId(nodeId: string, pageIndex: number): string {
+  return `${nodeId}-S${String(pageIndex + 1).padStart(2, '0')}`;
 }
 
 function updatePlayback(

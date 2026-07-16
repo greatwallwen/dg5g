@@ -7,6 +7,7 @@ const baseUrl = normalizeBaseUrl(readArg('--base-url', 'http://127.0.0.1:3157/')
 const sessionId = readArg('--session-id', 'demo-class');
 const outDir = path.resolve(process.cwd(), readArg('--out', 'output/playwright/class-session-cross-context'));
 const password = process.env.DGBOOK_DEMO_PASSWORD ?? '123456';
+const helperToken = process.env.DGBOOK_HELPER_TOKEN ?? 'dgbook-helper-demo-2026';
 const report = {
   baseUrl,
   sessionId,
@@ -29,8 +30,8 @@ try {
   contexts.studentLeft = await loginContext('student03', { width: 390, height: 844 });
   contexts.projector = await loginContext('teacher01', { width: 1440, height: 900 });
 
+  report.classroom.helper = await refreshAuditHelper(contexts.teacher);
   report.classroom.activation = await ensureClassroomActive(contexts.teacher);
-  report.cursors.beforeClassroomMutation = await saveAndReadTwoCursors(contexts.studentFollow);
 
   await participationMutation(contexts.studentFollow, 'PUT');
   await participationMutation(contexts.studentFollow, 'PATCH', { mode: 'follow' });
@@ -44,12 +45,18 @@ try {
   report.participation.left = await readParticipation(contexts.studentLeft);
   assertParticipation(report.participation);
 
-  report.classroom.teacherTransition = await advanceTeacherPhase(contexts.teacher);
-  report.cursors.afterClassroomMutation = await readTwoCursors(contexts.studentFollow);
+  report.cursors.beforeClassroomMutation = await saveAndReadTwoCursors(contexts.studentSelf);
+  await refreshAuditHelper(contexts.teacher);
+  report.classroom.pageSynchronization = await auditPageSynchronization({
+    projector: contexts.projector,
+    studentFollow: contexts.studentFollow,
+    studentSelf: contexts.studentSelf,
+  });
+  report.cursors.afterClassroomMutation = await readTwoCursors(contexts.studentSelf);
   assertDeepEqual(
     report.cursors.afterClassroomMutation,
     report.cursors.beforeClassroomMutation,
-    'classroom join/mode/leave and teacher revision overwrote a personal per-node cursor',
+    'projector page revision overwrote the self-study student personal cursor',
   );
 
   const projectorSession = await apiJson(
@@ -109,21 +116,92 @@ async function ensureClassroomActive(context) {
   };
 }
 
-async function advanceTeacherPhase(context) {
-  const before = await readTeacherSession(context);
-  const nextPhase = nextLegalPhase(before.lessonState.phase);
-  assert(nextPhase, `demo-class phase ${before.lessonState.phase} cannot advance during the audit`);
-  const mutation = await teacherIntent(context, before.lessonState.revision, nextPhase);
-  assert(
-    mutation.session.lessonState.revision === before.lessonState.revision + 1,
-    'teacher phase transition did not advance the authoritative revision exactly once',
-  );
-  return {
-    fromPhase: before.lessonState.phase,
-    toPhase: mutation.session.lessonState.phase,
-    fromRevision: before.lessonState.revision,
-    toRevision: mutation.session.lessonState.revision,
-  };
+async function auditPageSynchronization({ projector, studentFollow, studentSelf }) {
+  const [projectorPage, followPage, selfPage] = await Promise.all([
+    projector.newPage(),
+    studentFollow.newPage(),
+    studentSelf.newPage(),
+  ]);
+  try {
+    await Promise.all([
+      projectorPage.goto(url(`/present/${sessionId}`), { waitUntil: 'networkidle' }),
+      followPage.goto(url(`/classroom/${sessionId}`), { waitUntil: 'networkidle' }),
+      selfPage.goto(url(`/classroom/${sessionId}`), { waitUntil: 'networkidle' }),
+    ]);
+    const projectorRoot = projectorPage.locator('.projector-app').first();
+    const followRoot = followPage.locator('.follow-app[data-student-mode="follow"]').first();
+    const selfRoot = selfPage.locator('.follow-app[data-student-mode="self"]').first();
+    await Promise.all([
+      projectorRoot.waitFor({ state: 'visible', timeout: 15_000 }),
+      followRoot.waitFor({ state: 'visible', timeout: 15_000 }),
+      selfRoot.waitFor({ state: 'visible', timeout: 15_000 }),
+    ]);
+
+    const before = await readTeacherSession(projector);
+    assert(before.lessonState.activeNodeId === 'P1T1-N02', 'cross-context page audit requires the P1T1-N02 reference lesson');
+    const beforeRevision = before.lessonState.revision;
+    const beforePageIndex = before.lessonState.playback.actionIndex;
+    const targetPageIndex = beforePageIndex < 11 ? beforePageIndex + 1 : beforePageIndex - 1;
+    const action = targetPageIndex > beforePageIndex ? 'next-page' : 'previous-page';
+    const control = projectorPage.locator(`[data-session-action="${action}"]`).first();
+    await control.waitFor({ state: 'visible', timeout: 15_000 });
+    assert(await control.isEnabled(), `projector ${action} control is disabled with a live helper`);
+    await control.click();
+
+    await projectorPage.waitForFunction(
+      (pageIndex) => Number(document.querySelector('.scene-projector-topbar')?.getAttribute('data-slide-index')) === pageIndex + 1,
+      targetPageIndex,
+      { timeout: 15_000 },
+    );
+    await followPage.waitForFunction(
+      (revision) => Number(document.querySelector('.follow-app')?.getAttribute('data-classroom-revision')) === revision,
+      beforeRevision + 1,
+      { timeout: 20_000 },
+    );
+    await selfPage.waitForFunction(
+      (revision) => Number(document.querySelector('.classroom-self-status')?.getAttribute('data-teacher-revision')) === revision,
+      beforeRevision + 1,
+      { timeout: 25_000 },
+    );
+
+    const after = await readTeacherSession(projector);
+    assert(after.lessonState.revision === beforeRevision + 1, 'projector page intent did not advance exactly one server revision');
+    assert(after.lessonState.playback.actionIndex === targetPageIndex, 'projector page intent did not persist the target page');
+    assert(after.lessonState.playback.actionId === `P1T1-N02-S${String(targetPageIndex + 1).padStart(2, '0')}`, 'projector page intent left a stale action identity');
+    return {
+      action,
+      fromPageIndex: beforePageIndex,
+      toPageIndex: targetPageIndex,
+      fromRevision: beforeRevision,
+      toRevision: after.lessonState.revision,
+      followRevision: Number(await followRoot.getAttribute('data-classroom-revision')),
+      selfTeacherRevision: Number(await selfPage.locator('.classroom-self-status').getAttribute('data-teacher-revision')),
+      selfCursorPolicy: 'teacher update prompt only; personal cursor unchanged',
+    };
+  } finally {
+    await Promise.all([projectorPage.close(), followPage.close(), selfPage.close()]);
+  }
+}
+
+async function refreshAuditHelper(context) {
+  const endpoint = url(`/api/class-sessions/${sessionId}/helper`);
+  const results = [];
+  for (const studentId of ['stu-01', 'stu-02', 'stu-03']) {
+    const response = await context.request.patch(endpoint, {
+      headers: { 'x-dgbook-helper-token': helperToken },
+      data: {
+        kind: 'heartbeat',
+        actorRole: 'student',
+        deviceId: `audit-device-${studentId}`,
+        studentId,
+        pageState: 'ready',
+        lastAppliedRevision: 0,
+      },
+    });
+    await apiJson(response, `audit helper heartbeat for ${studentId}`);
+    results.push(studentId);
+  }
+  return { status: 'online', students: results };
 }
 
 async function teacherIntent(context, expectedRevision, phase) {
@@ -204,7 +282,11 @@ async function captureRolePage(role, context, route, selector, expectedCounts) {
       assert(await root.getAttribute('data-following-count') === expectedCounts.followingCount, `${role} following count is stale`);
     }
     if (role === 'projector') {
-      assert(await page.locator('[data-session-action]').count() === 0, 'projector exposed teacher controls');
+      for (const action of ['previous-page', 'next-page', 'back-to-teacher']) {
+        assert(await page.locator(`[data-session-action="${action}"]`).count() === 1, `projector is missing ${action}`);
+      }
+      const unexpectedActions = await page.locator('[data-session-action]:not([data-session-action="previous-page"]):not([data-session-action="next-page"]):not([data-session-action="back-to-teacher"])').count();
+      assert(unexpectedActions === 0, 'projector exposed an unsupported teacher operation');
       assert(await page.locator('[data-student-id], [data-participant-id], [data-person-id]').count() === 0, 'projector exposed a person-level row');
       const visibleText = await page.locator('body').innerText();
       for (const studentId of ['stu-01', 'stu-02', 'stu-03']) {

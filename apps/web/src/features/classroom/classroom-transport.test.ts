@@ -86,6 +86,27 @@ test('submits teacher intent with an expected server revision', async () => {
   });
 });
 
+test('requests a projector-safe response when an authenticated projector submits a page intent', async () => {
+  const calls: Array<{ input: string; init?: RequestInit }> = [];
+  const transport = createHttpClassroomTransport(async (input, init) => {
+    calls.push({ input: String(input), init });
+    return Response.json({ session, command: { commandId: 'cmd-projector-page' } });
+  });
+
+  await transport.submitIntent(
+    'P1T1-N02',
+    { type: 'page_changed', pageIndex: 3 },
+    4,
+    'projector',
+  );
+
+  assert.equal(calls[0]?.input, '/api/class-sessions/P1T1-N02?view=projector');
+  assert.deepEqual(JSON.parse(String(calls[0]?.init?.body)), {
+    intent: { type: 'page_changed', pageIndex: 3 },
+    expectedRevision: 4,
+  });
+});
+
 test('returns an explicit transport failure instead of silently succeeding', async () => {
   const transport = createHttpClassroomTransport(async () => Response.json({ error: 'Helper unavailable' }, { status: 503 }));
 

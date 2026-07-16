@@ -6,7 +6,7 @@ import { Icon } from '@/ui/foundation/icons';
 import { TeacherConsoleInspector } from './teacher-console-inspector';
 import type { TeacherConsoleViewProps } from './teacher-console-view-props';
 
-export type TeacherPrimaryAction = 'start-formal-test' | 'push-page' | 'begin-review' | 'next-node';
+export type TeacherPrimaryAction = 'reconnect-helper' | 'start-formal-test' | 'push-page' | 'begin-review' | 'next-node';
 
 export function teacherPrimaryActionForPhase({
   phase,
@@ -21,10 +21,11 @@ export function teacherPrimaryActionForPhase({
   hasNextNode: boolean;
   helperReady: boolean;
 }): TeacherPrimaryAction {
+  if (!helperReady) return 'reconnect-helper';
   if (phase === 'challenge' && formalTestAvailable && !formalTestRunning) return 'start-formal-test';
+  if (phase === 'challenge' && formalTestRunning) return 'begin-review';
   if (phase === 'review' && hasNextNode) return 'next-node';
-  if (helperReady) return 'push-page';
-  return 'begin-review';
+  return 'push-page';
 }
 
 export function TeacherConsoleView(p: TeacherConsoleViewProps) {
@@ -87,7 +88,7 @@ export function TeacherConsoleView(p: TeacherConsoleViewProps) {
             <header><span>{p.profile.taskId}</span><strong>课时结构</strong></header>
             {p.profile.units.map((item: any, index: number) => (
               <button className={index === p.unitIndex ? 'is-active' : ''} key={item.id}
-                onClick={() => p.go(index)} type="button">
+                disabled={!p.helperReady} onClick={() => p.go(index)} type="button">
                 <span>{index + 1}</span>
                 <p><strong>{item.title}</strong><small>{item.output}</small></p>
               </button>
@@ -139,7 +140,7 @@ export function TeacherConsoleView(p: TeacherConsoleViewProps) {
           <details className="teacher-more-actions">
             <summary><Icon name="layers" size={17} />更多操作</summary>
             <div>
-              <button disabled={p.unitIndex === 0} onClick={() => p.go(p.unitIndex - 1)} type="button">
+              <button disabled={!p.helperReady || p.unitIndex === 0} onClick={() => p.go(p.unitIndex - 1)} type="button">
                 <Icon name="arrow" size={17} />上一节点
               </button>
               <button onClick={() => p.setPlaybackOpen((value) => !value)} type="button">
@@ -147,7 +148,7 @@ export function TeacherConsoleView(p: TeacherConsoleViewProps) {
                 {p.playbackOpen ? '收起播报' : '打开播报'}
               </button>
               {primaryAction !== 'start-formal-test' ? <button data-session-action="start-formal-test"
-                disabled={!p.session.formalTest || p.session.formalTest.status === 'running'}
+                disabled={!p.helperReady || !p.session.formalTest || p.session.formalTest.status === 'running'}
                 onClick={p.startFormalTest} type="button">
                 <Icon name="target" size={17} />启动正式测试
               </button> : null}
@@ -165,10 +166,12 @@ export function TeacherConsoleView(p: TeacherConsoleViewProps) {
                   <Icon name="screen" size={17} />全班跟随
                 </button>
               )}
-              {primaryAction !== 'begin-review' ? <button onClick={p.beginReview} type="button">
+              {primaryAction !== 'begin-review' ? <button data-session-action="begin-review"
+                disabled={!p.helperReady || p.formalAssessment.submittedCount === 0}
+                onClick={p.beginReview} title={p.formalAssessment.submittedCount === 0 ? '至少收到 1 份当前正式测试提交后才能讲评' : undefined} type="button">
                 <Icon name="target" size={17} />进入讲评
               </button> : null}
-              {primaryAction !== 'next-node' ? <button disabled={!hasNextNode}
+              {primaryAction !== 'next-node' ? <button disabled={!p.helperReady || !hasNextNode}
                 onClick={() => p.go(p.unitIndex + 1)} type="button">
                 下一节点<Icon name="arrow" size={17} />
               </button> : null}
@@ -183,8 +186,12 @@ export function TeacherConsoleView(p: TeacherConsoleViewProps) {
 }
 
 function TeacherPrimaryActionButton({ action, p }: { action: TeacherPrimaryAction; p: TeacherConsoleViewProps }) {
-  if (action === 'start-formal-test') return <button className="is-primary" data-primary-action data-session-action="start-formal-test" onClick={p.startFormalTest} type="button"><Icon name="target" size={17} />启动正式测试</button>;
-  if (action === 'next-node') return <button className="is-primary" data-primary-action data-session-action="next-node" onClick={() => p.go(p.unitIndex + 1)} type="button">下一节点<Icon name="arrow" size={17} /></button>;
+  if (action === 'reconnect-helper') return <a className="is-primary" data-helper-reconnect-entry data-primary-action data-session-action="reconnect-helper" href={`/teacher/classroom-helper?sessionId=${encodeURIComponent(p.session.sessionId)}`}><Icon name="screen" size={17} />重连课堂助手</a>;
+  if (action === 'start-formal-test') return <button className="is-primary" data-primary-action data-session-action="start-formal-test" disabled={!p.helperReady} onClick={p.startFormalTest} type="button"><Icon name="target" size={17} />启动正式测试</button>;
+  if (action === 'next-node') return <button className="is-primary" data-primary-action data-session-action="next-node" disabled={!p.helperReady} onClick={() => p.go(p.unitIndex + 1)} type="button">下一节点<Icon name="arrow" size={17} /></button>;
   if (action === 'push-page') return <button className="is-primary" data-primary-action data-session-action="push-page" onClick={p.pushPage} type="button"><Icon name="message" size={17} />推送 {p.unit.capabilityNodeId} 当前页</button>;
-  return <button className="is-primary" data-primary-action data-session-action="begin-review" onClick={p.beginReview} type="button"><Icon name="target" size={17} />进入讲评</button>;
+  return <button className="is-primary" data-primary-action data-session-action="begin-review"
+    disabled={p.formalAssessment.submittedCount === 0} onClick={p.beginReview}
+    title={p.formalAssessment.submittedCount === 0 ? '至少收到 1 份当前正式测试提交后才能讲评' : undefined}
+    type="button"><Icon name="target" size={17} />{p.formalAssessment.submittedCount === 0 ? '等待学生提交' : '进入讲评'}</button>;
 }

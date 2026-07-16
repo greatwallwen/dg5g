@@ -31,7 +31,7 @@ test('teacherPrimaryActionForPhase exposes one contextual action for every class
     formalTestRunning: false,
     hasNextNode: true,
     helperReady: false,
-  }), 'begin-review');
+  }), 'reconnect-helper');
   assert.notEqual(teacherPrimaryActionForPhase({
     phase: 'challenge',
     formalTestAvailable: true,
@@ -53,8 +53,17 @@ test('teacher and projector roots declare their primary-action and motion contra
   assert.match(teacher, /data-motion=/);
   assert.match(teacher, /data-inspector-open=/);
   assert.match(teacher, /data-primary-action/);
+  assert.match(teacher, /data-helper-reconnect-entry/);
+  assert.match(teacher, /formalAssessment\.submittedCount === 0/);
+  assert.match(teacher, /data-session-action="begin-review"/);
   assert.match(projector, /data-primary-action-policy="none"/);
   assert.match(projector, /data-motion="paused"/);
+  assert.match(projector, /data-session-action="previous-page"/);
+  assert.match(projector, /data-session-action="next-page"/);
+  assert.match(projector, /data-session-action="back-to-teacher"/);
+  assert.match(projector, /allowProjectorControls: true/);
+  assert.match(projector, /snapshot\.helper\.canPush/);
+  assert.match(projector, /errorDistribution/);
   assert.doesNotMatch(projector, /studentName|studentIdentifier|participant\.studentId|answers\.map/u);
 });
 
@@ -66,4 +75,12 @@ test('teacher console supports Escape close, focus return and a modal inspector 
   assert.match(client, /inspectorButtonRef\.current\?\.focus/);
   assert.match(inspector, /data-teacher-inspector-backdrop/);
   assert.match(inspector, /aria-modal="true"/);
+});
+
+test('offline helper entry is a real teacher-only reconnect and recheck page', () => {
+  const page = source('../../app/teacher/classroom-helper/page.tsx');
+  assert.match(page, /requireClassRole\('teacher'\)/);
+  assert.match(page, /data-helper-reconnect-page/);
+  assert.match(page, /data-helper-recheck/);
+  assert.match(page, /classroom-helper:start/);
 });
