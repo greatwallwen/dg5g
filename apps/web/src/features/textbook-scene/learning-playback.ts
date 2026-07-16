@@ -44,7 +44,7 @@ export function playbackSceneForLearningUnit(unit: DemoUnit, taskId: DemoTaskId)
 const p01AcceptedNarration: Record<string, { audioId: string; spokenText: string }> = {
   'P01-L1-P01': {
     audioId: 'P01-story-speech-006',
-    spokenText: '室内信息采集要先锁定资源边界：机房位置、机柜编号、BBU、AAU或RRU、电源、传输、接地和温控共同决定站点可用性。',
+    spokenText: '室内信息采集要先锁定资源边界：机房位置、机柜编号、BBU、AAU/RRU、电源、传输、接地和温控共同决定站点可用性。',
   },
   'P01-L1-P03': {
     audioId: 'P01-story-speech-011',
@@ -56,7 +56,7 @@ const p01AcceptedNarration: Record<string, { audioId: string; spokenText: string
   },
   'P01-L2-P03': {
     audioId: 'P01-story-speech-014',
-    spokenText: '不要把端口、光纤、电源线、传输中的单个现象当作完整流程；缺少前后文会误判故障点。',
+    spokenText: '不要把端口、光纤、电源线、传输中的单个事件当作完整流程；缺少前后文会误判断点。',
   },
   'P01-L2-P05': {
     audioId: 'P01-story-speech-021',

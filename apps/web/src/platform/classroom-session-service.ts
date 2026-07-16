@@ -190,9 +190,6 @@ export class ClassroomSessionService {
       && !hasLiveStudentHelper(this.repository, sessionId, now)) {
       throw new ClassroomHelperUnavailableError();
     }
-    if (intent.type === 'phase_changed' && intent.phase === 'review') {
-      this.requireReviewSubmission(aggregate.session, now);
-    }
     if (intent.type === 'page_changed') {
       if (intent.pageIndex >= classroomLessonPageCount(aggregate.session.state.lesson.activeNodeId)) {
         throw new ClassroomIntentError('Classroom page index is outside the authoritative lesson package.');
@@ -201,6 +198,9 @@ export class ClassroomSessionService {
     const lesson = applyClassroomLessonIntent(aggregate.session.state.lesson, intent, now);
     if (lesson === aggregate.session.state.lesson) {
       throw new ClassroomIntentError(`Illegal classroom intent: ${intent.type}.`);
+    }
+    if (intent.type === 'phase_changed' && intent.phase === 'review') {
+      this.requireReviewSubmission(aggregate.session, now);
     }
     const mutation = this.repository.commitTeacherMutation({
       sessionId,

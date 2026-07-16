@@ -105,15 +105,17 @@ test('keeps all fifteen current teacher actions on browser fallback', () => {
   assert.equal(boundCount, 0);
 });
 
-test('proves all six P01 N02 self-study tracks match the manifest and physical target', () => {
+test('proves the twelve-page P01 N02 lesson retains all six accepted narration tracks', () => {
   const manifest = authoritativeManifest();
   const profiles = createDemoTaskProfiles(loadSelfStudyCatalog());
   const unit = getDemoUnitForNode('P1T1-N02', profiles);
   assert.ok(unit);
   const speechActions = playbackSceneForLearningUnit(unit, 'P01').actions.filter((action) => action.type === 'speech');
+  const narratedActions = speechActions.filter((action) => action.audioId && action.audioUrl);
 
-  assert.equal(speechActions.length, 6);
-  for (const action of speechActions) {
+  assert.equal(speechActions.length, 12);
+  assert.equal(narratedActions.length, 6);
+  for (const action of narratedActions) {
     assert.ok(action.audioId);
     assert.ok(action.audioUrl);
     const item = manifest.items[action.audioId];
