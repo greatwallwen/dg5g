@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { assessmentDimensionKeys } from './formal-assessment-contract.ts';
-import { validatePersistedAssessmentDiagnostic } from './persisted-assessment-diagnostic.ts';
+import {
+  validatePersistedAssessmentDiagnostic,
+  type PersistedAssessmentCandidate,
+} from './persisted-assessment-diagnostic.ts';
 
 test('accepts one closed persisted assessment whose row, instance, dimensions, and remediation agree', () => {
   const candidate = validCandidate();
@@ -36,7 +39,7 @@ test('rejects malformed high scores and every persisted identity mismatch', () =
 
   for (const mutate of mutations) {
     const candidate = validCandidate();
-    const diagnostics = JSON.parse(candidate.diagnosticsJson) as Record<string, any>;
+    const diagnostics = JSON.parse(candidate.diagnosticsJson!) as Record<string, any>;
     mutate(candidate, diagnostics);
     candidate.diagnosticsJson = JSON.stringify(diagnostics);
     assert.equal(validatePersistedAssessmentDiagnostic(candidate, {
@@ -48,7 +51,7 @@ test('rejects malformed high scores and every persisted identity mismatch', () =
 
 test('requires the root remediation set to exactly match low-scoring dimensions and catalog policy', () => {
   const candidate = validCandidate();
-  const diagnostics = JSON.parse(candidate.diagnosticsJson) as Record<string, any>;
+  const diagnostics = JSON.parse(candidate.diagnosticsJson!) as Record<string, any>;
   diagnostics.dimensions.evidenceClassification.score = 19;
   diagnostics.dimensions.linkReconstruction.score = 24;
   diagnostics.totalScore = 89;
@@ -79,7 +82,7 @@ test('requires the root remediation set to exactly match low-scoring dimensions 
 test('rejects demo diagnostics that omit student or game identity', () => {
   const candidate = validCandidate();
   candidate.origin = 'demo';
-  const diagnostics = JSON.parse(candidate.diagnosticsJson) as Record<string, any>;
+  const diagnostics = JSON.parse(candidate.diagnosticsJson!) as Record<string, any>;
   diagnostics.origin = 'demo';
   delete diagnostics.studentId;
   delete diagnostics.gameId;
@@ -91,7 +94,7 @@ test('rejects demo diagnostics that omit student or game identity', () => {
   }), undefined);
 });
 
-function validCandidate() {
+function validCandidate(): PersistedAssessmentCandidate {
   const dimensions = Object.fromEntries(assessmentDimensionKeys.map((key) => [key, {
     score: 23,
     maxScore: 25,
@@ -120,7 +123,7 @@ function validCandidate() {
     questionVersion: diagnostics.questionVersion,
     score: diagnostics.totalScore,
     diagnosticsJson: JSON.stringify(diagnostics),
-    origin: diagnostics.origin as const,
+    origin: 'user',
     completedAt: diagnostics.completedAt,
     instanceAssessmentId: diagnostics.assessmentId,
     instanceNodeId: diagnostics.nodeId,
