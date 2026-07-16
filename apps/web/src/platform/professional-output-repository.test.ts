@@ -247,6 +247,7 @@ test('P02 and P03 save and submit task-scoped evidence through the real reposito
     migrateDatabase(fixture.database);
     seedBase(fixture.database);
     seedEvidenceLibrary(fixture.database);
+    seedGeneratedPracticeSources(fixture.database, 'stu-01');
     const outputIds = ['evidence-p01', 'evidence-p02', 'evidence-p03'];
     const repository = new ProfessionalOutputRepository(fixture.database, () => outputIds.shift()!);
     const p01 = repository.saveDraft({
@@ -270,6 +271,13 @@ test('P02 and P03 save and submit task-scoped evidence through the real reposito
       assert.equal(submitted.head.currentVersion, 1);
       assert.equal(submitted.submissionCount, 1);
       assert.deepEqual(submitted.versions[0]?.evidenceLinks, evidenceLinks);
+      assert.deepEqual(
+        new Set(submitted.versions[0]?.fieldSources.map(({ fieldKey }) => fieldKey)),
+        new Set(Object.keys(fields)),
+      );
+      assert.equal(submitted.versions[0]?.fieldSources.every(({ sourceAttemptId }) => (
+        sourceAttemptId.startsWith(`source-${taskId}-`)
+      )), true);
       upstream = { outputId: submitted.head.outputId, version: submitted.head.currentVersion };
     }
 
@@ -686,6 +694,46 @@ function seedPassedP01Activities(
       response, expectedVersion: 0,
     });
     assert.equal(result.passed, true, activityId);
+  }
+}
+
+function seedGeneratedPracticeSources(
+  database: Parameters<typeof seedP01EvidenceLibrary>[0],
+  studentId: string,
+): void {
+  const activityByField: Record<'P02' | 'P03', Record<string, [string, string]>> = {
+    P02: {
+      sectorIdentity: ['P1T2-N01-micro-01', 'P1T2-N01'],
+      azimuth: ['P1T2-N02-foundation-01', 'P1T2-N02'],
+      tilt: ['P1T2-N02-foundation-01', 'P1T2-N02'],
+      height: ['P1T2-N02-application-01', 'P1T2-N02'],
+      environment: ['P1T2-N02-transfer-01', 'P1T2-N02'],
+      judgement: ['P1T2-N03-micro-01', 'P1T2-N03'],
+    },
+    P03: {
+      complaintBaseline: ['P1T3-N01-micro-01', 'P1T3-N01'],
+      reproductionConditions: ['P1T3-N02-foundation-01', 'P1T3-N02'],
+      businessEvidence: ['P1T3-N02-application-01', 'P1T3-N02'],
+      networkEvidence: ['P1T3-N02-application-01', 'P1T3-N02'],
+      comparison: ['P1T3-N02-transfer-01', 'P1T3-N02'],
+      judgement: ['P1T3-N03-micro-01', 'P1T3-N03'],
+    },
+  };
+  const insert = database.prepare(`
+    INSERT INTO practice_attempts (
+      attempt_id, student_id, activity_id, node_id, response_json, result_json,
+      artifact_json, passed, origin, attempted_at
+    ) VALUES (?, ?, ?, ?, '{}', '{"passed":true}', '{}', 1, 'user', CURRENT_TIMESTAMP)
+  `);
+  const unique = new Map<string, [string, string]>();
+  for (const [taskId, mapping] of Object.entries(activityByField)) {
+    for (const [activityId, nodeId] of Object.values(mapping)) {
+      unique.set(`${taskId}\u0000${activityId}`, [activityId, nodeId]);
+    }
+  }
+  for (const [identity, [activityId, nodeId]] of unique) {
+    const taskId = identity.slice(0, 3);
+    insert.run(`source-${taskId}-${activityId}`, studentId, activityId, nodeId);
   }
 }
 
