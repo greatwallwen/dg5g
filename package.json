@@ -89,6 +89,7 @@
     "audit:class-session-cross-context": "node scripts/audit-class-session-cross-context.mjs",
     "audit:p1-three-terminal-consistency": "node scripts/audit-p1-three-terminal-consistency.mjs",
     "audit:self-study-closure": "node scripts/audit-self-study-closure.mjs",
+    "audit:p0-phase1-truth-closure": "node scripts/audit-p0-phase1-truth-closure.mjs",
     "audit:active-workspace": "node scripts/audit-active-workspace.mjs",
     "audit:legacy-runtime-closure": "node scripts/audit-legacy-runtime-closure.mjs",
     "test:workspace-cleanup": "node --test scripts/active-workspace-policy.test.mjs scripts/release-evidence-index.test.mjs scripts/audit-active-workspace.test.mjs scripts/cleanup-runtime-artifacts.test.mjs",

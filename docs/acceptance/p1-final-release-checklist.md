@@ -1,5 +1,22 @@
 # DGBook P1 最终发布验收清单
 
+## P0 Phase1 真实性闭环（2026-07-16，当前轮次）
+
+本节是当前 `codex/p0-task8` 的增量验收记录；下方 `p1-final-20260715t224419z` 内容仅保留为上一轮历史证据，不能替代本轮验证。任何未执行项继续保持 `PENDING/BLOCKED`，不得沿用旧轮次的 `PASS`。
+
+| 门禁 | 当前状态 | 本轮证据 |
+|---|---|---|
+| Phase1 专用机器门禁 | PASS | `pnpm audit:p0-phase1-truth-closure`：10/10 断言通过；聚焦真实性契约 50/50 通过 |
+| 门禁脚本自身回归 | PASS | `node --test scripts/audit-p0-phase1-truth-closure.test.mjs`：6/6 通过，包含 fail-closed 与 Windows 子进程回归 |
+| 成果详情动态路由 | PASS | `/student/projects/p1/portfolio/[taskId]` 存在；只接受 `taskId`，学生身份由登录 actor 派生 |
+| Web 全量 unit/type/structure/build | PENDING | 等待本轮完整执行并记录新鲜输出 |
+| 440×900、1920×1080 浏览器旅程 | PENDING | 尚未生成本轮专属截图、console/page error 与横向溢出证据 |
+| `qa:gates` | BLOCKED | 既有审计已报告 CSS 字号、capability-map authoring SVG 与 accepted media 闭包问题；本轮必须复跑确认，不得放宽规则 |
+| accepted media 40-file exact closure | BLOCKED | Task8 工作树未执行受保护媒体恢复；禁止手工改写、格式化或绕过 SHA 校验 |
+| source archive、部署与 GitHub 推送 | PENDING | 本任务未打包、未部署、未推送；仅在所有本地门禁和受保护资产闭包通过后执行 |
+
+Phase1 专用门禁覆盖：匿名四页、固定通用练习文案为零、P01 六类真实活动、正式测试 answer-only、三名学生真实性、N04 十字段/逐字段证据/V1-V2、演示来源与冻结分数身份、四维诊断、actor-owned 成果详情，以及当前 assessment 与历史演示数据隔离。
+
 状态说明：`PASS` 表示已有本次发布证据；`PENDING` 表示尚未执行或尚未取得证据。任何 `PENDING` 都不允许改写为最终通过。
 
 ## 发布身份
