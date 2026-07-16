@@ -120,7 +120,50 @@
                   "补拍入口与柜号全景",
                   "删除无法回到边界的孤立照片"
                 ],
-                "retryable": true
+                "retryable": true,
+                "activityKind": "scope-classification",
+                "materials": [
+                  {
+                    "id": "room-01-cabinets",
+                    "label": "01号机房 K01-K04",
+                    "detail": "任务单 HY-01，要求采集 01 号机房 K01-K04。"
+                  },
+                  {
+                    "id": "shared-operator-cabinet",
+                    "label": "共享机房他网机柜",
+                    "detail": "同一物理机房内，柜门标识属于其他运营商。"
+                  },
+                  {
+                    "id": "room-02-cabinets",
+                    "label": "02号机房 K01-K03",
+                    "detail": "站点相同，但任务单未列入 02 号机房。"
+                  }
+                ],
+                "interaction": {
+                  "type": "classification-board",
+                  "categories": [
+                    {
+                      "id": "in-scope",
+                      "label": "本次采集范围"
+                    },
+                    {
+                      "id": "out-of-scope",
+                      "label": "排除并说明"
+                    }
+                  ]
+                },
+                "answerModel": {
+                  "assignments": {
+                    "room-01-cabinets": "in-scope",
+                    "shared-operator-cabinet": "out-of-scope",
+                    "room-02-cabinets": "out-of-scope"
+                  }
+                },
+                "targetedFeedback": {
+                  "passed": "范围已与任务单、机房入口和柜号三项证据对齐。",
+                  "failed": "仍有对象未回到任务单边界；同站点不等于同一采集范围。"
+                },
+                "transferTarget": "将边界判断写入室内设备与链路证据表的站点、机房和排除对象字段。"
               }
             ],
             "nodeRecordTemplate": {
@@ -290,7 +333,54 @@
                     "再检查每张照片是否真的包含对应字段",
                     "错误项清空后重试"
                   ],
-                  "retryable": true
+                  "retryable": true,
+                  "activityKind": "evidence-classification",
+                  "materials": [
+                    {
+                      "id": "room-overview",
+                      "label": "机房入口与机柜全景",
+                      "detail": "同时看见 HY-01、01号机房和 K02 柜号。"
+                    },
+                    {
+                      "id": "device-nameplate",
+                      "label": "BBU 完整铭牌",
+                      "detail": "包含厂家、型号、序列号和网元标识。"
+                    },
+                    {
+                      "id": "two-ended-port-trace",
+                      "label": "双端端口与连续走线",
+                      "detail": "包含 BBU、ODF、AAU 两端端口和线缆编号。"
+                    }
+                  ],
+                  "interaction": {
+                    "type": "classification-board",
+                    "categories": [
+                      {
+                        "id": "location",
+                        "label": "位置证据"
+                      },
+                      {
+                        "id": "identity",
+                        "label": "身份数据"
+                      },
+                      {
+                        "id": "link",
+                        "label": "方向链路"
+                      }
+                    ]
+                  },
+                  "answerModel": {
+                    "assignments": {
+                      "room-overview": "location",
+                      "device-nameplate": "identity",
+                      "two-ended-port-trace": "link"
+                    }
+                  },
+                  "targetedFeedback": {
+                    "passed": "三类材料分别回答了在哪里、是谁、从哪里到哪里。",
+                    "failed": "请按材料能直接证明的问题分类，不要让设备近照替代位置或链路证据。"
+                  },
+                  "transferTarget": "把三类证据分别汇入成果表的位置、设备身份和连接字段。"
                 }
               ],
               "application": [
@@ -308,7 +398,46 @@
                     "按线缆编号连接中间路径",
                     "发现断点就标记待补证后重试"
                   ],
-                  "retryable": true
+                  "retryable": true,
+                  "activityKind": "link-reconstruction",
+                  "materials": [
+                    {
+                      "id": "bbu-port",
+                      "label": "BBU CPRI-1",
+                      "detail": "线缆标签 FO-17，方向 ODF-A/12。"
+                    },
+                    {
+                      "id": "odf-in",
+                      "label": "ODF-A/12 入端",
+                      "detail": "来自 BBU CPRI-1，跳纤 JP-08。"
+                    },
+                    {
+                      "id": "odf-out",
+                      "label": "ODF-B/04 出端",
+                      "detail": "JP-08 对接 FO-22。"
+                    },
+                    {
+                      "id": "aau-port",
+                      "label": "AAU-01 OPT-1",
+                      "detail": "线缆标签 FO-22。"
+                    }
+                  ],
+                  "interaction": {
+                    "type": "sequence-builder"
+                  },
+                  "answerModel": {
+                    "order": [
+                      "bbu-port",
+                      "odf-in",
+                      "odf-out",
+                      "aau-port"
+                    ]
+                  },
+                  "targetedFeedback": {
+                    "passed": "起点、中间跳接和终点编号连续，链路已经闭合。",
+                    "failed": "当前顺序存在标签断点；从 BBU 端口开始逐段核对线缆和 ODF 跳接。"
+                  },
+                  "transferTarget": "将闭合链路写入成果表的本端、经过节点、对端和照片索引。"
                 }
               ],
               "transfer": [
@@ -326,7 +455,65 @@
                     "记录设备侧电源端",
                     "追踪到配电侧端子并核对线号"
                   ],
-                  "retryable": true
+                  "retryable": true,
+                  "activityKind": "structured-record",
+                  "materials": [
+                    {
+                      "id": "field-pack",
+                      "label": "HY-01 现场证据包",
+                      "detail": "包含机房全景、K02 柜号、BBU-01 铭牌及 BBU-1/0 至 AAU-1 双端照片。"
+                    }
+                  ],
+                  "interaction": {
+                    "type": "record-form",
+                    "fields": [
+                      {
+                        "id": "siteId",
+                        "label": "站点编号",
+                        "placeholder": "例如 HY-01"
+                      },
+                      {
+                        "id": "roomId",
+                        "label": "机房编号",
+                        "placeholder": "例如 01"
+                      },
+                      {
+                        "id": "cabinetId",
+                        "label": "机柜编号",
+                        "placeholder": "例如 K02"
+                      },
+                      {
+                        "id": "deviceId",
+                        "label": "设备标识",
+                        "placeholder": "例如 BBU-01"
+                      },
+                      {
+                        "id": "nearPort",
+                        "label": "本端端口",
+                        "placeholder": "例如 BBU-1/0"
+                      },
+                      {
+                        "id": "farPort",
+                        "label": "对端端口",
+                        "placeholder": "例如 AAU-1"
+                      }
+                    ]
+                  },
+                  "answerModel": {
+                    "fields": {
+                      "siteId": "HY-01",
+                      "roomId": "01",
+                      "cabinetId": "K02",
+                      "deviceId": "BBU-01",
+                      "nearPort": "BBU-1/0",
+                      "farPort": "AAU-1"
+                    }
+                  },
+                  "targetedFeedback": {
+                    "passed": "结构化记录已把设备、位置和双端端口汇成可回查条目。",
+                    "failed": "记录仍有字段与证据包不一致；请逐项核对站点、机柜、设备和双端端口。"
+                  },
+                  "transferTarget": "形成可直接汇入 P01 专业成果的设备链路记录。"
                 }
               ]
             },
@@ -452,7 +639,64 @@
                   "核对传输告警",
                   "记录同一时刻温控状态"
                 ],
-                "retryable": true
+                "retryable": true,
+                "activityKind": "four-state-judgement",
+                "materials": [
+                  {
+                    "id": "power",
+                    "label": "直流供电",
+                    "detail": "同一时间窗读数 -48.6V，波动在允许范围内。"
+                  },
+                  {
+                    "id": "grounding",
+                    "label": "保护接地",
+                    "detail": "照片未拍到接地线与接地排标识。"
+                  },
+                  {
+                    "id": "transport",
+                    "label": "传输状态",
+                    "detail": "PTN 端口在线且无当前告警。"
+                  },
+                  {
+                    "id": "environment",
+                    "label": "温控环境",
+                    "detail": "温度计为 26℃，同一时刻空调面板显示高温告警。"
+                  }
+                ],
+                "interaction": {
+                  "type": "state-matrix",
+                  "categories": [
+                    {
+                      "id": "confirmed",
+                      "label": "已确认"
+                    },
+                    {
+                      "id": "provisional",
+                      "label": "暂定"
+                    },
+                    {
+                      "id": "missing",
+                      "label": "缺证"
+                    },
+                    {
+                      "id": "conflicting",
+                      "label": "冲突"
+                    }
+                  ]
+                },
+                "answerModel": {
+                  "states": {
+                    "power": "confirmed",
+                    "grounding": "missing",
+                    "transport": "confirmed",
+                    "environment": "conflicting"
+                  }
+                },
+                "targetedFeedback": {
+                  "passed": "四类条件已按证据充分性区分确认、缺证与冲突。",
+                  "failed": "不要把有记录等同于已确认；缺失和互相矛盾的材料必须单独标记。"
+                },
+                "transferTarget": "把四态判断迁移到成果表的运行条件、缺口和复核结论。"
               }
             ],
             "nodeRecordTemplate": {
@@ -540,7 +784,57 @@
                   "逐字段绑定照片",
                   "给缺口分配补采责任和时限"
                 ],
-                "retryable": true
+                "retryable": true,
+                "activityKind": "defective-sheet-revision",
+                "materials": [
+                  {
+                    "id": "duplicate-photo",
+                    "label": "重复照片编号",
+                    "detail": "端口照片与机柜全景都编号 IMG-024。"
+                  },
+                  {
+                    "id": "missing-source",
+                    "label": "设备型号无来源",
+                    "detail": "BBU-01 型号已填写，但来源照片字段为空。"
+                  },
+                  {
+                    "id": "open-gap",
+                    "label": "接地缺口无动作",
+                    "detail": "GAP-03 只写“未拍到”，没有补采责任与动作。"
+                  }
+                ],
+                "interaction": {
+                  "type": "revision-form",
+                  "fields": [
+                    {
+                      "id": "duplicatePhotoId",
+                      "label": "修订端口照片编号",
+                      "placeholder": "输入唯一编号"
+                    },
+                    {
+                      "id": "missingSource",
+                      "label": "补充型号来源",
+                      "placeholder": "输入来源照片编号"
+                    },
+                    {
+                      "id": "openGap",
+                      "label": "补齐缺口动作",
+                      "placeholder": "输入缺口编号与动作"
+                    }
+                  ]
+                },
+                "answerModel": {
+                  "revisions": {
+                    "duplicatePhotoId": "IMG-024B",
+                    "missingSource": "IMG-021",
+                    "openGap": "GAP-03: reshoot grounding label"
+                  }
+                },
+                "targetedFeedback": {
+                  "passed": "重复编号、无来源字段和开放缺口均已修订为可追溯记录。",
+                  "failed": "至少一项缺陷仍未闭合；唯一编号、证据来源和补采动作都必须明确。"
+                },
+                "transferTarget": "输出可进入 P01 室内设备与链路证据表的修订记录。"
               }
             ],
             "nodeRecordTemplate": {

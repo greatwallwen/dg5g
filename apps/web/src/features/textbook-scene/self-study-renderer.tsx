@@ -63,6 +63,7 @@ export function SelfStudyRenderer({ document, completed, saving, onComplete }: {
       data-motion="paused"
       data-node-id={document.nodeId}
       data-primary-action-policy="exactly-one"
+      data-practice-evaluation="server"
       data-self-study-node={document.nodeId}
       data-self-study-renderer={document.nodeId}
     >

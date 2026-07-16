@@ -14,6 +14,22 @@ export interface P1SelfStudyPractice {
   feedback: string;
   correctionPath: string[];
   retryable: true;
+  activityKind?:
+    | 'scope-classification'
+    | 'evidence-classification'
+    | 'link-reconstruction'
+    | 'structured-record'
+    | 'four-state-judgement'
+    | 'defective-sheet-revision';
+  materials?: Array<{ id: string; label: string; detail: string }>;
+  interaction?: {
+    type: 'classification-board' | 'sequence-builder' | 'record-form' | 'state-matrix' | 'revision-form';
+    categories?: Array<{ id: string; label: string }>;
+    fields?: Array<{ id: string; label: string; placeholder: string }>;
+  };
+  answerModel?: Record<string, unknown>;
+  targetedFeedback?: { passed: string; failed: string };
+  transferTarget?: string;
 }
 
 export interface P1DeepNodeContent {
@@ -436,14 +452,60 @@ function validatePractices(value: unknown, path: string): void {
   practices.forEach((practiceValue, index) => {
     const practicePath = `${path}[${index}]`;
     const practice = objectValue(practiceValue, practicePath);
-    exactKeys(practice, ['id', 'prompt', 'expectedEvidence', 'feedback', 'correctionPath', 'retryable'], practicePath);
+    const baseKeys = ['id', 'prompt', 'expectedEvidence', 'feedback', 'correctionPath', 'retryable'];
+    const activityKeys = ['activityKind', 'materials', 'interaction', 'answerModel', 'targetedFeedback', 'transferTarget'];
+    exactKeys(practice, 'activityKind' in practice ? [...baseKeys, ...activityKeys] : baseKeys, practicePath);
     nonEmptyString(practice.id, `${practicePath}.id`);
     nonEmptyString(practice.prompt, `${practicePath}.prompt`);
     stringArray(practice.expectedEvidence, `${practicePath}.expectedEvidence`, 1);
     nonEmptyString(practice.feedback, `${practicePath}.feedback`);
     stringArray(practice.correctionPath, `${practicePath}.correctionPath`, 1);
     exactValue(practice.retryable, true, `${practicePath}.retryable`);
+    if ('activityKind' in practice) validateActivityPractice(practice, practicePath);
   });
+}
+
+function validateActivityPractice(practice: Record<string, unknown>, path: string): void {
+  if (![
+    'scope-classification', 'evidence-classification', 'link-reconstruction',
+    'structured-record', 'four-state-judgement', 'defective-sheet-revision',
+  ].includes(String(practice.activityKind))) invalid(`${path}.activityKind`, 'expected a supported activity kind');
+  const materials = arrayValue(practice.materials, `${path}.materials`);
+  minimumItems(materials, 1, `${path}.materials`);
+  materials.forEach((value, index) => {
+    const materialPath = `${path}.materials[${index}]`;
+    const material = objectValue(value, materialPath);
+    exactKeys(material, ['id', 'label', 'detail'], materialPath);
+    nonEmptyString(material.id, `${materialPath}.id`);
+    nonEmptyString(material.label, `${materialPath}.label`);
+    nonEmptyString(material.detail, `${materialPath}.detail`);
+  });
+  const interaction = objectValue(practice.interaction, `${path}.interaction`);
+  const interactionKeys = Object.keys(interaction);
+  if (!interactionKeys.includes('type') || interactionKeys.some((key) => !['type', 'categories', 'fields'].includes(key))) {
+    invalid(`${path}.interaction`, 'expected type with optional categories or fields');
+  }
+  if (!['classification-board', 'sequence-builder', 'record-form', 'state-matrix', 'revision-form']
+    .includes(String(interaction.type))) invalid(`${path}.interaction.type`, 'expected a supported interaction type');
+  for (const collectionKey of ['categories', 'fields'] as const) {
+    if (!(collectionKey in interaction)) continue;
+    const values = arrayValue(interaction[collectionKey], `${path}.interaction.${collectionKey}`);
+    minimumItems(values, 1, `${path}.interaction.${collectionKey}`);
+    values.forEach((value, index) => {
+      const itemPath = `${path}.interaction.${collectionKey}[${index}]`;
+      const item = objectValue(value, itemPath);
+      exactKeys(item, collectionKey === 'fields' ? ['id', 'label', 'placeholder'] : ['id', 'label'], itemPath);
+      nonEmptyString(item.id, `${itemPath}.id`);
+      nonEmptyString(item.label, `${itemPath}.label`);
+      if (collectionKey === 'fields') nonEmptyString(item.placeholder, `${itemPath}.placeholder`);
+    });
+  }
+  nonEmptyObject(practice.answerModel, `${path}.answerModel`);
+  const feedback = objectValue(practice.targetedFeedback, `${path}.targetedFeedback`);
+  exactKeys(feedback, ['passed', 'failed'], `${path}.targetedFeedback`);
+  nonEmptyString(feedback.passed, `${path}.targetedFeedback.passed`);
+  nonEmptyString(feedback.failed, `${path}.targetedFeedback.failed`);
+  nonEmptyString(practice.transferTarget, `${path}.transferTarget`);
 }
 
 function glossary(value: unknown, path: string): void {

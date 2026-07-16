@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { activityDefinitionFromPractice } from '../learning-activities/activity-definition.ts';
+import { ActivityWorkbench } from '../learning-activities/activity-workbench.tsx';
 import { Icon } from '../../ui/foundation/icons.tsx';
 import type { SelfStudyDocument, SelfStudyPractice } from './self-study-types.ts';
 
@@ -16,22 +18,34 @@ export function PracticeSection({ document, passedIds, onPass }: {
     <div className="self-study-practice-layout">
       <header><span>分层练习</span><h2 id={`${document.nodeId}-practice-title`}>从基础判断到迁移应用</h2><p>每题都提供即时反馈、改正路径与重新作答。</p></header>
       <div>
-        {practiceRowsFor(document).map(({ level, levelLabel, practice }) => (
-          <PracticeCard
-            key={practice.id}
-            level={level}
-            levelLabel={levelLabel}
-            onPass={() => onPass(practice.id)}
-            passed={passedIds.includes(practice.id)}
-            practice={practice}
-          />
-        ))}
+        {practiceRowsFor(document).map(({ level, levelLabel, practice }) => {
+          const activity = activityDefinitionFromPractice(practice, document.nodeId);
+          return activity ? (
+            <ActivityWorkbench
+              activity={activity}
+              key={practice.id}
+              level={level}
+              levelLabel={levelLabel}
+              onPass={() => onPass(practice.id)}
+              passed={passedIds.includes(practice.id)}
+            />
+          ) : (
+            <WrittenPracticeCard
+              key={practice.id}
+              level={level}
+              levelLabel={levelLabel}
+              onPass={() => onPass(practice.id)}
+              passed={passedIds.includes(practice.id)}
+              practice={practice}
+            />
+          );
+        })}
       </div>
     </div>
   );
 }
 
-function PracticeCard({ level, levelLabel, practice, passed, onPass }: {
+function WrittenPracticeCard({ level, levelLabel, practice, passed, onPass }: {
   level: PracticeLevel;
   levelLabel: string;
   practice: SelfStudyPractice;
@@ -39,6 +53,7 @@ function PracticeCard({ level, levelLabel, practice, passed, onPass }: {
   onPass: () => void;
 }) {
   const [answer, setAnswer] = useState<'idle' | 'wrong' | 'correct'>(passed ? 'correct' : 'idle');
+  const [response, setResponse] = useState('');
   useEffect(() => {
     if (passed) setAnswer('correct');
   }, [passed]);
@@ -52,8 +67,11 @@ function PracticeCard({ level, levelLabel, practice, passed, onPass }: {
     <article className={`self-study-practice-card is-${answer}`} data-practice-level={level}>
       <header><span>{levelLabel}</span><strong>{practice.prompt}</strong></header>
       <div className="self-study-practice-options">
-        <button onClick={() => setAnswer('wrong')} type="button">只凭单一现象下结论</button>
-        <button onClick={answerCorrectly} type="button">按提示补齐可复核证据</button>
+        <label>
+          <span>岗位作答记录</span>
+          <textarea onChange={(event) => setResponse(event.target.value)} value={response} />
+        </label>
+        <button disabled={!response.trim()} onClick={answerCorrectly} type="button">提交练习记录</button>
       </div>
       <div className="self-study-practice-feedback" hidden={answer === 'idle'} role="status">
         <span>{answer === 'correct' ? '判断通过' : '错误反馈'}</span>
@@ -65,7 +83,7 @@ function PracticeCard({ level, levelLabel, practice, passed, onPass }: {
         className="self-study-retry"
         data-self-study-retry={practice.id}
         disabled={!practice.retryable || answer === 'idle'}
-        onClick={() => setAnswer('idle')}
+        onClick={() => { setAnswer('idle'); setResponse(''); }}
         type="button"
       >
         <Icon name="arrow" size={14} />重新作答

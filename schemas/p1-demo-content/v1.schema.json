@@ -105,7 +105,80 @@
           "minItems": 1,
           "items": { "type": "string", "minLength": 1 }
         },
-        "retryable": { "const": true }
+        "retryable": { "const": true },
+        "activityKind": {
+          "enum": [
+            "scope-classification",
+            "evidence-classification",
+            "link-reconstruction",
+            "structured-record",
+            "four-state-judgement",
+            "defective-sheet-revision"
+          ]
+        },
+        "materials": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "label", "detail"],
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "label": { "type": "string", "minLength": 1 },
+              "detail": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "interaction": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type"],
+          "properties": {
+            "type": { "enum": ["classification-board", "sequence-builder", "record-form", "state-matrix", "revision-form"] },
+            "categories": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "label"],
+                "properties": {
+                  "id": { "type": "string", "minLength": 1 },
+                  "label": { "type": "string", "minLength": 1 }
+                }
+              }
+            },
+            "fields": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "label", "placeholder"],
+                "properties": {
+                  "id": { "type": "string", "minLength": 1 },
+                  "label": { "type": "string", "minLength": 1 },
+                  "placeholder": { "type": "string", "minLength": 1 }
+                }
+              }
+            }
+          }
+        },
+        "answerModel": { "type": "object", "minProperties": 1 },
+        "targetedFeedback": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["passed", "failed"],
+          "properties": {
+            "passed": { "type": "string", "minLength": 1 },
+            "failed": { "type": "string", "minLength": 1 }
+          }
+        },
+        "transferTarget": { "type": "string", "minLength": 1 }
+      },
+      "dependentRequired": {
+        "activityKind": ["materials", "interaction", "answerModel", "targetedFeedback", "transferTarget"]
       }
     },
     "example": {
