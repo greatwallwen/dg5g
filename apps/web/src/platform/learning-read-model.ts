@@ -27,6 +27,8 @@ import {
   type StudentLearningFacts,
 } from './learning-repository.ts';
 import type { LearningOrigin } from './learning-origin.ts';
+import { getFormalAssessmentValidationPolicy } from './formal-assessment-catalog.server.ts';
+import { validatePersistedAssessmentDiagnostic } from './persisted-assessment-diagnostic.ts';
 
 export const REQUIRED_SELF_STUDY_SECTIONS = [
   'understand',
@@ -102,9 +104,18 @@ export interface StudentLearningSnapshot {
   globalVersion: number;
   studentId: string;
   nodes: StudentNodeLearningSnapshot[];
-  tasks: Array<TaskScoreProjection & { taskId: P1TaskId; origin?: LearningOrigin }>;
+  tasks: StudentTaskLearningSnapshot[];
   projectCompositeScore?: number;
   projectCompositeOrigin?: LearningOrigin;
+}
+
+export interface StudentTaskLearningSnapshot extends TaskScoreProjection {
+  taskId: P1TaskId;
+  origin?: LearningOrigin;
+  realTaskCertified: boolean;
+  demoTaskCertified: boolean;
+  frozenFormalAttemptId?: string;
+  frozenFormalScore?: number;
 }
 
 export interface ClassLearningSnapshot {
@@ -252,15 +263,27 @@ function projectStudentLearningFacts(facts: StudentLearningFacts): StudentLearni
       ? outputReview.score
       : undefined;
     const scoreProjection = calculateTaskCompositeScore({ nodeTestHighestScore, outputRubricScore });
-    const frozenScore = latestFrozenTaskScoreForTask(facts.frozenTaskScores, taskId);
+    const certification = findCertifiedTaskScore({
+      facts,
+      taskId,
+      testNodeId: [...testNodeIds][0],
+      output,
+      outputReview,
+    });
     return {
       taskId,
       nodeTestHighestScore: scoreProjection.nodeTestHighestScore,
       outputRubricScore: scoreProjection.outputRubricScore,
-      ...(frozenScore?.officialScore === undefined
+      ...(certification === undefined
         ? {}
-        : { taskCompositeScore: frozenScore.officialScore }),
-      ...(frozenScore ? { origin: frozenScore.origin } : {}),
+        : {
+          taskCompositeScore: certification.taskCompositeScore,
+          origin: certification.origin,
+          frozenFormalAttemptId: certification.attemptId,
+          frozenFormalScore: certification.formalScore,
+        }),
+      realTaskCertified: certification?.origin === 'user',
+      demoTaskCertified: certification?.origin === 'demo',
     };
   });
 
@@ -313,13 +336,96 @@ function toEvidenceProjection(output: StoredProfessionalOutput, taskId: P1TaskId
   };
 }
 
-function latestFrozenTaskScoreForTask(
-  scores: StoredFrozenTaskScore[],
-  taskId: P1TaskId,
-): StoredFrozenTaskScore | undefined {
-  return preferUserOrigin(
-    scores.filter((score) => canonicalFrozenTaskId(score.taskId) === taskId),
-  ).at(-1);
+interface CertifiedTaskScore {
+  origin: LearningOrigin;
+  attemptId: string;
+  formalScore: number;
+  taskCompositeScore: number;
+}
+
+function findCertifiedTaskScore({
+  facts,
+  taskId,
+  testNodeId,
+  output,
+  outputReview,
+}: {
+  facts: StudentLearningFacts;
+  taskId: P1TaskId;
+  testNodeId: P1NodeId | undefined;
+  output: StoredProfessionalOutput | undefined;
+  outputReview: StoredOutputReview | undefined;
+}): CertifiedTaskScore | undefined {
+  if (
+    !testNodeId
+    || !output
+    || output.status !== 'verified'
+    || !outputReview
+    || outputReview.status !== 'verified'
+    || outputReview.outputVersion !== output.currentVersion
+    || outputReview.score === undefined
+    || output.origin !== outputReview.origin
+  ) return undefined;
+
+  const policy = getFormalAssessmentValidationPolicy(testNodeId);
+  if (!policy) return undefined;
+  const candidates = facts.frozenTaskScores
+    .filter((score) => canonicalFrozenTaskId(score.taskId) === taskId)
+    .slice()
+    .reverse();
+  for (const frozen of candidates) {
+    if (frozen.origin !== output.origin || frozen.officialScore === undefined) continue;
+    const details = isRecord(frozen.details) ? frozen.details : undefined;
+    const attemptId = stringValue(details?.nodeTestAttemptId);
+    const attempt = attemptId
+      ? facts.attempts.find((candidate) => candidate.attemptId === attemptId)
+      : undefined;
+    if (!details || !attempt || attempt.origin !== frozen.origin) continue;
+    const validated = validatePersistedAssessmentDiagnostic({
+      attemptId: attempt.attemptId,
+      studentId: attempt.studentId,
+      nodeId: attempt.nodeId,
+      assessmentId: attempt.assessmentId ?? null,
+      gameId: attempt.gameId ?? null,
+      questionVersion: attempt.questionVersion ?? null,
+      score: attempt.score,
+      diagnosticsJson: serializeDiagnostic(attempt.diagnostics),
+      origin: attempt.origin,
+      completedAt: attempt.completedAt,
+      instanceAssessmentId: attempt.instanceAssessmentId ?? null,
+      instanceNodeId: attempt.instanceNodeId ?? null,
+      instanceGameId: attempt.instanceGameId ?? null,
+      instanceQuestionVersion: attempt.instanceQuestionVersion ?? null,
+      instanceStatus: attempt.instanceStatus ?? null,
+    }, policy);
+    const taskCompositeScore = numberValue(details.taskCompositeScore);
+    const expectedComposite = calculateTaskCompositeScore({
+      nodeTestHighestScore: validated?.totalScore,
+      outputRubricScore: outputReview.score,
+    }).taskCompositeScore;
+    if (
+      !validated?.passed
+      || validated.nodeId !== testNodeId
+      || details.nodeId !== testNodeId
+      || details.assessmentId !== validated.assessmentId
+      || details.questionVersion !== validated.questionVersion
+      || details.nodeTestHighestScore !== validated.totalScore
+      || details.outputId !== output.outputId
+      || details.outputVersion !== output.currentVersion
+      || details.outputRubricScore !== outputReview.score
+      || taskCompositeScore === undefined
+      || expectedComposite !== taskCompositeScore
+      || frozen.provisionalScore !== taskCompositeScore
+      || frozen.officialScore !== taskCompositeScore
+    ) continue;
+    return {
+      origin: frozen.origin,
+      attemptId: validated.attemptId,
+      formalScore: validated.totalScore,
+      taskCompositeScore,
+    };
+  }
+  return undefined;
 }
 
 function canonicalFrozenTaskId(taskId: string): P1TaskId | undefined {
@@ -332,6 +438,22 @@ function canonicalFrozenTaskId(taskId: string): P1TaskId | undefined {
     P1T3: 'P03',
   };
   return aliases[taskId];
+}
+
+function stringValue(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
+}
+
+function numberValue(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function serializeDiagnostic(value: unknown): string | null {
+  try {
+    return JSON.stringify(value) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 function toReviewProjection(review: StoredOutputReview): OutputReviewProjection {

@@ -47,8 +47,8 @@ export function buildP1PortfolioViewModel(projection: P1ProjectProjection): P1Po
   ));
   const hasOneReferencePerTask = verifiedReferences.length === 3
     && new Set(verifiedReferences.map(({ taskId }) => taskId)).size === 3;
-  const allUserOutputs = hasOneReferencePerTask && projection.tasks.every(({ outputOrigin }) => outputOrigin === 'user');
-  const allDemoOutputs = hasOneReferencePerTask && projection.tasks.every(({ outputOrigin }) => outputOrigin === 'demo');
+  const allUserOutputs = hasOneReferencePerTask && projection.tasks.every(({ realTaskCertified }) => realTaskCertified);
+  const allDemoOutputs = hasOneReferencePerTask && projection.tasks.every(({ demoTaskCertified }) => demoTaskCertified);
   const packageReferences = allUserOutputs || allDemoOutputs ? verifiedReferences : [];
   const packageStatus: P1PortfolioPackageStatus = allUserOutputs
     ? 'complete'

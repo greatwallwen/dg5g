@@ -8,6 +8,8 @@ import { migrateDatabase } from './db/migrations.ts';
 import { createTestDatabase } from './db/test-database.ts';
 import { ProfessionalOutputPortfolioReader } from './professional-output-portfolio-reader.ts';
 import { ProfessionalOutputRepository } from './professional-output-repository.ts';
+import { LearningReadModel } from './learning-read-model.ts';
+import { LearningRepository } from './learning-repository.ts';
 
 test('reads only the owned output with immutable evidence, sources, annotations, and the frozen diagnosis', () => {
   const fixture = createTestDatabase();
@@ -125,6 +127,13 @@ test('production verification freezes and reads the exact highest valid attempt 
 
     assert.equal(reviewed.frozenTaskScore?.details.nodeTestAttemptId, 'formal-production-92');
     assert.equal(reviewed.frozenTaskScore?.details.assessmentId, 'assessment-production-92');
+    const task = new LearningReadModel(new LearningRepository(fixture.database))
+      .readStudentSnapshot('stu-01').tasks[0];
+    assert.equal(task?.realTaskCertified, true);
+    assert.equal(task?.demoTaskCertified, false);
+    assert.equal(task?.frozenFormalAttemptId, 'formal-production-92');
+    assert.equal(task?.frozenFormalScore, 92);
+    assert.equal(task?.taskCompositeScore, 93);
     const facts = new ProfessionalOutputPortfolioReader(fixture.database).read('stu-01', 'P01');
     assert.equal(facts.assessment?.attemptId, 'formal-production-92');
     assert.equal(facts.assessment?.totalScore, 92);

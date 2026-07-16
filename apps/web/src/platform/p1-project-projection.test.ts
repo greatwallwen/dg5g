@@ -6,7 +6,8 @@ import { p01OutputFieldKeys } from '../features/portfolio/p01-output-definition.
 import { migrateDatabase } from './db/migrations.ts';
 import { seedDemo } from './db/demo-seed.ts';
 import { createTestDatabase } from './db/test-database.ts';
-import { readP1ProjectProjection } from './p1-project-projection.ts';
+import { projectP1Project, readP1ProjectProjection } from './p1-project-projection.ts';
+import type { StudentLearningSnapshot } from './learning-read-model.ts';
 import { ProfessionalOutputRepository } from './professional-output-repository.ts';
 
 test('projects the authoritative P01 to P03 chain for each seeded student', () => {
@@ -138,6 +139,78 @@ test('a returned v1 revised and resubmitted as v2 is current on both project and
   }
 });
 
+test('project completion requires all three certified task facts and rejects a mixed forged combination', () => {
+  const content = loadP1DemoContent();
+  const learning = certifiedLearningFixture('user');
+
+  const complete = projectP1Project(content, learning);
+  assert.equal(complete.portfolioStatus, 'complete');
+  assert.equal(complete.projectCompositeScore, 90);
+  assert.ok(complete.tasks.every(({ realTaskCertified }) => realTaskCertified));
+
+  learning.tasks[2]!.realTaskCertified = false;
+  const mixed = projectP1Project(content, learning);
+  assert.equal(mixed.portfolioStatus, 'collecting');
+  assert.equal(mixed.projectCompositeScore, undefined);
+});
+
 function completeP01Fields(value: string): Record<string, string> {
   return Object.fromEntries(p01OutputFieldKeys.map((fieldKey) => [fieldKey, `${value}: ${fieldKey}`]));
+}
+
+function certifiedLearningFixture(origin: 'demo' | 'user'): StudentLearningSnapshot {
+  const content = loadP1DemoContent();
+  const outputNodes = new Set(content.tasks.map(({ nodes }) => nodes[3]!.id));
+  return {
+    version: 20,
+    globalVersion: 30,
+    studentId: 'stu-certification',
+    nodes: content.tasks.flatMap((task) => task.nodes.map((node) => ({
+      nodeId: node.id,
+      state: 'achieved' as const,
+      stateTrail: ['available', 'achieved'],
+      completedSections: [],
+      classroomSubmitted: false,
+      attempts: [],
+      ...(outputNodes.has(node.id) ? {
+        evidence: {
+          outputId: `output-${task.taskId}`,
+          taskId: task.taskId,
+          nodeId: node.id,
+          status: 'verified' as const,
+          content: {},
+          createdAt: '2026-07-16T08:00:00.000Z',
+          updatedAt: '2026-07-16T09:00:00.000Z',
+          origin,
+          version: 1,
+          stateRevision: 3,
+        },
+        review: {
+          reviewId: `review-${task.taskId}`,
+          outputId: `output-${task.taskId}`,
+          status: 'verified' as const,
+          score: 90,
+          reviewedAt: '2026-07-16T09:00:00.000Z',
+          outputVersion: 1,
+          origin,
+        },
+      } : {}),
+      prerequisites: [],
+      nextRequirement: '已完成',
+      origin,
+    }))),
+    tasks: content.tasks.map((task, index) => ({
+      taskId: task.taskId,
+      nodeTestHighestScore: 90,
+      outputRubricScore: 90,
+      taskCompositeScore: 90,
+      origin,
+      realTaskCertified: origin === 'user',
+      demoTaskCertified: origin === 'demo',
+      frozenFormalAttemptId: `formal-${task.taskId}-${index}`,
+      frozenFormalScore: 90,
+    })),
+    projectCompositeScore: 90,
+    projectCompositeOrigin: origin,
+  };
 }

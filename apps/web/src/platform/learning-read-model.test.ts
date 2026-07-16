@@ -89,7 +89,7 @@ test('lower user score shadows higher demo score and zero remains a real submitt
   }
 });
 
-test('user frozen task fact shadows a higher demo task score without erasing demo history', () => {
+test('a forged user frozen task fact cannot shadow a valid task score or certify the task', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
@@ -104,8 +104,10 @@ test('user frozen task fact shadows a higher demo task score without erasing dem
     `);
     const snapshot = new LearningReadModel(new LearningRepository(fixture.database))
       .readStudentSnapshot('stu-03');
-    assert.equal(snapshot.tasks[0]?.taskCompositeScore, 0);
-    assert.equal(snapshot.tasks[0]?.origin, 'user');
+    assert.equal(snapshot.tasks[0]?.taskCompositeScore, undefined);
+    assert.equal(snapshot.tasks[0]?.origin, undefined);
+    assert.equal(snapshot.tasks[0]?.realTaskCertified, false);
+    assert.equal(snapshot.tasks[0]?.demoTaskCertified, false);
     assert.equal(fixture.database.prepare(`
       SELECT COUNT(*) FROM frozen_task_scores
       WHERE student_id = 'stu-03' AND task_id = 'P01' AND origin = 'demo'

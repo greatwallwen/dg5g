@@ -55,6 +55,10 @@ export interface P1ProjectTaskProjection {
   outputRubricScore?: number;
   taskCompositeScore?: number;
   taskScoreOrigin?: LearningOrigin;
+  realTaskCertified: boolean;
+  demoTaskCertified: boolean;
+  frozenFormalAttemptId?: string;
+  frozenFormalScore?: number;
 }
 
 export interface P1ProjectProjection {
@@ -128,6 +132,10 @@ export function projectP1Project(
       ...(taskScore?.outputRubricScore === undefined ? {} : { outputRubricScore: taskScore.outputRubricScore }),
       ...(taskScore?.taskCompositeScore === undefined ? {} : { taskCompositeScore: taskScore.taskCompositeScore }),
       ...(taskScore?.origin === undefined ? {} : { taskScoreOrigin: taskScore.origin }),
+      realTaskCertified: taskScore?.realTaskCertified ?? false,
+      demoTaskCertified: taskScore?.demoTaskCertified ?? false,
+      ...(taskScore?.frozenFormalAttemptId === undefined ? {} : { frozenFormalAttemptId: taskScore.frozenFormalAttemptId }),
+      ...(taskScore?.frozenFormalScore === undefined ? {} : { frozenFormalScore: taskScore.frozenFormalScore }),
     };
   });
   const portfolioStatus = projectPortfolioStatus(tasks);
@@ -182,9 +190,8 @@ function projectTaskState(
 function projectPortfolioStatus(
   tasks: P1ProjectTaskProjection[],
 ): P1ProjectProjection['portfolioStatus'] {
-  const allVerified = tasks.every(({ verifiedOutputReference }) => verifiedOutputReference !== undefined);
-  if (allVerified && tasks.every(({ outputOrigin }) => outputOrigin === 'user')) return 'complete';
-  if (allVerified && tasks.every(({ outputOrigin }) => outputOrigin === 'demo')) return 'demo-complete';
+  if (tasks.every(({ realTaskCertified }) => realTaskCertified)) return 'complete';
+  if (tasks.every(({ demoTaskCertified }) => demoTaskCertified)) return 'demo-complete';
   if (tasks.some(({ outputStatus }) => outputStatus === 'submitted')) return 'awaiting-review';
   const hasActivity = tasks.some(({ nodes }) => nodes.some(
     ({ state }) => state !== 'locked' && state !== 'available',

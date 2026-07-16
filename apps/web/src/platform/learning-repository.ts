@@ -69,6 +69,11 @@ export interface StoredFormalAttempt {
   answers: unknown;
   diagnostics: unknown;
   origin: LearningOrigin;
+  instanceAssessmentId?: string;
+  instanceNodeId?: string;
+  instanceGameId?: string;
+  instanceQuestionVersion?: string;
+  instanceStatus?: string;
 }
 
 export interface StoredProfessionalOutput {
@@ -193,6 +198,11 @@ interface FormalAttemptRow {
   answersJson: string;
   diagnosticsJson: string;
   origin: LearningOrigin;
+  instanceAssessmentId?: string | null;
+  instanceNodeId?: string | null;
+  instanceGameId?: string | null;
+  instanceQuestionVersion?: string | null;
+  instanceStatus?: string | null;
 }
 
 interface ProfessionalOutputRow {
@@ -419,22 +429,29 @@ export class LearningRepository {
       `).all(studentId) as PracticeAttemptRow[];
       const attempts = this.database.prepare(`
         SELECT
-          attempt_id AS attemptId,
-          student_id AS studentId,
-          node_id AS nodeId,
-          assessment_id AS assessmentId,
-          game_id AS gameId,
-          score,
-          duration_seconds AS durationSeconds,
-          mistake_knowledge_point_ids_json AS mistakeKnowledgePointIdsJson,
-          completed_at AS completedAt,
-          question_version AS questionVersion,
-          answers_json AS answersJson,
-          diagnostics_json AS diagnosticsJson,
-          origin
-        FROM formal_attempts
-        WHERE student_id = ?
-        ORDER BY completed_at, attempt_id
+          attempt.attempt_id AS attemptId,
+          attempt.student_id AS studentId,
+          attempt.node_id AS nodeId,
+          attempt.assessment_id AS assessmentId,
+          attempt.game_id AS gameId,
+          attempt.score,
+          attempt.duration_seconds AS durationSeconds,
+          attempt.mistake_knowledge_point_ids_json AS mistakeKnowledgePointIdsJson,
+          attempt.completed_at AS completedAt,
+          attempt.question_version AS questionVersion,
+          attempt.answers_json AS answersJson,
+          attempt.diagnostics_json AS diagnosticsJson,
+          attempt.origin,
+          instance.assessment_id AS instanceAssessmentId,
+          instance.node_id AS instanceNodeId,
+          instance.game_id AS instanceGameId,
+          instance.question_version AS instanceQuestionVersion,
+          instance.status AS instanceStatus
+        FROM formal_attempts AS attempt
+        LEFT JOIN formal_assessment_instances AS instance
+          ON instance.assessment_id = attempt.assessment_id
+        WHERE attempt.student_id = ?
+        ORDER BY attempt.completed_at, attempt.attempt_id
       `).all(studentId) as FormalAttemptRow[];
       const outputs = this.database.prepare(`
         SELECT
@@ -679,6 +696,11 @@ function toStoredAttempt(row: FormalAttemptRow): StoredFormalAttempt {
     answers: parseJson(row.answersJson),
     diagnostics: parseJson(row.diagnosticsJson),
     origin: row.origin,
+    ...(row.instanceAssessmentId ? { instanceAssessmentId: row.instanceAssessmentId } : {}),
+    ...(row.instanceNodeId ? { instanceNodeId: row.instanceNodeId } : {}),
+    ...(row.instanceGameId ? { instanceGameId: row.instanceGameId } : {}),
+    ...(row.instanceQuestionVersion ? { instanceQuestionVersion: row.instanceQuestionVersion } : {}),
+    ...(row.instanceStatus ? { instanceStatus: row.instanceStatus } : {}),
   };
 }
 

@@ -93,7 +93,7 @@ test('compatibility projection keeps an untested node and unformed task score ab
       prerequisites: [],
       nextRequirement: '开始学习',
     }],
-    tasks: [{ taskId: 'P01' }],
+    tasks: [{ taskId: 'P01', realTaskCertified: false, demoTaskCertified: false }],
   });
 
   assert.equal(projected.progress[0]?.gameScore, undefined);
@@ -127,7 +127,10 @@ test('compatibility projection preserves a real zero score while workflow comple
       bestFormalScore: 0,
       nextRequirement: '继续学习',
     }],
-    tasks: [{ taskId: 'P01', nodeTestHighestScore: 0 }],
+    tasks: [{
+      taskId: 'P01', nodeTestHighestScore: 0,
+      realTaskCertified: false, demoTaskCertified: false,
+    }],
   });
 
   assert.equal(projected.progress[0]?.gameScore, 0);
@@ -272,7 +275,10 @@ test('does not invent a passed formal test for an achieved node without a formal
       },
       nextRequirement: '进入下一任务',
     }],
-    tasks: [{ taskId: 'P01', nodeTestHighestScore: 88, outputRubricScore: 90, taskCompositeScore: 89 }],
+    tasks: [{
+      taskId: 'P01', nodeTestHighestScore: 88, outputRubricScore: 90, taskCompositeScore: 89,
+      realTaskCertified: true, demoTaskCertified: false,
+    }],
   });
 
   assert.equal(projected.progress[0]?.requiresFormalTest, false);
@@ -308,7 +314,10 @@ test('does not certify a task when an output row says verified but verified revi
       },
       nextRequirement: '等待教师复核',
     }],
-    tasks: [{ taskId: 'P01', nodeTestHighestScore: 88 }],
+    tasks: [{
+      taskId: 'P01', nodeTestHighestScore: 88,
+      realTaskCertified: false, demoTaskCertified: false,
+    }],
   });
 
   assert.equal(projected.progress[0]?.teacherVerified, false);

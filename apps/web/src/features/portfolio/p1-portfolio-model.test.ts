@@ -59,6 +59,7 @@ test('the package is only three immutable verified references and scores them eq
         outputStatus: 'verified',
         teacherFeedback: '修订后证据闭环。',
         taskCompositeScore: 86,
+        realTaskCertified: true,
         verifiedOutputReference: { outputId: 'output-p01', version: 2 },
       },
       P02: {
@@ -67,6 +68,7 @@ test('the package is only three immutable verified references and scores them eq
         outputStatus: 'verified',
         teacherFeedback: '天线姿态证据完整。',
         taskCompositeScore: 88,
+        realTaskCertified: true,
         verifiedOutputReference: { outputId: 'output-p02', version: 3 },
       },
       P03: {
@@ -75,6 +77,7 @@ test('the package is only three immutable verified references and scores them eq
         outputStatus: 'verified',
         teacherFeedback: '投诉复现记录完整。',
         taskCompositeScore: 91,
+        realTaskCertified: true,
         verifiedOutputReference: { outputId: 'output-p03', version: 1 },
       },
     },
@@ -106,6 +109,7 @@ test('three verified demo outputs form only a labelled demonstration package', (
     outputOrigin: 'demo' as const,
     taskCompositeScore: 90 + index,
     taskScoreOrigin: 'demo' as const,
+    demoTaskCertified: true,
     verifiedOutputReference: { outputId: `demo-${taskId}`, version: 1 },
   }])) as Record<'P01' | 'P02' | 'P03', Partial<P1ProjectProjection['tasks'][number]>>;
   const model = buildP1PortfolioViewModel(projectFixture({ outputs }));
@@ -114,6 +118,25 @@ test('three verified demo outputs form only a labelled demonstration package', (
   assert.equal(model.packageStatusLabel, '演示成果包已形成');
   assert.match(model.projectCompositeScoreLabel, /演示数据/);
   assert.ok(model.items.every(({ statusLabel }) => statusLabel.includes('演示数据')));
+});
+
+test('verified references, scores, and matching output origins cannot forge package completion', () => {
+  const outputs = Object.fromEntries((['P01', 'P02', 'P03'] as const).map((taskId) => [taskId, {
+    outputId: `forged-${taskId}`,
+    currentOutputVersion: 1,
+    outputStatus: 'verified' as const,
+    outputOrigin: 'user' as const,
+    taskCompositeScore: 100,
+    taskScoreOrigin: 'user' as const,
+    verifiedOutputReference: { outputId: `forged-${taskId}`, version: 1 },
+    realTaskCertified: taskId !== 'P03',
+  }])) as Record<'P01' | 'P02' | 'P03', Partial<P1ProjectProjection['tasks'][number]>>;
+
+  const model = buildP1PortfolioViewModel(projectFixture({ outputs }));
+
+  assert.equal(model.packageStatus, 'not-formed');
+  assert.equal(model.projectCompositeScore, undefined);
+  assert.deepEqual(model.packageReferences, []);
 });
 
 test('an unformed task still links to its truthful reason instead of a silent fallback', () => {
@@ -153,6 +176,8 @@ function projectFixture({
       outputStatus: 'not-started',
       outputOrigin: 'user',
       taskScoreOrigin: 'user',
+      realTaskCertified: false,
+      demoTaskCertified: false,
       ...outputs[taskId],
     })),
   };
