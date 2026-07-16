@@ -21,6 +21,7 @@ const nextConfig = {
         './node_modules/bindings/**/*',
         './node_modules/file-uri-to-path/**/*',
         '../../textbook/5g/generated/p1-demo-content.json',
+        '../../textbook/5g/generated/5g-import-report.json',
         '../../textbook/5g/generated/lesson-ast/P01.json',
         '../../textbook/5g/generated/lesson-ast/P02.json',
         '../../textbook/5g/generated/lesson-ast/P03.json',
@@ -36,7 +37,6 @@ const nextConfig = {
   ],
   async redirects() {
     return [
-      { source: '/platform', destination: '/', permanent: true },
       { source: '/projects/:path*', destination: '/course', permanent: true },
       { source: '/tasks/:path*', destination: '/course', permanent: true },
       { source: '/samples/:path*', destination: '/course', permanent: true },

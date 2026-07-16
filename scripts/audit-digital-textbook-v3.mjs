@@ -21,6 +21,10 @@ for (const file of references) {
 
 const canonicalPages = [
   'apps/web/src/app/page.tsx',
+  'apps/web/src/app/platform/page.tsx',
+  'apps/web/src/app/resources/page.tsx',
+  'apps/web/src/app/governance/page.tsx',
+  'apps/web/src/app/delivery/page.tsx',
   'apps/web/src/app/course/page.tsx',
   'apps/web/src/app/learn/[nodeId]/page.tsx',
   'apps/web/src/app/teacher/sessions/[sessionId]/page.tsx',
@@ -32,7 +36,6 @@ for (const file of canonicalPages) {
 }
 
 const obsoletePages = [
-  'apps/web/src/app/platform/page.tsx',
   'apps/web/src/app/projects/page.tsx',
   'apps/web/src/app/projects/[projectId]/page.tsx',
   'apps/web/src/app/tasks/[taskId]/page.tsx',
@@ -50,6 +53,26 @@ for (const file of obsoletePages) {
 }
 
 requireSnippets('apps/web/src/app/page.tsx', ['LoginPage', 'data-login-role']);
+requireSnippets('apps/web/src/features/auth/login-page.tsx', ['查看平台总览', 'href="/platform"']);
+requireSnippets('apps/web/src/features/platform-overview/public-platform-model.ts', [
+  'PublicPlatformCard',
+  'buildPublicPlatformModel',
+  "'input'",
+  "'feedback'",
+]);
+forbidSnippets('apps/web/src/features/platform-overview/public-platform-model.ts', [
+  'AuthoritativeSnapshotReader',
+  'getDatabase',
+]);
+for (const file of [
+  'apps/web/src/app/platform/page.tsx',
+  'apps/web/src/app/resources/page.tsx',
+  'apps/web/src/app/governance/page.tsx',
+  'apps/web/src/app/delivery/page.tsx',
+]) {
+  requireSnippets(file, ['PublicPlatformView', 'buildPublicPlatformModel']);
+  forbidSnippets(file, ['AuthoritativeSnapshotReader', 'getDatabase', '<button', "method: 'POST'"]);
+}
 requireSnippets('apps/web/src/features/auth/role-session.ts', [
   'S20260101',
   'T20260001',

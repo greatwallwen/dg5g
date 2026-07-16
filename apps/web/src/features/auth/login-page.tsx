@@ -1,8 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
 import { Icon } from '@/ui/foundation/icons';
+import '../../app/platform-overview.css';
 
 type LoginPageProps = {
   nextPath?: string;
@@ -110,6 +112,9 @@ export function LoginPage({ nextPath }: LoginPageProps) {
         <button className="login-submit" data-primary-action disabled={submitting} type="submit">
           {submitting ? '正在验证' : '进入教材'}<Icon name="arrow" size={19} />
         </button>
+        <Link className="login-platform-link" href="/platform">
+          查看平台总览 <Icon name="arrow" size={16} />
+        </Link>
       </form>
     </main>
   );
