@@ -59,6 +59,7 @@ type ActivityKind =
   | 'scope-classification'
   | 'evidence-classification'
   | 'link-reconstruction'
+  | 'structured-record'
   | 'four-state-judgement'
   | 'defective-sheet-revision';
 
