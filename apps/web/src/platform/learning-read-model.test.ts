@@ -4,6 +4,7 @@ import { seedBase, seedDemo } from './db/demo-seed.ts';
 import { migrateDatabase } from './db/migrations.ts';
 import { createTestDatabase } from './db/test-database.ts';
 import { LearningReadModel } from './learning-read-model.ts';
+import { getNodeLearningPolicy } from './learning-policy.ts';
 import { LearningRepository } from './learning-repository.ts';
 
 test('only the policy-required passed practice activities satisfy P01 micro-practice', () => {
@@ -227,6 +228,88 @@ test('class read uses the same student projections and one shared global snapsho
   }
 });
 
+test('a published node with an empty activity policy fails closed on legacy generic pass events', () => {
+  const fixture = createTestDatabase();
+  const policy = getNodeLearningPolicy('P1T1-N01')!;
+  const originalActivityIds = policy.requiredActivityIds;
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    policy.requiredActivityIds = [];
+    fixture.database.exec(`
+      INSERT INTO learning_events (
+        event_id, student_id, node_id, channel, event_type, payload_json, origin
+      ) VALUES ('legacy-only', 'stu-01', 'P1T1-N01', 'self-study',
+        'micro_practice_passed', '{"demo":true}', 'demo');
+    `);
+    const node = requiredNode(
+      new LearningReadModel(new LearningRepository(fixture.database)).readStudentSnapshot('stu-01'),
+      'P1T1-N01',
+    );
+    assert.equal(node.state, 'learning');
+    assert.equal(node.stateTrail.includes('micro-practice-passed'), false);
+  } finally {
+    policy.requiredActivityIds = originalActivityIds;
+    fixture.cleanup();
+  }
+});
+
+test('node origin stays demo until every required fact and prerequisite is user-origin', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    insertPassedPractice(fixture.database, 'stu-01', 'P1T1-N01-micro-01', 'P1T1-N01', 'demo');
+    for (const activityId of [
+      'P1T1-N02-foundation-01',
+      'P1T1-N02-application-01',
+      'P1T1-N02-transfer-01',
+    ]) insertPassedPractice(fixture.database, 'stu-01', activityId, 'P1T1-N02');
+    fixture.database.exec(`
+      INSERT INTO formal_attempts (attempt_id, student_id, node_id, score, origin)
+      VALUES ('all-user-formal', 'stu-01', 'P1T1-N02', 90, 'user');
+    `);
+    const model = new LearningReadModel(new LearningRepository(fixture.database));
+    assert.equal(requiredNode(model.readStudentSnapshot('stu-01'), 'P1T1-N01').origin, 'demo');
+    assert.equal(requiredNode(model.readStudentSnapshot('stu-01'), 'P1T1-N02').origin, 'demo');
+
+    insertPassedPractice(fixture.database, 'stu-01', 'P1T1-N01-micro-01', 'P1T1-N01', 'user', 'replacement');
+    assert.equal(requiredNode(model.readStudentSnapshot('stu-01'), 'P1T1-N01').origin, 'user');
+    assert.equal(requiredNode(model.readStudentSnapshot('stu-01'), 'P1T1-N02').origin, 'user');
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('project origin is user only when all three frozen task scores are user-origin', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    fixture.database.exec(`
+      INSERT INTO frozen_task_scores (
+        score_id, student_id, task_id, snapshot_version,
+        provisional_score, official_score, details_json, origin
+      ) VALUES
+        ('user-p01', 'stu-01', 'P01', 1, 90, 90, '{"taskCompositeScore":90}', 'user'),
+        ('user-p02', 'stu-01', 'P02', 1, 90, 90, '{"taskCompositeScore":90}', 'user'),
+        ('demo-p03', 'stu-01', 'P03', 1, 90, 90, '{"taskCompositeScore":90}', 'demo');
+    `);
+    const model = new LearningReadModel(new LearningRepository(fixture.database));
+    assert.equal(model.readStudentSnapshot('stu-01').projectCompositeOrigin, 'demo');
+
+    fixture.database.exec(`
+      INSERT INTO frozen_task_scores (
+        score_id, student_id, task_id, snapshot_version,
+        provisional_score, official_score, details_json, origin
+      ) VALUES ('user-p03', 'stu-01', 'P03', 2, 90, 90, '{"taskCompositeScore":90}', 'user');
+    `);
+    assert.equal(model.readStudentSnapshot('stu-01').projectCompositeOrigin, 'user');
+  } finally {
+    fixture.cleanup();
+  }
+});
+
 function insertP01PrerequisitePractice(
   database: ReturnType<typeof createTestDatabase>['database'],
   studentId: string,
@@ -250,12 +333,14 @@ function insertPassedPractice(
   studentId: string,
   activityId: string,
   nodeId: string,
+  origin: 'demo' | 'user' = 'user',
+  suffix = '',
 ) {
   database.prepare(`
     INSERT INTO practice_attempts (
       attempt_id, student_id, activity_id, node_id, passed, origin
-    ) VALUES (?, ?, ?, ?, 1, 'user')
-  `).run(`${studentId}-${activityId}`, studentId, activityId, nodeId);
+    ) VALUES (?, ?, ?, ?, 1, ?)
+  `).run(`${studentId}-${activityId}${suffix}`, studentId, activityId, nodeId, origin);
 }
 
 function requiredNode(snapshot: ReturnType<LearningReadModel['readStudentSnapshot']>, nodeId: string) {

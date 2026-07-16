@@ -176,6 +176,18 @@ function projectStudentLearningFacts(facts: StudentLearningFacts): StudentLearni
       bestFormalTestScore: bestFormalScore,
       evidenceReviewStatus: evidenceReviewState(evidence, review),
     }, prerequisiteProgress);
+    const origin = activeOrigin(
+      prerequisites.flatMap((prerequisite) => {
+        if (!prerequisite.met) return [];
+        const prerequisiteOrigin = snapshots.get(prerequisite.nodeId)?.origin;
+        return prerequisiteOrigin ? [{ origin: prerequisiteOrigin }] : [];
+      }),
+      events,
+      practiceAttempts,
+      storedAttempts,
+      evidence ? [evidence] : [],
+      storedReview ? [storedReview] : [],
+    );
     const node: StudentNodeLearningSnapshot = {
       nodeId: policy.nodeId,
       state: projection.state,
@@ -188,9 +200,7 @@ function projectStudentLearningFacts(facts: StudentLearningFacts): StudentLearni
       prerequisites,
       ...(bestFormalScore === undefined ? {} : { bestFormalScore }),
       nextRequirement: projection.nextRequirement,
-      ...((activeOrigin(events, practiceAttempts, storedAttempts, evidence ? [evidence] : [], storedReview ? [storedReview] : []))
-        ? { origin: activeOrigin(events, practiceAttempts, storedAttempts, evidence ? [evidence] : [], storedReview ? [storedReview] : []) }
-        : {}),
+      ...(origin ? { origin } : {}),
     };
     snapshots.set(policy.nodeId, node);
   }
@@ -241,7 +251,7 @@ function projectStudentLearningFacts(facts: StudentLearningFacts): StudentLearni
     tasks,
     projectCompositeScore,
     ...(projectCompositeScore === undefined ? {} : {
-      projectCompositeOrigin: tasks.some(({ origin }) => origin === 'user') ? 'user' : 'demo',
+      projectCompositeOrigin: tasks.every(({ origin }) => origin === 'user') ? 'user' : 'demo',
     }),
   };
 }
@@ -341,22 +351,12 @@ function prerequisiteMet(prior: StudentNodeLearningSnapshot | undefined): boolea
   return prior?.state === 'achieved';
 }
 
-function isLegacyMicroPracticePass(event: StoredLearningEvent): boolean {
-  if (event.eventType === 'micro_practice_passed') return true;
-  if (event.eventType === 'game_completed') {
-    return isRecord(event.payload)
-      && event.payload.completed === true
-      && event.payload.formal === false;
-  }
-  return isCompletedClassroomSubmission(event);
-}
-
 function microPracticePassed(
   requiredActivityIds: readonly string[],
   attempts: StoredPracticeAttempt[],
-  events: StoredLearningEvent[],
+  _events: StoredLearningEvent[],
 ): boolean {
-  if (requiredActivityIds.length === 0) return events.some(isLegacyMicroPracticePass);
+  if (requiredActivityIds.length === 0) return false;
   return requiredActivityIds.every((activityId) => attempts.some((attempt) => (
     attempt.activityId === activityId && attempt.passed
   )));
@@ -372,8 +372,8 @@ function activeOrigin(
   ...groups: Array<Array<{ origin: LearningOrigin }>>
 ): LearningOrigin | undefined {
   const facts = groups.flat();
-  if (facts.some(({ origin }) => origin === 'user')) return 'user';
-  return facts.length > 0 ? 'demo' : undefined;
+  if (facts.length === 0) return undefined;
+  return facts.every(({ origin }) => origin === 'user') ? 'user' : 'demo';
 }
 
 function isCompletedClassroomSubmission(event: StoredLearningEvent): boolean {

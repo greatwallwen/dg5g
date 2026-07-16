@@ -91,3 +91,26 @@ test('ordinary node skips output review only because its policy says so', () => 
   assert.equal(projection.state, 'achieved');
   assert.equal(projection.achieved, true);
 });
+
+test('every published P1 node requires exactly its generated base activities', () => {
+  const expected: Record<string, readonly string[]> = {
+    'P1T1-N01': ['P1T1-N01-micro-01'],
+    'P1T1-N02': ['P1T1-N02-foundation-01', 'P1T1-N02-application-01', 'P1T1-N02-transfer-01'],
+    'P1T1-N03': ['P1T1-N03-micro-01'],
+    'P1T1-N04': ['P1T1-N04-micro-01'],
+    'P1T2-N01': ['P1T2-N01-micro-01'],
+    'P1T2-N02': ['P1T2-N02-foundation-01', 'P1T2-N02-application-01', 'P1T2-N02-transfer-01'],
+    'P1T2-N03': ['P1T2-N03-micro-01'],
+    'P1T2-N04': ['P1T2-N04-micro-01'],
+    'P1T3-N01': ['P1T3-N01-micro-01'],
+    'P1T3-N02': ['P1T3-N02-foundation-01', 'P1T3-N02-application-01', 'P1T3-N02-transfer-01'],
+    'P1T3-N03': ['P1T3-N03-micro-01'],
+    'P1T3-N04': ['P1T3-N04-micro-01'],
+  };
+
+  for (const policy of nodeLearningPolicies) {
+    assert.equal(policy.publicationStatus, 'published');
+    assert.ok(policy.requiredActivityIds.length > 0, policy.nodeId);
+    assert.deepEqual(policy.requiredActivityIds, expected[policy.nodeId], policy.nodeId);
+  }
+});
