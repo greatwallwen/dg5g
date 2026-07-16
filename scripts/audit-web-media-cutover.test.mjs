@@ -9,10 +9,9 @@ import {
   buildMediaCutoverPlan,
   serializeMediaCutoverManifestSha256,
 } from './web-media-cutover-plan.mjs';
+import { withHistoricalMediaRepositoryFixture } from './web-media-historical-fixture.mjs';
 
-const repositoryRoot = path.resolve(import.meta.dirname, '..');
-
-test('planned audit proves the 40-file source closure and records the untouched 9-file rollback inventory', async () => {
+test('planned audit proves the 40-file source closure and records the untouched 9-file rollback inventory', async () => withHistoricalMediaRepositoryFixture(async ({ repositoryRoot }) => {
   const report = await runWebMediaCutoverAudit({
     repositoryRoot,
     mode: 'planned',
@@ -48,9 +47,9 @@ test('planned audit proves the 40-file source closure and records the untouched 
       'tts/qwen-cherry/p01-story-speech-023.wav',
     ],
   );
-});
+}));
 
-test('staging audit accepts only the manifest exact set and reports missing or extra files', async () => {
+test('staging audit accepts only the manifest exact set and reports missing or extra files', async () => withHistoricalMediaRepositoryFixture(async ({ repositoryRoot }) => {
   const releaseId = 'task9-staging-audit';
   const plan = await buildMediaCutoverPlan({
     repositoryRoot,
@@ -100,7 +99,7 @@ test('staging audit accepts only the manifest exact set and reports missing or e
   } finally {
     await rm(isolatedRoot, { recursive: true, force: true });
   }
-});
+}));
 
 async function writeManifestArtifacts(root, plan) {
   await mkdir(path.dirname(path.join(root, plan.manifestPath)), { recursive: true });

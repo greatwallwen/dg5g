@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
-import { access, copyFile, link, mkdir, mkdtemp, readFile, rm, unlink, writeFile } from 'node:fs/promises';
+import { access, copyFile, mkdir, readFile, rm, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
 
+import { applyMediaCutoverPlan } from './cutover-web-media.mjs';
 import {
   applyMediaRollbackQuarantinePlan,
   createMediaRollbackQuarantinePlan,
@@ -21,8 +22,8 @@ import {
   inventoryMediaTree,
   resolveAcceptedMediaCutoverManifest,
 } from './web-media-cutover-plan.mjs';
+import { createHistoricalMediaRepositoryFixture } from './web-media-historical-fixture.mjs';
 
-const repositoryRoot = path.resolve(import.meta.dirname, '..');
 const FIXED_TIME = '2026-07-16T22:30:40.123Z';
 
 test('dry-run plan is sealed to the accepted rollback and exact old 9-file inventory without mutation', async () => {
@@ -36,6 +37,7 @@ test('dry-run plan is sealed to the accepted rollback and exact old 9-file inven
     const accepted = await resolveAcceptedMediaCutoverManifest({ repositoryRoot: fixture.repositoryRoot });
 
     assert.equal(plan.schema, 'dgbook.web-media-rollback-quarantine/v1');
+    assert.equal(plan.repositoryRoot, path.resolve(fixture.repositoryRoot));
     assert.equal(plan.releaseId, accepted.manifest.releaseId);
     assert.equal(plan.sourceRepositoryPath, accepted.manifest.rollbackRoot);
     assert.equal(plan.acceptedPlanSha256, accepted.manifest.planSha256);
@@ -53,6 +55,13 @@ test('dry-run plan is sealed to the accepted rollback and exact old 9-file inven
     assert.match(plan.restore.command, /--apply/);
     assert.match(plan.sealSha256, /^[A-F0-9]{64}$/);
     assert.deepEqual(parseMediaRollbackQuarantinePlan(plan), plan);
+    await assert.rejects(
+      () => applyMediaRollbackQuarantinePlan({
+        repositoryRoot: path.join(fixture.root, 'different-repository'),
+        plan,
+      }),
+      /belongs to a different repository/,
+    );
     await assert.rejects(() => access(plan.quarantineSessionRoot), /ENOENT/);
 
     const planPath = path.join(fixture.root, 'dry-run-plan.json');
@@ -387,97 +396,38 @@ test('planning fails closed for non-postverified acceptance and any source or de
 });
 
 async function createAcceptedFixture() {
-  const root = await mkdtemp(path.join(repositoryRoot, '.tmp-media-rollback-quarantine-'));
-  const fixtureRepositoryRoot = path.join(root, 'repo');
-  const quarantineRoot = path.join(root, 'quarantine');
-  await mkdir(fixtureRepositoryRoot, { recursive: true });
-  const accepted = await resolveAcceptedMediaCutoverManifest({ repositoryRoot });
-
-  for (const relativePath of [
-    accepted.pointer.pointerPath,
-    accepted.pointer.manifestPath,
-    accepted.pointer.manifestSha256Path,
-    accepted.pointer.journalPath,
-  ]) {
-    await copyRelative(
-      path.join(repositoryRoot, ...relativePath.split('/')),
-      path.join(fixtureRepositoryRoot, ...relativePath.split('/')),
-      false,
-    );
+  const fixture = await createHistoricalMediaRepositoryFixture();
+  const quarantineRoot = path.join(fixture.root, 'quarantine');
+  try {
+    const manifest = await buildMediaCutoverPlan({
+      repositoryRoot: fixture.repositoryRoot,
+      releaseId: 'self-contained-accepted-history',
+      createdAt: '2026-07-16T22:00:00.000Z',
+    });
+    await applyMediaCutoverPlan({
+      repositoryRoot: fixture.repositoryRoot,
+      manifest,
+      acceptedAt: '2026-07-16T22:10:00.000Z',
+    });
+    return { ...fixture, quarantineRoot };
+  } catch (error) {
+    await fixture.cleanup();
+    throw error;
   }
-  for (const entry of accepted.manifest.entries) {
-    await copyRelative(
-      path.join(repositoryRoot, ...entry.targetPath.split('/')),
-      path.join(fixtureRepositoryRoot, ...entry.targetPath.split('/')),
-    );
-  }
-  for (const entry of accepted.manifest.entries) {
-    const target = path.join(fixtureRepositoryRoot, ...entry.sourcePath.split('/'));
-    try {
-      await access(target);
-    } catch {
-      await copyRelative(
-        path.join(repositoryRoot, ...entry.sourcePath.split('/')),
-        target,
-      );
-    }
-  }
-  for (const relativePath of [
-    'textbook/5g/generated/p1-demo-content.json',
-    'apps/web/src/features/textbook-scene/learning-playback.ts',
-  ]) {
-    await copyRelative(
-      path.join(repositoryRoot, ...relativePath.split('/')),
-      path.join(fixtureRepositoryRoot, ...relativePath.split('/')),
-    );
-  }
-  for (const entry of accepted.manifest.oldTargetInventory.entries) {
-    const source = await findOldMediaSource(accepted, entry);
-    await copyRelative(
-      source,
-      path.join(fixtureRepositoryRoot, ...accepted.manifest.rollbackRoot.split('/'), ...entry.relativePath.split('/')),
-    );
-  }
-  return { root, repositoryRoot: fixtureRepositoryRoot, quarantineRoot };
 }
 
 async function createQuarantinedFixture() {
   const fixture = await createAcceptedFixture();
-  const plan = await createMediaRollbackQuarantinePlan({
-    repositoryRoot: fixture.repositoryRoot,
-    quarantineRoot: fixture.quarantineRoot,
-    createdAt: FIXED_TIME,
-  });
-  await applyMediaRollbackQuarantinePlan({ repositoryRoot: fixture.repositoryRoot, plan });
-  return { ...fixture, plan };
-}
-
-async function findOldMediaSource(accepted, entry) {
-  const candidates = [
-    path.join(repositoryRoot, ...accepted.manifest.rollbackRoot.split('/'), ...entry.relativePath.split('/')),
-    path.join(repositoryRoot, 'apps', 'web', 'public', 'media', ...entry.relativePath.split('/')),
-    path.join(repositoryRoot, 'site', 'public', 'media', ...entry.relativePath.split('/')),
-  ];
-  for (const candidate of candidates) {
-    try {
-      await access(candidate);
-      return candidate;
-    } catch {
-      // Try the next authoritative copy.
-    }
+  try {
+    const plan = await createMediaRollbackQuarantinePlan({
+      repositoryRoot: fixture.repositoryRoot,
+      quarantineRoot: fixture.quarantineRoot,
+      createdAt: FIXED_TIME,
+    });
+    await applyMediaRollbackQuarantinePlan({ repositoryRoot: fixture.repositoryRoot, plan });
+    return { ...fixture, plan };
+  } catch (error) {
+    await fixture.cleanup();
+    throw error;
   }
-  throw new Error(`no fixture source for old media: ${entry.relativePath}`);
-}
-
-async function copyRelative(source, target, preferLink = true) {
-  await mkdir(path.dirname(target), { recursive: true });
-  if (preferLink) {
-    try {
-      await link(source, target);
-      return;
-    } catch (error) {
-      if (!['EXDEV', 'EPERM', 'EACCES', 'ENOSYS'].includes(error?.code)) throw error;
-    }
-  }
-  await copyFile(source, target);
 }

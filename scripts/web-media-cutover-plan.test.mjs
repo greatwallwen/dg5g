@@ -23,10 +23,9 @@ import {
   serializeMediaCutoverManifestSha256,
   validateMediaCutoverReleaseId,
 } from './web-media-cutover-plan.mjs';
+import { withHistoricalMediaRepositoryFixture } from './web-media-historical-fixture.mjs';
 
-const repositoryRoot = path.resolve(import.meta.dirname, '..');
-
-test('derives the approved immutable P1 media closure from authoritative sources', async () => {
+test('derives the approved immutable P1 media closure from authoritative sources', async () => withHistoricalMediaRepositoryFixture(async ({ repositoryRoot }) => {
   const plan = await buildMediaCutoverPlan({
     repositoryRoot,
     releaseId: 'task9-a-test',
@@ -73,7 +72,7 @@ test('derives the approved immutable P1 media closure from authoritative sources
   assert.match(plan.planSha256, /^[A-F0-9]{64}$/);
   assert.ok(Object.isFrozen(plan));
   assert.ok(Object.isFrozen(plan.entries));
-});
+}));
 
 test('rejects traversal, separator injection, absolute forms, NUL, encoding and Windows case collisions', () => {
   assert.equal(normalizeMediaUrl('/media/manim/p01/scene/poster.png'), '/media/manim/p01/scene/poster.png');
@@ -129,7 +128,7 @@ test('accepts exactly the three generated P1 task mediaRef sets and fails closed
   );
 });
 
-test('exposes a stable immutable manifest contract for source archive exact-set gates', async () => {
+test('exposes a stable immutable manifest contract for source archive exact-set gates', async () => withHistoricalMediaRepositoryFixture(async ({ repositoryRoot }) => {
   const plan = await buildMediaCutoverPlan({
     repositoryRoot,
     releaseId: 'release-closure-01',
@@ -157,7 +156,7 @@ test('exposes a stable immutable manifest contract for source archive exact-set 
   const tamperedDigest = structuredClone(plan);
   tamperedDigest.createdAt = '2026-07-16T00:00:01.000Z';
   assert.throws(() => parseMediaCutoverManifest(tamperedDigest), /plan SHA-256 mismatch/);
-});
+}));
 
 test('exact-tree audit reports missing, extra, byte and SHA drift without changing the tree', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'dgbook-media-tree-'));
@@ -305,7 +304,7 @@ test('cutover state machine permits only ordered progress and explicit rollback 
   ]) assert.throws(() => assertCutoverStateTransition(from, to), /invalid media cutover state transition/);
 });
 
-test('transaction harness preserves or restores the old target at every injected cutover fault', async () => {
+test('transaction harness preserves or restores the old target at every injected cutover fault', async () => withHistoricalMediaRepositoryFixture(async ({ repositoryRoot }) => {
   const plan = await buildMediaCutoverPlan({
     repositoryRoot,
     releaseId: 'fault-test',
@@ -329,9 +328,9 @@ test('transaction harness preserves or restores the old target at every injected
     assert.equal(calls.includes('restore-old-target'), expectedRestore, name);
     assert.equal(calls.includes('discard-staging'), !expectedRestore, name);
   }
-});
+}));
 
-test('stable current pointer resolves exactly one digest-matched postverified manifest and journal', async () => {
+test('stable current pointer resolves exactly one digest-matched postverified manifest and journal', async () => withHistoricalMediaRepositoryFixture(async ({ repositoryRoot }) => {
   const plan = await buildMediaCutoverPlan({
     repositoryRoot,
     releaseId: 'accepted-release',
@@ -370,7 +369,7 @@ test('stable current pointer resolves exactly one digest-matched postverified ma
   } finally {
     await rm(artifactRoot, { recursive: true, force: true });
   }
-});
+}));
 
 const EXPECTED_GENERATED_URLS = [
   '/media/5g/image2.jpeg',
