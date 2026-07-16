@@ -165,7 +165,7 @@
 .public-platform-flow li > svg { color: var(--public-cyan); }
 .public-platform-flow li > strong { min-height: 42px; font-size: 15px; line-height: 1.45; }
 .public-platform-flow li > p { margin: 0; color: var(--public-muted); font-size: 12px; line-height: 1.65; }
-.public-platform-step { color: #66879d; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; font-weight: 900; }
+.public-platform-step { color: #8baabd; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; font-weight: 900; }
 
 .public-platform-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; }
 .public-platform-card { min-width: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; border: 1px solid var(--public-line); border-radius: 6px; overflow: hidden; background: var(--public-panel); }
@@ -185,7 +185,7 @@
 
 .public-platform-footer { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 15px; border-top: 1px solid var(--public-line); padding: 18px clamp(18px, 4vw, 64px); color: #7896a9; background: #061522; font-size: 12px; }
 .public-platform-footer p { display: inline-flex; align-items: center; gap: 7px; margin: 0; color: #9db5c5; }
-.public-platform-footer small { color: #617d90; }
+.public-platform-footer small { color: #829fb1; }
 
 .login-platform-link {
   min-height: 42px;

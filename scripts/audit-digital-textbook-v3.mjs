@@ -64,6 +64,25 @@ forbidSnippets('apps/web/src/features/platform-overview/public-platform-model.ts
   'AuthoritativeSnapshotReader',
   'getDatabase',
 ]);
+requireSnippets('apps/web/src/features/platform-overview/public-platform-view.tsx', [
+  'data-public-access="anonymous-read-only"',
+  'data-primary-action-policy="exactly-one"',
+]);
+forbidSnippets('apps/web/src/features/platform-overview/public-platform-view.tsx', [
+  '<form',
+  '<button',
+  'fetch(',
+  'useRouter',
+  'redirect(',
+  'requireUser',
+  'requireClassRole',
+  'readServerActor',
+  "method: 'POST'",
+  "method: 'PUT'",
+  "method: 'PATCH'",
+  "method: 'DELETE'",
+]);
+forbidSnippets('apps/web/next.config.mjs', ["{ source: '/platform'"]);
 for (const file of [
   'apps/web/src/app/platform/page.tsx',
   'apps/web/src/app/resources/page.tsx',
