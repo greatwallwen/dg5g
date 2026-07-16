@@ -2,6 +2,7 @@ export const MAX_WEB_SOURCE_RELEASE_BYTES = 256 * 1024 * 1024;
 
 export const REQUIRED_WEB_SOURCE_RUNTIME_FILES = Object.freeze([
   'textbook/5g/generated/p1-demo-content.json',
+  'textbook/5g/generated/5g-import-report.json',
   'textbook/5g/generated/lesson-ast/P01.json',
   'textbook/5g/generated/lesson-ast/P02.json',
   'textbook/5g/generated/lesson-ast/P03.json',

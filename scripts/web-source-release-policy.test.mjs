@@ -9,6 +9,7 @@ import {
 
 const p1RuntimeFiles = [
   'textbook/5g/generated/p1-demo-content.json',
+  'textbook/5g/generated/5g-import-report.json',
   'textbook/5g/generated/lesson-ast/P01.json',
   'textbook/5g/generated/lesson-ast/P02.json',
   'textbook/5g/generated/lesson-ast/P03.json',
@@ -58,7 +59,7 @@ test('keeps runtime source roots and rejects reproducible output', () => {
   assert.equal(MAX_WEB_SOURCE_RELEASE_BYTES, 256 * 1024 * 1024);
 });
 
-test('packages exactly the four authoritative P1 runtime content files and traces each one', () => {
+test('packages all five authoritative P1 and public-platform runtime content files and traces each one', () => {
   assert.deepEqual(REQUIRED_WEB_SOURCE_RUNTIME_FILES, p1RuntimeFiles);
   for (const file of p1RuntimeFiles) assert.equal(shouldPackageWebSourceFile(file), true, file);
   for (const file of [
@@ -77,6 +78,17 @@ test('packages exactly the four authoritative P1 runtime content files and trace
       true,
       `${relativeToWeb} must be an explicit standalone trace include`,
     );
+  }
+});
+
+test('every generated file read by the public platform is part of the source-release closure', () => {
+  const modelSource = readFileSync('apps/web/src/features/platform-overview/public-platform-model.ts', 'utf8');
+  const generatedReads = [...modelSource.matchAll(/resolveGeneratedFile\('([^']+)'\)/gu)]
+    .map(([, fileName]) => `textbook/5g/generated/${fileName}`);
+
+  assert.ok(generatedReads.length > 0, 'public platform must declare its generated runtime inputs');
+  for (const file of generatedReads) {
+    assert.equal(REQUIRED_WEB_SOURCE_RUNTIME_FILES.includes(file), true, `${file} is missing from source release`);
   }
 });
 
