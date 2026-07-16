@@ -8,6 +8,7 @@ import type {
 } from '@/features/capability-map/graph-snapshot-model';
 import type { GraphData, TextbookSceneMode } from '@/platform/models';
 import type { P1TaskId } from '@/platform/learning-policy';
+import type { CourseGraphNodeAction } from '@/features/capability-map/course-graph-navigation';
 import {
   projectNodeAccess,
   projectTaskAccess,
@@ -22,7 +23,7 @@ type CourseGraphStageProps = {
   motionEnabled: boolean;
   motionState?: GraphMotionState;
   onInteraction: () => void;
-  onNodeSelect: (nodeId: string) => void;
+  onNodeSelect: (nodeId: string, action: CourseGraphNodeAction) => void;
   onTaskSelect: (taskId: P1TaskId) => void;
   progress: CanonicalGraphNodeProgress[] | undefined;
   projectCompositeScore?: number;
@@ -37,9 +38,9 @@ export function CourseGraphStage(p: CourseGraphStageProps) {
     choose();
   }
 
-  function selectNode(nodeId: string) {
+  function selectNode(nodeId: string, action: CourseGraphNodeAction) {
     const access = projectNodeAccess(nodeId, p.progress);
-    chooseWhenOpen(access, () => p.onNodeSelect(nodeId));
+    chooseWhenOpen(access, () => p.onNodeSelect(nodeId, action));
   }
 
   function selectTask(taskId: P1TaskId) {

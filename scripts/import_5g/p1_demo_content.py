@@ -137,6 +137,66 @@ P01_ACTIVITY_SPECS: dict[str, dict[str, Any]] = {
         },
         "transferTarget": "形成可直接汇入 P01 专业成果的设备链路记录。",
     },
+    "P1T1-N02-remediation-revision-01": {
+        "activityKind": "defective-sheet-revision",
+        "materials": [
+            {
+                "id": "missing-field-source",
+                "label": "设备与端口字段缺少来源",
+                "detail": "IMG-031 是设备铭牌，IMG-032 是源端口；修订必须先指出字段无来源，再补入两张来源照片。",
+                "sourceValue": "设备字段：BBU-01；源端口：CPRI-1；字段来源：（空）",
+            },
+            {
+                "id": "missing-photo-index",
+                "label": "字段没有照片索引",
+                "detail": "设备、源端口、对端口应分别对应 IMG-031、IMG-032、IMG-033，不能只写一条笼统照片备注。",
+                "sourceValue": "照片索引：（空）；成果字段：设备、源端口、对端口",
+            },
+            {
+                "id": "missing-link-direction",
+                "label": "连接结论缺少方向",
+                "detail": "源端为 BBU-01 CPRI-1，对端为 AAU-01 OPT-1；修订必须明确两端及连接方向。",
+                "sourceValue": "链路结论：已连接；源端、对端与方向：（空）",
+            },
+        ],
+        "interaction": {
+            "type": "revision-form",
+            "fields": [
+                {"id": "sourceEvidenceRevision", "label": "诊断并修订字段来源", "placeholder": "指出缺陷，并写明来源证据"},
+                {"id": "photoIndexRevision", "label": "诊断并修订照片索引", "placeholder": "逐项写明字段与照片编号"},
+                {"id": "directionRevision", "label": "诊断并修订连接方向", "placeholder": "写明源端、对端和方向"},
+            ],
+        },
+        "targetedFeedback": {
+            "passed": "字段来源、照片索引和链路方向均已完成缺陷诊断与可审计修订。",
+            "failed": "修订尚未闭合三类缺陷；请分别补齐字段来源、逐项照片索引以及源端到对端的方向。",
+        },
+        "transferTarget": "把只有“已连接”的缺陷结果表修订为字段来源、照片索引和连接方向均可复核的成果记录。",
+    },
+    "P1T1-N02-remediation-conclusion-01": {
+        "activityKind": "structured-record",
+        "materials": [
+            {
+                "id": "review-evidence-pack",
+                "label": "链路复核材料",
+                "detail": "设备铭牌可识别，源端口照片清晰；对端端口照片模糊，当前不能确认对端端口编号。",
+            },
+        ],
+        "interaction": {
+            "type": "record-form",
+            "fields": [
+                {"id": "confirmedFact", "label": "已确认事实", "placeholder": "只写证据已经支持的事实"},
+                {"id": "evidenceGap", "label": "证据缺口", "placeholder": "写明尚不能确认的内容及原因"},
+                {"id": "risk", "label": "专业风险", "placeholder": "写明直接下结论的风险"},
+                {"id": "action", "label": "下一步动作", "placeholder": "写明补证或复核动作"},
+            ],
+        },
+        "targetedFeedback": {
+            "passed": "结论已分别说明确认事实、证据缺口、专业风险和下一步动作。",
+            "failed": "四部分仍有内容缺失或混写；请让每个字段只承担确认、缺口、风险或动作中的一种职责。",
+        },
+        "transferTarget": "形成可直接写入成果表复核栏的四部分职业化结论。",
+    },
     "P1T1-N03-micro-01": {
         "activityKind": "four-state-judgement",
         "materials": [
@@ -297,13 +357,29 @@ DEEP_SELF_STUDY: dict[str, dict[str, Any]] = {
                 "结论必须同时引用起点、中间路径和终点，不能只选看起来最近的设备。",
                 ["标出所有端点编号", "按线缆编号连接中间路径", "发现断点就标记待补证后重试"],
             )],
-            "transfer": [_practice(
-                "P1T1-N02-transfer-01",
-                "将同样的证据方法迁移到电源链：证明某AAU由哪一路直流配电端子供电。",
-                ["AAU位置与身份", "电源线两端标签", "配电端子和方向"],
-                "设备类型改变后，位置—身份—双端方向的证明逻辑仍保持不变。",
-                ["先确定AAU唯一身份", "记录设备侧电源端", "追踪到配电侧端子并核对线号"],
-            )],
+            "transfer": [
+                _practice(
+                    "P1T1-N02-transfer-01",
+                    "将同样的证据方法迁移到电源链：证明某AAU由哪一路直流配电端子供电。",
+                    ["AAU位置与身份", "电源线两端标签", "配电端子和方向"],
+                    "设备类型改变后，位置—身份—双端方向的证明逻辑仍保持不变。",
+                    ["先确定AAU唯一身份", "记录设备侧电源端", "追踪到配电侧端子并核对线号"],
+                ),
+                _practice(
+                    "P1T1-N02-remediation-revision-01",
+                    "诊断只有“已连接”结论的缺陷结果表，并分别修订字段来源、照片索引和连接方向。",
+                    ["明确指出三类缺陷", "每项修订引用给定证据", "源端、对端和方向可复核"],
+                    "通过时，修订记录应能让复核者从每个字段回到证据，并沿源端到对端重建链路。",
+                    ["先逐项指出原表缺什么", "再把给定照片编号写入对应字段", "最后补齐源端、对端与连接方向"],
+                ),
+                _practice(
+                    "P1T1-N02-remediation-conclusion-01",
+                    "根据给定复核材料，分别填写已确认事实、证据缺口、专业风险和下一步动作。",
+                    ["确认事实只引用清晰证据", "缺口说明当前不能确认的内容", "风险与动作具体对应缺口"],
+                    "四部分共同形成职业化结论，但不能用猜测填补模糊的对端端口证据。",
+                    ["先写铭牌和源端口支持的事实", "再写对端端口照片模糊造成的缺口", "最后写风险和补拍复核动作"],
+                ),
+            ],
         },
         "transferTask": {
             "scenario": "另一座共享机房内有两套不同厂家的BBU和共用ODF，请为其中一条BBU—RRU链路制定补拍清单。",

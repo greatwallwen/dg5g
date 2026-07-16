@@ -7,13 +7,23 @@ import { seedDemo } from './db/demo-seed.ts';
 import { closeDatabase } from './db/database.ts';
 import { AuthService } from './auth/auth-service.ts';
 import { AUTH_COOKIE_NAME } from './auth/cookie.ts';
+import { ActivityRepository } from '../features/learning-activities/activity-repository.ts';
+import {
+  p01Activities,
+  readActivityDefinition,
+} from '../features/learning-activities/activity-catalog.ts';
 import { LearningRepository } from './learning-repository.ts';
+import {
+  createLearningCommandService,
+  LearningCommandValidationError,
+} from './learning-command-service.ts';
 import {
   AssessmentRemediationRequiredError,
   AssessmentTokenError,
   FormalAssessmentService,
   type AssessmentAnswers,
 } from './formal-assessment-service.ts';
+import { getFormalAssessmentDefinition } from './formal-assessment-catalog.server.ts';
 
 const studentOne: AuthenticatedActor = {
   userId: 'stu-01',
@@ -37,10 +47,10 @@ const wrongAnswers: AssessmentAnswers = {
   linkReconstruction: ['peer-device', 'peer-port', 'cable-label', 'source-port', 'source-device'],
   defectiveOutputRevision: ['erase-gap'],
   professionalConclusion: {
-    confirmedFact: '现场已经看到机柜，但尚未形成能够唯一识别设备身份的证据。',
-    evidenceGap: '当前材料缺少清晰的设备铭牌和对端端口照片，证据链不完整。',
-    risk: '如果直接确认链路，可能把错误设备或端口写入交付成果。',
-    action: '重新拍摄设备铭牌和对端端口，核对编号后再更新结论。',
+    confirmedFact: '未说明。',
+    evidenceGap: '未说明。',
+    risk: '未说明。',
+    action: '未说明。',
   },
 } as unknown as AssessmentAnswers;
 
@@ -55,6 +65,55 @@ const passingAnswers = {
     action: '重新拍摄对端端口并核验编号，补齐照片索引后更新成果表。',
   },
 } as unknown as AssessmentAnswers;
+
+test('each assessment dimension maps to a semantically matching real activity contract', () => {
+  const definition = getFormalAssessmentDefinition('P1T1-N02');
+  assert.ok(definition);
+  const expectedContracts = {
+    evidenceClassification: {
+      activityId: 'P1T1-N02-foundation-01',
+      kind: 'evidence-classification',
+      materialIds: ['room-overview', 'device-nameplate', 'two-ended-port-trace'],
+    },
+    linkReconstruction: {
+      activityId: 'P1T1-N02-application-01',
+      kind: 'link-reconstruction',
+      materialIds: ['bbu-port', 'odf-in', 'odf-out', 'aau-port'],
+    },
+    defectiveOutputRevision: {
+      activityId: 'P1T1-N02-remediation-revision-01',
+      kind: 'defective-sheet-revision',
+      fieldIds: ['sourceEvidenceRevision', 'photoIndexRevision', 'directionRevision'],
+    },
+    professionalConclusion: {
+      activityId: 'P1T1-N02-remediation-conclusion-01',
+      kind: 'structured-record',
+      fieldIds: ['confirmedFact', 'evidenceGap', 'risk', 'action'],
+    },
+  } as const;
+
+  const targetIds = Object.entries(expectedContracts).map(([dimension, expected]) => {
+    const target = definition.grading[dimension as keyof typeof expectedContracts].remediationTarget;
+    assert.equal(target.activityId, expected.activityId);
+    const activity = readActivityDefinition(target.activityId)?.activity;
+    assert.ok(activity, `missing remediation activity ${target.activityId}`);
+    assert.equal(activity.nodeId, target.nodeId);
+    assert.equal(activity.kind, expected.kind);
+    if ('materialIds' in expected) {
+      assert.deepEqual(activity.materials.map(({ id }) => id), [...expected.materialIds]);
+    }
+    if ('fieldIds' in expected) {
+      const fields = activity.interaction.type === 'record-form'
+        || activity.interaction.type === 'revision-form'
+        ? activity.interaction.fields
+        : undefined;
+      assert.ok(fields);
+      assert.deepEqual(fields.map(({ id }) => id), [...expected.fieldIds]);
+    }
+    return target.activityId;
+  });
+  assert.equal(new Set(targetIds).size, targetIds.length);
+});
 
 test('issues an answer-free paper and grades and persists only on the server', () => {
   const fixture = createTestDatabase();
@@ -310,12 +369,18 @@ test('rolls back token consumption and assessment closure when persistence fails
   }
 });
 
-test('requires targeted relearning after a failed user attempt and unlocks from stable remediation targets', () => {
+test('requires real post-failure passed activities and unlocks only after every target', () => {
   const fixture = createTestDatabase();
+  const now = new Date('2000-01-01T00:00:00.000Z');
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
-    const service = new FormalAssessmentService(fixture.database, deterministicOptions());
+    const service = new FormalAssessmentService(fixture.database, {
+      ...deterministicOptions(),
+      now: () => now,
+    });
+    const learning = createLearningCommandService(fixture.database);
+    const activities = new ActivityRepository(fixture.database);
     const issued = service.issuePaper(studentOne, 'P1T1-N02');
     const failed = service.submitAnswers(studentOne, issued.attemptToken, wrongAnswers);
 
@@ -325,25 +390,116 @@ test('requires targeted relearning after a failed user attempt and unlocks from 
         && error.targets.length === failed.remediationTargets.length,
     );
 
-    const insert = fixture.database.prepare(`
-      INSERT INTO practice_attempts (
-        attempt_id, student_id, activity_id, node_id, response_json, result_json,
-        artifact_json, passed, origin, attempted_at
-      ) VALUES (?, ?, ?, ?, '{}', ?, '{}', 1, 'user', ?)
-    `);
+    let snapshot = learning.readStudentSnapshot(studentOne);
+    for (const [index, sectionId] of ['understand', 'evidence', 'explain', 'practice'].entries()) {
+      snapshot = learning.appendEvent(studentOne, {
+        eventId: `generic-node-complete-${index}`,
+        nodeId: 'P1T1-N02',
+        channel: 'self-study',
+        eventType: 'section_completed',
+        payload: { completed: true, sectionId },
+        occurredAt: '2000-01-01T00:01:00.000Z',
+        expectedVersion: snapshot.version,
+      });
+    }
+    assert.throws(
+      () => service.issuePaper(studentOne, 'P1T1-N02'),
+      (error) => error instanceof AssessmentRemediationRequiredError
+        && error.targets.length === failed.remediationTargets.length,
+    );
+
     for (const [index, target] of failed.remediationTargets.entries()) {
-      insert.run(
-        `remediation-${index}`,
-        studentOne.studentId,
-        `activity-${index}`,
-        target.nodeId,
-        JSON.stringify({ remediationTarget: target }),
-        '2026-07-16T10:01:00.000Z',
+      const activity = p01Activities.find(({ activity }) => activity.id === target.activityId);
+      assert.ok(activity, `missing real activity ${target.activityId}`);
+      const result = activities.recordEvaluatedAttempt({
+        attemptId: `real-remediation-${index}`,
+        studentId: studentOne.userId,
+        activity,
+        response: correctActivityResponse(target.activityId),
+        expectedVersion: 0,
+      });
+      assert.equal(result.passed, true);
+      assert.equal(
+        fixture.database.prepare(`SELECT origin FROM practice_attempts WHERE attempt_id = ?`)
+          .pluck().get(`real-remediation-${index}`),
+        'user',
       );
+      if (index < failed.remediationTargets.length - 1) {
+        assert.throws(
+          () => service.issuePaper(studentOne, 'P1T1-N02'),
+          (error) => error instanceof AssessmentRemediationRequiredError
+            && error.targets.length === failed.remediationTargets.length - index - 1,
+        );
+      }
     }
 
     assert.equal(service.issuePaper(studentOne, 'P1T1-N02').paper.nodeId, 'P1T1-N02');
   } finally {
+    fixture.cleanup();
+  }
+});
+
+test('refuses an accessible N02 paper until authoritative micro-practice readiness exists', async () => {
+  const fixture = createTestDatabase();
+  const previousPath = process.env.DGBOOK_SQLITE_PATH;
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    fixture.database.prepare(`
+      DELETE FROM learning_events WHERE student_id = ? AND node_id = ?
+    `).run(studentOne.studentId, 'P1T1-N02');
+    const learning = createLearningCommandService(fixture.database);
+    assert.equal(learning.requireNodeAccess(studentOne, 'P1T1-N02').kind, 'open');
+    assert.equal(
+      learning.readStudentSnapshot(studentOne).nodes
+        .find(({ nodeId }) => nodeId === 'P1T1-N02')?.stateTrail.includes('micro-practice-passed'),
+      false,
+    );
+
+    const service = new FormalAssessmentService(fixture.database, deterministicOptions());
+    assert.throws(
+      () => service.issuePaper(studentOne, 'P1T1-N02'),
+      (error) => error instanceof LearningCommandValidationError
+        && /micro-practice-passed/.test(error.message),
+    );
+    assert.equal(fixture.database.prepare('SELECT COUNT(*) FROM formal_assessment_tokens').pluck().get(), 0);
+
+    process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
+    closeDatabase();
+    const auth = new AuthService(fixture.database);
+    const session = auth.login({ username: 'student01', password: '123456' });
+    assert.ok(session);
+    const route = await import('../app/api/learning/nodes/[nodeId]/assessment/route.ts');
+    const locked = route.GET(
+      routeRequest('GET', `${AUTH_COOKIE_NAME}=${session.token}`),
+      routeContext(),
+    );
+    assert.equal(locked.status, 422);
+    assert.deepEqual(await locked.json(), {
+      error: 'Formal assessment requires micro-practice-passed first.',
+      nodeId: 'P1T1-N02',
+      requiredState: 'micro-practice-passed',
+      routeState: 'prerequisite-required',
+    });
+
+    closeDatabase();
+    for (const [index, sectionId] of ['understand', 'evidence', 'explain', 'practice'].entries()) {
+      const snapshot = learning.readStudentSnapshot(studentOne);
+      learning.appendEvent(studentOne, {
+        eventId: `micro-ready-${index}`,
+        nodeId: 'P1T1-N02',
+        channel: 'self-study',
+        eventType: 'section_completed',
+        payload: { completed: true, sectionId },
+        occurredAt: `2026-07-16T09:0${index}:00.000Z`,
+        expectedVersion: snapshot.version,
+      });
+    }
+    assert.equal(service.issuePaper(studentOne, 'P1T1-N02').paper.nodeId, 'P1T1-N02');
+  } finally {
+    closeDatabase();
+    if (previousPath === undefined) delete process.env.DGBOOK_SQLITE_PATH;
+    else process.env.DGBOOK_SQLITE_PATH = previousPath;
     fixture.cleanup();
   }
 });
@@ -418,6 +574,46 @@ function deterministicOptions() {
     randomId: () => `assessment-sequence-${++sequence}`,
     randomToken: () => `token-sequence-${++sequence}-0123456789abcdef`,
   };
+}
+
+function correctActivityResponse(activityId: string): Record<string, unknown> {
+  return {
+    'P1T1-N02-foundation-01': {
+      assignments: {
+        'room-overview': 'location',
+        'device-nameplate': 'identity',
+        'two-ended-port-trace': 'link',
+      },
+    },
+    'P1T1-N02-application-01': {
+      order: ['bbu-port', 'odf-in', 'odf-out', 'aau-port'],
+    },
+    'P1T1-N02-transfer-01': {
+      fields: {
+        siteId: 'HY-01',
+        roomId: '01',
+        cabinetId: 'K02',
+        deviceId: 'BBU-01',
+        nearPort: 'BBU-1/0',
+        farPort: 'AAU-1',
+      },
+    },
+    'P1T1-N02-remediation-revision-01': {
+      revisions: {
+        sourceEvidenceRevision: '原表缺少字段来源，补充设备铭牌 IMG-031 和源端口 IMG-032。',
+        photoIndexRevision: '设备对应 IMG-031，源端口对应 IMG-032，对端口对应 IMG-033。',
+        directionRevision: '连接方向为源端 BBU-01 CPRI-1 至对端 AAU-01 OPT-1。',
+      },
+    },
+    'P1T1-N02-remediation-conclusion-01': {
+      fields: {
+        confirmedFact: '设备铭牌可识别，源端口照片清晰，已确认设备身份和源端口。',
+        evidenceGap: '对端端口照片模糊，当前无法确认对端端口编号。',
+        risk: '直接下结论存在链路误判风险，会影响成果交付。',
+        action: '补拍对端端口照片并复核编号后再更新记录。',
+      },
+    },
+  }[activityId] ?? {};
 }
 
 function routeRequest(method: string, cookie: string, body?: unknown, token?: string): Request {

@@ -2,109 +2,81 @@
 
 Status: **DONE_WITH_CONCERNS**
 
-The Task 4 product and security acceptance checks pass. The only remaining concern is an unrelated repository-wide asset gate: `pnpm qa:gates` stops in `audit:capability-map` because the expert capability SVG asset is missing. Task 4 does not modify protected capability-map media.
+Task 4 is complete and its focused, full-unit, type, structure, production-build, security-bundle, and browser checks pass. The remaining concern is the pre-existing repository-wide capability-map asset audit described below.
 
 ## Delivered
 
 - Added authenticated `/learn/[nodeId]/test` and `/api/learning/nodes/[nodeId]/assessment` surfaces for the P01 `P1T1-N02` assessment.
-- Split the answer-free public contract from `formal-assessment-catalog.server.ts`; the client imports only the public contract.
-- Added a SHA-256-at-rest, single-use token bound to student, node, question version, and assessment instance.
-- Made paper issuance atomically consume and close every prior active paper for the same student/node before creating the new paper. A stale pre-issued token cannot bypass the relearning gate.
-- The submission route accepts exactly `{ answers }`; top-level or nested forged score fields are rejected.
-- The server validates option IDs and exact ordering membership before applying the private rubric.
-- The professional conclusion is a structured four-part response: confirmed fact, evidence gap, risk, and executable action. Each part has a private, field-specific rubric and meaningful-length requirement, so a keyword list cannot receive full marks.
-- Persisted `assessment_id`, question version, normalized answers, four-dimension diagnostics, remediation targets, and `origin='user'` in one transaction.
-- Failed attempts require every stable `{ nodeId, sectionId }` remediation target to be completed through user-origin practice evidence before a new paper can be issued. No Task 3 implementation module is imported.
-- Removed the permanent three-attempt lock from command, projection, roster, challenge, classroom, and retired embedded-game paths. The old embedded panel is now a compatibility link to the independent assessment and cannot submit a client score.
-- Replaced fragile controlled selectors with native form controls and `FormData` serialization. A real Playwright check persisted radio and checkbox state, the form validated, and the answer-only POST completed.
+- Kept the public paper answer-free and the private rubric server-only. Papers use SHA-256-at-rest, single-use tokens bound to student, node, version, and assessment instance.
+- Paper issuance now requires both authoritative node access and the persisted `micro-practice-passed` milestone. The GET contract returns a clear `422` prerequisite state instead of issuing a paper early.
+- Submission accepts exactly `{ answers }`; forged score fields, invalid option IDs, wrong ordering membership, stale tokens, and reused tokens are rejected before grading.
+- Persisted the assessment, normalized answers, four-dimension diagnostics, and remediation targets transactionally with `origin='user'`.
+- Removed the permanent three-attempt lock. A failed attempt may be retried only after each target has a real, passed `practice_attempts` row for the same user, node, and activity after that failed assessment.
+- Mapped the four formal dimensions to four distinct, genuine activities:
+  - evidence classification;
+  - link reconstruction;
+  - defect diagnosis and revision (`P1T1-N02-remediation-revision-01`), requiring revised source evidence, photo indices, and direction;
+  - professional conclusion (`P1T1-N02-remediation-conclusion-01`), requiring confirmed fact, evidence gap, risk, and action.
+- Generated the two new remediation activities through `scripts/import_5g/p1_demo_content.py`; generated textbook content was not edited as an independent source.
+- Preserved the Task 3 invariant of exactly six base P01 activities while allowing the two transfer/remediation-only activities in the complete catalog.
+- Remediation links now use `/learn/P1T1-N02?section=practice&activityId=...`; the learning page validates the target, opens practice, and focuses the exact activity card.
+- The `game-topology` graph node now opens `/learn/P1T1-N02/test`. Pointer activation distinguishes a click from graph panning, and the D3 zoom behavior uses an explicit measured extent.
+- Challenge-mode classroom follow exposes exactly one primary formal-test action and one secondary self-study return.
 
-## RED evidence
+## RED/GREEN evidence
 
-The work followed red-green cycles:
+The review fixes were driven by failing contracts for issuance readiness, activity-specific retry evidence, semantic remediation mappings, exact remediation focus, graph routing, classroom primary-action policy, graph pointer behavior, and the explicit D3 zoom extent.
 
-1. Service tests initially failed because the formal assessment service/catalog did not exist.
-2. Route test initially failed because the independent assessment route did not exist.
-3. Forged-score and attempt-limit tests initially failed because the legacy endpoint accepted score-bearing writes and the command service threw the three-attempt error.
-4. UI contract tests initially failed because the independent result/client/page and stylesheet did not exist.
-5. Mastery regression initially returned only three attempts when four were expected.
-6. Review hardening tests failed against the first implementation:
-   - double-issued papers left the older token usable;
-   - structured conclusions were rejected because the service accepted only one free-text string;
-   - option allowlist checks were absent;
-   - the public/private catalog split was absent;
-   - the controlled selector regression lacked native `FormData` controls;
-   - the retired embedded game still contained client scoring and a permanent `Math.min(3, ...)` cutoff.
-
-Representative RED command:
+Focused activity and assessment suite:
 
 ```text
-fnm use 20.20.2
-pnpm exec tsx --test src/platform/formal-assessment-service.test.ts src/platform/formal-assessment-ui.test.tsx
-Result before hardening: 6 pass, 11 fail
+pnpm exec tsx --test \
+  src/features/learning-activities/activity-evaluator.test.ts \
+  src/features/learning-activities/activity-workbench-contract.test.tsx \
+  src/features/learning-activities/p1-activity-contract.test.ts \
+  src/platform/formal-assessment-service.test.ts
+23 tests, 23 pass, 0 fail
 ```
 
-## GREEN evidence
-
-Focused Task 4 suite:
+Full verification with Node `20.20.2`:
 
 ```text
-pnpm exec tsx --test src/platform/formal-assessment-service.test.ts src/platform/formal-assessment-ui.test.tsx
-18 tests, 18 pass, 0 fail
-```
-
-Additional affected UI contracts:
-
-```text
-pnpm exec tsx --test src/platform/formal-assessment-ui.test.tsx src/features/textbook-scene/node-access-consumers.test.ts src/features/classroom/student-supervision-roster.test.tsx
-17 tests, 17 pass, 0 fail
-```
-
-Full verification, all with Node `20.20.2`:
-
-```text
-pnpm web:test:unit       533 tests, 533 pass, 0 fail
+pnpm web:test:unit       562 tests, 562 pass, 0 fail
 pnpm typecheck           PASS
 pnpm web:check-structure PASS
-pnpm build               PASS
+pnpm web:build           PASS
 git diff --check         PASS (line-ending notices only)
 ```
 
 Production client-bundle scan:
 
 ```text
-rg -n "acceptedOptionIds|orderedOptionIds|requiredOptionIds|forbiddenOptionIds|conclusionCriteria" apps/web/.next/static
-PASS: no private rubric keys in apps/web/.next/static
+rg -n "acceptedOptionIds|orderedOptionIds|requiredOptionIds|forbiddenOptionIds|conclusionCriteria|answerModel|correctAnswer" apps/web/.next/static
+PASS: no private rubric/model-answer keys found
 ```
 
-The focused assessment client chunk also contains no private rubric or model-answer keys.
+## Production browser audit
 
-## Authenticated browser audit
+The audit used a disposable migrated/seeded SQLite database and the production Next.js build.
 
-- Logged in through the real student login with a disposable migrated/seeded SQLite database.
-- Desktop assessment rendered four question groups and the structured four-part conclusion.
-- Playwright checked a radio and checkbox and confirmed both DOM states remained `true`.
-- HTML form validity was `true` after selecting the five ordering controls and filling all four conclusion fields.
-- Captured POST body contained exactly the `answers` object and no score.
-- Server returned HTTP 200; the page rendered remediation state, `18 / 100`, four dimension cards, and four targeted relearning links.
-- A fresh navigation rendered `先完成定向再学` with the four targets instead of issuing a retry.
-- At 390×844, `documentElement.scrollWidth === innerWidth === 390`; all four question groups and all four conclusion fields remained present.
-- Browser console: 0 warnings, 0 errors.
-- Evidence: `output/playwright/task4-final-assessment-desktop.png`, `task4-final-result-desktop.png`, and `task4-final-assessment-mobile.png` (local ignored audit artifacts).
+- A physical click on `[data-graph-node-id="game-topology"]` navigated from `/course` to `/learn/P1T1-N02/test`.
+- A deliberately incorrect real submission returned `5 / 100` and four distinct remediation links.
+- The defect link navigated to `/learn/P1T1-N02?section=practice&activityId=P1T1-N02-remediation-revision-01`, opened the practice tab, focused the exact card, and rendered its three revision inputs.
+- In a legally advanced challenge classroom, `data-primary-action-policy="exactly-one"`, formal CTA count was `1`, primary-action count was `1`, its href was `/learn/P1T1-N02/test`, and the secondary self-study return count was `1`.
+- Fresh post-build graph and classroom checks reported `0` console errors and `0` warnings.
+- Disposable database and log artifacts were removed after verification.
 
 ## Security and transaction self-review
 
-- Raw token is returned once and never stored; the database contains only a 64-character SHA-256 hash.
-- Wrong student, route-node mismatch, token-version tamper, assessment-instance tamper, expiry, reuse, and stale double-issued token are rejected.
-- Unknown/duplicate choice IDs and incomplete/duplicated ordering values are rejected before grading and do not consume the token.
-- A forced database trigger failure after token consumption rolls back token state, instance state, attempt persistence, and snapshot changes; the same token can submit successfully once the trigger is removed.
-- The page authenticates before node access and paper issuance.
-- Public paper projection deep-copies question/options and never serializes private rubric fields.
-- Result dimensions use exactly `evidenceClassification`, `linkReconstruction`, `defectiveOutputRevision`, and `professionalConclusion`.
-- No permanent retry count exists; only persisted targeted relearning controls a retry after failure.
+- Raw paper tokens are returned once and never persisted; only their 64-character SHA-256 hashes are stored.
+- Wrong student, route-node mismatch, version/instance tamper, expiry, reuse, and stale double-issued papers are rejected.
+- A forced database failure rolls back token state, assessment state, attempt persistence, and snapshot updates.
+- Public projections deep-copy questions/options and never serialize private rubric fields.
+- Retry readiness cannot be satisfied by generic section completion or an unrelated activity attempt.
 
 ## Remaining concern
 
-Fresh `pnpm qa:gates` output:
+Fresh `pnpm qa:gates` output reaches and passes the structure and dark-engineering audits, then stops at the repository's existing capability-map media check:
 
 ```text
 apps/web structure check passed
@@ -113,4 +85,4 @@ audit:capability-map: capability map v3 audit failed (1)
 - expert capability SVG asset is missing
 ```
 
-This failure is outside Task 4 and predates its changes. The authoritative/verified media boundary was left untouched as required.
+This missing protected-media asset is outside Task 4 and predates these changes. Task 4 did not modify the authoritative or verified media closure.

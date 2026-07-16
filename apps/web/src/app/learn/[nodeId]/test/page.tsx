@@ -9,7 +9,10 @@ import {
   AssessmentRemediationRequiredError,
   createFormalAssessmentService,
 } from '@/platform/formal-assessment-service';
-import { createLearningCommandService } from '@/platform/learning-command-service';
+import {
+  createLearningCommandService,
+  FormalAssessmentReadinessError,
+} from '@/platform/learning-command-service';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,6 +52,19 @@ export default async function FormalAssessmentPage({ params }: { params: { nodeI
       </main>
     );
   } catch (error) {
+    if (error instanceof FormalAssessmentReadinessError) {
+      return (
+        <main className="formal-assessment-page is-unavailable" data-formal-assessment={params.nodeId}>
+          <AccountMenu displayName={actor.displayName} role="student" />
+          <section data-assessment-entry="prerequisite-required">
+            <span>正式测试前置活动尚未完成</span>
+            <h1>先完成节点微练习</h1>
+            <p>完成当前节点的自学活动并达到 micro-practice-passed 后，正式测试会自动开放。</p>
+            <Link href={`/learn/${params.nodeId}`}>返回节点学习</Link>
+          </section>
+        </main>
+      );
+    }
     if (error instanceof AssessmentRemediationRequiredError) {
       return (
         <main className="formal-assessment-page" data-formal-assessment={params.nodeId}>

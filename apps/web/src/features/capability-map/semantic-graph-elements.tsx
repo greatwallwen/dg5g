@@ -1,4 +1,5 @@
 import type { CurriculumGraphNode, GraphData, SemanticEdge } from '@/platform/models';
+import { useRef } from 'react';
 import { nodeLearningStateLabel } from '@/platform/learning-status';
 import { getNodeLearningPolicy } from '@/platform/learning-policy';
 import { projectFutureContentAccess, projectNodeAccess, projectTaskAccess, type NodeAccessProgress, type NodeAccessProjection } from '@/platform/node-access-projection';
@@ -72,6 +73,18 @@ export function GraphNode({ node, selected, current, path, achievement, access, 
   const taskScore = node.kind === 'achievement' ? achievementTask?.taskCompositeScore : undefined;
   const title = node.kind === 'achievement' ? `任务综合分 ${taskScore === undefined ? '尚未形成' : `${taskScore}分`}` : node.title;
   const showSubtitle = zoomLevel === 'detail' && node.subtitle && !access.disabled;
+  const pointerStart = useRef<{ id: number; x: number; y: number }>();
+  // D3 zoom suppresses the SVG click after its mouse gesture. Pointer events let
+  // a short press activate while still distinguishing it from graph panning.
+  function startPointer(event: React.PointerEvent<SVGGElement>) {
+    if (event.button === 0) pointerStart.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
+  }
+  function finishPointer(event: React.PointerEvent<SVGGElement>) {
+    const start = pointerStart.current;
+    pointerStart.current = undefined;
+    if (!start || start.id !== event.pointerId || access.disabled) return;
+    if (Math.hypot(event.clientX - start.x, event.clientY - start.y) <= 6) onChoose(node);
+  }
   return (
     <g
       aria-label={`${graphKindLabel[node.kind]}：${title}`}
@@ -80,7 +93,9 @@ export function GraphNode({ node, selected, current, path, achievement, access, 
       data-graph-node-id={node.id}
       data-graph-node-label={access.label}
       data-graph-node-state={access.kind}
-      onClick={() => { if (!access.disabled) onChoose(node); }}
+      onPointerCancel={() => { pointerStart.current = undefined; }}
+      onPointerDownCapture={startPointer}
+      onPointerUpCapture={finishPointer}
       onKeyDown={(event) => { if (!access.disabled && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); onChoose(node); } }}
       role="button"
       tabIndex={access.disabled ? -1 : 0}

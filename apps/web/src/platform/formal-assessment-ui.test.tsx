@@ -4,7 +4,10 @@ import { resolve } from 'node:path';
 import test from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { FormalAssessmentResult } from '../features/formal-assessment/formal-assessment-result.tsx';
+import {
+  FormalAssessmentRemediationNotice,
+  FormalAssessmentResult,
+} from '../features/formal-assessment/formal-assessment-result.tsx';
 
 test('independent assessment page authenticates and gates the node before issuing a paper', () => {
   const source = read('app/learn/[nodeId]/test/page.tsx');
@@ -67,13 +70,21 @@ test('failed result renders every dimension and a concrete targeted relearning l
         score: 0,
         maxScore: 25,
         feedback: '需要复核证据分类。',
-        remediationTarget: { nodeId: 'P1T1-N02', sectionId: 'evidence' },
+        remediationTarget: {
+          nodeId: 'P1T1-N02',
+          sectionId: 'practice',
+          activityId: 'P1T1-N02-foundation-01',
+        },
       },
       linkReconstruction: { score: 15, maxScore: 25, feedback: '需要复核链路。' },
       defectiveOutputRevision: { score: 20, maxScore: 25, feedback: '修订基本完整。' },
       professionalConclusion: { score: 20, maxScore: 25, feedback: '结论基本完整。' },
     },
-    remediationTargets: [{ nodeId: 'P1T1-N02', sectionId: 'evidence' }],
+    remediationTargets: [{
+      nodeId: 'P1T1-N02',
+      sectionId: 'practice',
+      activityId: 'P1T1-N02-foundation-01',
+    }],
     origin: 'user',
     completedAt: '2026-07-16T10:00:00.000Z',
     version: 2,
@@ -91,7 +102,20 @@ test('failed result renders every dimension and a concrete targeted relearning l
   assert.match(markup, /链路重建/);
   assert.match(markup, /成果修订/);
   assert.match(markup, /职业结论/);
-  assert.match(markup, /href="\/learn\/P1T1-N02\?section=evidence"/);
+  assert.match(markup, /href="\/learn\/P1T1-N02\?section=practice&amp;activityId=P1T1-N02-foundation-01"/);
+});
+
+test('retry notice identifies every targeted activity with a stable unique key and human label', () => {
+  const source = read('features/formal-assessment/formal-assessment-result.tsx');
+  const markup = renderToStaticMarkup(<FormalAssessmentRemediationNotice nodeId="P1T1-N02" targets={[
+    { nodeId: 'P1T1-N02', sectionId: 'practice', activityId: 'P1T1-N02-remediation-revision-01' },
+    { nodeId: 'P1T1-N02', sectionId: 'practice', activityId: 'P1T1-N02-remediation-conclusion-01' },
+  ]} />);
+  assert.match(source, /key=\{`\$\{target\.nodeId\}:\$\{target\.sectionId\}:\$\{target\.activityId\}`\}/);
+  assert.match(markup, /缺陷成果诊断与修订/);
+  assert.match(markup, /四部分职业化结论/);
+  assert.match(markup, /activityId=P1T1-N02-remediation-revision-01/);
+  assert.match(markup, /activityId=P1T1-N02-remediation-conclusion-01/);
 });
 
 test('P01 formal challenge enters the independent assessment instead of a client-scored game', () => {
@@ -101,11 +125,22 @@ test('P01 formal challenge enters the independent assessment instead of a client
   assert.doesNotMatch(source, /最多三次|三次正式机会/);
 });
 
-test('classroom formal-test workspace hands students to the same server-graded assessment', () => {
-  const source = read('features/classroom/student-formal-test-workspace.tsx');
-  assert.match(source, /\/learn\/\$\{nodeId\}\/test/);
-  assert.doesNotMatch(source, /<EduGamePracticePanel/);
-  assert.doesNotMatch(source, /最多提交三次|Math\.min\(3/);
+test('the live classroom route owns the server-graded formal assessment handoff', () => {
+  const page = read('app/classroom/[sessionId]/page.tsx');
+  const client = read('features/classroom/student-follow-client.tsx');
+  const renderer = read('features/classroom/classroom-follow-renderer.tsx');
+  assert.match(page, /StudentFollowClient/);
+  assert.match(client, /ClassroomStudentModeRenderer/);
+  assert.match(renderer, /data-classroom-formal-test/);
+  assert.match(renderer, /\/learn\/\$\{model\.currentUnit\.nodeId\}\/test/);
+  assert.doesNotMatch(renderer, /<EduGamePracticePanel/);
+});
+
+test('assessment page renders a clear micro-practice prerequisite instead of issuing content', () => {
+  const page = read('app/learn/[nodeId]/test/page.tsx');
+  assert.match(page, /FormalAssessmentReadinessError/);
+  assert.match(page, /data-assessment-entry="prerequisite-required"/);
+  assert.match(page, /href=\{`\/learn\/\$\{params\.nodeId\}`\}/);
 });
 
 test('retired embedded game cannot reintroduce client scoring or a permanent attempt cap', () => {

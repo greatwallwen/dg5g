@@ -67,7 +67,10 @@ export function FormalAssessmentRemediationNotice({
         </div>
       </header>
       <div className="formal-assessment-remediation-list">
-        {targets.map((target) => <RemediationLink key={`${target.nodeId}:${target.sectionId}`} target={target} />)}
+        {targets.map((target) => <RemediationLink
+          key={`${target.nodeId}:${target.sectionId}:${target.activityId}`}
+          target={target}
+        />)}
       </div>
       <Link className="is-secondary" href={`/learn/${encodeURIComponent(nodeId)}`}>返回节点学习</Link>
     </section>
@@ -76,17 +79,24 @@ export function FormalAssessmentRemediationNotice({
 
 function RemediationLink({ target }: { target: RemediationTarget }) {
   return (
-    <Link href={`/learn/${encodeURIComponent(target.nodeId)}?section=${encodeURIComponent(target.sectionId)}`}>
-      前往 {target.nodeId} · {sectionLabel(target.sectionId)}
+    <Link href={`/learn/${encodeURIComponent(target.nodeId)}?section=${encodeURIComponent(target.sectionId)}&activityId=${encodeURIComponent(target.activityId)}`}>
+      前往 {target.nodeId} · {sectionLabel(target.sectionId)} · {activityLabel(target.activityId)}
     </Link>
   );
 }
 
 function sectionLabel(sectionId: string): string {
   return ({
-    understand: '理解对象',
-    evidence: '证据研判',
-    explain: '链路解释',
-    practice: '岗位练习',
+    practice: '定向岗位练习',
   } as Record<string, string>)[sectionId] ?? sectionId;
+}
+
+function activityLabel(activityId: string): string {
+  return ({
+    'P1T1-N02-foundation-01': '证据分类',
+    'P1T1-N02-application-01': '链路重建',
+    'P1T1-N02-transfer-01': '可复核记录',
+    'P1T1-N02-remediation-revision-01': '缺陷成果诊断与修订',
+    'P1T1-N02-remediation-conclusion-01': '四部分职业化结论',
+  } as Record<string, string>)[activityId] ?? activityId;
 }

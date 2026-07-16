@@ -27,3 +27,10 @@ test('graph nodes retain Enter and Space keyboard activation', () => {
   assert.match(elements, /event\.preventDefault\(\)/);
   assert.match(elements, /tabIndex=\{access\.disabled \? -1 : 0\}/);
 });
+
+test('graph nodes distinguish a short pointer activation from D3 graph panning', () => {
+  assert.match(elements, /onPointerDownCapture=\{startPointer\}/);
+  assert.match(elements, /onPointerUpCapture=\{finishPointer\}/);
+  assert.match(elements, /Math\.hypot\([\s\S]*?\) <= 6/);
+  assert.doesNotMatch(elements, /\s+onClick=/);
+});

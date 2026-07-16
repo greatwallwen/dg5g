@@ -9,6 +9,10 @@ import type { P1TaskId } from '@/platform/learning-policy';
 import { Icon } from '@/ui/foundation/icons';
 import { semanticZoomLevel } from './graph-geometry';
 import { GraphMinimap } from './graph-minimap';
+import {
+  dispatchCurriculumGraphNode,
+  type CourseGraphNodeAction,
+} from './course-graph-navigation';
 import type {
   CanonicalGraphNodeProgress,
   CanonicalGraphTaskProgress,
@@ -45,7 +49,7 @@ export function SemanticCourseGraph({
   taskProgress: CanonicalGraphTaskProgress[];
   motionState: GraphMotionState;
   onInteraction: () => void;
-  onNodeSelect: (nodeId: string) => void;
+  onNodeSelect: (nodeId: string, action: CourseGraphNodeAction) => void;
   onTaskSelect: (taskId: P1TaskId) => void;
 }) {
   const shellRef = useRef<HTMLDivElement>(null);
@@ -92,6 +96,7 @@ export function SemanticCourseGraph({
     const worldGroup = worldRef.current;
     if (!svg || !container || !worldGroup) return;
     const behavior = zoom<SVGSVGElement, unknown>()
+      .extent((): [[number, number], [number, number]] => [[0, 0], [Math.max(container.clientWidth, 1), Math.max(container.clientHeight, 1)]])
       .scaleExtent([.42, 1.55])
       .translateExtent([[-260, -180], [world.width + 260, world.height + 180]])
       .on('start', onInteraction)
@@ -141,8 +146,7 @@ export function SemanticCourseGraph({
     const access = accessById.get(node.id);
     if (!access || access.disabled) return;
     focusNode(node);
-    if (node.nodeId) onNodeSelect(node.nodeId);
-    else if (node.taskId) onTaskSelect(node.taskId);
+    dispatchCurriculumGraphNode(node, { onNodeSelect, onTaskSelect });
   }
 
   function search(event: React.FormEvent<HTMLFormElement>) {
@@ -218,7 +222,7 @@ export function SemanticCourseGraph({
           <header><span>{graphKindLabel[detail.node.kind]}</span><h2>{detail.title}</h2><small>{detail.node.id}</small></header>
           <dl>{detail.rows.map((row) => <div key={row.label}><dt>{row.label}</dt><dd>{row.value}</dd></div>)}</dl>
           <div className="graph-detail-score"><span>当前状态</span><strong>{detail.status}</strong><i><b style={{ width: `${detail.percent}%` }} /></i></div>
-          {(detail.node.nodeId || detail.node.taskId) ? <button data-primary-action={selectedAccess.disabled ? undefined : ''} disabled={selectedAccess.disabled} onClick={() => { if (!selectedAccess.disabled) chooseNode(detail.node); }} title={selectedAccess.label} type="button">{actorMode === 'teacher' ? '进入授课' : '继续学习'}<Icon name="arrow" size={18} /></button> : null}
+          {(detail.node.nodeId || detail.node.taskId) ? <button data-primary-action={selectedAccess.disabled ? undefined : ''} disabled={selectedAccess.disabled} onClick={() => { if (!selectedAccess.disabled) chooseNode(detail.node); }} title={selectedAccess.label} type="button">{actorMode === 'teacher' ? '进入授课' : detail.node.action === 'formal-test' ? '进入正式测试' : '继续学习'}<Icon name="arrow" size={18} /></button> : null}
         </> : null}
       </aside>
     </section>

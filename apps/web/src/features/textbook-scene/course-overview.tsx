@@ -13,6 +13,10 @@ import { getNodeLearningPolicy, type P1TaskId } from '@/platform/learning-policy
 import type { GraphData } from '@/platform/models';
 import { Icon } from '@/ui/foundation/icons';
 import { CourseGraphStage } from './course-graph-stage';
+import {
+  navigateStudentGraphNode,
+  type CourseGraphNodeAction,
+} from '@/features/capability-map/course-graph-navigation';
 
 type CourseMotionState = 'active' | 'paused' | 'reduced';
 
@@ -53,10 +57,12 @@ export function CourseOverview({ displayName, graph, role }: {
     };
   }, []);
 
-  function openNode(nodeId: string) {
-    router.push(snapshot?.mode === 'teacher'
-      ? `/teacher/sessions/${snapshot.sessionId}`
-      : `/learn/${nodeId}`);
+  function openNode(nodeId: string, action: CourseGraphNodeAction = 'learn') {
+    if (snapshot?.mode === 'teacher') {
+      router.push(`/teacher/sessions/${snapshot.sessionId}`);
+      return;
+    }
+    navigateStudentGraphNode((href) => router.push(href), nodeId, action);
   }
 
   function openTask(taskId: P1TaskId) {

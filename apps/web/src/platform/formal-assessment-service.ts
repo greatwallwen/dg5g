@@ -18,7 +18,6 @@ import {
   type FormalAssessmentDefinition,
 } from './formal-assessment-catalog.server.ts';
 import { createLearningCommandService, LearningAuthorizationError } from './learning-command-service.ts';
-import { getNodeLearningPolicy } from './learning-policy.ts';
 import { SnapshotClock } from './snapshot-clock.ts';
 
 export type {
@@ -99,12 +98,8 @@ export class FormalAssessmentService {
 
   issuePaper(actor: AuthenticatedActor, nodeId: string): IssuedAssessmentPaper {
     const studentId = requireStudent(actor);
-    createLearningCommandService(this.database).requireNodeAccess(actor, nodeId);
     const definition = requireDefinition(nodeId);
-    const policy = getNodeLearningPolicy(nodeId);
-    if (!policy?.requiresFormalTest || policy.assessmentRole !== 'node-test') {
-      throw new AssessmentCatalogError(nodeId);
-    }
+    createLearningCommandService(this.database).requireFormalAssessmentReadiness(actor, nodeId);
     const now = this.now();
     const openedAt = now.toISOString();
     const expiresAt = new Date(now.getTime() + this.tokenTtlMs).toISOString();
@@ -305,17 +300,16 @@ export class FormalAssessmentService {
         SELECT 1 FROM practice_attempts
         WHERE student_id = @studentId
           AND node_id = @nodeId
+          AND activity_id = @activityId
           AND passed = 1
           AND origin = 'user'
           AND julianday(attempted_at) > julianday(@completedAt)
-          AND json_extract(result_json, '$.remediationTarget.nodeId') = @nodeId
-          AND json_extract(result_json, '$.remediationTarget.sectionId') = @sectionId
       )
     `).pluck();
     return targets.filter((target) => completed.get({
       studentId,
       nodeId: target.nodeId,
-      sectionId: target.sectionId,
+      activityId: target.activityId,
       completedAt: latest.completedAt,
     }) !== 1);
   }
@@ -463,9 +457,9 @@ function gradeAnswers(definition: FormalAssessmentDefinition, answers: Assessmen
   );
 
   const totalScore = assessmentDimensionKeys.reduce((total, key) => total + dimensions[key].score, 0);
-  const remediationTargets = assessmentDimensionKeys
+  const remediationTargets = uniqueRemediationTargets(assessmentDimensionKeys
     .filter((key) => dimensions[key].score < 20)
-    .map((key) => definition.grading[key].remediationTarget);
+    .map((key) => definition.grading[key].remediationTarget));
   return { dimensions, totalScore, remediationTargets };
 }
 
@@ -486,13 +480,44 @@ function parseRemediationTargets(diagnosticsJson: string): RemediationTarget[] {
   try {
     const parsed = JSON.parse(diagnosticsJson) as { remediationTargets?: unknown };
     if (!Array.isArray(parsed.remediationTargets)) return [];
-    return parsed.remediationTargets.filter((target): target is RemediationTarget => (
-      typeof target === 'object'
-      && target !== null
-      && typeof (target as RemediationTarget).nodeId === 'string'
-      && typeof (target as RemediationTarget).sectionId === 'string'
-    ));
+    return uniqueRemediationTargets(parsed.remediationTargets.flatMap((target) => {
+      if (typeof target !== 'object' || target === null) return [];
+      const record = target as Record<string, unknown>;
+      if (typeof record.nodeId !== 'string' || typeof record.sectionId !== 'string') return [];
+      if (record.sectionId === 'practice' && typeof record.activityId === 'string') {
+        return [{
+          nodeId: record.nodeId,
+          sectionId: 'practice' as const,
+          activityId: record.activityId,
+        }];
+      }
+      const legacyActivityId = legacyRemediationActivityId(record.sectionId);
+      return legacyActivityId ? [{
+        nodeId: record.nodeId,
+        sectionId: 'practice' as const,
+        activityId: legacyActivityId,
+      }] : [];
+    }));
   } catch {
     return [];
   }
+}
+
+function uniqueRemediationTargets(targets: RemediationTarget[]): RemediationTarget[] {
+  const seen = new Set<string>();
+  return targets.filter((target) => {
+    const key = `${target.nodeId}:${target.sectionId}:${target.activityId}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function legacyRemediationActivityId(sectionId: string): string | undefined {
+  return ({
+    evidence: 'P1T1-N02-foundation-01',
+    explain: 'P1T1-N02-application-01',
+    practice: 'P1T1-N02-transfer-01',
+    understand: 'P1T1-N02-transfer-01',
+  } as Record<string, string>)[sectionId];
 }

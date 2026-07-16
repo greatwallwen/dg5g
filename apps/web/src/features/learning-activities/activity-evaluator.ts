@@ -39,7 +39,25 @@ function matchesRule(rule: ActivityEvaluationRule, response: Record<string, unkn
       return exactStringArray(response[rule.responseKey], rule.expected);
     case 'revision-constraints':
       return matchesRevisionConstraints(response[rule.responseKey], rule.constraints);
+    case 'text-criteria-map':
+      return matchesTextCriteriaMap(response[rule.responseKey], rule.constraints);
   }
+}
+
+function matchesTextCriteriaMap(
+  actual: unknown,
+  constraints: Extract<ActivityEvaluationRule, { type: 'text-criteria-map' }>['constraints'],
+): boolean {
+  if (!isRecord(actual) || Object.keys(actual).length !== Object.keys(constraints).length) return false;
+  return Object.entries(constraints).every(([field, constraint]) => {
+    const value = actual[field];
+    if (typeof value !== 'string') return false;
+    const normalized = normalizeSearchText(value);
+    return normalized.length >= constraint.minimumCharacters
+      && constraint.groups.every((group) => group.some((term) => (
+        normalized.includes(normalizeSearchText(term))
+      )));
+  });
 }
 
 function matchesRevisionConstraints(actual: unknown, constraints: Record<string, RevisionConstraint>): boolean {

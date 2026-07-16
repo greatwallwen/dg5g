@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type {
   ActivityAttemptResult,
   ActivityPublicDto,
@@ -11,13 +11,15 @@ import {
   practiceCardClassName,
 } from './practice-card-state.ts';
 
-export function ActivityWorkbench({ activity, level, levelLabel, passed, onPass }: {
+export function ActivityWorkbench({ activity, level, levelLabel, passed, onPass, focused = false }: {
   activity: ActivityPublicDto;
   level: 'foundation' | 'application' | 'transfer';
   levelLabel: string;
   passed: boolean;
   onPass: () => void;
+  focused?: boolean;
 }) {
+  const cardRef = useRef<HTMLElement>(null);
   const [values, setValues] = useState<Record<string, string>>({});
   const [order, setOrder] = useState<string[]>([]);
   const [attemptId, setAttemptId] = useState('');
@@ -34,6 +36,10 @@ export function ActivityWorkbench({ activity, level, levelLabel, passed, onPass 
     setResult(null);
     setRequestError('');
   }, [activity.id]);
+
+  useEffect(() => {
+    if (focused) cardRef.current?.scrollIntoView({ block: 'center', behavior: 'auto' });
+  }, [focused]);
 
   async function submitAttempt() {
     setSaving(true);
@@ -74,8 +80,11 @@ export function ActivityWorkbench({ activity, level, levelLabel, passed, onPass 
   return (
     <article
       className={practiceCardClassName(activityPracticeCardState({ persistedPassed: passed, result }))}
+      data-activity-id={activity.id}
       data-activity-kind={activity.kind}
       data-practice-level={level}
+      data-remediation-focus={focused || undefined}
+      ref={cardRef}
     >
       <header><span>{levelLabel}</span><strong>{activity.prompt}</strong></header>
       <div className="activity-materials">

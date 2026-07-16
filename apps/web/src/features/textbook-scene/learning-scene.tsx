@@ -2,7 +2,7 @@
 
 import { Icon, type IconName } from '@/ui/foundation/icons';
 import type { DemoTaskProfile, DemoUnit } from '@/features/platform/deep-textbook-demo-data';
-import type { SelfStudyDocument } from './self-study-types.ts';
+import type { SelfStudyDocument, SelfStudySectionId } from './self-study-types.ts';
 import { SelfStudyRenderer } from './self-study-renderer.tsx';
 
 type LearningSceneProps = {
@@ -12,11 +12,20 @@ type LearningSceneProps = {
   completed: boolean;
   saving: boolean;
   onComplete: () => void;
+  initialSection?: SelfStudySectionId;
+  focusedActivityId?: string;
 };
 
-export function LearningScene({ document, profile, unit, completed, saving, onComplete }: LearningSceneProps) {
+export function LearningScene({ document, profile, unit, completed, saving, onComplete, initialSection, focusedActivityId }: LearningSceneProps) {
   if (document) {
-    return <SelfStudyRenderer completed={completed} document={document} onComplete={onComplete} saving={saving} />;
+    return <SelfStudyRenderer
+      completed={completed}
+      document={document}
+      focusedActivityId={focusedActivityId}
+      initialSection={initialSection}
+      onComplete={onComplete}
+      saving={saving}
+    />;
   }
   if (!profile || !unit) throw new Error('LearningScene requires either a self-study document or a legacy unit.');
   return <LegacyLearningStage completed={completed} onComplete={onComplete} profile={profile} saving={saving} unit={unit} />;

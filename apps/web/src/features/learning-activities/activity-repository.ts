@@ -64,15 +64,15 @@ export class ActivityRepository {
         this.database.prepare(`
           UPDATE practice_attempts
           SET response_json = ?, result_json = ?, artifact_json = ?, passed = ?,
-              attempted_at = CURRENT_TIMESTAMP
+              attempted_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
           WHERE attempt_id = ?
         `).run(...values, input.attemptId);
       } else {
         this.database.prepare(`
           INSERT INTO practice_attempts (
             attempt_id, student_id, activity_id, node_id, response_json,
-            result_json, artifact_json, passed, origin
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'user')
+            result_json, artifact_json, passed, origin, attempted_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'user', strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
         `).run(
           input.attemptId,
           input.studentId,

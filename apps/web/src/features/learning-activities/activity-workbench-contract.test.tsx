@@ -2,13 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { p01Activities } from './activity-catalog.ts';
+import { p01BaseActivities } from './activity-catalog.ts';
 import { ActivityWorkbench } from './activity-workbench.tsx';
 
 (globalThis as typeof globalThis & { React: typeof React }).React = React;
 
 test('six activity kinds render purpose-built control contracts', () => {
-  const markup = p01Activities.map(({ activity }) => renderToStaticMarkup(
+  const markup = p01BaseActivities.map(({ activity }) => renderToStaticMarkup(
     <ActivityWorkbench
       activity={activity}
       level="foundation"

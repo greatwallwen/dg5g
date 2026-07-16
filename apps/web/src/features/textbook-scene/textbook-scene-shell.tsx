@@ -1,13 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import type { GraphData, TextbookSceneMode } from '@/platform/models';
-import {
-  createDemoTaskProfiles,
-  getDemoTaskProfileForNode,
-  type DemoTaskProfiles,
-} from '@/features/platform/deep-textbook-demo-data';
+import type { TextbookSceneMode } from '@/platform/models';
+import { createDemoTaskProfiles, getDemoTaskProfileForNode, type DemoTaskProfiles } from '@/features/platform/deep-textbook-demo-data';
 import { recordLearningEvent, type LearningProgressSnapshot } from '@/features/skill-tree/skill-progress-client';
 import { fetchAuthoritativeSnapshot } from '@/features/snapshot/authoritative-snapshot-client';
 import { skillGameForNode } from '@/platform/fixtures/skill-game-fixtures';
@@ -18,6 +15,7 @@ import { projectStudentLearningSnapshot } from '@/platform/learning-compatibilit
 import { Icon } from '@/ui/foundation/icons';
 import { AccountMenu } from '@/features/auth/account-menu';
 import { projectLegacyGraphNodes, projectLegacyGraphTasks } from '@/features/capability-map/graph-snapshot-model';
+import { navigateStudentGraphNode, type CourseGraphNodeAction } from '@/features/capability-map/course-graph-navigation';
 import { WebPlaybackDock } from '@/features/playback/web-playback-dock';
 import { ChallengeScene } from './challenge-scene';
 import { CourseGraphStage } from './course-graph-stage';
@@ -26,20 +24,9 @@ import { playbackSceneForLearningUnit } from './learning-playback';
 import { LearningScene } from './learning-scene';
 import { classifyCompletedLearningNode } from './textbook-scene-policy';
 import { profileForTask, SceneContext, SceneRail, UnavailableNodeNotice } from './textbook-scene-support';
-import type { SelfStudyCatalog, SelfStudyDocument } from './self-study-types';
-
+import type { SelfStudyDocument } from './self-study-types';
+import type { TextbookSceneShellProps } from './textbook-scene-shell-types';
 type DemoTaskId = P1TaskId;
-type SceneSurface = 'sample' | 'student' | 'map';
-type TextbookSceneShellProps = {
-  displayName: string;
-  graph: GraphData;
-  selfStudyCatalog: SelfStudyCatalog;
-  initialMode?: TextbookSceneMode;
-  initialNodeId?: string;
-  initialSnapshot: LearningProgressSnapshot; sessionId: string;
-  surface?: SceneSurface;
-  autoFocus?: boolean;
-};
 const graphTaskIdByDemoTask: Record<P1TaskId, string> = { P01: 'P1-T1', P02: 'P1-T2', P03: 'P1-T3' };
 export function TextbookSceneShell(props: TextbookSceneShellProps) {
   const initialNodeId = props.initialNodeId ?? 'P1T1-N01';
@@ -51,7 +38,8 @@ export function TextbookSceneShell(props: TextbookSceneShellProps) {
   return <SupportedTextbookSceneShell {...props} initialNodeId={initialNodeId} initialTaskId={initialTaskId} profiles={profiles} />;
 }
 
-function SupportedTextbookSceneShell({ displayName, graph, initialSnapshot, selfStudyCatalog, profiles, initialMode = 'course-map', initialNodeId, initialTaskId, sessionId, surface = 'sample', autoFocus = true }: TextbookSceneShellProps & { profiles: DemoTaskProfiles; initialNodeId: string; initialTaskId: DemoTaskId }) {
+function SupportedTextbookSceneShell({ displayName, focusedActivityId, graph, initialSection, initialSnapshot, selfStudyCatalog, profiles, initialMode = 'course-map', initialNodeId, initialTaskId, sessionId, surface = 'sample', autoFocus = true }: TextbookSceneShellProps & { profiles: DemoTaskProfiles; initialNodeId: string; initialTaskId: DemoTaskId }) {
+  const router = useRouter();
   const shellRef = useRef<HTMLDivElement>(null);
   const contextButtonRef = useRef<HTMLButtonElement>(null);
   const restoreContextFocusRef = useRef(false);
@@ -144,6 +132,14 @@ function SupportedTextbookSceneShell({ displayName, graph, initialSnapshot, self
     setMode('learning');
   }
 
+  function chooseGraphNode(nodeId: string, action: CourseGraphNodeAction) {
+    if (action === 'formal-test') {
+      navigateStudentGraphNode((href) => router.push(href), nodeId, action);
+      return;
+    }
+    chooseNode(nodeId);
+  }
+
   async function completeNode() {
     setSaving(true);
     try {
@@ -195,10 +191,7 @@ function SupportedTextbookSceneShell({ displayName, graph, initialSnapshot, self
   }
 
   const graphProgress = useMemo(() => projectLegacyGraphNodes(snapshot.progress), [snapshot.progress]);
-  const graphTaskProgress = useMemo(
-    () => projectLegacyGraphTasks(snapshot.tasks, graphProgress),
-    [graphProgress, snapshot.tasks],
-  );
+  const graphTaskProgress = useMemo(() => projectLegacyGraphTasks(snapshot.tasks, graphProgress), [graphProgress, snapshot.tasks]);
   const masteredCount = snapshot.progress.filter((item) => item.learningState === 'achieved').length;
   const selectedAccess = projectNodeAccess(selectedNodeId, snapshot.progress);
   const graphVisible = mode === 'course-map' || mode === 'task-map';
@@ -222,11 +215,18 @@ function SupportedTextbookSceneShell({ displayName, graph, initialSnapshot, self
 
       <main className="scene-main">
         {graphVisible ? (
-          <CourseGraphStage actorMode="student" graph={graph} heatmap={[]} mode={mode} motionEnabled={motionEnabled} onInteraction={cancelAutoFocus} onNodeSelect={chooseNode} onTaskSelect={chooseTask} progress={graphProgress} projectCompositeScore={snapshot.projectCompositeScore} selectedNodeId={selectedNodeId} taskId={taskId} taskProgress={graphTaskProgress} />
+          <CourseGraphStage actorMode="student" graph={graph} heatmap={[]} mode={mode} motionEnabled={motionEnabled} onInteraction={cancelAutoFocus} onNodeSelect={chooseGraphNode} onTaskSelect={chooseTask} progress={graphProgress} projectCompositeScore={snapshot.projectCompositeScore} selectedNodeId={selectedNodeId} taskId={taskId} taskProgress={graphTaskProgress} />
         ) : mode === 'learning' ? (
           <div className={`learning-workspace${pathOpen ? ' is-path-open' : ' is-path-closed'}${contextOpen ? ' is-context-open' : ''}`}>
             <SceneRail profile={profile} progress={snapshot.progress} selectedNodeId={selectedNodeId} onNodeSelect={chooseNode} onReturnToMap={() => setMode('task-map')} />
-            <div className="learning-scroll"><LearningScene completed={nodeProgress?.learningState === 'achieved'} document={document} onComplete={completeNode} saving={saving} /></div>
+            <div className="learning-scroll"><LearningScene
+              completed={nodeProgress?.learningState === 'achieved'}
+              document={document}
+              focusedActivityId={selectedNodeId === initialNodeId ? focusedActivityId : undefined}
+              initialSection={selectedNodeId === initialNodeId ? initialSection : undefined}
+              onComplete={completeNode}
+              saving={saving}
+            /></div>
             {contextOpen ? <SceneContext mastery={taskMastery} onClose={closeContext} profile={profile} unit={unit} /> : null}
           </div>
         ) : (

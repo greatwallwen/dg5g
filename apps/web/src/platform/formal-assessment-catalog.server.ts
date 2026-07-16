@@ -86,16 +86,28 @@ const p01N02Definition: FormalAssessmentDefinition = {
   grading: {
     evidenceClassification: {
       acceptedOptionIds: ['nameplate-photo'],
-      remediationTarget: { nodeId: 'P1T1-N02', sectionId: 'evidence' },
+      remediationTarget: {
+        nodeId: 'P1T1-N02',
+        sectionId: 'practice',
+        activityId: 'P1T1-N02-foundation-01',
+      },
     },
     linkReconstruction: {
       orderedOptionIds: ['source-device', 'source-port', 'cable-label', 'peer-port', 'peer-device'],
-      remediationTarget: { nodeId: 'P1T1-N02', sectionId: 'explain' },
+      remediationTarget: {
+        nodeId: 'P1T1-N02',
+        sectionId: 'practice',
+        activityId: 'P1T1-N02-application-01',
+      },
     },
     defectiveOutputRevision: {
       requiredOptionIds: ['restore-source', 'add-photo-index', 'record-direction'],
       forbiddenOptionIds: ['erase-gap'],
-      remediationTarget: { nodeId: 'P1T1-N02', sectionId: 'practice' },
+      remediationTarget: {
+        nodeId: 'P1T1-N02',
+        sectionId: 'practice',
+        activityId: 'P1T1-N02-remediation-revision-01',
+      },
     },
     professionalConclusion: {
       conclusionCriteria: {
@@ -117,7 +129,11 @@ const p01N02Definition: FormalAssessmentDefinition = {
         ],
         minimumCharacters: 14,
       },
-      remediationTarget: { nodeId: 'P1T1-N02', sectionId: 'understand' },
+      remediationTarget: {
+        nodeId: 'P1T1-N02',
+        sectionId: 'practice',
+        activityId: 'P1T1-N02-remediation-conclusion-01',
+      },
     },
   },
 };

@@ -62,6 +62,15 @@ export class LearningCommandValidationError extends Error {
   }
 }
 
+export class FormalAssessmentReadinessError extends LearningCommandValidationError {
+  readonly requiredState = 'micro-practice-passed' as const;
+
+  constructor(readonly nodeId: string) {
+    super('Formal assessment requires micro-practice-passed first.');
+    this.name = 'FormalAssessmentReadinessError';
+  }
+}
+
 export class FormalAttemptPolicyError extends Error {
   readonly nodeId: string;
 
@@ -108,19 +117,30 @@ export class LearningCommandService {
 
   recordFormalAttempt(actor: AuthenticatedActor, command: FormalAttemptCommand): StudentLearningSnapshot {
     const studentId = requireStudentIdentity(actor);
-    this.requireNodeAccess(actor, command.nodeId);
-    const policy = getNodeLearningPolicy(command.nodeId);
-    if (!policy?.requiresFormalTest || policy.assessmentRole !== 'node-test') {
-      throw new FormalAttemptPolicyError(command.nodeId);
-    }
-    const currentNode = this.readModel.readStudentSnapshot(studentId).nodes
-      .find((node) => node.nodeId === command.nodeId);
-    const isReplay = currentNode?.attempts.some((attempt) => attempt.attemptId === command.attemptId) ?? false;
-    if (!isReplay && !currentNode?.stateTrail.includes('micro-practice-passed')) {
-      throw new LearningCommandValidationError('Formal attempts require micro-practice-passed first.');
-    }
+    this.requireFormalAssessmentReadiness(actor, command.nodeId, command.attemptId);
     this.repository.recordFormalAttempt({ ...command, studentId }, command.expectedVersion);
     return this.readModel.readStudentSnapshot(studentId);
+  }
+
+  requireFormalAssessmentReadiness(
+    actor: AuthenticatedActor,
+    nodeId: string,
+    replayAttemptId?: string,
+  ): NodeRouteClassification {
+    const studentId = requireStudentIdentity(actor);
+    const classification = this.requireNodeAccess(actor, nodeId);
+    const policy = getNodeLearningPolicy(nodeId);
+    if (!policy?.requiresFormalTest || policy.assessmentRole !== 'node-test') {
+      throw new FormalAttemptPolicyError(nodeId);
+    }
+    const currentNode = this.readModel.readStudentSnapshot(studentId).nodes
+      .find((node) => node.nodeId === nodeId);
+    const isReplay = replayAttemptId !== undefined
+      && (currentNode?.attempts.some((attempt) => attempt.attemptId === replayAttemptId) ?? false);
+    if (!isReplay && !currentNode?.stateTrail.includes('micro-practice-passed')) {
+      throw new FormalAssessmentReadinessError(nodeId);
+    }
+    return classification;
   }
 
   readProfessionalOutput(
@@ -231,6 +251,17 @@ export function describeLearningCommandError(error: unknown): LearningCommandPro
   }
   if (error instanceof LearningFactIdConflictError) {
     return { status: 409, body: { error: error.message } };
+  }
+  if (error instanceof FormalAssessmentReadinessError) {
+    return {
+      status: 422,
+      body: {
+        error: error.message,
+        nodeId: error.nodeId,
+        requiredState: error.requiredState,
+        routeState: 'prerequisite-required',
+      },
+    };
   }
   if (error instanceof ProfessionalOutputStateRevisionConflictError) {
     return {

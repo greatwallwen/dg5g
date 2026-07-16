@@ -34,12 +34,6 @@
           }
         ],
         "mediaRefs": [
-          "/media/5g/image2.jpeg",
-          "/media/5g/image29.png",
-          "/media/5g/image3.png",
-          "/media/5g/image30.png",
-          "/media/5g/image31.png",
-          "/media/5g/image4.png",
           "/media/manim/p01/p01-site-survey-map/manifest.json",
           "/media/manim/p01/p01-site-survey-map/p01-p01-site-survey-map.webm",
           "/media/manim/p01/p01-site-survey-map/poster.png"
@@ -482,6 +476,122 @@
                     "failed": "记录仍有字段与证据包不一致；请逐项核对站点、机柜、设备和双端端口。"
                   },
                   "transferTarget": "形成可直接汇入 P01 专业成果的设备链路记录。"
+                },
+                {
+                  "id": "P1T1-N02-remediation-revision-01",
+                  "prompt": "诊断只有“已连接”结论的缺陷结果表，并分别修订字段来源、照片索引和连接方向。",
+                  "expectedEvidence": [
+                    "明确指出三类缺陷",
+                    "每项修订引用给定证据",
+                    "源端、对端和方向可复核"
+                  ],
+                  "feedback": "通过时，修订记录应能让复核者从每个字段回到证据，并沿源端到对端重建链路。",
+                  "correctionPath": [
+                    "先逐项指出原表缺什么",
+                    "再把给定照片编号写入对应字段",
+                    "最后补齐源端、对端与连接方向"
+                  ],
+                  "retryable": true,
+                  "activityKind": "defective-sheet-revision",
+                  "materials": [
+                    {
+                      "id": "missing-field-source",
+                      "label": "设备与端口字段缺少来源",
+                      "detail": "IMG-031 是设备铭牌，IMG-032 是源端口；修订必须先指出字段无来源，再补入两张来源照片。",
+                      "sourceValue": "设备字段：BBU-01；源端口：CPRI-1；字段来源：（空）"
+                    },
+                    {
+                      "id": "missing-photo-index",
+                      "label": "字段没有照片索引",
+                      "detail": "设备、源端口、对端口应分别对应 IMG-031、IMG-032、IMG-033，不能只写一条笼统照片备注。",
+                      "sourceValue": "照片索引：（空）；成果字段：设备、源端口、对端口"
+                    },
+                    {
+                      "id": "missing-link-direction",
+                      "label": "连接结论缺少方向",
+                      "detail": "源端为 BBU-01 CPRI-1，对端为 AAU-01 OPT-1；修订必须明确两端及连接方向。",
+                      "sourceValue": "链路结论：已连接；源端、对端与方向：（空）"
+                    }
+                  ],
+                  "interaction": {
+                    "type": "revision-form",
+                    "fields": [
+                      {
+                        "id": "sourceEvidenceRevision",
+                        "label": "诊断并修订字段来源",
+                        "placeholder": "指出缺陷，并写明来源证据"
+                      },
+                      {
+                        "id": "photoIndexRevision",
+                        "label": "诊断并修订照片索引",
+                        "placeholder": "逐项写明字段与照片编号"
+                      },
+                      {
+                        "id": "directionRevision",
+                        "label": "诊断并修订连接方向",
+                        "placeholder": "写明源端、对端和方向"
+                      }
+                    ]
+                  },
+                  "targetedFeedback": {
+                    "passed": "字段来源、照片索引和链路方向均已完成缺陷诊断与可审计修订。",
+                    "failed": "修订尚未闭合三类缺陷；请分别补齐字段来源、逐项照片索引以及源端到对端的方向。"
+                  },
+                  "transferTarget": "把只有“已连接”的缺陷结果表修订为字段来源、照片索引和连接方向均可复核的成果记录。"
+                },
+                {
+                  "id": "P1T1-N02-remediation-conclusion-01",
+                  "prompt": "根据给定复核材料，分别填写已确认事实、证据缺口、专业风险和下一步动作。",
+                  "expectedEvidence": [
+                    "确认事实只引用清晰证据",
+                    "缺口说明当前不能确认的内容",
+                    "风险与动作具体对应缺口"
+                  ],
+                  "feedback": "四部分共同形成职业化结论，但不能用猜测填补模糊的对端端口证据。",
+                  "correctionPath": [
+                    "先写铭牌和源端口支持的事实",
+                    "再写对端端口照片模糊造成的缺口",
+                    "最后写风险和补拍复核动作"
+                  ],
+                  "retryable": true,
+                  "activityKind": "structured-record",
+                  "materials": [
+                    {
+                      "id": "review-evidence-pack",
+                      "label": "链路复核材料",
+                      "detail": "设备铭牌可识别，源端口照片清晰；对端端口照片模糊，当前不能确认对端端口编号。"
+                    }
+                  ],
+                  "interaction": {
+                    "type": "record-form",
+                    "fields": [
+                      {
+                        "id": "confirmedFact",
+                        "label": "已确认事实",
+                        "placeholder": "只写证据已经支持的事实"
+                      },
+                      {
+                        "id": "evidenceGap",
+                        "label": "证据缺口",
+                        "placeholder": "写明尚不能确认的内容及原因"
+                      },
+                      {
+                        "id": "risk",
+                        "label": "专业风险",
+                        "placeholder": "写明直接下结论的风险"
+                      },
+                      {
+                        "id": "action",
+                        "label": "下一步动作",
+                        "placeholder": "写明补证或复核动作"
+                      }
+                    ]
+                  },
+                  "targetedFeedback": {
+                    "passed": "结论已分别说明确认事实、证据缺口、专业风险和下一步动作。",
+                    "failed": "四部分仍有内容缺失或混写；请让每个字段只承担确认、缺口、风险或动作中的一种职责。"
+                  },
+                  "transferTarget": "形成可直接写入成果表复核栏的四部分职业化结论。"
                 }
               ]
             },
@@ -834,13 +944,6 @@
           }
         ],
         "mediaRefs": [
-          "/media/5g/image54.jpeg",
-          "/media/5g/image55.png",
-          "/media/5g/image56.png",
-          "/media/5g/image57.png",
-          "/media/5g/image58.jpeg",
-          "/media/5g/image62.png",
-          "/media/5g/image65.png",
           "/media/manim/p02/p02-outdoor-site-survey/manifest.json",
           "/media/manim/p02/p02-outdoor-site-survey/p02-p02-outdoor-site-survey.webm",
           "/media/manim/p02/p02-outdoor-site-survey/poster.png"

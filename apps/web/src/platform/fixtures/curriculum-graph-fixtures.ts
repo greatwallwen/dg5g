@@ -55,7 +55,7 @@ export const curriculumGraphNodes: CurriculumGraphNode[] = [
   graphNode('P1T3-N04', 'skill', '投诉调查单', 955, 770, 175, 58, 'route', { nodeId: 'P1T3-N04', taskId: 'P03' }),
 
   graphNode('practice-p01', 'activity', '微练习', 90, 850, 150, 58, 'detail', { subtitle: '连线与翻卡片' }),
-  graphNode('game-topology', 'activity', '设备拓扑正式测试', 300, 850, 190, 58, 'route', { nodeId: 'P1T1-N02', taskId: 'P01' }),
+  graphNode('game-topology', 'activity', '设备拓扑正式测试', 300, 850, 190, 58, 'route', { nodeId: 'P1T1-N02', taskId: 'P01', action: 'formal-test' }),
   graphNode('game-evidence', 'activity', '室内信息采集专业产出', 760, 850, 220, 58, 'route', { nodeId: 'P1T1-N04', taskId: 'P01' }),
   graphNode('achievement-p01', 'achievement', '任务综合分', 1120, 850, 170, 58, 'route', { taskId: 'P01' }),
   graphNode('game-beam', 'activity', '天线姿态正式测试', 300, 920, 190, 58, 'route', { nodeId: 'P1T2-N02', taskId: 'P02' }),

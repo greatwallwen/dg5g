@@ -10,10 +10,11 @@ import type { SelfStudyDocument, SelfStudyPractice } from './self-study-types.ts
 type PracticeLevel = 'foundation' | 'application' | 'transfer';
 type PracticeRow = { level: PracticeLevel; levelLabel: string; practice: SelfStudyPractice };
 
-export function PracticeSection({ document, passedIds, onPass }: {
+export function PracticeSection({ document, passedIds, onPass, focusedActivityId }: {
   document: SelfStudyDocument;
   passedIds: string[];
   onPass: (practiceId: string) => void;
+  focusedActivityId?: string;
 }) {
   return (
     <div className="self-study-practice-layout">
@@ -24,6 +25,7 @@ export function PracticeSection({ document, passedIds, onPass }: {
           return activity ? (
             <ActivityWorkbench
               activity={activity}
+              focused={focusedActivityId === practice.id}
               key={practice.id}
               level={level}
               levelLabel={levelLabel}
@@ -32,6 +34,7 @@ export function PracticeSection({ document, passedIds, onPass }: {
             />
           ) : (
             <WrittenPracticeCard
+              focused={focusedActivityId === practice.id}
               key={practice.id}
               level={level}
               levelLabel={levelLabel}
@@ -46,12 +49,13 @@ export function PracticeSection({ document, passedIds, onPass }: {
   );
 }
 
-function WrittenPracticeCard({ level, levelLabel, practice, passed, onPass }: {
+function WrittenPracticeCard({ level, levelLabel, practice, passed, onPass, focused }: {
   level: PracticeLevel;
   levelLabel: string;
   practice: SelfStudyPractice;
   passed: boolean;
   onPass: () => void;
+  focused: boolean;
 }) {
   const [answer, setAnswer] = useState<'idle' | 'wrong' | 'correct'>(passed ? 'correct' : 'idle');
   const [response, setResponse] = useState('');
@@ -65,7 +69,12 @@ function WrittenPracticeCard({ level, levelLabel, practice, passed, onPass }: {
   }
 
   return (
-    <article className={practiceCardClassName(answer)} data-practice-level={level}>
+    <article
+      className={practiceCardClassName(answer)}
+      data-activity-id={practice.id}
+      data-practice-level={level}
+      data-remediation-focus={focused || undefined}
+    >
       <header><span>{levelLabel}</span><strong>{practice.prompt}</strong></header>
       <div className="self-study-practice-options">
         <label>

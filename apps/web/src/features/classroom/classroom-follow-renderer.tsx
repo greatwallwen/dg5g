@@ -1,5 +1,7 @@
+import Link from 'next/link';
 import { SceneVisual } from '../textbook-scene/learning-scene';
 import type { ClassroomFollowViewModel, ClassroomStudentScreen } from './classroom-follow-model';
+import { getNodeLearningPolicy } from '@/platform/learning-policy';
 
 const activityStateCopy: Record<ClassroomFollowViewModel['classroomActivity']['state'], string> = {
   waiting: '等待教师推送',
@@ -12,6 +14,10 @@ export function ClassroomFollowRenderer({ model, onReturn, busy = false }: {
   onReturn?: () => void;
   busy?: boolean;
 }) {
+  const policy = getNodeLearningPolicy(model.currentUnit.nodeId);
+  const formalTestAvailable = model.phase === 'challenge'
+    && policy?.requiresFormalTest === true
+    && policy.assessmentRole === 'node-test';
   return (
     <section className="classroom-follow-renderer" data-classroom-follow-renderer data-motion="paused" data-primary-action-policy="exactly-one" data-revision={model.revision}>
       <article className="classroom-follow-current" data-classroom-current-unit={model.currentUnit.nodeId}>
@@ -38,9 +44,20 @@ export function ClassroomFollowRenderer({ model, onReturn, busy = false }: {
         <ul>{model.classroomActivity.expectedEvidence.map((evidence) => <li key={evidence}>{evidence}</li>)}</ul>
       </article>
 
+      {formalTestAvailable ? (
+        <Link
+          className="classroom-follow-formal-test"
+          data-classroom-formal-test="true"
+          data-primary-action="true"
+          href={`/learn/${model.currentUnit.nodeId}/test`}
+        >
+          进入独立正式测试
+        </Link>
+      ) : null}
+
       <button
         className="classroom-follow-return"
-        data-primary-action="true"
+        data-primary-action={formalTestAvailable ? undefined : 'true'}
         data-return-href={model.returnToSelfStudy.href}
         data-return-self-study
         disabled={busy}

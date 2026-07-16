@@ -9,7 +9,8 @@ export type AssessmentDimensionKey = (typeof assessmentDimensionKeys)[number];
 
 export interface RemediationTarget {
   nodeId: string;
-  sectionId: string;
+  sectionId: 'practice';
+  activityId: string;
 }
 
 export interface AssessmentOption {

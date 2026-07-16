@@ -3,6 +3,7 @@ import { AccountMenu } from '@/features/auth/account-menu';
 import { RoleGate } from '@/features/auth/role-gate';
 import { TextbookSceneShell } from '@/features/textbook-scene/textbook-scene-shell';
 import { loadSelfStudyCatalog, requireSelfStudyDocument } from '@/features/textbook-scene/self-study-content';
+import { resolveSelfStudyNavigationTarget } from '@/features/textbook-scene/self-study-remediation';
 import { NodeRouteAccessError, type NodeRouteClassification } from '@/platform/access-control';
 import { requireClassRole } from '@/platform/auth/server-actor';
 import { AuthoritativeSnapshotReader } from '@/platform/authoritative-snapshot';
@@ -11,7 +12,10 @@ import { projectStudentLearningSnapshot } from '@/platform/learning-compatibilit
 import { createLearningCommandService } from '@/platform/learning-command-service';
 import { getCapabilityGraph } from '@/platform/mock-api';
 
-export default async function StudentSelfPage({ params, searchParams }: { params: { nodeId: string }; searchParams?: { mode?: string } }) {
+export default async function StudentSelfPage({ params, searchParams }: {
+  params: { nodeId: string };
+  searchParams?: { mode?: string; section?: string; activityId?: string };
+}) {
   const actor = await requireClassRole('student');
   const learning = createLearningCommandService();
   let destination: NodeRouteClassification;
@@ -39,7 +43,22 @@ export default async function StudentSelfPage({ params, searchParams }: { params
   const studentCut = new AuthoritativeSnapshotReader(getDatabase()).read(actor, 'student');
   const initialSnapshot = projectStudentLearningSnapshot(studentCut.me.learning);
   const selfStudyCatalog = loadSelfStudyCatalog();
-  requireSelfStudyDocument(params.nodeId, selfStudyCatalog);
+  const document = requireSelfStudyDocument(params.nodeId, selfStudyCatalog);
+  const navigationTarget = resolveSelfStudyNavigationTarget(document, {
+    section: searchParams?.section,
+    activityId: searchParams?.activityId,
+  });
+  if (navigationTarget.kind === 'invalid') {
+    return (
+      <main className="textbook-scene-unavailable" data-self-study-target="invalid">
+        <AccountMenu displayName={actor.displayName} role="student" />
+        <span>定向再学位置无效</span>
+        <h1>{params.nodeId}</h1>
+        <p>该学习段或练习不属于当前节点，请从节点首页重新进入。</p>
+        <Link href={`/learn/${params.nodeId}`}>返回节点学习</Link>
+      </main>
+    );
+  }
   const graph = await getCapabilityGraph(params.nodeId);
   return (
     <RoleGate
@@ -47,7 +66,19 @@ export default async function StudentSelfPage({ params, searchParams }: { params
       requiredRole="student"
       title="请先登录学生端"
     >
-      <TextbookSceneShell autoFocus={false} displayName={actor.displayName} graph={graph} initialMode={searchParams?.mode === 'challenge' ? 'challenge' : 'learning'} initialNodeId={params.nodeId} initialSnapshot={initialSnapshot} selfStudyCatalog={selfStudyCatalog} sessionId={studentCut.classroom.sessionId} surface="student" />
+      <TextbookSceneShell
+        autoFocus={false}
+        displayName={actor.displayName}
+        focusedActivityId={navigationTarget.kind === 'target' ? navigationTarget.activityId : undefined}
+        graph={graph}
+        initialMode={searchParams?.mode === 'challenge' ? 'challenge' : 'learning'}
+        initialNodeId={params.nodeId}
+        initialSection={navigationTarget.kind === 'target' ? navigationTarget.sectionId : undefined}
+        initialSnapshot={initialSnapshot}
+        selfStudyCatalog={selfStudyCatalog}
+        sessionId={studentCut.classroom.sessionId}
+        surface="student"
+      />
     </RoleGate>
   );
 }

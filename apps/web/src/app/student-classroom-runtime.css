@@ -75,6 +75,7 @@
 .classroom-follow-current,
 .classroom-follow-task,
 .classroom-follow-activity,
+.classroom-follow-formal-test,
 .classroom-follow-return,
 .classroom-self-status,
 .classroom-entry-status,
@@ -220,6 +221,25 @@
   cursor: pointer;
 }
 
+.classroom-follow-formal-test {
+  min-height: 52px;
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-color: var(--dg-current);
+  padding: 0 20px;
+  color: #03232b;
+  background: var(--dg-current);
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.classroom-follow-formal-test:hover,
+.classroom-follow-formal-test:focus-visible {
+  filter: brightness(1.08);
+}
+
 .classroom-follow-return span {
   color: var(--dg-current);
   font-weight: 900;
@@ -322,6 +342,7 @@
 
 .classroom-self-status [data-primary-action],
 .classroom-entry-status [data-primary-action],
+.classroom-follow-formal-test[data-primary-action],
 .classroom-follow-return[data-primary-action] {
   border-color: var(--dg-current);
   color: #03232b;

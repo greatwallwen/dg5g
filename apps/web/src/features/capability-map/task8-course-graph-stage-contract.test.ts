@@ -46,6 +46,13 @@ test('semantic graph supports explicit active paused and reduced motion states',
   assert.match(css, /\[data-motion="reduced"\][\s\S]*animation:\s*none/);
 });
 
+test('semantic zoom uses the measured viewport instead of unresolved percentage SVG lengths', () => {
+  const graph = source('./semantic-course-graph.tsx');
+  assert.match(graph, /\.extent\(\(\): \[\[number, number\], \[number, number\]\] => \[\[0, 0\], \[/);
+  assert.match(graph, /container\.clientWidth/);
+  assert.match(graph, /container\.clientHeight/);
+});
+
 test('the default learning path renders complete P1 plus one explicit unopened-course boundary', () => {
   const html = renderToStaticMarkup(createElement(SemanticCourseGraph, {
     actorMode: 'student',

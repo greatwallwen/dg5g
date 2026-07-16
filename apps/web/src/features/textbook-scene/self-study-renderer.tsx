@@ -11,13 +11,15 @@ import { FigureSection, ProblemSection, SelfStudyGlossary, StepsSection } from '
 import { PracticeSection, practiceIdsFor } from './self-study-practice-section.tsx';
 import { CorrectionSection, OutputSection } from './self-study-secondary-sections.tsx';
 
-export function SelfStudyRenderer({ document, completed, saving, onComplete }: {
+export function SelfStudyRenderer({ document, completed, saving, onComplete, initialSection = 'problem', focusedActivityId }: {
   document: SelfStudyDocument;
   completed: boolean;
   saving: boolean;
   onComplete: () => void;
+  initialSection?: SelfStudySectionId;
+  focusedActivityId?: string;
 }) {
-  const [activeSection, setActiveSection] = useState<SelfStudySectionId>('problem');
+  const [activeSection, setActiveSection] = useState<SelfStudySectionId>(initialSection);
   const [passedPracticeIds, setPassedPracticeIds] = useState<string[]>([]);
   const textbookBodyRef = useRef<HTMLDivElement>(null);
   const activeIndex = selfStudySectionDefinitions.findIndex(({ id }) => id === activeSection);
@@ -25,9 +27,9 @@ export function SelfStudyRenderer({ document, completed, saving, onComplete }: {
   const practiceComplete = completed || practiceIds.every((id) => passedPracticeIds.includes(id));
 
   useEffect(() => {
-    setActiveSection('problem');
+    setActiveSection(initialSection);
     setPassedPracticeIds([]);
-  }, [document.nodeId]);
+  }, [document.nodeId, initialSection]);
 
   useEffect(() => {
     const onPlaybackTarget = (event: Event) => {
@@ -63,6 +65,7 @@ export function SelfStudyRenderer({ document, completed, saving, onComplete }: {
       data-motion="paused"
       data-node-id={document.nodeId}
       data-primary-action-policy="exactly-one"
+      data-remediation-activity={focusedActivityId}
       data-practice-evaluation="server"
       data-self-study-node={document.nodeId}
       data-self-study-renderer={document.nodeId}
@@ -93,7 +96,12 @@ export function SelfStudyRenderer({ document, completed, saving, onComplete }: {
           <StudySection active={activeSection === 'steps'} document={document} id="steps"><StepsSection document={document} /></StudySection>
           <StudySection active={activeSection === 'correction'} document={document} id="correction"><CorrectionSection document={document} /></StudySection>
           <StudySection active={activeSection === 'practice'} document={document} id="practice">
-            <PracticeSection document={document} onPass={markPracticePassed} passedIds={passedPracticeIds} />
+            <PracticeSection
+              document={document}
+              focusedActivityId={focusedActivityId}
+              onPass={markPracticePassed}
+              passedIds={passedPracticeIds}
+            />
           </StudySection>
           <StudySection active={activeSection === 'output'} document={document} id="output"><OutputSection document={document} /></StudySection>
         </div>
