@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import test from 'node:test';
+import * as outputReviewPanel from '../features/review/output-review-panel.tsx';
 
 test('teacher console uses the submitted-output queue as its only review panel', () => {
   const panelPath = resolve(
@@ -32,4 +33,24 @@ test('teacher console uses the submitted-output queue as its only review panel',
   assert.match(inspector, /import \{ OutputReviewPanel \}/);
   assert.match(inspector, /<OutputReviewPanel/);
   assert.doesNotMatch(`${view}\n${inspector}`, /data-selected-student-id/);
+});
+
+test('teacher output fields render primitive values and unwrap structured value envelopes without object blobs', () => {
+  const formatOutputFieldValue = (
+    outputReviewPanel as typeof outputReviewPanel & {
+      formatOutputFieldValue: (value: unknown) => string;
+    }
+  ).formatOutputFieldValue;
+  assert.equal(typeof formatOutputFieldValue, 'function');
+  assert.equal(formatOutputFieldValue('设备身份已核对'), '设备身份已核对');
+  assert.equal(formatOutputFieldValue(90), '90');
+  assert.equal(formatOutputFieldValue(['位置证据', '身份证据']), '位置证据、身份证据');
+  assert.equal(formatOutputFieldValue(undefined), '未填写');
+  assert.equal(formatOutputFieldValue({
+    value: 'BBU-01 / 槽位3',
+    sources: [{ sourceNodeId: 'P1T1-N02' }],
+  }), 'BBU-01 / 槽位3');
+  const fallback = formatOutputFieldValue({ unexpected: 'defensive fallback' });
+  assert.doesNotMatch(fallback, /\[object Object\]/);
+  assert.match(fallback, /defensive fallback/);
 });

@@ -776,13 +776,8 @@ function stableJson(value: unknown): string {
   return JSON.stringify(value);
 }
 
-function normalizeFieldSources(
-  sources: ProfessionalOutputFieldSource[],
-): ProfessionalOutputFieldSource[] {
-  const unique = new Map(sources.map((source) => [
-    `${source.fieldKey}\u0000${source.sourceNodeId}\u0000${source.sourceAttemptId}`,
-    source,
-  ]));
+function normalizeFieldSources(sources: ProfessionalOutputFieldSource[]): ProfessionalOutputFieldSource[] {
+  const unique = new Map(sources.map((source) => [`${source.fieldKey}\u0000${source.sourceNodeId}\u0000${source.sourceAttemptId}`, source]));
   return [...unique.values()].sort((left, right) => (
     left.fieldKey.localeCompare(right.fieldKey)
     || left.sourceNodeId.localeCompare(right.sourceNodeId)
@@ -791,9 +786,7 @@ function normalizeFieldSources(
 }
 
 function assertTaskId(taskId: string): asserts taskId is P1OutputTaskId {
-  if (!['P01', 'P02', 'P03'].includes(taskId)) {
-    throw new TypeError(`Unsupported P1 output task: ${String(taskId)}.`);
-  }
+  if (!['P01', 'P02', 'P03'].includes(taskId)) throw new TypeError(`Unsupported P1 output task: ${String(taskId)}.`);
 }
 
 function assertNonEmpty(field: string, value: string): void {
@@ -801,7 +794,6 @@ function assertNonEmpty(field: string, value: string): void {
     throw new TypeError(`${field} must be a non-empty string.`);
   }
 }
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }

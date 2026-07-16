@@ -48,7 +48,7 @@ test('mobile learning surfaces have one bounded scroller, safe output actions, a
   assert.match(selfStudyCss, /@media \(max-width: 760px\)[\s\S]*?overflow-x:\s*hidden/);
   assert.match(selfStudyCss, /@media \(max-width: 760px\)[\s\S]*?\.textbook-scene-shell:has\(\.self-study-renderer\) \.scene-location\s*\{[\s\S]*?display:\s*none/);
   assert.doesNotMatch(figureCss, /min-width:\s*680px/);
-  assert.match(outputCss, /\.professional-output-fields label:last-child[\s\S]*?(?:margin-bottom|padding-bottom):\s*(?:1[6-9]|[2-9]\d)px/);
+  assert.match(outputCss, /\.professional-output-fields \[data-output-field\]:last-child[\s\S]*?(?:margin-bottom|padding-bottom):\s*(?:1[6-9]|[2-9]\d)px/);
   assert.match(outputCss, /scroll-margin-bottom:\s*(?:1[6-9]|[2-9]\d|1\d\d)px/);
   assert.doesNotMatch(classroomCss, /\.classroom-follow-current\s*\{[\s\S]{0,120}?min-height:\s*520px/);
   assert.match(classroomCss, /@media \(max-width: 720px\)[\s\S]*?\.classroom-self-status,[\s\S]*?\.classroom-entry-status[\s\S]*?min-height:\s*0/);

@@ -68,18 +68,25 @@ export function validateProfessionalOutputDraft(
   if (!isRecord(value)) {
     throw new ProfessionalOutputSchemaError('Professional output fields must be an object.');
   }
-  const allowed = new Set(schema.fields.map(({ key }) => key));
+  const allowed = new Map(schema.fields.map((field) => [field.key, field]));
   const validated: ProfessionalOutputFields = {};
   for (const [key, fieldValue] of Object.entries(value)) {
-    if (!allowed.has(key)) {
+    const field = allowed.get(key);
+    if (!field) {
       throw new ProfessionalOutputSchemaError(`Unknown professional output field: ${key}.`);
     }
-    if (typeof fieldValue === 'string') validated[key] = fieldValue;
-    else if (typeof fieldValue === 'number' && Number.isFinite(fieldValue)) validated[key] = fieldValue;
-    else if (Array.isArray(fieldValue) && fieldValue.every((item) => typeof item === 'string')) {
-      validated[key] = [...fieldValue];
-    } else {
-      throw new ProfessionalOutputSchemaError(`Invalid value for professional output field: ${key}.`);
+    if (field.valueType === 'text') {
+      if (typeof fieldValue !== 'string') {
+        throw new ProfessionalOutputSchemaError(
+          `Professional output text field must be a non-empty string: ${key}.`,
+        );
+      }
+      if (fieldValue.trim().length === 0) {
+        throw new ProfessionalOutputSchemaError(
+          `Required professional output field is incomplete: ${field.label} (${key}).`,
+        );
+      }
+      validated[key] = fieldValue;
     }
   }
   return validated;

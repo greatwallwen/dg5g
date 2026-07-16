@@ -2,8 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-type OutputFieldValue = string | number | string[];
-
 interface ReviewQueueItem {
   outputId: string;
   studentId: string;
@@ -13,7 +11,7 @@ interface ReviewQueueItem {
   status: 'submitted';
   currentVersion: number;
   stateRevision: number;
-  fields: Record<string, OutputFieldValue>;
+  fields: Record<string, unknown>;
   fieldSchema: Array<{ key: string; label: string }>;
   rubric: Array<{ key: string; label: string; maxScore: number }>;
 }
@@ -137,7 +135,7 @@ export function OutputReviewPanel() {
           <p><b>当前产出</b>{selected.studentName} · {selected.taskId} · 版本 {selected.currentVersion}</p>
           <div className="output-review-fields">
             {selected.fieldSchema.map(({ key, label }) => (
-              <p key={key}><b>{label}</b><span>{formatValue(selected.fields[key])}</span></p>
+              <p key={key}><b>{label}</b><span>{formatOutputFieldValue(selected.fields[key])}</span></p>
             ))}
           </div>
           <fieldset className="output-review-rubric">
@@ -186,7 +184,15 @@ export function OutputReviewPanel() {
   );
 }
 
-function formatValue(value: OutputFieldValue | undefined): string {
+export function formatOutputFieldValue(value: unknown): string {
   if (value === undefined || value === '') return '未填写';
-  return Array.isArray(value) ? value.join('、') : String(value);
+  if (typeof value === 'string' || typeof value === 'number') return String(value);
+  if (Array.isArray(value)) return value.map(formatOutputFieldValue).join('、');
+  if (isRecord(value) && 'value' in value) return formatOutputFieldValue(value.value);
+  if (isRecord(value)) return JSON.stringify(value);
+  return String(value);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }

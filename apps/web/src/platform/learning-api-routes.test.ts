@@ -13,10 +13,12 @@ import { createTestDatabase } from './db/test-database.ts';
 import { LearningRepository } from './learning-repository.ts';
 import { loadSelfStudyCatalog } from '../features/textbook-scene/self-study-content.ts';
 import { professionalOutputSchemaForTask } from '../features/portfolio/output-schema.ts';
+import { p01Activities } from '../features/learning-activities/activity-catalog.ts';
 import {
   p01EvidenceLibrary,
   seedP01EvidenceLibrary,
 } from '../features/portfolio/evidence-library.ts';
+import { ActivityRepository } from '../features/learning-activities/activity-repository.ts';
 
 registerHooks({
   resolve(specifier, context, nextResolve) {
@@ -126,6 +128,56 @@ test('professional output routes derive ownership from Cookie and expose the aut
   });
 });
 
+test('P01 GET projects passed activity facts and draft persistence derives field sources server-side', async () => {
+  await withAuthenticatedFixture(async ({ database, studentTwoCookie }) => {
+    database.prepare(`
+      DELETE FROM professional_outputs
+      WHERE student_id = 'stu-02' AND task_id = 'P01'
+    `).run();
+    const activity = p01Activities.find(({ activity: item }) => item.id === 'P1T1-N01-micro-01');
+    assert.ok(activity);
+    new ActivityRepository(database).recordEvaluatedAttempt({
+      attemptId: 'route-prefill-scope',
+      studentId: 'stu-02',
+      activity,
+      response: { assignments: {
+        'room-01-cabinets': 'in-scope',
+        'shared-operator-cabinet': 'out-of-scope',
+        'room-02-cabinets': 'out-of-scope',
+      } },
+      expectedVersion: 0,
+    });
+
+    const readResponse = outputRoute.GET(new Request(
+      'http://localhost/api/outputs/P01',
+      { headers: { cookie: studentTwoCookie } },
+    ), { params: { taskId: 'P01' } });
+    assert.equal(readResponse.status, 200);
+    const envelope = await readResponse.json();
+    assert.equal(envelope.output, null);
+    assert.match(envelope.prefill.siteRoom.value, /01号机房/);
+    assert.deepEqual(envelope.prefill.siteRoom.sources, [{
+      sourceNodeId: 'P1T1-N01', sourceAttemptId: 'route-prefill-scope',
+    }]);
+
+    const draftResponse = await outputDraftRoute.POST(jsonRequest(
+      'http://localhost/api/outputs/P01/draft',
+      studentTwoCookie,
+      {
+        expectedStateRevision: 0,
+        fields: { siteRoom: envelope.prefill.siteRoom.value },
+        upstreamRefs: [],
+        evidenceLinks: {},
+      },
+    ), { params: { taskId: 'P01' } });
+    assert.equal(draftResponse.status, 200);
+    const draft = await draftResponse.json();
+    assert.deepEqual(draft.versions[0].fieldSources, [{
+      fieldKey: 'siteRoom', sourceNodeId: 'P1T1-N01', sourceAttemptId: 'route-prefill-scope',
+    }]);
+  });
+});
+
 test('professional output mutation routes reject every client-owned identity, source, workflow, review, and score key atomically', async () => {
   await withAuthenticatedFixture(async ({ database, studentTwoCookie }) => {
     database.prepare(`
@@ -187,6 +239,63 @@ test('professional output routes reject unknown and cross-field evidence with 42
       assert.match((await response.json()).error, /evidence/i);
       assert.deepEqual(outputMutationCounts(database, 'stu-02'), before);
     }
+  });
+});
+
+test('a returned output maps unchanged resubmission to 422 and accepts a semantic field revision as V2', async () => {
+  await withAuthenticatedFixture(async ({ database, studentTwoCookie }) => {
+    database.prepare(`
+      DELETE FROM professional_outputs
+      WHERE student_id = 'stu-02' AND task_id = 'P01'
+    `).run();
+    const fields = Object.fromEntries(
+      professionalOutputSchemaForTask(loadSelfStudyCatalog(), 'P01').fields
+        .map(({ key, label }) => [key, `已填写：${label}`]),
+    );
+    const draftResponse = await outputDraftRoute.POST(jsonRequest(
+      'http://localhost/api/outputs/P01/draft', studentTwoCookie,
+      { expectedStateRevision: 0, fields, upstreamRefs: [], evidenceLinks: {} },
+    ), { params: { taskId: 'P01' } });
+    const draft = await draftResponse.json();
+    const submitResponse = await outputSubmitRoute.POST(jsonRequest(
+      'http://localhost/api/outputs/P01/submit', studentTwoCookie,
+      {
+        outputId: draft.head.outputId, expectedStateRevision: 1,
+        fields, upstreamRefs: [], evidenceLinks: {},
+      },
+    ), { params: { taskId: 'P01' } });
+    assert.equal(submitResponse.status, 200);
+    database.prepare(`
+      UPDATE professional_outputs
+      SET status = 'returned', state_revision = 3
+      WHERE output_id = ?
+    `).run(draft.head.outputId);
+
+    const beforeRejected = outputMutationCounts(database, 'stu-02');
+    const unchangedResponse = await outputSubmitRoute.POST(jsonRequest(
+      'http://localhost/api/outputs/P01/submit', studentTwoCookie,
+      {
+        outputId: draft.head.outputId, expectedStateRevision: 3,
+        fields, upstreamRefs: [], evidenceLinks: {},
+      },
+    ), { params: { taskId: 'P01' } });
+    assert.equal(unchangedResponse.status, 422);
+    assert.match((await unchangedResponse.json()).error, /revised version/i);
+    assert.deepEqual(outputMutationCounts(database, 'stu-02'), beforeRejected);
+
+    const revisedResponse = await outputSubmitRoute.POST(jsonRequest(
+      'http://localhost/api/outputs/P01/submit', studentTwoCookie,
+      {
+        outputId: draft.head.outputId, expectedStateRevision: 3,
+        fields: { ...fields, connectionDirection: 'BBU → ODF → AAU，已补充连续路径证据' },
+        upstreamRefs: [], evidenceLinks: {},
+      },
+    ), { params: { taskId: 'P01' } });
+    assert.equal(revisedResponse.status, 200);
+    const revised = await revisedResponse.json();
+    assert.equal(revised.head.status, 'submitted');
+    assert.equal(revised.head.currentVersion, 2);
+    assert.equal(revised.submissionCount, 2);
   });
 });
 
@@ -269,6 +378,31 @@ test('professional output routes allow incomplete drafts but reject unknown fiel
     ), { params: { taskId: 'P01' } });
     assert.equal(completeSubmit.status, 200);
   });
+});
+
+test('professional output submit rejects numeric and array values for text fields with zero side effects', async () => {
+  for (const invalidValue of [0, ['伪造为文本数组']]) {
+    await withAuthenticatedFixture(async ({ database, studentTwoCookie }) => {
+      database.prepare(`
+        DELETE FROM professional_outputs
+        WHERE student_id = 'stu-02' AND task_id = 'P01'
+      `).run();
+      const schema = professionalOutputSchemaForTask(loadSelfStudyCatalog(), 'P01');
+      const fields: Record<string, unknown> = Object.fromEntries(
+        schema.fields.map(({ key, label }) => [key, `已填写：${label}`]),
+      );
+      fields[schema.fields[0]!.key] = invalidValue;
+      const before = outputMutationCounts(database, 'stu-02');
+      const response = await outputSubmitRoute.POST(jsonRequest(
+        'http://localhost/api/outputs/P01/submit',
+        studentTwoCookie,
+        { expectedStateRevision: 0, fields, upstreamRefs: [], evidenceLinks: {} },
+      ), { params: { taskId: 'P01' } });
+      assert.equal(response.status, 400, JSON.stringify(invalidValue));
+      assert.match((await response.json()).error, /text|non-empty|string/i);
+      assert.deepEqual(outputMutationCounts(database, 'stu-02'), before);
+    });
+  }
 });
 
 test('professional output routes fail closed for teacher, locked, not-open, unknown, and non-owned requests', async () => {

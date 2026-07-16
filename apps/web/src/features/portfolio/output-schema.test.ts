@@ -107,6 +107,21 @@ test('draft validation allows incomplete generated fields but rejects every unkn
   );
 });
 
+test('every current text field rejects numeric, array, and blank command values', () => {
+  const catalog = loadSelfStudyCatalog();
+  for (const taskId of ['P01', 'P02', 'P03'] as const) {
+    const schema = professionalOutputSchemaForTask(catalog, taskId);
+    const field = schema.fields[0]!;
+    for (const invalid of [0, 100, ['证据A'], [], '', '   ']) {
+      assert.throws(
+        () => validateProfessionalOutputDraft(schema, { [field.key]: invalid }),
+        new RegExp(`${field.key}|text|non-empty`, 'i'),
+        `${taskId}:${JSON.stringify(invalid)}`,
+      );
+    }
+  }
+});
+
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
