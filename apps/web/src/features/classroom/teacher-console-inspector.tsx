@@ -32,7 +32,7 @@ export function TeacherConsoleInspector({ p }: { p: TeacherConsoleViewProps }) {
             <section className="teacher-script" data-teaching-script={p.teachingPage.id}>
               <span>第{p.teachingPage.lessonNumber}课时 · 第{p.teachingPage.pageNumber}页 · 建议{p.teachingPage.suggestedMinutes}分钟</span>
               <strong>{p.teachingPage.title}</strong>
-              <p>{p.teachingPage.teacherExplanation}</p>
+              <p><b>讲</b><span>{p.teachingPage.teacherExplanation}</span></p>
             </section>
             <section className="teacher-question">
               <span>结合案例提问</span>

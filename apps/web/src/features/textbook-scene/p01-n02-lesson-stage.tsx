@@ -61,7 +61,11 @@ export function P01N02LessonStage({ surface, actionIndex = 0, phase = 'prepare' 
           <span className="p01n02-object-label is-bbu"><b>BBU槽位3</b><small>BBU5900 · 210235A8K12345</small></span>
           <span className="p01n02-object-label is-aau"><b>AAU/RRU</b><small>AAU5619 · 20235AA98765</small></span>
           <span className="p01n02-object-label is-port"><b>端口链</b><small>P1-P4 · TX/RX</small></span>
-          <span className={`p01n02-scan-focus is-step-${segmentIndex + 1}`} aria-hidden="true"><i /><b /></span>
+          <span
+            aria-hidden="true"
+            className={`p01n02-scan-focus is-step-${segmentIndex + 1}`}
+            data-playback-target={teachingPage.id}
+          ><i /><b /></span>
           {p01n02LessonSegments.map((item) => <span className={`p01n02-focus-anchor is-${item.id}`} data-playback-target={item.id} key={item.id} />)}
           <figcaption id="p01n02-topology-caption">
             <span><i className="is-fiber" />光纤链路</span>

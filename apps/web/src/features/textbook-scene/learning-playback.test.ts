@@ -32,5 +32,5 @@ test('learning playback follows the twelve-page two-lesson teaching package', ()
     ],
   );
   assert.ok(scene.actions.every((action) => action.caption && action.spokenText));
-  assert.ok(scene.actions.every((action) => action.durationMs >= 2_600));
+  assert.ok(scene.actions.every((action) => typeof action.durationMs === 'number' && action.durationMs >= 2_600));
 });

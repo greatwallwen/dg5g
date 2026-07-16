@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { p01TeachingPackage } from './classroom-lesson-model.ts';
 import { playbackSceneForLearningUnit } from './learning-playback.ts';
 import { P01N02LessonStage } from './p01-n02-lesson-stage.tsx';
 
@@ -45,6 +46,32 @@ test('shared P01 stage renders the exact second-lesson page selected by authorit
   assert.match(html, /BBU P2—ODF-07—AAU5619 CPRI-2/);
 });
 
+test('the active teaching page remains a measurable playback focus target', () => {
+  const html = renderToStaticMarkup(
+    <P01N02LessonStage actionIndex={7} phase="lecture" surface="teacher" />,
+  );
+
+  assert.match(html, /data-playback-target="P01-L2-P02"/);
+});
+
+test('projector markup exposes public material without teacher-private guidance', () => {
+  const page = p01TeachingPackage[0]!.pages[0]!;
+  const html = renderToStaticMarkup(
+    <P01N02LessonStage actionIndex={0} phase="lecture" surface="projector" />,
+  );
+
+  assert.match(html, new RegExp(page.projectorContent.material));
+  for (const privateCopy of [
+    page.teacherExplanation,
+    page.caseQuestion,
+    page.typicalAnswer,
+    ...page.commonErrors,
+    ...page.followUpPrompts,
+    page.studentAction,
+    page.transition,
+  ]) assert.doesNotMatch(html, new RegExp(privateCopy));
+});
+
 test('teacher console binds its private teaching inspector to the current complete page', () => {
   const client = source('../classroom/teacher-console-client.tsx');
   const inspector = source('../classroom/teacher-console-inspector.tsx');
@@ -52,6 +79,7 @@ test('teacher console binds its private teaching inspector to the current comple
 
   assert.match(client, /teachingPageAt/);
   assert.match(inspector, /teacherExplanation/);
+  assert.match(inspector, /<p><b>讲<\/b><span>\{p\.teachingPage\.teacherExplanation\}<\/span><\/p>/);
   assert.match(inspector, /typicalAnswer/);
   assert.match(inspector, /commonErrors/);
   assert.match(inspector, /followUpPrompts/);
