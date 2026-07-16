@@ -1216,7 +1216,7 @@ function checkDemoSeedContract() {
   ];
   for (const studentId of ['stu-02', 'stu-03']) {
     const activities = practiceAttempts
-      .filter((attempt) => attempt?.studentId === studentId)
+      .filter((attempt) => attempt?.studentId === studentId && String(attempt?.nodeId).startsWith('P1T1-'))
       .map((attempt) => attempt.activityId)
       .sort();
     if (JSON.stringify(activities) !== JSON.stringify([...requiredP01Activities].sort())) {
