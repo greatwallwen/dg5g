@@ -99,3 +99,10 @@ export function phaseLabel(phase: LessonPhase | undefined): string {
   };
   return labels[phase ?? 'prepare'];
 }
+
+export {
+  p01TeachingPackage,
+  teachingPageAt,
+  type P01TeachingLesson,
+  type P01TeachingPage,
+} from './p01-teaching-package.ts';

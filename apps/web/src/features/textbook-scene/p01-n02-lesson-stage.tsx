@@ -1,8 +1,15 @@
 'use client';
 
+import React from 'react';
 import type { LessonPhase } from '@/platform/models';
 import { Icon } from '@/ui/foundation/icons';
-import { lessonSegmentAt, p01n02LessonSegments, phaseLabel } from './classroom-lesson-model';
+import {
+  lessonSegmentAt,
+  p01n02LessonSegments,
+  p01TeachingPackage,
+  phaseLabel,
+  teachingPageAt,
+} from './classroom-lesson-model';
 
 export type LessonStageSurface = 'teacher' | 'student' | 'projector';
 
@@ -11,8 +18,11 @@ export function P01N02LessonStage({ surface, actionIndex = 0, phase = 'prepare' 
   actionIndex?: number;
   phase?: LessonPhase;
 }) {
-  const segment = lessonSegmentAt(actionIndex);
-  const activeIndex = p01n02LessonSegments.indexOf(segment);
+  const teachingPage = teachingPageAt(actionIndex);
+  const segment = lessonSegmentAt(p01n02LessonSegments.findIndex(({ id }) => id === teachingPage.segmentId));
+  const segmentIndex = p01n02LessonSegments.indexOf(segment);
+  const activeIndex = teachingPage.globalPageNumber - 1;
+  const teachingPages = p01TeachingPackage.flatMap(({ pages }) => pages);
 
   return (
     <article
@@ -20,6 +30,9 @@ export function P01N02LessonStage({ surface, actionIndex = 0, phase = 'prepare' 
       data-lesson-node="P1T1-N02"
       data-active-segment={segment.id}
       data-playback-action-index={activeIndex}
+      data-suggested-minutes={teachingPage.suggestedMinutes}
+      data-teaching-lesson={teachingPage.lessonNumber}
+      data-teaching-page={teachingPage.id}
     >
       <header className="p01n02-stage-header">
         <div>
@@ -27,13 +40,16 @@ export function P01N02LessonStage({ surface, actionIndex = 0, phase = 'prepare' 
           <h1>设备拓扑</h1>
           <p>照片怎样证明设备、槽位与端口属于同一条链？</p>
         </div>
-        <strong><i />{phaseLabel(phase)}<small>{activeIndex + 1} / {p01n02LessonSegments.length}</small></strong>
+        <strong>
+          <i />{phaseLabel(phase)}
+          <small>第{teachingPage.lessonNumber}课时 · {teachingPage.pageNumber} / 6 · {teachingPage.suggestedMinutes}分钟</small>
+        </strong>
       </header>
 
       <nav className="p01n02-segment-track" aria-label="本节教材结构">
-        {p01n02LessonSegments.map((item, index) => (
-          <span aria-current={index === activeIndex ? 'step' : undefined} key={item.id}>
-            <b>{index + 1}</b>{item.label}
+        {teachingPages.map((page, index) => (
+          <span aria-current={index === activeIndex ? 'step' : undefined} key={page.id}>
+            <b>{page.globalPageNumber}</b>{page.lessonNumber}-{page.pageNumber}
           </span>
         ))}
       </nav>
@@ -45,7 +61,7 @@ export function P01N02LessonStage({ surface, actionIndex = 0, phase = 'prepare' 
           <span className="p01n02-object-label is-bbu"><b>BBU槽位3</b><small>BBU5900 · 210235A8K12345</small></span>
           <span className="p01n02-object-label is-aau"><b>AAU/RRU</b><small>AAU5619 · 20235AA98765</small></span>
           <span className="p01n02-object-label is-port"><b>端口链</b><small>P1-P4 · TX/RX</small></span>
-          <span className={`p01n02-scan-focus is-step-${activeIndex + 1}`} aria-hidden="true"><i /><b /></span>
+          <span className={`p01n02-scan-focus is-step-${segmentIndex + 1}`} aria-hidden="true"><i /><b /></span>
           {p01n02LessonSegments.map((item) => <span className={`p01n02-focus-anchor is-${item.id}`} data-playback-target={item.id} key={item.id} />)}
           <figcaption id="p01n02-topology-caption">
             <span><i className="is-fiber" />光纤链路</span>
@@ -57,14 +73,19 @@ export function P01N02LessonStage({ surface, actionIndex = 0, phase = 'prepare' 
 
         {surface !== 'projector' ? (
           <aside className="p01n02-reading-panel" aria-label="当前教材正文">
-            <header><span>{segment.eyebrow}</span><strong>{segment.title}</strong></header>
-            <p>{segment.lead}</p>
-            <ol>{segment.points.map((point, index) => <li key={point}><b>{index + 1}</b><span>{point}</span></li>)}</ol>
-            <section className="p01n02-reading-check"><Icon name="target" size={19} /><div><span>思考检查</span><strong>{segment.checkpoint}</strong></div></section>
+            <header><span>{teachingPage.projectorContent.title} · 第{teachingPage.lessonNumber}课时</span><strong>{teachingPage.title}</strong></header>
+            <p>{teachingPage.projectorContent.material}</p>
+            <ol>{teachingPage.projectorContent.visualCallouts.map((point, index) => <li key={point}><b>{index + 1}</b><span>{point}</span></li>)}</ol>
+            <section className="p01n02-reading-check"><Icon name="target" size={19} /><div><span>课堂任务</span><strong>{teachingPage.projectorContent.prompt}</strong></div></section>
             <section className="p01n02-reading-evidence"><Icon name="file" size={19} /><div><span>证据口径</span><strong>{segment.evidence}</strong></div></section>
           </aside>
         ) : (
-          <div className="p01n02-projector-caption"><span>{segment.eyebrow}</span><strong>{segment.title}</strong><p>{segment.checkpoint}</p></div>
+          <div className="p01n02-projector-caption">
+            <span>{teachingPage.projectorContent.title}</span>
+            <strong>{teachingPage.title}</strong>
+            <p>{teachingPage.projectorContent.material}</p>
+            <small>{teachingPage.projectorContent.prompt}</small>
+          </div>
         )}
       </div>
     </article>

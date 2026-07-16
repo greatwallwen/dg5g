@@ -1,5 +1,6 @@
 import type { PlaybackScene } from '@/platform/models';
 import type { DemoTaskProfile, DemoUnit } from '@/features/platform/deep-textbook-demo-data';
+import { p01TeachingPackage } from './classroom-lesson-model.ts';
 
 type DemoTaskId = DemoTaskProfile['taskId'];
 
@@ -10,12 +11,11 @@ export function playbackSceneForLearningUnit(unit: DemoUnit, taskId: DemoTaskId)
       sceneId: prefix,
       title: `${taskId} · ${unit.title}`,
       presenterId: 'teacher-zhang',
-      actions: p01n02Narration.map((track, index) => speech(
-        `${prefix}-${track.suffix}`,
-        track.targetId,
-        track.text,
-        track.text,
-        { audioId: track.audioId, audioUrl: `/media/tts/qwen-cherry/${track.audioId.toLowerCase()}.wav` },
+      actions: p01TeachingPackage.flatMap(({ pages }) => pages).map((page) => speech(
+        `${prefix}-${page.id.toLowerCase()}`,
+        page.id,
+        page.title,
+        page.teacherExplanation,
       )),
     };
   }
@@ -48,42 +48,3 @@ function speech(id: string, targetId: string, caption: string, spokenText: strin
     focusKind: 'spotlight' as const,
   };
 }
-
-const p01n02Narration = [
-  {
-    suffix: 'case',
-    targetId: 'learning-case',
-    audioId: 'P01-story-speech-006',
-    text: '室内信息采集要先锁定资源边界：机房位置、机柜编号、BBU、AAU/RRU、电源、传输、接地和温控共同决定站点可用性。',
-  },
-  {
-    suffix: 'visual',
-    targetId: 'learning-visual',
-    audioId: 'P01-story-speech-011',
-    text: '设备记录不止列型号，还要说明端口、光纤、电源线和传输承载的连接关系，后续定位才知道从哪一段查起。',
-  },
-  {
-    suffix: 'procedure',
-    targetId: 'learning-procedure',
-    audioId: 'P01-story-speech-012',
-    text: '设备拓扑说明链路走到哪一步；端口、光纤、电源线、传输分别对应角色、接口、状态和约束。',
-  },
-  {
-    suffix: 'correction',
-    targetId: 'learning-correction',
-    audioId: 'P01-story-speech-014',
-    text: '不要把端口、光纤、电源线、传输中的单个事件当作完整流程；缺少前后文会误判断点。',
-  },
-  {
-    suffix: 'practice',
-    targetId: 'learning-practice',
-    audioId: 'P01-story-speech-023',
-    text: '把机柜、端口、走线、证据回连到照片、日志、表单或网管记录，确认每个结论都有来源。',
-  },
-  {
-    suffix: 'output',
-    targetId: 'learning-output',
-    audioId: 'P01-story-speech-021',
-    text: '现场证据要能对应机柜、端口和走线路径，表单字段要能追溯到实体对象，避免后续复核时只剩孤立图片。',
-  },
-] as const;

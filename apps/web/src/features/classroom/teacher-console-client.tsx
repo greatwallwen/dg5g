@@ -12,6 +12,7 @@ import type { DemoTaskProfiles } from '@/features/platform/deep-textbook-demo-da
 import { useAuthoritativeSnapshot } from '@/features/snapshot/authoritative-snapshot-client';
 import { projectTeacherConsoleSnapshot, projectTeacherSkillPulse } from './teacher-console-snapshot-model';
 import { authoritativeDomFacts } from '@/features/snapshot/snapshot-dom-facts';
+import { teachingPageAt } from '@/features/textbook-scene/classroom-lesson-model';
 type TeacherInspectorTab = 'script' | 'learning' | 'review';
 export function TeacherConsoleClient({ displayName, slides, initialSession, initialSnapshot, task, playback, profiles }: { displayName: string; slides: TeacherSlide[]; initialSession: ClassSession; initialSnapshot: TeacherAuthoritativeSnapshot; task: Task; playback: PlaybackScene; profiles: DemoTaskProfiles }) {
   const [session, update, connection, submitIntent] = useClassSession(initialSession, { role: 'teacher' });
@@ -27,6 +28,9 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
   const profile = profileForNodeId(activeNodeId, profiles);
   const unitIndex = Math.max(0, profile.units.findIndex((unit) => unit.capabilityNodeId === activeNodeId));
   const unit = profile.units[unitIndex] ?? profile.units[0];
+  const teachingPage = unit.capabilityNodeId === 'P1T1-N02'
+    ? teachingPageAt(session.lessonState?.playback.actionIndex)
+    : undefined;
   const snapshotModel = projectTeacherConsoleSnapshot(snapshot, session.studentSyncState);
   const rosterStats = snapshotModel.rosterStats;
   const controlMode = snapshotModel.controlMode;
@@ -178,6 +182,7 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
     inspectorTab={inspectorTab}
     setInspectorTab={setInspectorTab}
     teacherScript={teacherScript}
+    teachingPage={teachingPage}
     formalAssessment={snapshotModel.formalAssessment}
     classScores={snapshotModel.classScores}
     submittedAnswers={submittedAnswers}

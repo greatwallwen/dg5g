@@ -20,15 +20,17 @@ const unit: DemoUnit = {
   requiredEvidence: '机柜全景、设备铭牌和端口近景',
 };
 
-test('learning playback follows the six textbook segments with fixed lecturer narration', () => {
+test('learning playback follows the twelve-page two-lesson teaching package', () => {
   const scene = playbackSceneForLearningUnit(unit, 'P01');
   assert.equal(scene.presenterId, 'teacher-zhang');
   assert.equal(scene.title, 'P01 · 设备拓扑');
   assert.deepEqual(
     scene.actions.filter((action) => action.type === 'speech').map((action) => action.targetId),
-    ['learning-case', 'learning-visual', 'learning-procedure', 'learning-correction', 'learning-practice', 'learning-output'],
+    [
+      'P01-L1-P01', 'P01-L1-P02', 'P01-L1-P03', 'P01-L1-P04', 'P01-L1-P05', 'P01-L1-P06',
+      'P01-L2-P01', 'P01-L2-P02', 'P01-L2-P03', 'P01-L2-P04', 'P01-L2-P05', 'P01-L2-P06',
+    ],
   );
   assert.ok(scene.actions.every((action) => action.caption && action.spokenText));
-  assert.ok(scene.actions.every((action) => action.audioId?.startsWith('P01-story-speech-')));
-  assert.ok(scene.actions.every((action) => action.audioUrl?.endsWith('.wav')));
+  assert.ok(scene.actions.every((action) => action.durationMs >= 2_600));
 });

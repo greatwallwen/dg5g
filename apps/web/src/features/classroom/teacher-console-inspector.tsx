@@ -27,16 +27,43 @@ export function TeacherConsoleInspector({ p }: { p: TeacherConsoleViewProps }) {
           ))}
       </nav>
       <div className="teacher-inspector-panel is-script" hidden={p.inspectorTab !== 'script'}>
-        <section className="teacher-script">
-          <span>讲解脚本</span>
-          {p.teacherScript.map((line, index) => <p key={line}><b>{index + 1}</b>{line}</p>)}
-        </section>
-        <section className="teacher-question">
-          <span>提问与典型答案</span>
-          <strong>{p.unit.question}</strong>
-          <p>答案需包含对象、证据、判断依据和下一步动作。</p>
-          <small>常见错误：{p.unit.counterexample}</small>
-        </section>
+        {p.teachingPage ? (
+          <>
+            <section className="teacher-script" data-teaching-script={p.teachingPage.id}>
+              <span>第{p.teachingPage.lessonNumber}课时 · 第{p.teachingPage.pageNumber}页 · 建议{p.teachingPage.suggestedMinutes}分钟</span>
+              <strong>{p.teachingPage.title}</strong>
+              <p>{p.teachingPage.teacherExplanation}</p>
+            </section>
+            <section className="teacher-question">
+              <span>结合案例提问</span>
+              <strong>{p.teachingPage.caseQuestion}</strong>
+              <p><b>典型答案</b>{p.teachingPage.typicalAnswer}</p>
+            </section>
+            <section className="teacher-question">
+              <span>常见错误与追问</span>
+              <ul>{p.teachingPage.commonErrors.map((item) => <li key={item}>{item}</li>)}</ul>
+              <ol>{p.teachingPage.followUpPrompts.map((item) => <li key={item}>{item}</li>)}</ol>
+            </section>
+            <section className="teacher-question">
+              <span>学生动作</span>
+              <p>{p.teachingPage.studentAction}</p>
+              <small>过渡语：{p.teachingPage.transition}</small>
+            </section>
+          </>
+        ) : (
+          <>
+            <section className="teacher-script">
+              <span>讲解脚本</span>
+              {p.teacherScript.map((line, index) => <p key={line}><b>{index + 1}</b>{line}</p>)}
+            </section>
+            <section className="teacher-question">
+              <span>提问与节点依据</span>
+              <strong>{p.unit.question}</strong>
+              <p>{p.unit.summary}</p>
+              <small>常见错误：{p.unit.counterexample}</small>
+            </section>
+          </>
+        )}
       </div>
       <div className="teacher-inspector-panel is-learning" hidden={p.inspectorTab !== 'learning'}>
         <section className="teacher-formal-analytics" data-formal-test-analytics>

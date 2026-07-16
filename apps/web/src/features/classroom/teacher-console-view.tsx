@@ -50,6 +50,8 @@ export function TeacherConsoleView(p: TeacherConsoleViewProps) {
       data-class-size={p.authoritativeFacts.classSize}
       data-formal-submitted={p.authoritativeFacts.formalSubmitted}
       data-formal-passed={p.authoritativeFacts.formalPassed}
+      data-teaching-lesson={p.teachingPage?.lessonNumber ?? 'node'}
+      data-teaching-page={p.teachingPage?.id ?? p.unit.capabilityNodeId}
     >
       <RoleGate requiredRole="teacher" title="请先登录教师端"
         description="教师端用于组织共同课堂、推送任务、复核证据和认证专业产出。">
@@ -93,7 +95,12 @@ export function TeacherConsoleView(p: TeacherConsoleViewProps) {
           </aside>
           <section className="teacher-stage scene-teacher-stage">
             <div className="stage-header">
-              <span>共同课堂 / {p.unit.capabilityNodeId}</span>
+              <span>
+                共同课堂 / {p.unit.capabilityNodeId}
+                {p.teachingPage
+                  ? ` / 第${p.teachingPage.lessonNumber}课时 · 第${p.teachingPage.pageNumber}页 · ${p.teachingPage.suggestedMinutes}分钟`
+                  : ''}
+              </span>
               <a href={`/present/${p.session.sessionId}`}>全屏投屏</a>
             </div>
             <SharedClassroomScene

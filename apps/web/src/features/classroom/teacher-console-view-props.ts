@@ -7,6 +7,7 @@ import type {
 import type { ClassSession, PlaybackScene, Task } from '@/platform/models';
 import type { SessionPatch } from './use-class-session';
 import type { AuthoritativeDomFacts } from '../snapshot/snapshot-dom-facts';
+import type { P01TeachingPage } from '../textbook-scene/classroom-lesson-model';
 
 export interface TeacherConsoleViewProps {
   authoritativeFacts: AuthoritativeDomFacts;
@@ -36,6 +37,7 @@ export interface TeacherConsoleViewProps {
   setInspectorTab: Dispatch<SetStateAction<'script' | 'learning' | 'review'>>;
   deliveryStats: { applied: number; failed: number; pending: number };
   teacherScript: string[];
+  teachingPage?: P01TeachingPage;
   formalAssessment: SnapshotSubmissionMetrics['activeAssessment'];
   classScores: ClassScoreSnapshot;
   submittedAnswers: string[];

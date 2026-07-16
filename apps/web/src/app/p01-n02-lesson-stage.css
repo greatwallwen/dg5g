@@ -83,9 +83,10 @@
 }
 
 .p01n02-segment-track {
-  height: 54px;
+  min-height: 82px;
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
   gap: 5px;
   border-bottom: 1px solid #17354c;
   padding: 7px 12px;
@@ -102,7 +103,7 @@
   border-radius: 5px;
   color: #7894a9;
   background: #091f31;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 850;
 }
 
@@ -319,6 +320,7 @@
 .p01n02-projector-caption span { color: #45ddd7; font-size: 13px; font-weight: 900; }
 .p01n02-projector-caption strong { font-size: 18px; }
 .p01n02-projector-caption p { grid-column: 1 / -1; margin: 0; color: #b8cedd; font-size: 15px; }
+.p01n02-projector-caption small { grid-column: 1 / -1; color: #7de6df; font-size: 13px; font-weight: 800; }
 
 @keyframes p01n02-focus-spin { to { transform: rotate(1turn); } }
 
