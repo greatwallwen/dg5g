@@ -1,4 +1,5 @@
 import type { P1NodeId, P1SelfStudyPractice } from '../platform/p1-content.ts';
+import type { ActivityDeliveryContext } from './activity-delivery-context.ts';
 
 export const activityKinds = [
   'scope-classification',
@@ -109,11 +110,24 @@ export interface ActivityArtifact {
 }
 
 export interface ActivityAttemptResult {
+  attemptId: string;
+  canonicalActivityId: string;
+  attemptNumber: number;
   passed: boolean;
   feedback: string;
+  mistakeCodes: string[];
+  fieldFeedback: Record<string, string>;
   correctionPath: string[];
   artifact: ActivityArtifact;
-  version: number;
+  delivery: ActivityDeliveryContext;
+  snapshotVersion: number;
+}
+
+export interface ActivityProgressDto {
+  canonicalActivityId: string;
+  passed: boolean;
+  attemptCount: number;
+  lastAttempt?: ActivityAttemptResult;
 }
 
 export function publicActivityFromPractice(

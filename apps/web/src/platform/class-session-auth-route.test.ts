@@ -221,7 +221,7 @@ test('student classroom actions fail until the authenticated learner explicitly 
   const body = await response.json();
 
   assert.equal(response.status, 400);
-  assert.match(body.error, /has not joined classroom session/);
+  assert.match(body.error, /activity attempts API/i);
   assert.equal(classroomSubmissionCount(sessionId, 'stu-01'), beforeEvents);
   assert.equal(fixture.database.prepare(`
     SELECT COUNT(*) FROM classroom_participation
@@ -229,9 +229,10 @@ test('student classroom actions fail until the authenticated learner explicitly 
   `).pluck().get(sessionId, 'stu-01'), 0);
 });
 
-test('student actions are narrow, actor scoped, and persisted without shared answer fields', async () => {
+test('joined students must use the real activity attempts API instead of the generic action', async () => {
   const sessionId = 'P1T1-N02-auth-student-action';
   joinStudent(sessionId, 'stu-01');
+  const beforeEvents = classroomSubmissionCount(sessionId, 'stu-01');
   const response = await classRoute.PATCH(
     request(sessionId, {
       action: {
@@ -245,18 +246,9 @@ test('student actions are narrow, actor scoped, and persisted without shared ans
   );
   const body = await response.json();
 
-  assert.equal(response.status, 200);
-  assert.equal(body.session.studentProgress.studentId, 'stu-01');
-  assert.equal(body.session.studentProgress.mode, 'self');
-  assert.equal(
-    body.session.studentProgress.currentSlideIndex,
-    1,
-    'the obsolete client slide index is not echoed as durable classroom state',
-  );
-  assert.equal(body.session.studentProgress.evidenceCount, 2);
-  assert.equal(body.session.studentProgress.submissionState, 'submitted');
-  assert.deepEqual(body.session.studentRoster, []);
-  assert.equal(body.session.submissionAnswers, undefined);
+  assert.equal(response.status, 400);
+  assert.match(body.error, /activity attempts API/i);
+  assert.equal(classroomSubmissionCount(sessionId, 'stu-01'), beforeEvents);
 
   const teacherResponse = await classRoute.GET(
     request(sessionId, undefined, { cookie: teacherCookie }),
@@ -264,22 +256,7 @@ test('student actions are narrow, actor scoped, and persisted without shared ans
   );
   const teacher = (await teacherResponse.json()).session;
   assert.equal(teacher.submissionAnswers?.includes('AAU 设备铭牌') ?? false, false);
-  assert.equal(teacher.studentRoster.find((student: { studentId: string }) => student.studentId === 'stu-01').evidenceCount, 2);
-
-  const stored = fixture.database.prepare(`
-    SELECT student_id AS studentId, event_type AS eventType, payload_json AS payloadJson
-    FROM learning_events
-    WHERE student_id = ? AND event_type = 'classroom_activity_submitted'
-    ORDER BY occurred_at DESC, event_id DESC
-    LIMIT 1
-  `).get('stu-01') as { studentId: string; eventType: string; payloadJson: string } | undefined;
-  assert.equal(stored?.studentId, 'stu-01');
-  assert.equal(stored?.eventType, 'classroom_activity_submitted');
-  assert.deepEqual(JSON.parse(stored?.payloadJson ?? '{}'), {
-    sessionId,
-    answers: ['AAU 设备铭牌', '光纤端口标识'],
-    completed: true,
-  });
+  assert.equal(teacher.studentRoster.find((student: { studentId: string }) => student.studentId === 'stu-01').evidenceCount, 0);
 });
 
 test('student action parser rejects extra authority fields instead of silently accepting them', async () => {

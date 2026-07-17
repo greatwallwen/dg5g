@@ -8,7 +8,7 @@ import { migrateDatabase } from './db/migrations.ts';
 import { createTestDatabase } from './db/test-database.ts';
 import { applyStudentClassroomAction } from './student-classroom-action-service.ts';
 
-test('legacy student classroom actions return only durable participation and event projections', () => {
+test('legacy student classroom actions keep navigation but reject generic activity completion', () => {
   const fixture = createTestDatabase();
   const previousPath = process.env.DGBOOK_SQLITE_PATH;
   try {
@@ -33,24 +33,21 @@ test('legacy student classroom actions return only durable participation and eve
       'the obsolete client slide index is never echoed as if it were persisted',
     );
 
-    const submitted = applyStudentClassroomAction('demo-class', 'stu-01', {
+    assert.throws(() => applyStudentClassroomAction('demo-class', 'stu-01', {
       type: 'activity_submitted',
       answers: ['AAU nameplate', 'fiber label'],
       mode: 'self',
       currentSlideIndex: 4,
-    }, fixture.database);
-    const projected = submitted.studentRoster.find(({ studentId }) => studentId === 'stu-01');
-    assert.equal(projected?.submissionState, 'submitted');
-    assert.equal(projected?.evidenceCount, 2);
+    }, fixture.database), /activity attempts API/i);
     closeDatabase();
     const refreshed = getClassSession('demo-class').studentRoster.find(({ studentId }) => studentId === 'stu-01');
     assert.equal(refreshed?.mode, 'self');
-    assert.equal(refreshed?.submissionState, 'submitted');
-    assert.equal(refreshed?.evidenceCount, 2);
+    assert.equal(refreshed?.submissionState, 'draft');
+    assert.equal(refreshed?.evidenceCount, 0);
     assert.equal(fixture.database.prepare(`
       SELECT COUNT(*) FROM learning_events
       WHERE student_id = 'stu-01' AND event_type = 'classroom_activity_submitted'
-    `).pluck().get(), 1);
+    `).pluck().get(), 0);
   } finally {
     closeDatabase();
     if (previousPath === undefined) delete process.env.DGBOOK_SQLITE_PATH;
@@ -59,7 +56,7 @@ test('legacy student classroom actions return only durable participation and eve
   }
 });
 
-test('legacy student actions reject a member who has not explicitly joined before writing events', () => {
+test('legacy generic completion is rejected before participation or event mutation', () => {
   const fixture = createTestDatabase();
   const previousPath = process.env.DGBOOK_SQLITE_PATH;
   try {
@@ -72,7 +69,7 @@ test('legacy student actions reject a member who has not explicitly joined befor
       answers: ['must not persist'],
       mode: 'follow',
       currentSlideIndex: 1,
-    }, fixture.database), /has not joined/i);
+    }, fixture.database), /activity attempts API/i);
     assert.equal(fixture.database.prepare(`
       SELECT COUNT(*) FROM learning_events
       WHERE student_id = 'stu-01' AND event_type = 'classroom_activity_submitted'

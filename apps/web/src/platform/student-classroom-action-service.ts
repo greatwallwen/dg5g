@@ -1,8 +1,6 @@
-import { randomUUID } from 'node:crypto';
 import { getClassSession } from './class-session-store.ts';
 import { ClassroomParticipationRepository } from './classroom-participation-repository.ts';
 import { getDatabase, type AppDatabase } from './db/database.ts';
-import { LearningRepository } from './learning-repository.ts';
 import type { ClassSession } from './models.ts';
 import type { StudentClassroomAction } from './student-classroom-action.ts';
 
@@ -19,24 +17,13 @@ export function applyStudentClassroomAction(
 ): ClassSession {
   const session = getClassSession(sessionId);
   if (action.type === 'refresh') return session;
-
-  const participation = new ClassroomParticipationRepository(database);
-  if (action.type === 'navigation_changed') {
-    participation.setMode(sessionId, studentId, action.mode);
-    return getClassSession(sessionId);
+  if (action.type === 'activity_submitted') {
+    throw new TypeError(
+      'Legacy activity_submitted is retired; submit through the authenticated activity attempts API.',
+    );
   }
 
-  const answers = action.answers.map((answer) => answer.trim());
+  const participation = new ClassroomParticipationRepository(database);
   participation.setMode(sessionId, studentId, action.mode);
-  const learning = new LearningRepository(database);
-  const topic = `learning:${studentId}` as const;
-  learning.appendEvent({
-    eventId: `classroom-${randomUUID()}`,
-    studentId,
-    nodeId: session.activeNodeId ?? 'P1T1-N02',
-    channel: 'classroom',
-    eventType: 'classroom_activity_submitted',
-    payload: { sessionId: session.sessionId, answers, completed: true },
-  }, learning.readTopicVersion(topic));
   return getClassSession(sessionId);
 }

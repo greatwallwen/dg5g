@@ -12,11 +12,12 @@ type LearningSceneProps = {
   completed: boolean;
   saving: boolean;
   onComplete: () => void;
+  onReadingComplete?: (sectionId: Extract<SelfStudySectionId, 'problem' | 'figure' | 'steps' | 'correction'>) => Promise<void> | void;
   initialSection?: SelfStudySectionId;
   focusedActivityId?: string;
 };
 
-export function LearningScene({ document, profile, unit, completed, saving, onComplete, initialSection, focusedActivityId }: LearningSceneProps) {
+export function LearningScene({ document, profile, unit, completed, saving, onComplete, onReadingComplete, initialSection, focusedActivityId }: LearningSceneProps) {
   if (document) {
     return <SelfStudyRenderer
       completed={completed}
@@ -24,6 +25,7 @@ export function LearningScene({ document, profile, unit, completed, saving, onCo
       focusedActivityId={focusedActivityId}
       initialSection={initialSection}
       onComplete={onComplete}
+      onReadingComplete={onReadingComplete}
       saving={saving}
     />;
   }

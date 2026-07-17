@@ -347,7 +347,6 @@ function requireStudentIdentity(actor: AuthenticatedActor): string {
 const studentEventTypes = new Set([
   'section_completed',
   'classroom_submitted',
-  'classroom_activity_submitted',
   'game_completed',
   'evidence_submitted',
 ]);
@@ -385,7 +384,7 @@ function validateLearningEvent(command: LearningEventCommand): void {
 }
 
 function isClassroomSubmission(eventType: string): boolean {
-  return eventType === 'classroom_submitted' || eventType === 'classroom_activity_submitted';
+  return eventType === 'classroom_submitted';
 }
 
 const professionalOutputNodeByTask: Record<P1OutputTaskId, string> = {

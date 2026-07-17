@@ -10,36 +10,83 @@ import {
 import { FigureSection, ProblemSection, SelfStudyGlossary, StepsSection } from './self-study-primary-sections.tsx';
 import { PracticeSection, practiceIdsFor } from './self-study-practice-section.tsx';
 import { CorrectionSection, OutputSection } from './self-study-secondary-sections.tsx';
+import {
+  readSelfStudyCursor,
+  saveSelfStudyCursor,
+  selfStudySectionFromCursor,
+} from './self-study-cursor-client.ts';
 
-export function SelfStudyRenderer({ document, completed, saving, onComplete, initialSection = 'problem', focusedActivityId }: {
+export function SelfStudyRenderer({
+  document,
+  completed,
+  saving,
+  onComplete,
+  onReadingComplete,
+  initialSection = 'problem',
+  focusedActivityId,
+}: {
   document: SelfStudyDocument;
   completed: boolean;
   saving: boolean;
   onComplete: () => void;
+  onReadingComplete?: (sectionId: ReadingSectionId) => Promise<void> | void;
   initialSection?: SelfStudySectionId;
   focusedActivityId?: string;
 }) {
   const [activeSection, setActiveSection] = useState<SelfStudySectionId>(initialSection);
   const [passedPracticeIds, setPassedPracticeIds] = useState<string[]>([]);
+  const [readingSaving, setReadingSaving] = useState(false);
+  const activeSectionRef = useRef<SelfStudySectionId>(initialSection);
   const textbookBodyRef = useRef<HTMLDivElement>(null);
   const activeIndex = selfStudySectionDefinitions.findIndex(({ id }) => id === activeSection);
   const practiceIds = useMemo(() => practiceIdsFor(document), [document]);
   const practiceComplete = completed || practiceIds.every((id) => passedPracticeIds.includes(id));
+  const readingSection = isReadingSection(activeSection) ? activeSection : undefined;
 
   useEffect(() => {
+    activeSectionRef.current = initialSection;
     setActiveSection(initialSection);
     setPassedPracticeIds([]);
+    let current = true;
+    void readSelfStudyCursor(document.nodeId).then((cursor) => {
+      const restored = selfStudySectionFromCursor(cursor);
+      if (!current || !restored) return;
+      activeSectionRef.current = restored;
+      setActiveSection(restored);
+      void persistSection(restored);
+    }).catch(() => {
+      if (current) void persistSection(initialSection);
+    });
+    return () => { current = false; };
   }, [document.nodeId, initialSection]);
 
   useEffect(() => {
     const onPlaybackTarget = (event: Event) => {
       const targetId = (event as CustomEvent<{ targetId?: string }>).detail?.targetId;
       const section = selfStudySectionDefinitions.find(({ playbackTarget }) => playbackTarget === targetId);
-      if (section) setActiveSection(section.id);
+      if (section) selectSection(section.id);
     };
     window.addEventListener('dgbook:playback-target', onPlaybackTarget);
     return () => window.removeEventListener('dgbook:playback-target', onPlaybackTarget);
-  }, []);
+  }, [document.nodeId, document.sourceKnowledgeUnitId]);
+
+  useEffect(() => {
+    const saveBeforeUnload = () => {
+      const sectionId = activeSectionRef.current;
+      void fetch(`/api/self-study/cursors/${encodeURIComponent(document.nodeId)}`, {
+        method: 'PUT',
+        credentials: 'same-origin',
+        keepalive: true,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cursorDraft(sectionId)),
+      });
+    };
+    window.addEventListener('beforeunload', saveBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', saveBeforeUnload);
+      void persistSection(activeSectionRef.current);
+    };
+  }, [document.nodeId, document.sourceKnowledgeUnitId]);
 
   useEffect(() => {
     const active = textbookBodyRef.current?.querySelector<HTMLElement>(
@@ -50,11 +97,41 @@ export function SelfStudyRenderer({ document, completed, saving, onComplete, ini
 
   function moveSection(offset: number) {
     const nextIndex = Math.max(0, Math.min(selfStudySectionDefinitions.length - 1, activeIndex + offset));
-    setActiveSection(selfStudySectionDefinitions[nextIndex]!.id);
+    selectSection(selfStudySectionDefinitions[nextIndex]!.id);
+  }
+
+  function selectSection(sectionId: SelfStudySectionId) {
+    activeSectionRef.current = sectionId;
+    setActiveSection(sectionId);
+    void persistSection(sectionId);
+  }
+
+  function cursorDraft(sectionId: SelfStudySectionId) {
+    return {
+      unitId: document.sourceKnowledgeUnitId,
+      actionId: sectionId,
+      actionIndex: selfStudySectionDefinitions.findIndex(({ id }) => id === sectionId),
+      positionMs: 0,
+    };
+  }
+
+  function persistSection(sectionId: SelfStudySectionId) {
+    return saveSelfStudyCursor(document.nodeId, cursorDraft(sectionId)).catch(() => undefined);
+  }
+
+  async function completeReadingSection(sectionId: ReadingSectionId) {
+    setReadingSaving(true);
+    try {
+      await onReadingComplete?.(sectionId);
+      moveSection(1);
+    } finally {
+      setReadingSaving(false);
+    }
   }
 
   function markPracticePassed(practiceId: string) {
     setPassedPracticeIds((current) => current.includes(practiceId) ? current : [...current, practiceId]);
+    void persistSection('practice');
   }
 
   return (
@@ -79,7 +156,7 @@ export function SelfStudyRenderer({ document, completed, saving, onComplete, ini
               className={activeSection === id ? 'is-active' : index < activeIndex ? 'is-past' : ''}
               data-self-study-section-tab={id}
               key={id}
-              onClick={() => setActiveSection(id)}
+              onClick={() => selectSection(id)}
               type="button"
             >
               <i>{index + 1}</i><span>{label}</span>
@@ -99,6 +176,7 @@ export function SelfStudyRenderer({ document, completed, saving, onComplete, ini
             <PracticeSection
               document={document}
               focusedActivityId={focusedActivityId}
+              onAttempt={() => { void persistSection('practice'); }}
               onPass={markPracticePassed}
               passedIds={passedPracticeIds}
             />
@@ -115,16 +193,35 @@ export function SelfStudyRenderer({ document, completed, saving, onComplete, ini
           <button aria-label="下一学习段" disabled={activeIndex === selfStudySectionDefinitions.length - 1} onClick={() => moveSection(1)} type="button"><Icon name="arrow" size={16} /></button>
         </div>
         <span><Icon name={completed ? 'check' : practiceComplete ? 'spark' : 'target'} size={17} />{completed ? '该能力节点已达成' : practiceComplete ? '分层练习已完成，可记录本节点学习' : '可自由阅读；完成练习后记录学习进度'}</span>
-        {activeSection === 'output' ? (
+        {readingSection ? (
+          <button
+            data-complete-reading-section={readingSection}
+            data-primary-action="true"
+            disabled={readingSaving || saving}
+            onClick={() => { void completeReadingSection(readingSection); }}
+            type="button"
+          >
+            {readingSaving ? '正在记录' : '完成本段并继续'}<Icon name="arrow" size={17} />
+          </button>
+        ) : activeSection === 'output' ? (
           <button data-primary-action="true" disabled={!practiceComplete || saving} onClick={onComplete} type="button">
             {saving ? '正在记录' : completed ? '继续下一节点' : '记录本节点学习完成'}<Icon name="arrow" size={17} />
           </button>
         ) : (
-          <button className="is-next" data-primary-action="true" disabled={activeIndex === selfStudySectionDefinitions.length - 1} onClick={() => moveSection(1)} type="button">下一段<Icon name="arrow" size={17} /></button>
+          <button className="is-next" data-primary-action="true" disabled={!practiceComplete} onClick={() => moveSection(1)} type="button">完成练习后继续<Icon name="arrow" size={17} /></button>
         )}
       </footer>
     </article>
   );
+}
+
+type ReadingSectionId = Extract<SelfStudySectionId, 'problem' | 'figure' | 'steps' | 'correction'>;
+
+function isReadingSection(sectionId: SelfStudySectionId): sectionId is ReadingSectionId {
+  return sectionId === 'problem'
+    || sectionId === 'figure'
+    || sectionId === 'steps'
+    || sectionId === 'correction';
 }
 
 function StudySection({ id, active, document, children }: {

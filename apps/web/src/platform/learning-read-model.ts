@@ -31,10 +31,10 @@ import { getFormalAssessmentValidationPolicy } from './formal-assessment-catalog
 import { validatePersistedAssessmentDiagnostic } from './persisted-assessment-diagnostic.ts';
 
 export const REQUIRED_SELF_STUDY_SECTIONS = [
-  'understand',
-  'evidence',
-  'explain',
-  'practice',
+  'problem',
+  'figure',
+  'steps',
+  'correction',
 ] as const;
 
 export interface FormalAttemptProjection {
@@ -154,7 +154,9 @@ function projectStudentLearningFacts(facts: StudentLearningFacts): StudentLearni
     const storedAttempts = preferUserOrigin(facts.attempts.filter(({ nodeId }) => nodeId === policy.nodeId));
     const attempts = storedAttempts.map(toAttemptProjection);
     const sections = completedSections(progressEvents);
-    const classroomSubmitted = progressEvents.some(isCompletedClassroomSubmission);
+    const classroomSubmitted = practiceAttempts.some(
+      ({ deliveryChannel }) => deliveryChannel === 'classroom',
+    );
     const evidence = latestOutputForNode(facts.outputs, policy.nodeId);
     const storedReview = evidence
       ? latestReviewForOutput(facts.reviews, evidence.outputId, evidence.currentVersion)
@@ -519,12 +521,6 @@ function activeOrigin(
   const facts = groups.flat();
   if (facts.length === 0) return undefined;
   return facts.every(({ origin }) => origin === 'user') ? 'user' : 'demo';
-}
-
-function isCompletedClassroomSubmission(event: StoredLearningEvent): boolean {
-  return ['classroom_submitted', 'classroom_activity_submitted'].includes(event.eventType)
-    && isRecord(event.payload)
-    && event.payload.completed === true;
 }
 
 function completedSections(events: StoredLearningEvent[]): string[] {

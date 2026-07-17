@@ -443,11 +443,17 @@ function checkClassSessionApiContract() {
   for (const snippet of [
     'applyStudentClassroomAction',
     'ClassroomParticipationRepository',
-    'LearningRepository',
-    "'classroom_activity_submitted'",
+    "if (action.type === 'activity_submitted')",
+    'Legacy activity_submitted is retired',
+    'throw new TypeError(',
     'return getClassSession(sessionId)',
   ]) {
-    if (!serviceText.includes(snippet)) fail('student classroom writes must be server-derived through ' + snippet);
+    if (!serviceText.includes(snippet)) fail('legacy student classroom actions must reject generic completion through ' + snippet);
+  }
+  for (const forbiddenSnippet of ['LearningRepository', 'classroom_activity_submitted']) {
+    if (serviceText.includes(forbiddenSnippet)) {
+      fail('legacy student classroom actions must not write generic completion through ' + forbiddenSnippet);
+    }
   }
   if (serviceText.includes('patchStudentClassroomProgress')) {
     fail('student classroom actions must never return an unpersisted progress overlay');

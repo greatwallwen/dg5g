@@ -21,7 +21,7 @@ const scopeResponse = {
 
 test('activity attempt route enforces 401, 403, and the exact command body', async () => {
   await withFixture(async ({ database, studentCookie, teacherCookie }) => {
-    const body = { attemptId: 'activity-auth', response: scopeResponse, expectedVersion: 0 };
+    const body = { attemptId: 'activity-auth', response: scopeResponse, delivery: { channel: 'self-study' } };
     const anonymous = await activityRoute.POST(jsonRequest(scopeActivityId, '', body), context(scopeActivityId));
     const teacher = await activityRoute.POST(jsonRequest(scopeActivityId, teacherCookie, body), context(scopeActivityId));
     const authorityField = await activityRoute.POST(jsonRequest(scopeActivityId, studentCookie, {
@@ -40,14 +40,15 @@ test('activity attempt route enforces 401, 403, and the exact command body', asy
   });
 });
 
-test('activity attempt route derives actor identity and returns 409 for a stale retry', async () => {
+test('activity attempt route derives actor identity and replays the complete original envelope', async () => {
   await withFixture(async ({ database, studentCookie }) => {
-    const body = { attemptId: 'activity-versioned', response: scopeResponse, expectedVersion: 0 };
+    const body = { attemptId: 'activity-versioned', response: scopeResponse, delivery: { channel: 'self-study' } };
     const first = await activityRoute.POST(jsonRequest(scopeActivityId, studentCookie, body, '?studentId=stu-02'), context(scopeActivityId));
-    const stale = await activityRoute.POST(jsonRequest(scopeActivityId, studentCookie, body), context(scopeActivityId));
+    const replay = await activityRoute.POST(jsonRequest(scopeActivityId, studentCookie, body), context(scopeActivityId));
 
     assert.equal(first.status, 200);
-    assert.equal(stale.status, 409);
+    assert.equal(replay.status, 200);
+    assert.deepEqual(await replay.json(), await first.json());
     assert.deepEqual(database.prepare(`
       SELECT student_id AS studentId, activity_id AS activityId
       FROM practice_attempts WHERE attempt_id = 'activity-versioned'
@@ -64,7 +65,7 @@ test('activity attempt route rejects a locked node before persistence', async ()
     const response = await activityRoute.POST(jsonRequest(lockedActivityId, studentCookie, {
       attemptId: 'activity-locked',
       response: { revisions: {} },
-      expectedVersion: 0,
+      delivery: { channel: 'self-study' },
     }), context(lockedActivityId));
 
     assert.equal(response.status, 403);
@@ -72,6 +73,98 @@ test('activity attempt route rejects a locked node before persistence', async ()
     assert.equal(database.prepare(`
       SELECT COUNT(*) FROM practice_attempts WHERE attempt_id = 'activity-locked'
     `).pluck().get(), 0);
+  });
+});
+
+test('activity attempt route conflicts when an immutable attempt id is reused with changed facts', async () => {
+  await withFixture(async ({ database, studentCookie }) => {
+    const original = {
+      attemptId: 'activity-conflict',
+      response: scopeResponse,
+      delivery: { channel: 'self-study' },
+    };
+    const first = await activityRoute.POST(jsonRequest(scopeActivityId, studentCookie, original), context(scopeActivityId));
+    const changedResponse = await activityRoute.POST(jsonRequest(scopeActivityId, studentCookie, {
+      ...original,
+      response: { assignments: {} },
+    }), context(scopeActivityId));
+    const changedDelivery = await activityRoute.POST(jsonRequest(scopeActivityId, studentCookie, {
+      ...original,
+      delivery: { channel: 'classroom', sessionId: 'demo-class', classroomRunId: 'run-missing' },
+    }), context(scopeActivityId));
+
+    assert.equal(first.status, 200);
+    assert.equal(changedResponse.status, 409);
+    assert.equal(changedDelivery.status, 409);
+    assert.equal(database.prepare(`
+      SELECT COUNT(*) FROM practice_attempts WHERE attempt_id = 'activity-conflict'
+    `).pluck().get(), 1);
+  });
+});
+
+test('activity progress GET returns only the cookie actor immutable history', async () => {
+  await withFixture(async ({ studentCookie }) => {
+    for (const [attemptId, response] of [
+      ['progress-wrong', { assignments: {} }],
+      ['progress-correct', scopeResponse],
+    ] as const) {
+      const posted = await activityRoute.POST(jsonRequest(scopeActivityId, studentCookie, {
+        attemptId,
+        response,
+        delivery: { channel: 'self-study' },
+      }), context(scopeActivityId));
+      assert.equal(posted.status, 200);
+    }
+
+    const response = await activityRoute.GET(
+      new Request(`http://localhost/api/learning/activities/${scopeActivityId}/attempts`, {
+        headers: { cookie: studentCookie },
+      }),
+      context(scopeActivityId),
+    );
+    assert.equal(response.status, 200);
+    const progress = await response.json();
+    assert.equal(progress.canonicalActivityId, scopeActivityId);
+    assert.equal(progress.passed, true);
+    assert.equal(progress.attemptCount, 2);
+    assert.equal(progress.lastAttempt?.attemptId, 'progress-correct');
+    assert.equal(progress.lastAttempt?.attemptNumber, 2);
+    assert.equal(progress.lastAttempt?.passed, true);
+    assert.deepEqual(progress.lastAttempt?.delivery, { channel: 'self-study' });
+  });
+});
+
+test('classroom activity submission requires joined membership and the active lesson cursor', async () => {
+  await withFixture(async ({ database, studentCookie }) => {
+    const body = {
+      attemptId: 'classroom-authority',
+      response: scopeResponse,
+      delivery: { channel: 'classroom', sessionId: 'demo-class', classroomRunId: 'lesson-run-001' },
+    };
+    activateClassroomActivity(database, scopeActivityId);
+    const notJoined = await activityRoute.POST(jsonRequest(scopeActivityId, studentCookie, body), context(scopeActivityId));
+    assert.equal(notJoined.status, 403);
+
+    database.prepare(`
+      INSERT INTO classroom_participation (session_id, student_id, state, mode, joined_at)
+      VALUES ('demo-class', 'stu-01', 'joined', 'follow', CURRENT_TIMESTAMP)
+    `).run();
+    database.prepare(`
+      UPDATE classroom_lesson_runs
+      SET teaching_cursor_json = json_object('canonicalActivityId', 'wrong-activity')
+      WHERE lesson_run_id = 'lesson-run-001'
+    `).run();
+    const wrongCursor = await activityRoute.POST(jsonRequest(scopeActivityId, studentCookie, body), context(scopeActivityId));
+    assert.equal(wrongCursor.status, 409);
+
+    database.prepare(`
+      UPDATE classroom_lesson_runs
+      SET teaching_cursor_json = json_object('canonicalActivityId', ?)
+      WHERE lesson_run_id = 'lesson-run-001'
+    `).run(scopeActivityId);
+    const accepted = await activityRoute.POST(jsonRequest(scopeActivityId, studentCookie, body), context(scopeActivityId));
+    assert.equal(accepted.status, 200);
+    assert.deepEqual((await accepted.json()).delivery, body.delivery);
   });
 });
 
@@ -93,30 +186,30 @@ test('P02 and P03 activity APIs return targeted failure then persist a corrected
     for (const [index, activity] of cases.entries()) {
       if (index === 1) insertPassedP02Activities(database);
       const failedResponse = await activityRoute.POST(jsonRequest(activity.activityId, completeStudentCookie, {
-        attemptId: activity.attemptId,
+        attemptId: `${activity.attemptId}-failed`,
         response: { fields: { response: '凭感觉判断' } },
-        expectedVersion: 0,
+        delivery: { channel: 'self-study' },
       }), context(activity.activityId));
       assert.equal(failedResponse.status, 200);
       const failed = await failedResponse.json();
       assert.equal(failed.passed, false);
-      assert.equal(failed.version, 1);
+      assert.equal(failed.attemptNumber, 1);
       assert.ok(failed.feedback.length > 0);
       assert.ok(failed.correctionPath.length > 0);
 
       const passedResponse = await activityRoute.POST(jsonRequest(activity.activityId, completeStudentCookie, {
-        attemptId: activity.attemptId,
+        attemptId: `${activity.attemptId}-passed`,
         response: { fields: { response: activity.valid } },
-        expectedVersion: 1,
+        delivery: { channel: 'self-study' },
       }), context(activity.activityId));
       assert.equal(passedResponse.status, 200);
       const passed = await passedResponse.json();
       assert.equal(passed.passed, true);
-      assert.equal(passed.version, 2);
+      assert.equal(passed.attemptNumber, 2);
       assert.deepEqual(database.prepare(`
         SELECT student_id AS studentId, activity_id AS activityId, passed, origin
         FROM practice_attempts WHERE attempt_id = ?
-      `).get(activity.attemptId), {
+      `).get(`${activity.attemptId}-passed`), {
         studentId: 'stu-03',
         activityId: activity.activityId,
         passed: 1,
@@ -190,4 +283,19 @@ function insertPassedP02Activities(database: AppDatabase): void {
     ['P1T2-N03-micro-01', 'P1T2-N03'],
     ['P1T2-N04-micro-01', 'P1T2-N04'],
   ]) insert.run(`api-unlock-${activityId}`, activityId, nodeId);
+}
+
+function activateClassroomActivity(database: AppDatabase, canonicalActivityId: string): void {
+  database.prepare(`
+    INSERT INTO classroom_lesson_runs (
+      lesson_run_id, session_id, lesson_id, task_id, node_id, status,
+      teaching_cursor_json, started_at
+    ) VALUES ('lesson-run-001', 'demo-class', 'lesson-p01', 'P01', 'P1T1-N01',
+      'active', json_object('canonicalActivityId', ?), CURRENT_TIMESTAMP)
+  `).run(canonicalActivityId);
+  database.prepare(`
+    UPDATE classroom_sessions
+    SET status = 'active', active_node_id = 'P1T1-N01', active_lesson_run_id = 'lesson-run-001'
+    WHERE session_id = 'demo-class'
+  `).run();
 }

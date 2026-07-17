@@ -13,6 +13,12 @@ interface FormalAttemptRow {
   durationSeconds: number | null;
 }
 
+interface ClassroomPracticeAttemptRow {
+  studentId: string;
+  activityId: string;
+  passed: 0 | 1;
+}
+
 interface LearningEventRow {
   studentId: string;
   channel: 'self-study' | 'classroom' | 'game';
@@ -114,6 +120,24 @@ export class ClassroomRosterRepository {
       eventsByStudent.set(event.studentId, studentEvents);
     }
 
+    const classroomPracticeAttempts = this.database.prepare(`
+      SELECT attempt.student_id AS studentId, attempt.activity_id AS activityId, attempt.passed
+      FROM practice_attempts AS attempt
+      INNER JOIN classroom_members AS member
+        ON member.session_id = ? AND member.student_id = attempt.student_id
+      WHERE attempt.node_id = ?
+        AND attempt.delivery_channel = 'classroom'
+        AND attempt.classroom_session_id = ?
+        AND attempt.origin = 'user'
+      ORDER BY attempt.student_id, attempt.attempt_number, attempt.attempted_at, attempt.attempt_id
+    `).all(classroomSessionId, nodeId, classroomSessionId) as ClassroomPracticeAttemptRow[];
+    const classroomAttemptsByStudent = new Map<string, ClassroomPracticeAttemptRow[]>();
+    for (const attempt of classroomPracticeAttempts) {
+      const studentAttempts = classroomAttemptsByStudent.get(attempt.studentId) ?? [];
+      studentAttempts.push(attempt);
+      classroomAttemptsByStudent.set(attempt.studentId, studentAttempts);
+    }
+
     const outputs = this.database.prepare(`
       SELECT
         output.student_id AS studentId,
@@ -133,11 +157,9 @@ export class ClassroomRosterRepository {
       const firstAttempt = studentAttempts[0];
       const latestAttempt = studentAttempts.at(-1);
       const latestEvent = studentEvents.at(-1);
-      const classroomSubmission = latestMatchingEvent(
-        studentEvents,
-        (event) => event.eventType === 'classroom_activity_submitted',
-      );
-      const classroomEvidenceCount = submittedAnswerCount(classroomSubmission);
+      const classroomAttempts = classroomAttemptsByStudent.get(member.studentId) ?? [];
+      const latestClassroomAttempt = classroomAttempts.at(-1);
+      const classroomEvidenceCount = classroomAttempts.length;
       const output = outputByStudent.get(member.studentId);
       const bestGameScore = studentAttempts.length
         ? Math.max(...studentAttempts.map(({ score }) => score))
@@ -150,7 +172,7 @@ export class ClassroomRosterRepository {
         ? output.status === 'draft'
           ? 'draft'
           : output.status === 'submitted' ? 'submitted' : 'reviewed'
-        : classroomSubmission ? 'submitted' : 'draft';
+        : classroomEvidenceCount > 0 ? 'submitted' : 'draft';
       const outputEvidenceCount = output && output.status !== 'draft' ? 1 : 0;
       return {
         studentId: member.studentId,
@@ -161,7 +183,13 @@ export class ClassroomRosterRepository {
         selfStudyState,
         submissionState,
         evidenceCount: Math.max(classroomEvidenceCount, outputEvidenceCount),
-        lastAction: describeLastAction(nodeId, output, latestAttempt, latestEvent),
+        lastAction: describeLastAction(
+          nodeId,
+          output,
+          latestAttempt,
+          latestClassroomAttempt,
+          latestEvent,
+        ),
         risk: bestGameScore === undefined
           ? 'watch'
           : bestGameScore >= 80 ? 'ok' : bestGameScore >= 60 ? 'watch' : 'help',
@@ -188,39 +216,11 @@ function isCompletedLearningEvent(eventType: string): boolean {
   return eventType.endsWith('_passed') || eventType.endsWith('_completed');
 }
 
-function latestMatchingEvent(
-  events: LearningEventRow[],
-  predicate: (event: LearningEventRow) => boolean,
-): LearningEventRow | undefined {
-  for (let index = events.length - 1; index >= 0; index -= 1) {
-    if (predicate(events[index]!)) return events[index];
-  }
-  return undefined;
-}
-
-function submittedAnswerCount(event: LearningEventRow | undefined): number {
-  if (!event) return 0;
-  const payload = parseJsonRecord(event.payloadJson);
-  return Array.isArray(payload?.answers)
-    ? payload.answers.filter((answer) => typeof answer === 'string' && answer.trim().length > 0).length
-    : 0;
-}
-
-function parseJsonRecord(source: string): Record<string, unknown> | undefined {
-  try {
-    const value = JSON.parse(source) as unknown;
-    return value && typeof value === 'object' && !Array.isArray(value)
-      ? value as Record<string, unknown>
-      : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
 function describeLastAction(
   nodeId: string,
   output: ProfessionalOutputRow | undefined,
   latestAttempt: FormalAttemptRow | undefined,
+  latestClassroomAttempt: ClassroomPracticeAttemptRow | undefined,
   latestEvent: LearningEventRow | undefined,
 ): string {
   if (output?.status === 'verified') return `${nodeId} 专业产出已通过教师认证。`;
@@ -228,8 +228,8 @@ function describeLastAction(
   if (output?.status === 'submitted') return `${nodeId} 专业产出已提交。`;
   if (output?.status === 'draft') return `${nodeId} 专业产出草稿已保存。`;
   if (latestAttempt) return `已完成 ${nodeId} 正式测试，最新 ${latestAttempt.score} 分。`;
-  if (latestEvent?.eventType === 'classroom_activity_submitted') {
-    return `已提交 ${submittedAnswerCount(latestEvent)} 条 ${nodeId} 课堂证据。`;
+  if (latestClassroomAttempt) {
+    return `已提交 ${nodeId} 课堂活动${latestClassroomAttempt.passed ? '并通过' : ''}。`;
   }
   if (latestEvent && isCompletedLearningEvent(latestEvent.eventType)) {
     return `已完成 ${nodeId} 学习练习。`;

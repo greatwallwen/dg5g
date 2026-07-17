@@ -64,10 +64,10 @@ test('the self-study surface exposes one primary continuation and a bounded text
   assert.match(html, /data-primary-action-policy="exactly-one"/);
   assert.match(html, /class="self-study-sections self-study-textbook-body"/);
   assert.equal((html.match(/data-primary-action="true"/g) ?? []).length, 1);
-  assert.match(html, /data-primary-action="true"[^>]*>下一段/);
+  assert.match(html, /data-primary-action="true"[^>]*>完成本段并继续/);
   assert.equal((html.match(/aria-current="step"/g) ?? []).length, 1);
   assert.equal((html.match(/<button[^>]*data-self-study-section-tab=/g) ?? []).length, 6);
-  assert.equal((source.match(/data-primary-action="true"/g) ?? []).length, 2, 'next and output branches each own their primary action');
+  assert.equal((source.match(/data-primary-action="true"/g) ?? []).length, 3, 'reading, practice, and output branches each own their primary action');
   assert.match(source, /scrollIntoView\(\{ block: 'nearest'/);
 });
 
@@ -80,6 +80,34 @@ test('the renderer owns one persistent terminology lookup across all six section
   assert.match(html, /data-self-study-figure="topology"/);
   assert.equal((html.match(/data-self-study-glossary="true"/g) ?? []).length, 1);
   assert.match(html, /class="self-study-workspace"/);
+});
+
+test('renderer persists canonical six-section cursors and records reading only through explicit continuation', () => {
+  const document = requireSelfStudyDocument('P1T1-N02');
+  const html = renderToStaticMarkup(
+    <SelfStudyRenderer completed={false} document={document} onComplete={() => undefined} saving={false} />,
+  );
+  const rendererSource = readFileSync(new URL('./self-study-renderer.tsx', import.meta.url), 'utf8');
+  const shellSource = readFileSync(new URL('./textbook-scene-shell.tsx', import.meta.url), 'utf8');
+
+  assert.match(rendererSource, /readSelfStudyCursor/);
+  assert.match(rendererSource, /saveSelfStudyCursor/);
+  assert.match(rendererSource, /selfStudySectionFromCursor/);
+  for (const sectionId of ['problem', 'figure', 'steps', 'correction'] as const) {
+    const sectionHtml = renderToStaticMarkup(
+      <SelfStudyRenderer
+        completed={false}
+        document={document}
+        initialSection={sectionId}
+        onComplete={() => undefined}
+        saving={false}
+      />,
+    );
+    assert.match(sectionHtml, new RegExp(`data-complete-reading-section="${sectionId}"`));
+  }
+  assert.doesNotMatch(html, /data-complete-reading-section="practice"/);
+  assert.doesNotMatch(html, /data-complete-reading-section="output"/);
+  assert.doesNotMatch(shellSource, /for \(const sectionId of \['understand', 'evidence', 'explain', 'practice'\]\)/);
 });
 
 test('the same renderer adapts a standard node without falling back to summary-only content', () => {

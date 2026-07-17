@@ -417,9 +417,18 @@ function projectSubmissionMetrics(
   observedAt: Date,
 ): SnapshotSubmissionMetrics {
   const classSize = students.length;
-  const classroomSubmitted = !activeNodeId ? 0 : students.filter(({ learning }) => (
-    learning.nodes.find(({ nodeId }) => nodeId === activeNodeId)?.classroomSubmitted === true
-  )).length;
+  const classroomSubmitted = !activeNodeId ? 0 : Number(database.prepare(`
+    SELECT COUNT(DISTINCT attempt.student_id)
+    FROM practice_attempts AS attempt
+    INNER JOIN classroom_members AS member
+      ON member.session_id = ? AND member.student_id = attempt.student_id
+    INNER JOIN users AS student
+      ON student.id = member.student_id AND student.role = 'student' AND student.is_active = 1
+    WHERE attempt.node_id = ?
+      AND attempt.delivery_channel = 'classroom'
+      AND attempt.classroom_session_id = ?
+      AND attempt.origin = 'user'
+  `).pluck().get(session.sessionId, activeNodeId, session.sessionId));
   const storedFormalTest = session.state.formalTest;
   const formalTest = storedFormalTest && activeNodeId && storedFormalTest.nodeId === activeNodeId
     ? storedFormalTest

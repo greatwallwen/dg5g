@@ -1,7 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { publicActivityFromPractice } from '../learning-activities/activity-definition.ts';
+import {
+  publicActivityFromPractice,
+  type ActivityAttemptResult,
+} from '../learning-activities/activity-definition.ts';
+import type { ActivityDeliveryContext } from '../learning-activities/activity-delivery-context.ts';
 import { ActivityWorkbench } from '../learning-activities/activity-workbench.tsx';
 import { practiceCardClassName } from '../learning-activities/practice-card-state.ts';
 import { Icon } from '../../ui/foundation/icons.tsx';
@@ -10,10 +14,19 @@ import type { SelfStudyDocument, SelfStudyPractice } from './self-study-types.ts
 type PracticeLevel = 'foundation' | 'application' | 'transfer';
 type PracticeRow = { level: PracticeLevel; levelLabel: string; practice: SelfStudyPractice };
 
-export function PracticeSection({ document, passedIds, onPass, focusedActivityId }: {
+export function PracticeSection({
+  document,
+  passedIds,
+  onPass,
+  onAttempt,
+  delivery = { channel: 'self-study' },
+  focusedActivityId,
+}: {
   document: SelfStudyDocument;
   passedIds: string[];
   onPass: (practiceId: string) => void;
+  onAttempt?: (result: ActivityAttemptResult) => void;
+  delivery?: ActivityDeliveryContext;
   focusedActivityId?: string;
 }) {
   return (
@@ -29,6 +42,8 @@ export function PracticeSection({ document, passedIds, onPass, focusedActivityId
               key={practice.id}
               level={level}
               levelLabel={levelLabel}
+              delivery={delivery}
+              onAttempt={onAttempt}
               onPass={() => onPass(practice.id)}
               passed={passedIds.includes(practice.id)}
             />
@@ -38,7 +53,6 @@ export function PracticeSection({ document, passedIds, onPass, focusedActivityId
               key={practice.id}
               level={level}
               levelLabel={levelLabel}
-              onPass={() => onPass(practice.id)}
               passed={passedIds.includes(practice.id)}
               practice={practice}
             />
@@ -49,12 +63,11 @@ export function PracticeSection({ document, passedIds, onPass, focusedActivityId
   );
 }
 
-function WrittenPracticeCard({ level, levelLabel, practice, passed, onPass, focused }: {
+function WrittenPracticeCard({ level, levelLabel, practice, passed, focused }: {
   level: PracticeLevel;
   levelLabel: string;
   practice: SelfStudyPractice;
   passed: boolean;
-  onPass: () => void;
   focused: boolean;
 }) {
   const [answer, setAnswer] = useState<'idle' | 'wrong' | 'correct'>(passed ? 'correct' : 'idle');
@@ -62,11 +75,6 @@ function WrittenPracticeCard({ level, levelLabel, practice, passed, onPass, focu
   useEffect(() => {
     if (passed) setAnswer('correct');
   }, [passed]);
-
-  function answerCorrectly() {
-    setAnswer('correct');
-    onPass();
-  }
 
   return (
     <article
@@ -81,7 +89,7 @@ function WrittenPracticeCard({ level, levelLabel, practice, passed, onPass, focu
           <span>岗位作答记录</span>
           <textarea onChange={(event) => setResponse(event.target.value)} value={response} />
         </label>
-        <button disabled={!response.trim()} onClick={answerCorrectly} type="button">提交练习记录</button>
+        <button disabled={!response.trim()} onClick={() => setAnswer('wrong')} type="button">提交练习记录</button>
       </div>
       <div className="self-study-practice-feedback" hidden={answer === 'idle'} role="status">
         <span>{answer === 'correct' ? '判断通过' : '错误反馈'}</span>

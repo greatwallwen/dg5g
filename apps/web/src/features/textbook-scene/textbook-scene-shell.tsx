@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { TextbookSceneMode } from '@/platform/models';
 import { createDemoTaskProfiles, getDemoTaskProfileForNode, type DemoTaskProfiles } from '@/features/platform/deep-textbook-demo-data';
-import { recordLearningEvent, type LearningProgressSnapshot } from '@/features/skill-tree/skill-progress-client';
+import type { LearningProgressSnapshot } from '@/features/skill-tree/skill-progress-client';
 import { fetchAuthoritativeSnapshot } from '@/features/snapshot/authoritative-snapshot-client';
 import { skillGameForNode } from '@/platform/fixtures/skill-game-fixtures';
 import { nodeLearningPolicies, type P1TaskId } from '@/platform/learning-policy';
@@ -22,6 +22,7 @@ import { CourseGraphStage } from './course-graph-stage';
 import { FullscreenToggle } from './fullscreen-toggle';
 import { playbackSceneForLearningUnit } from './learning-playback';
 import { LearningScene } from './learning-scene';
+import { persistReadingSection } from './textbook-scene-learning-facts';
 import { classifyCompletedLearningNode } from './textbook-scene-policy';
 import { profileForTask, SceneContext, SceneRail, UnavailableNodeNotice } from './textbook-scene-support';
 import type { SelfStudyDocument } from './self-study-types';
@@ -143,20 +144,14 @@ function SupportedTextbookSceneShell({ displayName, focusedActivityId, graph, in
   async function completeNode() {
     setSaving(true);
     try {
-      let commandSnapshot: LearningProgressSnapshot = snapshot;
-      for (const sectionId of ['understand', 'evidence', 'explain', 'practice']) {
-        commandSnapshot = await recordLearningEvent({
-          eventId: `${commandSnapshot.studentId}:${selectedNodeId}:self-study:${sectionId}`,
-          nodeId: selectedNodeId,
-          taskId,
-          channel: 'self-study',
-          type: 'section_completed',
-          sectionId,
-          completed: true,
-        }, commandSnapshot.version);
-      }
       const nextSnapshot = await fetchStudentCut(sessionId);
       setSnapshot(nextSnapshot);
+      const refreshedNode = nextSnapshot.progress.find(({ nodeId }) => nodeId === selectedNodeId);
+      const policy = nodeLearningPolicies.find(({ nodeId }) => nodeId === selectedNodeId);
+      const requiredMilestone = policy?.requiresProfessionalOutput
+        ? 'evidence-submitted'
+        : 'micro-practice-passed';
+      if (!refreshedNode?.learningStateTrail?.includes(requiredMilestone)) return;
       const destination = classifyCompletedLearningNode(selectedNodeId);
       if (destination.kind === 'unavailable') {
         setUnavailableNodeId(selectedNodeId);
@@ -225,6 +220,9 @@ function SupportedTextbookSceneShell({ displayName, focusedActivityId, graph, in
               focusedActivityId={selectedNodeId === initialNodeId ? focusedActivityId : undefined}
               initialSection={selectedNodeId === initialNodeId ? initialSection : undefined}
               onComplete={completeNode}
+              onReadingComplete={(sectionId) => persistReadingSection({
+                sectionId, selectedNodeId, setSaving, setSnapshot, snapshot, taskId,
+              })}
               saving={saving}
             /></div>
             {contextOpen ? <SceneContext mastery={taskMastery} onClose={closeContext} profile={profile} unit={unit} /> : null}

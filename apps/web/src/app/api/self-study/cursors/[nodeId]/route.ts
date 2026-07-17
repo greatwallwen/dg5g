@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getDemoUnitForNode } from '@/features/platform/deep-textbook-demo-data';
-import { playbackSceneForLearningUnit } from '@/features/textbook-scene/learning-playback';
 import {
-  loadDemoTaskProfiles,
   requireSelfStudyDocument,
   selfStudySectionDefinitions,
 } from '@/features/textbook-scene/self-study-content';
@@ -101,23 +98,12 @@ function validateGeneratedCursor(nodeId: P1NodeId, draft: SelfStudyCursorDraft):
   if (draft.unitId !== undefined && draft.unitId !== document.sourceKnowledgeUnitId) {
     throw new TypeError(`unitId does not belong to ${nodeId}.`);
   }
-  const profiles = loadDemoTaskProfiles();
-  const unit = getDemoUnitForNode(nodeId, profiles);
-  if (!unit) throw new TypeError(`Generated unit is unavailable for ${nodeId}.`);
-  const playback = playbackSceneForLearningUnit(unit, document.taskId);
-  const allowedActionIds = new Set(playback.actions.map(({ id }) => id));
-  for (const section of selfStudySectionDefinitions) {
-    allowedActionIds.add(`${nodeId}-lesson-${section.id}`);
+  const sectionIndex = selfStudySectionDefinitions.findIndex(({ id }) => id === draft.actionId);
+  if (sectionIndex < 0) {
+    throw new TypeError(`actionId must be a canonical self-study section for ${nodeId}.`);
   }
-  if (document.content.kind === 'deep') {
-    allowedActionIds.add(`${nodeId}-lesson-evidence`);
-    allowedActionIds.add(`${nodeId}-lesson-example`);
-  }
-  if (draft.actionId !== undefined && !allowedActionIds.has(draft.actionId)) {
-    throw new TypeError(`actionId does not belong to ${nodeId}.`);
-  }
-  if (draft.actionIndex >= Math.max(playback.actions.length, selfStudySectionDefinitions.length)) {
-    throw new TypeError(`actionIndex is outside the generated content for ${nodeId}.`);
+  if (draft.actionIndex !== sectionIndex) {
+    throw new TypeError(`actionIndex does not match ${draft.actionId} for ${nodeId}.`);
   }
 }
 

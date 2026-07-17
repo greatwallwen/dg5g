@@ -693,7 +693,7 @@ function seedPassedP01Activities(
     assert.ok(activity);
     const result = repository.recordEvaluatedAttempt({
       attemptId: `source-${activityId}`, studentId, activity,
-      response, expectedVersion: 0,
+      response, delivery: { channel: 'self-study' },
     });
     assert.equal(result.passed, true, activityId);
   }

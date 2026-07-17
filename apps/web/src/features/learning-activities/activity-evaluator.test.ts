@@ -71,17 +71,25 @@ test('each activity kind uses its own answer model', () => {
   });
 });
 
-test('repository persists the server-evaluated attempt in migration 009 practice_attempts', () => {
+test('repository appends immutable self-study and classroom attempts with one shared sequence', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
     seedBase(fixture.database);
     const repository = new ActivityRepository(fixture.database);
     const activity = p01BaseActivities[0]!;
-    const result = repository.recordEvaluatedAttempt({
-      attemptId: 'practice-attempt-001',
+    const wrong = repository.recordEvaluatedAttempt({
+      attemptId: 'practice-attempt-wrong',
       studentId: 'stu-01',
       activity,
+      delivery: { channel: 'classroom', sessionId: 'demo-class', classroomRunId: 'lesson-run-001' },
+      response: { assignments: { 'room-01-cabinets': 'out-of-scope' } },
+    });
+    const corrected = repository.recordEvaluatedAttempt({
+      attemptId: 'practice-attempt-corrected',
+      studentId: 'stu-01',
+      activity,
+      delivery: { channel: 'self-study' },
       response: {
         assignments: {
           'room-01-cabinets': 'in-scope',
@@ -89,30 +97,35 @@ test('repository persists the server-evaluated attempt in migration 009 practice
           'room-02-cabinets': 'out-of-scope',
         },
       },
-      expectedVersion: 0,
     });
 
-    assert.equal(result.passed, true);
-    assert.equal(result.version, 1);
-    assert.deepEqual(repository.readAttempt('stu-01', 'practice-attempt-001'), result);
+    assert.equal(wrong.passed, false);
+    assert.equal(wrong.attemptNumber, 1);
+    assert.deepEqual(wrong.delivery, {
+      channel: 'classroom', sessionId: 'demo-class', classroomRunId: 'lesson-run-001',
+    });
+    assert.ok(wrong.mistakeCodes.length > 0);
+    assert.ok(Object.keys(wrong.fieldFeedback).length > 0);
+    assert.equal(corrected.passed, true);
+    assert.equal(corrected.attemptNumber, 2);
+    assert.deepEqual(corrected.delivery, { channel: 'self-study' });
+    assert.ok(corrected.snapshotVersion > wrong.snapshotVersion);
+    assert.deepEqual(repository.readAttempt('stu-01', 'practice-attempt-corrected'), corrected);
     assert.deepEqual(fixture.database.prepare(`
       SELECT student_id AS studentId, activity_id AS activityId, node_id AS nodeId,
-        passed, origin
+        passed, origin, delivery_channel AS deliveryChannel, attempt_number AS attemptNumber
       FROM practice_attempts WHERE attempt_id = ?
-    `).get('practice-attempt-001'), {
+    `).get('practice-attempt-corrected'), {
       studentId: 'stu-01',
       activityId: activity.activity.id,
       nodeId: activity.activity.nodeId,
       passed: 1,
       origin: 'user',
+      deliveryChannel: 'self-study',
+      attemptNumber: 2,
     });
-    assert.throws(() => repository.recordEvaluatedAttempt({
-      attemptId: 'practice-attempt-001',
-      studentId: 'stu-01',
-      activity,
-      response: {},
-      expectedVersion: 0,
-    }), /expected version 0, received 1/i);
+    assert.equal(fixture.database.prepare(`SELECT COUNT(*) FROM practice_attempts`).pluck().get(), 2);
+    assert.ok(repository.readTopicVersion('learning:stu-01') > 0);
   } finally {
     fixture.cleanup();
   }
@@ -271,30 +284,30 @@ test('repository records targeted failure and successful retry for P02 and P03 a
       assert.ok(activity);
       const attemptId = `retry-${activityId}`;
       const failed = repository.recordEvaluatedAttempt({
-        attemptId,
+        attemptId: `${attemptId}-failed`,
         studentId: 'stu-01',
         activity,
+        delivery: { channel: 'self-study' },
         response: { fields: { response: '只有一个主观结论' } },
-        expectedVersion: 0,
       });
       assert.equal(failed.passed, false);
       assert.equal(failed.feedback, activity.activity.feedback.failed);
       assert.ok(failed.correctionPath.length > 0);
 
       const passed = repository.recordEvaluatedAttempt({
-        attemptId,
+        attemptId: `${attemptId}-passed`,
         studentId: 'stu-01',
         activity,
+        delivery: { channel: 'self-study' },
         response: { fields: { response: validStructuredResponses[activityId] } },
-        expectedVersion: 1,
       });
       assert.equal(passed.passed, true);
-      assert.equal(passed.version, 2);
+      assert.equal(passed.attemptNumber, 2);
       assert.equal(passed.feedback, activity.activity.feedback.passed);
       assert.deepEqual(fixture.database.prepare(`
         SELECT activity_id AS activityId, node_id AS nodeId, passed, origin
         FROM practice_attempts WHERE attempt_id = ?
-      `).get(attemptId), {
+      `).get(`${attemptId}-passed`), {
         activityId,
         nodeId: activity.activity.nodeId,
         passed: 1,

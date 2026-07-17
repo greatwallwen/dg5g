@@ -11,10 +11,14 @@ import type {
 export function evaluateActivity(
   definition: ServerActivityDefinition,
   response: unknown,
-): Omit<ActivityAttemptResult, 'version'> {
+): Pick<
+  ActivityAttemptResult,
+  'passed' | 'feedback' | 'mistakeCodes' | 'fieldFeedback' | 'correctionPath' | 'artifact'
+> {
   const { activity, rule } = definition;
   const normalizedResponse = isRecord(response) ? response : {};
   const passed = matchesRule(rule, normalizedResponse);
+  const incorrectFields = passed ? [] : diagnosticFields(rule);
   const artifact: ActivityArtifact = {
     type: 'learning-activity-artifact',
     activityId: activity.id,
@@ -26,9 +30,19 @@ export function evaluateActivity(
   return {
     passed,
     feedback: passed ? activity.feedback.passed : activity.feedback.failed,
+    mistakeCodes: incorrectFields.map((field) => `${activity.kind}:${field}:incorrect`),
+    fieldFeedback: Object.fromEntries(
+      incorrectFields.map((field) => [field, activity.feedback.failed]),
+    ),
     correctionPath: passed ? [] : [...activity.correctionPath],
     artifact,
   };
+}
+
+function diagnosticFields(rule: ActivityEvaluationRule): string[] {
+  if (rule.type === 'exact-map') return Object.keys(rule.expected);
+  if (rule.type === 'exact-sequence') return [rule.responseKey];
+  return Object.keys(rule.constraints);
 }
 
 function matchesRule(rule: ActivityEvaluationRule, response: Record<string, unknown>): boolean {

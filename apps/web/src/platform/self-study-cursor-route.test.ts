@@ -28,8 +28,8 @@ test('cursor PUT persists a complete per-node cursor and ignores query identity 
   await withFixture(async ({ database, studentCookie }) => {
     const response = await cursorRoute.PUT(request('PUT', studentCookie, {
       unitId: 'P01-ku-01',
-      actionId: 'P1T1-N01-lesson-case',
-      actionIndex: 1,
+      actionId: 'problem',
+      actionIndex: 0,
       positionMs: 4_200,
     }, '?studentId=stu-02'), context());
     assert.equal(response.status, 200);
@@ -37,8 +37,8 @@ test('cursor PUT persists a complete per-node cursor and ignores query identity 
       studentId: 'stu-01',
       nodeId: 'P1T1-N01',
       unitId: 'P01-ku-01',
-      actionId: 'P1T1-N01-lesson-case',
-      actionIndex: 1,
+      actionId: 'problem',
+      actionIndex: 0,
       positionMs: 4_200,
     });
 

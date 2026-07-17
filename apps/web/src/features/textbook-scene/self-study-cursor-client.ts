@@ -4,6 +4,7 @@ import type {
   SelfStudyCursor,
   SelfStudyCursorDraft,
 } from '../../platform/self-study-cursor-repository.ts';
+import type { SelfStudySectionId } from './self-study-types.ts';
 
 export class SelfStudyCursorClientError extends Error {
   override readonly name = 'SelfStudyCursorClientError';
@@ -44,6 +45,27 @@ export function saveSelfStudyCursor(
   draft: SelfStudyCursorDraft,
 ): Promise<SelfStudyCursor> {
   return createSelfStudyCursorClient().save(nodeId, draft);
+}
+
+const canonicalSectionIds = new Set<SelfStudySectionId>([
+  'problem', 'figure', 'steps', 'correction', 'practice', 'output',
+]);
+
+export function selfStudySectionFromCursor(
+  cursor: Pick<SelfStudyCursor, 'actionId'>,
+): SelfStudySectionId | undefined {
+  const actionId = cursor.actionId;
+  if (!actionId) return undefined;
+  if (canonicalSectionIds.has(actionId as SelfStudySectionId)) {
+    return actionId as SelfStudySectionId;
+  }
+  if (/(?:lesson|learning)-(?:case|problem)$/.test(actionId)) return 'problem';
+  if (/(?:lesson|learning)-(?:visual|evidence|figure)$/.test(actionId)) return 'figure';
+  if (/(?:lesson|learning)-(?:procedure|example|steps)$/.test(actionId)) return 'steps';
+  if (/(?:lesson|learning)-correction$/.test(actionId)) return 'correction';
+  if (/(?:lesson|learning)-practice$/.test(actionId)) return 'practice';
+  if (/(?:lesson|learning)-output$/.test(actionId)) return 'output';
+  return undefined;
 }
 
 async function request(fetchImpl: FetchLike, nodeId: string, init: RequestInit): Promise<SelfStudyCursor> {

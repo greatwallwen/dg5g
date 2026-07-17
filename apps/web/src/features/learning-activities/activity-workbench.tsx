@@ -3,27 +3,40 @@
 import { useEffect, useRef, useState } from 'react';
 import type {
   ActivityAttemptResult,
+  ActivityProgressDto,
   ActivityPublicDto,
 } from './activity-definition.ts';
+import type { ActivityDeliveryContext } from './activity-delivery-context.ts';
 import { ActivityControl } from './activity-controls.tsx';
 import {
   activityPracticeCardState,
   practiceCardClassName,
 } from './practice-card-state.ts';
 
-export function ActivityWorkbench({ activity, level, levelLabel, passed, onPass, focused = false }: {
+export function ActivityWorkbench({
+  activity,
+  level,
+  levelLabel,
+  passed,
+  onPass,
+  onAttempt,
+  delivery = selfStudyDelivery,
+  focused = false,
+}: {
   activity: ActivityPublicDto;
   level: 'foundation' | 'application' | 'transfer';
   levelLabel: string;
   passed: boolean;
   onPass: () => void;
+  onAttempt?: (result: ActivityAttemptResult) => void;
+  delivery?: ActivityDeliveryContext;
   focused?: boolean;
 }) {
   const cardRef = useRef<HTMLElement>(null);
   const [values, setValues] = useState<Record<string, string>>({});
   const [order, setOrder] = useState<string[]>([]);
-  const [attemptId, setAttemptId] = useState('');
-  const [version, setVersion] = useState(0);
+  const [persistedPassed, setPersistedPassed] = useState(passed);
+  const [attemptCount, setAttemptCount] = useState(0);
   const [result, setResult] = useState<ActivityAttemptResult | null>(null);
   const [requestError, setRequestError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -31,11 +44,26 @@ export function ActivityWorkbench({ activity, level, levelLabel, passed, onPass,
   useEffect(() => {
     setValues({});
     setOrder([]);
-    setAttemptId('');
-    setVersion(0);
+    setPersistedPassed(passed);
+    setAttemptCount(0);
     setResult(null);
     setRequestError('');
-  }, [activity.id]);
+    let current = true;
+    void fetch(`/api/learning/activities/${encodeURIComponent(activity.id)}/attempts`, {
+      method: 'GET',
+      cache: 'no-store',
+      credentials: 'same-origin',
+    }).then(async (response) => {
+      if (!response.ok) return;
+      const progress = await response.json() as ActivityProgressDto;
+      if (!current || progress.canonicalActivityId !== activity.id) return;
+      setPersistedPassed(progress.passed);
+      setAttemptCount(progress.attemptCount);
+      setResult(progress.lastAttempt ?? null);
+      if (progress.passed) onPass();
+    }).catch(() => undefined);
+    return () => { current = false; };
+  }, [activity.id, passed]);
 
   useEffect(() => {
     if (focused) cardRef.current?.scrollIntoView({ block: 'center', behavior: 'auto' });
@@ -44,8 +72,7 @@ export function ActivityWorkbench({ activity, level, levelLabel, passed, onPass,
   async function submitAttempt() {
     setSaving(true);
     setRequestError('');
-    const currentAttemptId = attemptId || createAttemptId(activity.id);
-    if (!attemptId) setAttemptId(currentAttemptId);
+    const currentAttemptId = createAttemptId(activity.id);
     try {
       const response = await fetch(`/api/learning/activities/${encodeURIComponent(activity.id)}/attempts`, {
         method: 'POST',
@@ -53,15 +80,17 @@ export function ActivityWorkbench({ activity, level, levelLabel, passed, onPass,
         body: JSON.stringify({
           attemptId: currentAttemptId,
           response: responseFor(activity, values, order),
-          expectedVersion: version,
+          delivery,
         }),
       });
       const payload = await response.json() as ActivityAttemptResult | { error?: string };
-      if (!response.ok || !('version' in payload)) {
+      if (!response.ok || !('attemptId' in payload)) {
         throw new Error('error' in payload && payload.error ? payload.error : '练习提交失败，请稍后重试。');
       }
       setResult(payload);
-      setVersion(payload.version);
+      setAttemptCount(payload.attemptNumber);
+      setPersistedPassed((current) => current || payload.passed);
+      onAttempt?.(payload);
       if (payload.passed) onPass();
     } catch (error) {
       setRequestError(error instanceof Error ? error.message : '练习提交失败，请稍后重试。');
@@ -79,7 +108,8 @@ export function ActivityWorkbench({ activity, level, levelLabel, passed, onPass,
 
   return (
     <article
-      className={practiceCardClassName(activityPracticeCardState({ persistedPassed: passed, result }))}
+      className={practiceCardClassName(activityPracticeCardState({ persistedPassed, result }))}
+      data-activity-attempt-count={attemptCount}
       data-activity-id={activity.id}
       data-activity-kind={activity.kind}
       data-practice-level={level}
@@ -120,6 +150,8 @@ export function ActivityWorkbench({ activity, level, levelLabel, passed, onPass,
     </article>
   );
 }
+
+const selfStudyDelivery: ActivityDeliveryContext = { channel: 'self-study' };
 
 function responseFor(
   activity: ActivityPublicDto,

@@ -138,7 +138,7 @@ test('projects persisted task-output review facts only onto their database membe
   }
 });
 
-test('treats a valid but non-object event payload as unknown instead of failing the class loader', () => {
+test('historical generic classroom events never become roster submission authority', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
@@ -153,8 +153,35 @@ test('treats a valid but non-object event payload as unknown instead of failing 
       .readStudentRoster('demo-class', 'P1T1-N02');
     const studentThree = roster.find(({ studentId }) => studentId === 'stu-03');
 
-    assert.equal(studentThree?.submissionState, 'submitted');
+    assert.equal(studentThree?.submissionState, 'draft');
     assert.equal(studentThree?.evidenceCount, 0);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('classroom roster submission counts derive only from classroom-delivered practice attempts', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    fixture.database.prepare(`
+      INSERT INTO practice_attempts (
+        attempt_id, student_id, activity_id, node_id, passed, origin,
+        delivery_channel, classroom_session_id, classroom_run_id, attempt_number
+      ) VALUES (
+        'classroom-practice-real', 'stu-01', 'P1T1-N02-foundation-01', 'P1T1-N02',
+        1, 'user', 'classroom', 'demo-class', 'lesson-run-real', 1
+      )
+    `).run();
+
+    const student = new ClassroomRosterRepository(fixture.database)
+      .readStudentRoster('demo-class', 'P1T1-N02')
+      .find(({ studentId }) => studentId === 'stu-01');
+
+    assert.equal(student?.submissionState, 'submitted');
+    assert.equal(student?.evidenceCount, 1);
+    assert.match(student?.lastAction ?? '', /课堂活动/);
   } finally {
     fixture.cleanup();
   }

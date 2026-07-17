@@ -137,12 +137,12 @@ test('P01 GET projects passed activity facts and draft persistence derives field
       attemptId: 'route-prefill-scope',
       studentId: 'stu-02',
       activity,
+      delivery: { channel: 'self-study' },
       response: { assignments: {
         'room-01-cabinets': 'in-scope',
         'shared-operator-cabinet': 'out-of-scope',
         'room-02-cabinets': 'out-of-scope',
       } },
-      expectedVersion: 0,
     });
 
     const readResponse = outputRoute.GET(new Request(
@@ -477,7 +477,7 @@ test('event POST derives student identity only from the HttpOnly session actor',
         studentId: 'stu-02',
         channel: 'self-study',
         eventType: 'section_completed',
-        payload: { sectionId: 'evidence', completed: true },
+        payload: { sectionId: 'figure', completed: true },
         expectedVersion: before,
       }),
     }), { params: { nodeId: 'P1T1-N02' } });
@@ -632,7 +632,7 @@ test('event ID replay stays 200 while the retired attempt route rejects score re
       eventId: 'route-idempotent-event',
       channel: 'self-study',
       eventType: 'section_completed',
-      payload: { sectionId: 'understand', completed: true },
+      payload: { sectionId: 'problem', completed: true },
       expectedVersion: initialVersion,
     };
     const firstEvent = await eventRoute.POST(jsonRequest(

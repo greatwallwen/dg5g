@@ -489,7 +489,7 @@ test('requires real post-failure passed activities and unlocks only after every 
     );
 
     let snapshot = learning.readStudentSnapshot(studentOne);
-    for (const [index, sectionId] of ['understand', 'evidence', 'explain', 'practice'].entries()) {
+    for (const [index, sectionId] of ['problem', 'figure', 'steps', 'correction'].entries()) {
       snapshot = learning.appendEvent(studentOne, {
         eventId: `generic-node-complete-${index}`,
         nodeId: 'P1T1-N02',
@@ -513,8 +513,8 @@ test('requires real post-failure passed activities and unlocks only after every 
         attemptId: `real-remediation-${index}`,
         studentId: studentOne.userId,
         activity,
+        delivery: { channel: 'self-study' },
         response: correctActivityResponse(target.activityId),
-        expectedVersion: 0,
       });
       assert.equal(result.passed, true);
       assert.equal(

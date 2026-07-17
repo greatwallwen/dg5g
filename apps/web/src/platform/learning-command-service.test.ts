@@ -58,13 +58,13 @@ test('an authenticated student appends a learning event only to their own SQLite
       nodeId: 'P1T1-N02',
       channel: 'self-study',
       eventType: 'section_completed',
-      payload: { sectionId: 'evidence', completed: true },
+      payload: { sectionId: 'problem', completed: true },
       expectedVersion: before,
     });
 
     assert.equal(snapshot.studentId, 'stu-01');
     assert.equal(snapshot.version, before + 1);
-    assert.ok(snapshot.nodes.find((node) => node.nodeId === 'P1T1-N02')?.completedSections.includes('evidence'));
+    assert.ok(snapshot.nodes.find((node) => node.nodeId === 'P1T1-N02')?.completedSections.includes('problem'));
     assert.equal(repository.readStudentFacts('stu-02').events.some((event) => event.eventId === 'command-service-section-1'), false);
   } finally {
     fixture.cleanup();
@@ -242,9 +242,9 @@ test('student event matrix rejects direct pass facts and malformed section, game
     const before = repository.readTopicVersion('learning:stu-01');
     const invalidCommands = [
       { eventId: 'direct-pass', nodeId: 'P1T1-N02', channel: 'self-study', eventType: 'micro_practice_passed', payload: {} },
-      { eventId: 'bad-section-channel', nodeId: 'P1T1-N02', channel: 'classroom', eventType: 'section_completed', payload: { sectionId: 'understand', completed: true } },
+      { eventId: 'bad-section-channel', nodeId: 'P1T1-N02', channel: 'classroom', eventType: 'section_completed', payload: { sectionId: 'problem', completed: true } },
       { eventId: 'bad-section-id', nodeId: 'P1T1-N02', channel: 'self-study', eventType: 'section_completed', payload: { sectionId: 'invented', completed: true } },
-      { eventId: 'incomplete-section', nodeId: 'P1T1-N02', channel: 'self-study', eventType: 'section_completed', payload: { sectionId: 'understand', completed: false } },
+      { eventId: 'incomplete-section', nodeId: 'P1T1-N02', channel: 'self-study', eventType: 'section_completed', payload: { sectionId: 'problem', completed: false } },
       { eventId: 'formal-game-event', nodeId: 'P1T1-N02', channel: 'game', eventType: 'game_completed', payload: { formal: true, completed: true } },
       { eventId: 'incomplete-game-event', nodeId: 'P1T1-N02', channel: 'game', eventType: 'game_completed', payload: { formal: false, completed: false } },
       { eventId: 'wrong-classroom-node', nodeId: 'P1T1-N01', channel: 'classroom', eventType: 'classroom_submitted', payload: { completed: true } },

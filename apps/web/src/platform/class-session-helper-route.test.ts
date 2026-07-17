@@ -163,7 +163,7 @@ test('student and projector projections do not expose the class roster or privat
   assert.equal(JSON.stringify(projector).includes('stu-01'), false);
 });
 
-test('student projection does not expose session-wide answers or other formal-test participants', async () => {
+test('legacy generic activity submission is rejected without completion side effects or private-data exposure', async () => {
   const sessionId = 'P1T1-N02-private-student-work';
   joinStudent(sessionId, 'stu-01');
   const submissionResponse = await classRoute.PATCH(
@@ -181,7 +181,19 @@ test('student projection does not expose session-wide answers or other formal-te
     }),
     { params: { sessionId } },
   );
-  assert.equal(submissionResponse.status, 200);
+  assert.equal(submissionResponse.status, 400);
+  assert.equal(authFixture.database.prepare(`
+    SELECT COUNT(*) FROM learning_events
+    WHERE student_id = 'stu-01' AND event_type = 'classroom_activity_submitted'
+  `).pluck().get(), 0);
+  assert.equal(authFixture.database.prepare(`
+    SELECT COUNT(*) FROM practice_attempts
+    WHERE student_id = 'stu-01' AND classroom_session_id = ?
+  `).pluck().get(sessionId), 0);
+  assert.equal(
+    new ClassroomParticipationRepository(authFixture.database).read(sessionId, 'stu-01')?.mode,
+    'follow',
+  );
 
   const response = await classRoute.GET(
     authenticatedRequest(`http://localhost/api/class-sessions/${sessionId}`, studentCookies['stu-02']),

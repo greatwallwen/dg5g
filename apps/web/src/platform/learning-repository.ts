@@ -51,6 +51,10 @@ export interface StoredPracticeAttempt {
   response: unknown;
   result: unknown;
   artifact: unknown;
+  deliveryChannel: 'self-study' | 'classroom';
+  classroomSessionId?: string;
+  classroomRunId?: string;
+  attemptNumber: number;
   attemptedAt: string;
   origin: LearningOrigin;
 }
@@ -170,18 +174,14 @@ interface EventRow {
   occurredAt: string;
   origin: LearningOrigin;
 }
-
-interface PracticeAttemptRow {
-  attemptId: string;
-  studentId: string;
-  activityId: string;
-  nodeId: string;
+interface PracticeAttemptRow extends Omit<StoredPracticeAttempt,
+  'passed' | 'response' | 'result' | 'artifact' | 'classroomSessionId' | 'classroomRunId'> {
   passed: 0 | 1;
   responseJson: string;
   resultJson: string;
   artifactJson: string;
-  attemptedAt: string;
-  origin: LearningOrigin;
+  classroomSessionId: string | null;
+  classroomRunId: string | null;
 }
 
 interface FormalAttemptRow {
@@ -422,7 +422,10 @@ export class LearningRepository {
         SELECT attempt_id AS attemptId, student_id AS studentId,
           activity_id AS activityId, node_id AS nodeId, passed,
           response_json AS responseJson, result_json AS resultJson,
-          artifact_json AS artifactJson, attempted_at AS attemptedAt, origin
+          artifact_json AS artifactJson, delivery_channel AS deliveryChannel,
+          classroom_session_id AS classroomSessionId,
+          classroom_run_id AS classroomRunId, attempt_number AS attemptNumber,
+          attempted_at AS attemptedAt, origin
         FROM practice_attempts
         WHERE student_id = ?
         ORDER BY attempted_at, attempt_id
@@ -673,6 +676,10 @@ function toStoredPracticeAttempt(row: PracticeAttemptRow): StoredPracticeAttempt
     response: parseJson(row.responseJson),
     result: parseJson(row.resultJson),
     artifact: parseJson(row.artifactJson),
+    deliveryChannel: row.deliveryChannel,
+    ...(row.classroomSessionId === null ? {} : { classroomSessionId: row.classroomSessionId }),
+    ...(row.classroomRunId === null ? {} : { classroomRunId: row.classroomRunId }),
+    attemptNumber: row.attemptNumber,
     attemptedAt: row.attemptedAt,
     origin: row.origin,
   };
