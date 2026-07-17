@@ -21,6 +21,7 @@ import {
   normalizeAnswers,
   normalizeDraftAnswers,
   validateAnswerOptions,
+  validateDraftOptions,
 } from './formal-assessment-evaluator.server.ts';
 import {
   getFormalAssessmentDefinition,
@@ -31,6 +32,7 @@ import {
 } from './formal-assessment-catalog.server.ts';
 import { createLearningCommandService, LearningAuthorizationError } from './learning-command-service.ts';
 import { SnapshotClock } from './snapshot-clock.ts';
+import { getWorkedCorrectionGuidance } from './formal-assessment-correction.server.ts';
 
 export type {
   AssessmentAnswers,
@@ -276,11 +278,6 @@ export class FormalAssessmentService {
       throw new Error('Formal assessment token entropy is insufficient.');
     }
     this.database.prepare(`
-      UPDATE formal_assessment_tokens
-      SET used_at = ?
-      WHERE assessment_id = ? AND student_id = ? AND used_at IS NULL
-    `).run(serverNow, instance.assessmentId, studentId);
-    this.database.prepare(`
       INSERT INTO formal_assessment_tokens (
         token_hash, assessment_id, student_id, node_id, question_version, issued_at, expires_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -417,6 +414,8 @@ export class FormalAssessmentService {
         return undefined;
       }
       this.requireClassroomRunStillOpen(token);
+      const definition = requireDefinitionVersion(token.nodeId, token.questionVersion);
+      validateDraftOptions(definition, normalizedAnswers);
       return new FormalAssessmentAttemptRepository(this.database).saveDraft({
         assessmentId: token.assessmentId,
         studentId,
@@ -443,8 +442,7 @@ export class FormalAssessmentService {
     const completedAt = this.now().toISOString();
 
     const outcome = this.database.transaction(() => {
-      const tokenHash = hashToken(attemptToken);
-      const token = this.readToken(tokenHash);
+      const token = this.readToken(hashToken(attemptToken));
       if (!token || token.studentId !== studentId) throw new AssessmentTokenError('invalid-token');
       if (token.usedAt !== null) throw new AssessmentTokenError('used-token');
       this.assertTokenInstanceBinding(token, expectedNodeId);
@@ -482,13 +480,9 @@ export class FormalAssessmentService {
 
       const consumed = this.database.prepare(`
         UPDATE formal_assessment_tokens SET used_at = ?
-        WHERE token_hash = ? AND used_at IS NULL
-      `).run(completedAt, tokenHash);
-      if (consumed.changes !== 1) throw new AssessmentTokenError('used-token');
-      this.database.prepare(`
-        UPDATE formal_assessment_tokens SET used_at = ?
         WHERE assessment_id = ? AND student_id = ? AND used_at IS NULL
       `).run(completedAt, token.assessmentId, studentId);
+      if (consumed.changes < 1) throw new AssessmentTokenError('used-token');
       this.database.prepare(`
         INSERT INTO formal_attempts (
           attempt_id, student_id, node_id, assessment_id, game_id, score, duration_seconds,
@@ -670,7 +664,7 @@ export class FormalAssessmentService {
     return {
       level,
       stage: 'worked-correction',
-      guidance: ['查看完整纠正示例，说明错误证据、适用规则、修订动作和复核结论。'],
+      guidance: getWorkedCorrectionGuidance(nodeId),
       rotateNext: true,
     };
   }

@@ -8,6 +8,11 @@ import {
   type RemediationTarget,
 } from './formal-assessment-contract.ts';
 import type { FormalAssessmentDefinition } from './formal-assessment-catalog.server.ts';
+import {
+  assertAssessmentDraftSerializedSize,
+  FORMAL_ASSESSMENT_DRAFT_MAX_ARRAY_LENGTH,
+  FORMAL_ASSESSMENT_DRAFT_MAX_STRING_LENGTH,
+} from './formal-assessment-limits.ts';
 
 export function normalizeDraftAnswers(value: AssessmentDraftAnswers): AssessmentDraftAnswers {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -22,14 +27,18 @@ export function normalizeDraftAnswers(value: AssessmentDraftAnswers): Assessment
     if (typeof record.evidenceClassification !== 'string') {
       throw new TypeError('Draft evidence classification must be a string.');
     }
+    assertDraftString(record.evidenceClassification);
     normalized.evidenceClassification = record.evidenceClassification;
   }
   for (const key of ['linkReconstruction', 'defectiveOutputRevision'] as const) {
     if (!Object.hasOwn(record, key)) continue;
     const items = record[key];
-    if (!Array.isArray(items) || items.some((item) => typeof item !== 'string')) {
+    if (!Array.isArray(items)
+      || items.length > FORMAL_ASSESSMENT_DRAFT_MAX_ARRAY_LENGTH
+      || items.some((item) => typeof item !== 'string')) {
       throw new TypeError(`Draft ${key} must be a string array.`);
     }
+    items.forEach(assertDraftString);
     normalized[key] = [...items];
   }
   if (Object.hasOwn(record, 'professionalConclusion')) {
@@ -43,11 +52,46 @@ export function normalizeDraftAnswers(value: AssessmentDraftAnswers): Assessment
       || Object.values(conclusionRecord).some((item) => typeof item !== 'string')) {
       throw new TypeError('Draft professional conclusion contains an invalid field.');
     }
-    normalized.professionalConclusion = Object.fromEntries(
-      Object.entries(conclusionRecord).map(([key, item]) => [key, (item as string).slice(0, 2_000)]),
-    );
+    Object.values(conclusionRecord).forEach((item) => assertDraftString(item as string));
+    normalized.professionalConclusion = { ...conclusionRecord } as Partial<ProfessionalConclusionAnswer>;
   }
+  assertAssessmentDraftSerializedSize(JSON.stringify(normalized));
   return normalized;
+}
+
+export function validateDraftOptions(
+  definition: FormalAssessmentDefinition,
+  answers: AssessmentDraftAnswers,
+): void {
+  const allowedFor = (dimension: AssessmentDimensionKey) => new Set(
+    definition.paper.questions.find(({ id }) => id === dimension)?.options?.map(({ id }) => id) ?? [],
+  );
+  const evidence = answers.evidenceClassification;
+  if (evidence) {
+    if (!allowedFor('evidenceClassification').has(evidence)) {
+      throw new TypeError('Draft evidence classification contains an unknown option.');
+    }
+  }
+
+  const linkOptions = allowedFor('linkReconstruction');
+  if ((answers.linkReconstruction?.length ?? 0) > linkOptions.size
+    || answers.linkReconstruction?.some((optionId) => optionId !== '' && !linkOptions.has(optionId))) {
+    throw new TypeError('Draft link reconstruction contains an unknown option or too many positions.');
+  }
+
+  const revisionOptions = allowedFor('defectiveOutputRevision');
+  const revisions = answers.defectiveOutputRevision ?? [];
+  if (revisions.length > revisionOptions.size
+    || new Set(revisions).size !== revisions.length
+    || revisions.some((optionId) => !revisionOptions.has(optionId))) {
+    throw new TypeError('Draft defective output revision contains an unknown, duplicate, or excess option.');
+  }
+}
+
+function assertDraftString(value: string): void {
+  if (value.length > FORMAL_ASSESSMENT_DRAFT_MAX_STRING_LENGTH) {
+    throw new TypeError('Assessment draft string exceeds the maximum length.');
+  }
 }
 
 export function normalizeAnswers(value: AssessmentAnswers): AssessmentAnswers {

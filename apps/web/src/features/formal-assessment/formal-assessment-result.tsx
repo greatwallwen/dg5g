@@ -41,6 +41,14 @@ export function FormalAssessmentResult({ result }: { result: AssessmentDiagnosis
           </article>
         ))}
       </div>
+      {result.correction ? (
+        <aside className="formal-assessment-correction" data-correction-level={result.correction.level}>
+          <span>第{correctionLevelLabel(result.correction.level)}级 · {correctionStageLabel(result.correction.stage)}</span>
+          <h3>本轮纠偏提示</h3>
+          <ul>{result.correction.guidance.map((guidance) => <li key={guidance}>{guidance}</li>)}</ul>
+          {result.correction.rotateNext ? <p>下一次将切换等值题目，检验是否真正掌握规则。</p> : null}
+        </aside>
+      ) : null}
       <footer>
         {result.passed
           ? <Link href={`/learn/${encodeURIComponent(result.nodeId)}`}>返回节点继续学习</Link>
@@ -48,6 +56,18 @@ export function FormalAssessmentResult({ result }: { result: AssessmentDiagnosis
       </footer>
     </section>
   );
+}
+
+function correctionLevelLabel(level: 1 | 2 | 3): string {
+  return ({ 1: '一', 2: '二', 3: '三' } as const)[level];
+}
+
+function correctionStageLabel(stage: NonNullable<AssessmentDiagnosis['correction']>['stage']): string {
+  return ({
+    diagnosis: '诊断提示',
+    'rule-location': '规则定位',
+    'worked-correction': '完整纠正示例',
+  } as const)[stage];
 }
 
 export function FormalAssessmentRemediationNotice({

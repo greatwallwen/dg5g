@@ -70,6 +70,8 @@
 .formal-assessment-paper > footer button { min-width: 190px; min-height: 48px; border: 0; border-radius: 6px; color: #051b2b; background: #5ad5d4; font-weight: 950; box-shadow: 0 10px 26px rgba(36, 190, 191, .2); }
 .formal-assessment-paper > footer button:disabled { opacity: .55; cursor: wait; }
 .formal-assessment-error { margin: 0 32px; border-left: 3px solid #ee746e; padding: 10px 12px; color: #ffd6d3; background: #46242a; }
+.formal-assessment-error p { margin: 0; }
+.formal-assessment-error button { margin-top: 9px; border: 1px solid #f09a91; border-radius: 5px; padding: 7px 11px; color: #fff0ed; background: #633039; font-weight: 850; }
 
 .formal-assessment-result > header > strong { color: #5ad6d4; font-size: 48px; }
 .formal-assessment-result > header > strong small { color: #7592a8; font-size: 14px; }
@@ -82,6 +84,11 @@
 .formal-assessment-dimensions article a,
 .formal-assessment-remediation-list a { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #c58c3e; border-radius: 5px; padding: 7px 12px; color: #ffe0a5; background: #3d3022; font-weight: 850; }
 .formal-assessment-secure { color: #69c9a7; font-size: 12px; font-weight: 850; }
+.formal-assessment-correction { margin: 0 32px 24px; border: 1px solid #8a6838; border-left: 4px solid #e4ae56; border-radius: 7px; padding: 18px; color: #c6d7e3; background: #2e291f; }
+.formal-assessment-correction > span { color: #f1bf6e; font-size: 12px; font-weight: 950; letter-spacing: .04em; }
+.formal-assessment-correction h3 { margin: 6px 0 10px; color: #fff0d0; }
+.formal-assessment-correction ul { margin: 0; padding-left: 20px; line-height: 1.65; }
+.formal-assessment-correction p { margin: 10px 0 0; color: #e5bd79; font-size: 12px; }
 .formal-assessment-result > footer { border-top: 1px solid #294a63; padding: 20px 32px 24px; color: #9ab1c3; }
 .formal-assessment-result > footer a,
 .formal-assessment-result > a.is-secondary { display: inline-flex; min-height: 44px; align-items: center; border-radius: 6px; padding: 0 15px; color: #062031; background: #59d1d1; font-weight: 900; }
@@ -111,6 +118,7 @@
   .formal-assessment-error { margin: 0 10px; }
   .formal-assessment-dimensions,
   .formal-assessment-remediation-list { padding: 16px 10px; }
+  .formal-assessment-correction { margin: 0 10px 16px; }
   .formal-assessment-result > footer { padding: 16px 12px; }
   .formal-assessment-entry { min-height: 360px; grid-template-columns: 1fr; justify-items: center; padding: 24px 18px; text-align: center; }
   .formal-assessment-entry > a { width: 100%; }

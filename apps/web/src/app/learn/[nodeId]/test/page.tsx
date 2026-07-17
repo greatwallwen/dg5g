@@ -13,6 +13,7 @@ import {
 import {
   AssessmentClassroomContextError,
   parseAssessmentClassroomSessionId,
+  parseAssessmentRestart,
 } from '@/platform/assessment-classroom-context';
 import {
   createLearningCommandService,
@@ -26,7 +27,7 @@ export default async function FormalAssessmentPage({
   searchParams,
 }: {
   params: { nodeId: string };
-  searchParams: { classroomSessionId?: string | string[] };
+  searchParams: { classroomSessionId?: string | string[]; restart?: string | string[] };
 }) {
   const actor = await requireClassRole('student');
   const learning = createLearningCommandService();
@@ -56,8 +57,10 @@ export default async function FormalAssessmentPage({
   const assessment = createFormalAssessmentService();
   try {
     const classroomSessionId = parseAssessmentClassroomSessionId(searchParams.classroomSessionId);
-    const issued = assessment.issuePaper(actor, params.nodeId, {
+    const restart = parseAssessmentRestart(searchParams.restart);
+    const issued = assessment.openOrResume(actor, params.nodeId, {
       ...(classroomSessionId ? { classroomSessionId } : {}),
+      ...(restart ? { restart: true } : {}),
     });
     return (
       <main className="formal-assessment-page" data-formal-assessment={params.nodeId}>

@@ -13,3 +13,11 @@ export function parseAssessmentClassroomSessionId(value: unknown): string | unde
   }
   return sessionId;
 }
+
+export function parseAssessmentRestart(value: unknown): boolean {
+  if (value === undefined || value === null || value === '') return false;
+  if (value !== 'true') {
+    throw new AssessmentClassroomContextError('Assessment restart must be the single literal value true.');
+  }
+  return true;
+}

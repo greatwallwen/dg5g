@@ -3,6 +3,7 @@ import type {
   AssessmentDraftAnswers,
   AssessmentDraftDto,
 } from './formal-assessment-contract.ts';
+import { assertAssessmentDraftSerializedSize } from './formal-assessment-limits.ts';
 
 interface DraftRow {
   answersJson: string;
@@ -47,6 +48,8 @@ export class FormalAssessmentAttemptRepository {
     if (!Number.isSafeInteger(command.expectedRevision) || command.expectedRevision < 0) {
       throw new TypeError('Draft expectedRevision must be a non-negative safe integer.');
     }
+    const answersJson = JSON.stringify(command.answers);
+    assertAssessmentDraftSerializedSize(answersJson);
     return this.database.transaction(() => {
       const currentRevision = this.database.prepare(`
         SELECT state_revision
@@ -67,7 +70,7 @@ export class FormalAssessmentAttemptRepository {
           `).run(
             command.assessmentId,
             command.studentId,
-            JSON.stringify(command.answers),
+            answersJson,
             nextRevision,
             command.updatedAt,
           )
@@ -76,7 +79,7 @@ export class FormalAssessmentAttemptRepository {
             SET answers_json = ?, state_revision = ?, updated_at = ?
             WHERE assessment_id = ? AND student_id = ? AND state_revision = ?
           `).run(
-            JSON.stringify(command.answers),
+            answersJson,
             nextRevision,
             command.updatedAt,
             command.assessmentId,

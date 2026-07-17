@@ -208,6 +208,12 @@ test('blocks review at zero real submissions and opens it after one valid submis
       formalTest: { ...before.formalTest, status: 'running' },
     }, 3, now);
     assert.ok(running.formalTest?.runId);
+    openRelationalAssessmentRun(
+      fixture.database,
+      running.formalTest.runId,
+      '2026-07-16T04:00:00.000Z',
+      '2026-07-16T04:15:00.000Z',
+    );
 
     assert.throws(
       () => service.applyTeacherIntent(
@@ -623,4 +629,31 @@ function wrongAssessmentAnswers(): AssessmentAnswers {
       confirmedFact: '未说明', evidenceGap: '未说明', risk: '未说明', action: '未说明',
     },
   };
+}
+
+function openRelationalAssessmentRun(
+  database: ReturnType<typeof createTestDatabase>['database'],
+  runId: string,
+  startedAt: string,
+  expiresAt: string,
+): void {
+  const lessonRunId = `${runId}-lesson`;
+  database.prepare(`
+    INSERT INTO classroom_lesson_runs (
+      lesson_run_id, session_id, lesson_id, task_id, node_id, status,
+      teaching_cursor_json, started_at
+    ) VALUES (?, 'demo-class', 'P01-L02', 'P01', 'P1T1-N02', 'active', '{}', ?)
+  `).run(lessonRunId, startedAt);
+  database.prepare(`
+    UPDATE classroom_sessions
+    SET status = 'active', active_lesson_run_id = ?
+    WHERE session_id = 'demo-class'
+  `).run(lessonRunId);
+  database.prepare(`
+    INSERT INTO classroom_assessment_runs (
+      run_id, lesson_run_id, session_id, node_id, game_id,
+      status, started_at, expires_at
+    ) VALUES (?, ?, 'demo-class', 'P1T1-N02', 'P1T1-N02-server-assessment',
+      'running', ?, ?)
+  `).run(runId, lessonRunId, startedAt, expiresAt);
 }

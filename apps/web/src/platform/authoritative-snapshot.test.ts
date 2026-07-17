@@ -7,7 +7,11 @@ import { seedDemo } from './db/demo-seed.ts';
 import { migrateDatabase } from './db/migrations.ts';
 import { createTestDatabase } from './db/test-database.ts';
 import { LearningRepository } from './learning-repository.ts';
-import { FormalAssessmentService, type AssessmentAnswers } from './formal-assessment-service.ts';
+import {
+  FormalAssessmentService,
+  type AssessmentAnswers,
+  type AssessmentPaper,
+} from './formal-assessment-service.ts';
 import {
   AuthoritativeSnapshotAuthorizationError,
   AuthoritativeSnapshotReader,
@@ -199,7 +203,6 @@ test('historical demo attempts never enter active assessment submission statisti
       UPDATE classroom_sessions SET status = 'active', state_json = ?
       WHERE session_id = 'demo-class'
     `).run(JSON.stringify(classroom.state));
-
     const snapshot = new AuthoritativeSnapshotReader(fixture.database).read(
       teacherActor(),
       'teacher',
@@ -239,6 +242,12 @@ test('counts a real submission by shared classroom run while preserving its uniq
       UPDATE classroom_sessions SET status = 'active', state_json = ?
       WHERE session_id = 'demo-class'
     `).run(JSON.stringify(classroom.state));
+    openRelationalAssessmentRun(
+      fixture.database,
+      'classroom-run-shared-01',
+      '2026-07-16T01:10:00.000Z',
+      '2026-07-16T01:25:00.000Z',
+    );
     let sequence = 0;
     const assessment = new FormalAssessmentService(fixture.database, {
       now: () => new Date('2026-07-16T01:15:00.000Z'),
@@ -254,7 +263,11 @@ test('counts a real submission by shared classroom run while preserving its uniq
     const issued = assessment.issuePaper(studentActor('stu-01'), 'P1T1-N02', {
       classroomSessionId: 'demo-class',
     });
-    assessment.submitAnswers(studentActor('stu-01'), issued.attemptToken, wrongAssessmentAnswers());
+    assessment.submitAnswers(
+      studentActor('stu-01'),
+      issued.attemptToken,
+      wrongAssessmentAnswers(issued.paper),
+    );
 
     const snapshot = new AuthoritativeSnapshotReader(fixture.database)
       .read(teacherActor(), 'teacher', { now });
@@ -555,11 +568,14 @@ function readyForFormalAssessment(database: ReturnType<typeof createTestDatabase
   ] as const) insert.run(`ready-${studentId}-${activityId}`, studentId, activityId, nodeId);
 }
 
-function wrongAssessmentAnswers(): AssessmentAnswers {
+function wrongAssessmentAnswers(paper: AssessmentPaper): AssessmentAnswers {
+  const evidence = paper.questions.find(({ id }) => id === 'evidenceClassification')?.options ?? [];
+  const links = paper.questions.find(({ id }) => id === 'linkReconstruction')?.options ?? [];
+  const revisions = paper.questions.find(({ id }) => id === 'defectiveOutputRevision')?.options ?? [];
   return {
-    evidenceClassification: 'environment-note',
-    linkReconstruction: ['peer-device', 'peer-port', 'cable-label', 'source-port', 'source-device'],
-    defectiveOutputRevision: ['erase-gap'],
+    evidenceClassification: evidence[0]?.id ?? '',
+    linkReconstruction: links.map(({ id }) => id).reverse(),
+    defectiveOutputRevision: [revisions.at(-1)?.id ?? ''],
     professionalConclusion: {
       confirmedFact: '未说明',
       evidenceGap: '未说明',
@@ -581,4 +597,31 @@ function passingAssessmentAnswers(): AssessmentAnswers {
       action: '补拍对端端口并核验编号，完成证据索引后更新成果表。',
     },
   } as AssessmentAnswers;
+}
+
+function openRelationalAssessmentRun(
+  database: ReturnType<typeof createTestDatabase>['database'],
+  runId: string,
+  startedAt: string,
+  expiresAt: string,
+): void {
+  const lessonRunId = `${runId}-lesson`;
+  database.prepare(`
+    INSERT INTO classroom_lesson_runs (
+      lesson_run_id, session_id, lesson_id, task_id, node_id, status,
+      teaching_cursor_json, started_at
+    ) VALUES (?, 'demo-class', 'P01-L02', 'P01', 'P1T1-N02', 'active', '{}', ?)
+  `).run(lessonRunId, startedAt);
+  database.prepare(`
+    UPDATE classroom_sessions
+    SET status = 'active', active_lesson_run_id = ?
+    WHERE session_id = 'demo-class'
+  `).run(lessonRunId);
+  database.prepare(`
+    INSERT INTO classroom_assessment_runs (
+      run_id, lesson_run_id, session_id, node_id, game_id,
+      status, started_at, expires_at
+    ) VALUES (?, ?, 'demo-class', 'P1T1-N02', 'P1T1-N02-server-assessment',
+      'running', ?, ?)
+  `).run(runId, lessonRunId, startedAt, expiresAt);
 }

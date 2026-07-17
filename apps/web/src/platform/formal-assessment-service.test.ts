@@ -186,33 +186,40 @@ test('binds a single-use token to one student, node, version, and assessment ins
   }
 });
 
-test('opening a running paper rotates its token without resetting the assessment or timer', () => {
+test('concurrent refresh tokens remain usable despite reversed responses and submit consumes them all', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
     readyForFormalAssessment(fixture.database, studentOne.userId);
     const service = new FormalAssessmentService(fixture.database, deterministicOptions());
-    const first = service.issuePaper(studentOne, 'P1T1-N02');
-    const parallel = service.issuePaper(studentOne, 'P1T1-N02');
+    const firstResponse = service.issuePaper(studentOne, 'P1T1-N02');
+    const secondResponse = service.issuePaper(studentOne, 'P1T1-N02');
 
-    assert.equal(parallel.assessmentId, first.assessmentId);
-    assert.equal(parallel.expiresAt, first.expiresAt);
-    assert.throws(() => service.submitAnswers(studentOne, first.attemptToken, wrongAnswers),
-      (error) => error instanceof AssessmentTokenError && error.code === 'used-token');
-    const stale = fixture.database.prepare(`
-      SELECT SUM(CASE WHEN token.used_at IS NOT NULL THEN 1 ELSE 0 END) AS usedTokenCount,
-        instance.status
-      FROM formal_assessment_tokens AS token
-      INNER JOIN formal_assessment_instances AS instance
-        ON instance.assessment_id = token.assessment_id
-      WHERE token.assessment_id = ?
-      GROUP BY instance.status
-    `).get(first.assessmentId) as { usedTokenCount: number; status: string };
-    assert.equal(stale.usedTokenCount, 1);
-    assert.equal(stale.status, 'running');
+    assert.equal(secondResponse.assessmentId, firstResponse.assessmentId);
+    assert.equal(secondResponse.expiresAt, firstResponse.expiresAt);
+    service.saveDraft(studentOne, secondResponse.attemptToken, {
+      evidenceClassification: 'nameplate-photo',
+    }, 0, 'P1T1-N02');
+    const reversedResponseSave = service.saveDraft(studentOne, firstResponse.attemptToken, {
+      evidenceClassification: 'nameplate-photo',
+      linkReconstruction: ['source-device', '', '', '', ''],
+    }, 1, 'P1T1-N02');
+    assert.equal(reversedResponseSave.revision, 2);
 
-    service.submitAnswers(studentOne, parallel.attemptToken, wrongAnswers);
+    service.submitAnswers(studentOne, firstResponse.attemptToken, wrongAnswers);
+    const tokenStates = fixture.database.prepare(`
+      SELECT used_at AS usedAt
+      FROM formal_assessment_tokens
+      WHERE assessment_id = ? AND student_id = ?
+      ORDER BY issued_at, token_hash
+    `).all(firstResponse.assessmentId, studentOne.userId) as Array<{ usedAt: string | null }>;
+    assert.equal(tokenStates.length, 2);
+    assert.equal(tokenStates.every(({ usedAt }) => usedAt !== null), true);
+    assert.throws(
+      () => service.submitAnswers(studentOne, secondResponse.attemptToken, wrongAnswers),
+      (error) => error instanceof AssessmentTokenError && error.code === 'used-token',
+    );
     assert.throws(
       () => service.issuePaper(studentOne, 'P1T1-N02'),
       (error) => error instanceof AssessmentRemediationRequiredError,
