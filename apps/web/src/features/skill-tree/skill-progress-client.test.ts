@@ -36,13 +36,18 @@ test('reads only the authenticated student snapshot from /api/learning/me', asyn
           durationSeconds: 42,
           mistakeKnowledgePointIds: ['kp-direction'],
           completedAt: '2026-07-15T10:00:00.000Z',
+          origin: 'user',
         }],
         prerequisites: [],
         bestFormalScore: 88,
         nextRequirement: '进入下一节点',
         taskAdvanceReady: false,
+        origin: 'user',
       }],
-      tasks: [{ taskId: 'P01', nodeTestHighestScore: 88 }],
+      tasks: [{
+        taskId: 'P01', nodeTestHighestScore: 88, origin: 'user',
+        realTaskCertified: false, demoTaskCertified: false,
+      }],
     });
   };
 
@@ -114,17 +119,17 @@ test('compatibility projection keeps an untested node and unformed task score ab
   assert.equal(projected.tasks[0]?.taskScore, undefined);
 });
 
-test('compatibility projection preserves persisted origins for node, attempts, task, and project', () => {
+test('compatibility projection keeps demo origin on labeled attempts, task, and project only', () => {
   const projected = projectStudentLearningSnapshot({
     version: 7,
     globalVersion: 17,
     studentId: 'stu-03',
     nodes: [{
       nodeId: 'P1T1-N02',
-      axes: { access: 'open', learning: 'practice-passed', formalTest: 'passed', output: 'not-required', certification: 'achieved' },
-      state: 'formal-test-passed',
-      stateTrail: ['learning', 'micro-practice-passed', 'formal-test-passed'],
-      completedSections: ['problem', 'figure', 'steps', 'correction'],
+      axes: { access: 'open', learning: 'not-started', formalTest: 'ready', output: 'not-required', certification: 'not-reached' },
+      state: 'available',
+      stateTrail: ['available'],
+      completedSections: [],
       classroomSubmitted: false,
       attempts: [{
         attemptId: 'demo-formal-attempt',
@@ -136,10 +141,8 @@ test('compatibility projection preserves persisted origins for node, attempts, t
         origin: 'demo',
       }],
       prerequisites: [],
-      bestFormalScore: 93,
       nextRequirement: '继续学习',
       taskAdvanceReady: false,
-      origin: 'demo',
     }],
     tasks: [{
       taskId: 'P01',
@@ -153,7 +156,8 @@ test('compatibility projection preserves persisted origins for node, attempts, t
     projectCompositeOrigin: 'demo',
   });
 
-  assert.equal(projected.progress[0]?.origin, 'demo');
+  assert.equal(projected.progress[0]?.origin, undefined);
+  assert.equal(projected.progress[0]?.bestGameScore, undefined);
   assert.equal(projected.progress[0]?.gameAttempts?.[0]?.origin, 'demo');
   assert.equal(projected.tasks[0]?.origin, 'demo');
   assert.equal(projected.projectCompositeOrigin, 'demo');
@@ -166,9 +170,9 @@ test('compatibility projection preserves a real zero score while workflow comple
     studentId: 'stu-01',
     nodes: [{
       nodeId: 'P1T1-N02',
-      axes: { access: 'open', learning: 'practice-passed', formalTest: 'passed', output: 'not-required', certification: 'achieved' },
-      state: 'formal-test-passed',
-      stateTrail: ['learning', 'micro-practice-passed', 'formal-test-passed'],
+      axes: { access: 'open', learning: 'practice-passed', formalTest: 'failed', output: 'not-required', certification: 'not-reached' },
+      state: 'micro-practice-passed',
+      stateTrail: ['learning', 'micro-practice-passed'],
       completedSections: [],
       classroomSubmitted: false,
       attempts: [{
@@ -178,15 +182,17 @@ test('compatibility projection preserves a real zero score while workflow comple
         score: 0,
         mistakeKnowledgePointIds: [],
         completedAt: '2026-07-16T02:00:00.000Z',
+        origin: 'user',
       }],
       prerequisites: [],
       bestFormalScore: 0,
       nextRequirement: '继续学习',
       taskAdvanceReady: false,
+      origin: 'user',
     }],
     tasks: [{
       taskId: 'P01', nodeTestHighestScore: 0,
-      realTaskCertified: false, demoTaskCertified: false,
+      origin: 'user', realTaskCertified: false, demoTaskCertified: false,
     }],
   });
 
@@ -195,9 +201,9 @@ test('compatibility projection preserves a real zero score while workflow comple
   assert.equal(projected.progress[0]?.bestGameScore, 0);
   assert.equal(projected.progress[0]?.latestGameScore, 0);
   assert.equal(projected.progress[0]?.gameAttempts?.[0]?.durationSeconds, undefined);
-  assert.equal(projected.progress[0]?.masteryPercent, 60);
+  assert.equal(projected.progress[0]?.masteryPercent, 40);
   assert.equal(projected.tasks[0]?.gameScore, 0);
-  assert.equal(projected.tasks[0]?.masteryPercent, 15);
+  assert.equal(projected.tasks[0]?.masteryPercent, 10);
 });
 
 test('records a formal attempt through the actor-scoped node attempts command', async () => {
