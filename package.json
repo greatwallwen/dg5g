@@ -81,7 +81,7 @@
     "classroom-helper:start": "node scripts/classroom-helper.mjs",
     "web:qa": "pnpm --filter @dgbook/web qa",
     "qa:web:runtime": "node scripts/run-web-runtime-audits.mjs",
-    "web:check-structure": "node scripts/check-web-structure.mjs",
+    "web:check-structure": "node --test scripts/next-route-export-contract.test.mjs && node scripts/check-web-structure.mjs",
     "audit:web-runtime": "node scripts/audit-web-runtime.mjs",
     "audit:web:remote:protocol": "node scripts/audit-live-classroom-protocol.mjs",
     "audit:web:remote": "node scripts/audit-web-remote.mjs",

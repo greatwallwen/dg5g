@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
+import { findUnsupportedNextRouteRuntimeExports } from './next-route-export-contract.mjs';
 
 const cwd = process.cwd();
 const root = exists(join(cwd, 'apps', 'web', 'src')) ? cwd : exists(join(cwd, 'src')) ? join(cwd, '..', '..') : cwd;
@@ -191,38 +192,10 @@ function checkNextPlatformIsolationContract() {
 }
 
 function checkNextRouteModuleExportsContract() {
-  const allowedRuntimeExports = new Set([
-    'GET',
-    'POST',
-    'PUT',
-    'PATCH',
-    'DELETE',
-    'HEAD',
-    'OPTIONS',
-    'config',
-    'dynamic',
-    'dynamicParams',
-    'revalidate',
-    'fetchCache',
-    'runtime',
-    'preferredRegion',
-    'maxDuration',
-    'generateStaticParams',
-  ]);
-  const runtimeExportPatterns = [
-    /^\s*export\s+(?:async\s+)?(?:function|class)\s+([A-Za-z_$][\w$]*)/gm,
-    /^\s*export\s+(?:const|let|var)\s+([A-Za-z_$][\w$]*)/gm,
-  ];
-
   for (const file of walk(appRoot).filter((candidate) => candidate.endsWith(`${sep}route.ts`))) {
     const text = readFileSync(file, 'utf8');
-    for (const pattern of runtimeExportPatterns) {
-      for (const match of text.matchAll(pattern)) {
-        const name = match[1];
-        if (!allowedRuntimeExports.has(name)) {
-          fail(`${slash(relative(root, file))} exports unsupported Next.js route field ${name}`);
-        }
-      }
+    for (const name of findUnsupportedNextRouteRuntimeExports(text)) {
+      fail(`${slash(relative(root, file))} exports unsupported Next.js route field ${name}`);
     }
   }
 }
