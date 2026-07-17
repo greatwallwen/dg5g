@@ -102,6 +102,36 @@ test('cursor rows and every playback field survive a database process rebuild', 
   }
 });
 
+test('a delayed older cursor mutation cannot overwrite the newest saved position', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    const repository = new SelfStudyCursorRepository(fixture.database);
+    const newest = {
+      unitId: 'P01-ku-02', actionId: 'output', actionIndex: 5, positionMs: 0,
+    };
+    const stale = {
+      unitId: 'P01-ku-02', actionId: 'problem', actionIndex: 0, positionMs: 0,
+    };
+
+    repository.save('stu-01', 'P1T1-N02', newest, at('05:01:00'));
+    const versionAfterNewest = fixture.database.prepare(`
+      SELECT version FROM snapshot_versions WHERE topic = 'learning:stu-01'
+    `).pluck().get();
+    repository.save('stu-01', 'P1T1-N02', stale, at('05:00:00'));
+
+    assert.deepEqual(repository.read('stu-01', 'P1T1-N02'), {
+      studentId: 'stu-01', nodeId: 'P1T1-N02', ...newest,
+    });
+    assert.equal(fixture.database.prepare(`
+      SELECT version FROM snapshot_versions WHERE topic = 'learning:stu-01'
+    `).pluck().get(), versionAfterNewest);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
 test('cursor save rejects teacher, inactive, and missing identities with zero side effects', () => {
   const fixture = createTestDatabase();
   try {

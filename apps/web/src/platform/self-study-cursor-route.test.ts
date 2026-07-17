@@ -52,6 +52,27 @@ test('cursor PUT persists a complete per-node cursor and ignores query identity 
   });
 });
 
+test('cursor PUT rejects a delayed older mutation instead of overwriting the latest section', async () => {
+  await withFixture(async ({ studentCookie }) => {
+    const base = Date.now() + 24 * 60 * 60 * 1_000;
+    const newest = await cursorRoute.PUT(request('PUT', studentCookie, {
+      unitId: 'P01-ku-01', actionId: 'output', actionIndex: 5, positionMs: 0,
+      mutationAt: new Date(base + 1_000).toISOString(),
+    }), context());
+    assert.equal(newest.status, 200);
+
+    const delayed = await cursorRoute.PUT(request('PUT', studentCookie, {
+      unitId: 'P01-ku-01', actionId: 'problem', actionIndex: 0, positionMs: 0,
+      mutationAt: new Date(base).toISOString(),
+    }), context());
+    assert.equal(delayed.status, 200);
+    assert.equal((await delayed.json()).cursor.actionId, 'output');
+
+    const current = await cursorRoute.GET(request('GET', studentCookie), context());
+    assert.equal((await current.json()).cursor.actionId, 'output');
+  });
+});
+
 test('cursor route rejects authority fields, foreign content, and malformed positions without mutation', async () => {
   await withFixture(async ({ database, studentCookie }) => {
     const before = database.prepare(`
@@ -65,6 +86,7 @@ test('cursor route rejects authority fields, foreign content, and malformed posi
       { actionIndex: -1, positionMs: 0 },
       { actionIndex: 0.5, positionMs: 0 },
       { actionIndex: 0, positionMs: -1 },
+      { actionIndex: 0, positionMs: 0, mutationAt: 'not-a-date' },
     ];
     for (const body of invalidBodies) {
       const response = await cursorRoute.PUT(request('PUT', studentCookie, body), context());

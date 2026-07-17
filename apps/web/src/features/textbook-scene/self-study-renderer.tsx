@@ -79,12 +79,12 @@ export function SelfStudyRenderer({
 
   useEffect(() => {
     const saveBeforeUnload = () => {
-      void persistSection(activeSectionRef.current);
+      void flushSection(activeSectionRef.current);
     };
     window.addEventListener('beforeunload', saveBeforeUnload);
     return () => {
       window.removeEventListener('beforeunload', saveBeforeUnload);
-      void persistSection(activeSectionRef.current);
+      void flushSection(activeSectionRef.current);
     };
   }, [document.nodeId, document.sourceKnowledgeUnitId]);
 
@@ -109,16 +109,14 @@ export function SelfStudyRenderer({
 
   function cursorDraft(sectionId: SelfStudySectionId) {
     return {
-      unitId: document.sourceKnowledgeUnitId,
-      actionId: sectionId,
+      unitId: document.sourceKnowledgeUnitId, actionId: sectionId,
       actionIndex: selfStudySectionDefinitions.findIndex(({ id }) => id === sectionId),
       positionMs: 0,
     };
   }
 
-  function persistSection(sectionId: SelfStudySectionId) {
-    return cursorPersistence.schedule(document.nodeId, cursorDraft(sectionId));
-  }
+  function persistSection(sectionId: SelfStudySectionId) { return cursorPersistence.schedule(document.nodeId, cursorDraft(sectionId)); }
+  function flushSection(sectionId: SelfStudySectionId) { return cursorPersistence.flush(document.nodeId, cursorDraft(sectionId)); }
 
   async function completeReadingSection(sectionId: ReadingSectionId) {
     setReadingSaving(true);
@@ -130,9 +128,14 @@ export function SelfStudyRenderer({
     }
   }
 
+  function recordPracticeInteraction() {
+    cursorPersistence.markLocalInteraction();
+    void persistSection('practice');
+  }
+
   function markPracticePassed(practiceId: string) {
     setPassedPracticeIds((current) => current.includes(practiceId) ? current : [...current, practiceId]);
-    void persistSection('practice');
+    recordPracticeInteraction();
   }
 
   return (
@@ -177,7 +180,7 @@ export function SelfStudyRenderer({
             <PracticeSection
               document={document}
               focusedActivityId={focusedActivityId}
-              onAttempt={() => { void persistSection('practice'); }}
+              onAttempt={recordPracticeInteraction}
               onPass={markPracticePassed}
               passedIds={passedPracticeIds}
             />

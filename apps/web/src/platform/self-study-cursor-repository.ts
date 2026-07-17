@@ -99,9 +99,17 @@ export class SelfStudyCursorRepository {
     const timestamp = normalizeNow(now);
     return this.database.transaction(() => {
       this.requireActiveStudent(studentId);
+      const latest = this.readLatestRow(studentId);
+      if (latest && this.isAtOrBefore(timestamp, latest.updatedAt)) {
+        return cursorFromRow(latest);
+      }
       const existing = this.readRow(studentId, nodeId);
       if (existing && existing.isActive === 1 && sameCursor(existing, normalized)) {
-        return cursorFromRow(existing);
+        this.database.prepare(`
+          UPDATE self_study_cursors SET updated_at = ?
+          WHERE student_id = ? AND node_id = ?
+        `).run(timestamp, studentId, nodeId);
+        return cursorFromRow({ ...existing, updatedAt: timestamp });
       }
       this.database.prepare(`
         UPDATE self_study_cursors
@@ -160,6 +168,30 @@ export class SelfStudyCursorRepository {
       FROM self_study_cursors
       WHERE student_id = ? AND node_id = ?
     `).get(studentId, nodeId) as CursorRow | undefined;
+  }
+
+  private readLatestRow(studentId: string): CursorRow | undefined {
+    return this.database.prepare(`
+      SELECT
+        student_id AS studentId,
+        node_id AS nodeId,
+        unit_id AS unitId,
+        action_id AS actionId,
+        action_index AS actionIndex,
+        position_ms AS positionMs,
+        is_active AS isActive,
+        updated_at AS updatedAt
+      FROM self_study_cursors
+      WHERE student_id = ?
+      ORDER BY julianday(updated_at) DESC, node_id
+      LIMIT 1
+    `).get(studentId) as CursorRow | undefined;
+  }
+
+  private isAtOrBefore(candidate: string, current: string): boolean {
+    return this.database.prepare(`
+      SELECT julianday(?) <= julianday(?)
+    `).pluck().get(candidate, current) === 1;
   }
 
 }

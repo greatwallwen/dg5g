@@ -20,7 +20,7 @@ test('self-study cursor client sends only cursor fields to the actor-scoped node
   await client.read('P1T1-N02');
   await client.save('P1T1-N02', {
     unitId: 'P01-ku-02', actionId: 'figure', actionIndex: 1, positionMs: 0,
-  });
+  }, '2026-07-17T08:00:00.001Z');
 
   assert.deepEqual(calls.map(({ url }) => url), [
     '/api/self-study/cursors/P1T1-N02',
@@ -29,6 +29,7 @@ test('self-study cursor client sends only cursor fields to the actor-scoped node
   assert.equal(calls[1]?.init?.method, 'PUT');
   assert.deepEqual(JSON.parse(String(calls[1]?.init?.body)), {
     unitId: 'P01-ku-02', actionId: 'figure', actionIndex: 1, positionMs: 0,
+    mutationAt: '2026-07-17T08:00:00.001Z',
   });
   assert.equal(String(calls[1]?.init?.body).includes('studentId'), false);
   assert.ok(calls.every(({ init }) => init?.credentials === 'same-origin'));
@@ -109,6 +110,30 @@ test('cleanup scheduling cannot overtake the newest queued cursor', async () => 
   final.resolve();
   await Promise.all([problem, figure, cleanup]);
   assert.deepEqual(saved, ['problem', 'output']);
+});
+
+test('unload flush dispatches the newest cursor immediately with a newer mutation order', async () => {
+  const first = deferred<void>();
+  const flushed = deferred<void>();
+  const saved: Array<{ actionId: string; mutationAt: string }> = [];
+  const coordinator = createSelfStudyCursorPersistenceCoordinator(
+    async (_nodeId, draft, mutationAt) => {
+      saved.push({ actionId: draft.actionId ?? '', mutationAt });
+      await (saved.length === 1 ? first.promise : flushed.promise);
+    },
+    () => 1_000,
+  );
+
+  const pending = coordinator.schedule('P1T1-N02', cursor('problem'));
+  const unload = coordinator.flush('P1T1-N02', cursor('output'));
+
+  assert.deepEqual(saved.map(({ actionId }) => actionId), ['problem', 'output']);
+  assert.ok(Date.parse(saved[1]!.mutationAt) > Date.parse(saved[0]!.mutationAt));
+
+  flushed.resolve();
+  await unload;
+  first.resolve();
+  await pending;
 });
 
 function cursor(actionId: 'problem' | 'figure' | 'steps' | 'correction' | 'practice' | 'output') {

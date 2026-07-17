@@ -25,13 +25,16 @@ export function createSelfStudyCursorClient(fetchImpl: FetchLike = fetch) {
         credentials: 'same-origin',
       });
     },
-    save(nodeId: string, draft: SelfStudyCursorDraft) {
+    save(nodeId: string, draft: SelfStudyCursorDraft, mutationAt?: string) {
       return request(fetchImpl, nodeId, {
         method: 'PUT',
         credentials: 'same-origin',
         keepalive: true,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(draft),
+        body: JSON.stringify({
+          ...draft,
+          ...(mutationAt === undefined ? {} : { mutationAt }),
+        }),
       });
     },
   };
@@ -44,15 +47,22 @@ export function readSelfStudyCursor(nodeId: string): Promise<SelfStudyCursor> {
 export function saveSelfStudyCursor(
   nodeId: string,
   draft: SelfStudyCursorDraft,
+  mutationAt?: string,
 ): Promise<SelfStudyCursor> {
-  return createSelfStudyCursorClient().save(nodeId, draft);
+  return createSelfStudyCursorClient().save(nodeId, draft, mutationAt);
 }
 
 export function createSelfStudyCursorPersistenceCoordinator(
-  persist: (nodeId: string, draft: SelfStudyCursorDraft) => Promise<unknown>,
+  persist: (nodeId: string, draft: SelfStudyCursorDraft, mutationAt: string) => Promise<unknown>,
+  now: () => number = Date.now,
 ) {
   let interactionRevision = 0;
-  let queued: { nodeId: string; draft: SelfStudyCursorDraft } | undefined;
+  let lastMutationMs = 0;
+  let queued: {
+    nodeId: string;
+    draft: SelfStudyCursorDraft;
+    mutationAt: string;
+  } | undefined;
   let running = false;
   let waiters: Array<() => void> = [];
 
@@ -62,7 +72,7 @@ export function createSelfStudyCursorPersistenceCoordinator(
       const current = queued;
       queued = undefined;
       try {
-        await persist(current.nodeId, current.draft);
+        await persist(current.nodeId, current.draft, current.mutationAt);
       } catch {
         // Reading navigation remains usable while an unavailable server is retried
         // by the next cursor write. Never allow an older request to overtake it.
@@ -87,12 +97,25 @@ export function createSelfStudyCursorPersistenceCoordinator(
       return revisionAtStart === interactionRevision ? restored : undefined;
     },
     schedule(nodeId: string, draft: SelfStudyCursorDraft): Promise<void> {
-      queued = { nodeId, draft };
+      queued = { nodeId, draft, mutationAt: nextMutationAt() };
       const settled = new Promise<void>((resolve) => { waiters.push(resolve); });
       if (!running) void drain();
       return settled;
     },
+    async flush(nodeId: string, draft: SelfStudyCursorDraft): Promise<void> {
+      queued = undefined;
+      try {
+        await persist(nodeId, draft, nextMutationAt());
+      } catch {
+        // Unload persistence is best effort, but it is dispatched immediately.
+      }
+    },
   };
+
+  function nextMutationAt(): string {
+    lastMutationMs = Math.max(now(), lastMutationMs + 1);
+    return new Date(lastMutationMs).toISOString();
+  }
 }
 
 const canonicalSectionIds = new Set<SelfStudySectionId>([

@@ -42,6 +42,9 @@ The two Task 2-touched files initially over the structure limits were brought be
 - Added a cursor persistence coordinator that ignores a restore resolving after learner interaction, serializes writes, coalesces rapid navigation to the latest section, and routes unload cleanup through the same ordered queue.
 - Review RED: the new focused suite failed for the missing coordinator and both stale-run aggregates.
 - Review GREEN: focused regression suite 25/25 passed; expanded Task 2 suite 49/49 passed; full unit suite, TypeScript check, and `git diff --check` passed.
+- Final lifecycle review then exposed two deeper cursor paths: a targeted practice attempt did not mark local interaction, and unload queued behind an in-flight request instead of dispatching immediately.
+- The final correction treats every practice attempt as local navigation, immediately flushes the unload cursor, attaches a client-monotonic mutation timestamp, and makes the SQLite repository ignore a delayed older mutation even if it reaches the server last.
+- Final lifecycle RED reproduced all paths at client, renderer-contract, route, and repository levels. Final GREEN: focused lifecycle suite 21/21, full unit suite 687/687, TypeScript check, structure gate, and `git diff --check` all passed.
 
 ## Scope boundary and concerns
 

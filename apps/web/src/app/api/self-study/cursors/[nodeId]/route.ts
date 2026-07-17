@@ -49,12 +49,13 @@ export async function PUT(request: Request, { params }: RouteContext) {
   const database = getDatabase();
   try {
     createLearningCommandService(database).requireNodeAccess(actor, params.nodeId);
-    const draft = parseDraft(await request.json().catch(() => undefined));
-    validateGeneratedCursor(params.nodeId as P1NodeId, draft);
+    const command = parseDraft(await request.json().catch(() => undefined));
+    validateGeneratedCursor(params.nodeId as P1NodeId, command.draft);
     const cursor = new SelfStudyCursorRepository(database).save(
       actor.studentId,
       params.nodeId as P1NodeId,
-      draft,
+      command.draft,
+      command.mutationAt,
     );
     return NextResponse.json({ cursor });
   } catch (error) {
@@ -62,12 +63,12 @@ export async function PUT(request: Request, { params }: RouteContext) {
   }
 }
 
-function parseDraft(value: unknown): SelfStudyCursorDraft {
+function parseDraft(value: unknown): { draft: SelfStudyCursorDraft; mutationAt?: Date } {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError('Self-study cursor body must be an object.');
   }
   const record = value as Record<string, unknown>;
-  const allowed = new Set(['unitId', 'actionId', 'actionIndex', 'positionMs']);
+  const allowed = new Set(['unitId', 'actionId', 'actionIndex', 'positionMs', 'mutationAt']);
   if (Object.keys(record).some((key) => !allowed.has(key))
     || !Object.hasOwn(record, 'actionIndex')
     || !Object.hasOwn(record, 'positionMs')) {
@@ -85,12 +86,26 @@ function parseDraft(value: unknown): SelfStudyCursorDraft {
   if (!Number.isSafeInteger(record.positionMs) || Number(record.positionMs) < 0) {
     throw new TypeError('positionMs must be a non-negative safe integer.');
   }
+  const mutationAt = parseMutationAt(record.mutationAt);
   return {
-    ...(record.unitId === undefined ? {} : { unitId: record.unitId }),
-    ...(record.actionId === undefined ? {} : { actionId: record.actionId }),
-    actionIndex: Number(record.actionIndex),
-    positionMs: Number(record.positionMs),
+    draft: {
+      ...(record.unitId === undefined ? {} : { unitId: record.unitId }),
+      ...(record.actionId === undefined ? {} : { actionId: record.actionId }),
+      actionIndex: Number(record.actionIndex),
+      positionMs: Number(record.positionMs),
+    },
+    ...(mutationAt === undefined ? {} : { mutationAt }),
   };
+}
+
+function parseMutationAt(value: unknown): Date | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string') throw new TypeError('mutationAt must be an ISO timestamp.');
+  const parsed = new Date(value);
+  if (!Number.isFinite(parsed.getTime()) || parsed.toISOString() !== value) {
+    throw new TypeError('mutationAt must be an ISO timestamp.');
+  }
+  return parsed;
 }
 
 function validateGeneratedCursor(nodeId: P1NodeId, draft: SelfStudyCursorDraft): void {
