@@ -8,6 +8,8 @@ export interface ProfessionalOutputFieldDiff {
   kind: 'added' | 'removed' | 'changed';
   beforeValue?: PortfolioVersionFact['fields'][string];
   afterValue?: PortfolioVersionFact['fields'][string];
+  beforeEvidenceGap?: PortfolioVersionFact['evidenceGaps'][string];
+  afterEvidenceGap?: PortfolioVersionFact['evidenceGaps'][string];
   addedEvidenceIds: string[];
   removedEvidenceIds: string[];
   addedSources: ProfessionalOutputFieldSourceFact[];
@@ -41,6 +43,8 @@ export function diffProfessionalOutputVersions(
       : missingValue;
     const beforeEvidence = evidenceIds(previous, fieldKey);
     const afterEvidence = evidenceIds(current, fieldKey);
+    const beforeEvidenceGap = previous.evidenceGaps[fieldKey];
+    const afterEvidenceGap = current.evidenceGaps[fieldKey];
     const beforeSources = sources(previous, fieldKey);
     const afterSources = sources(current, fieldKey);
     const addedEvidenceIds = difference(afterEvidence, beforeEvidence);
@@ -50,6 +54,7 @@ export function diffProfessionalOutputVersions(
     const changed = !sameValue(beforeValue, afterValue)
       || addedEvidenceIds.length > 0
       || removedEvidenceIds.length > 0
+      || !sameEvidenceGap(beforeEvidenceGap, afterEvidenceGap)
       || addedSources.length > 0
       || removedSources.length > 0;
     if (!changed) continue;
@@ -59,6 +64,8 @@ export function diffProfessionalOutputVersions(
       kind: beforeValue === missingValue ? 'added' : afterValue === missingValue ? 'removed' : 'changed',
       ...(beforeValue === missingValue ? {} : { beforeValue }),
       ...(afterValue === missingValue ? {} : { afterValue }),
+      ...(beforeEvidenceGap ? { beforeEvidenceGap } : {}),
+      ...(afterEvidenceGap ? { afterEvidenceGap } : {}),
       addedEvidenceIds,
       removedEvidenceIds,
       addedSources,
@@ -77,6 +84,15 @@ export function diffProfessionalOutputVersions(
     changedFields,
     integrityWarnings,
   };
+}
+
+function sameEvidenceGap(
+  left: PortfolioVersionFact['evidenceGaps'][string] | undefined,
+  right: PortfolioVersionFact['evidenceGaps'][string] | undefined,
+): boolean {
+  if (!left || !right) return left === right;
+  return left.gapText.trim() === right.gapText.trim()
+    && left.nextActionText.trim() === right.nextActionText.trim();
 }
 
 function orderedUnion(preferred: readonly string[], ...groups: string[][]): string[] {

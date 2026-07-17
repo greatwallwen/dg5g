@@ -12,11 +12,17 @@ import type {
   ProfessionalOutputStatus,
 } from './professional-output-repository.ts';
 import type { AppDatabase } from './db/database.ts';
-import { getFormalAssessmentValidationPolicy } from './formal-assessment-catalog.server.ts';
+import {
+  getFormalAssessmentDefinitionByVersion,
+  getFormalAssessmentValidationPolicy,
+} from './formal-assessment-catalog.server.ts';
+import { calculateTaskCompositeScore } from './learning-mastery.ts';
 import {
   validatePersistedAssessmentDiagnostic,
   type PersistedAssessmentCandidate,
+  type ValidatedPersistedAssessmentDiagnostic,
 } from './persisted-assessment-diagnostic.ts';
+import { readHighestValidUserFormalAssessment } from './validated-user-formal-assessment.ts';
 
 interface HeadRow {
   outputId: string;
@@ -41,6 +47,13 @@ interface FormalRow extends PersistedAssessmentCandidate {
   origin: LearningOrigin;
 }
 
+interface FrozenRow {
+  detailsJson: string;
+  provisionalScore: number;
+  officialScore: number | null;
+  origin: LearningOrigin;
+}
+
 const assessmentNodeByTask: Record<P1OutputTaskId, string> = {
   P01: 'P1T1-N02',
   P02: 'P1T2-N02',
@@ -55,15 +68,16 @@ export class ProfessionalOutputPortfolioReader {
     assertTaskId(taskId);
     const head = this.readHead(studentId, taskId);
     if (!head) return { taskId };
+    const reviewHistory = this.readReviews(head.outputId);
     return {
       taskId,
       output: {
         head,
         versions: this.readVersions(head.outputId),
         submissionCount: this.readSubmissionCount(head.outputId),
-        reviewHistory: this.readReviews(head.outputId),
+        reviewHistory,
       },
-      ...optionalAssessment(this.readAssessment(studentId, taskId)),
+      ...this.readAssessment(studentId, taskId, head, reviewHistory),
     };
   }
 
@@ -93,6 +107,7 @@ export class ProfessionalOutputPortfolioReader {
       fields: parseFields(row.fieldsJson),
       upstreamRefs: parseJsonArray(row.upstreamRefsJson),
       evidenceLinks: this.readEvidence(row.outputId, row.version),
+      evidenceGaps: this.readEvidenceGaps(row.outputId, row.version),
       fieldSources: this.database.prepare(`
         SELECT field_key AS fieldKey, source_node_id AS sourceNodeId,
           source_attempt_id AS sourceAttemptId
@@ -101,6 +116,21 @@ export class ProfessionalOutputPortfolioReader {
         ORDER BY field_key, source_node_id, source_attempt_id
       `).all(row.outputId, row.version) as PortfolioVersionFact['fieldSources'],
     }));
+  }
+
+  private readEvidenceGaps(outputId: string, version: number): PortfolioVersionFact['evidenceGaps'] {
+    const rows = this.database.prepare(`
+      SELECT field_key AS fieldKey, gap_text AS gapText,
+        next_action_text AS nextActionText
+      FROM output_evidence_gaps
+      WHERE output_id = ? AND version = ?
+      ORDER BY field_key
+    `).all(outputId, version) as Array<{
+      fieldKey: string;
+      gapText: string;
+      nextActionText: string;
+    }>;
+    return Object.fromEntries(rows.map(({ fieldKey, ...gap }) => [fieldKey, gap]));
   }
 
   private readEvidence(outputId: string, version: number): PortfolioVersionFact['evidenceLinks'] {
@@ -165,21 +195,40 @@ export class ProfessionalOutputPortfolioReader {
     `).pluck().get(outputId) as number;
   }
 
-  private readAssessment(studentId: string, taskId: P1OutputTaskId): PortfolioAssessmentFact | undefined {
+  private readAssessment(
+    studentId: string,
+    taskId: P1OutputTaskId,
+    head: HeadRow,
+    reviewHistory: PortfolioReviewFact[],
+  ): Pick<P1PortfolioDetailFacts, 'assessment' | 'assessmentLinkStatus'> {
     const nodeId = assessmentNodeByTask[taskId];
     const frozen = this.database.prepare(`
-      SELECT details_json AS detailsJson FROM frozen_task_scores
+      SELECT details_json AS detailsJson, provisional_score AS provisionalScore,
+        official_score AS officialScore, origin
+      FROM frozen_task_scores
       WHERE student_id = ? AND task_id = ?
       ORDER BY CASE origin WHEN 'user' THEN 0 ELSE 1 END,
         snapshot_version DESC, frozen_at DESC, score_id DESC LIMIT 1
-    `).get(studentId, taskId) as { detailsJson: string } | undefined;
-    const frozenDetails = parseJsonRecord(frozen?.detailsJson);
-    const attemptId = stringProperty(frozenDetails, 'attemptId')
-      ?? stringProperty(frozenDetails, 'nodeTestAttemptId');
-    const row = attemptId
-      ? this.readFormalById(studentId, nodeId, attemptId)
-      : this.readCurrentFormal(studentId, nodeId);
-    return row ? projectFormalRow(row) : undefined;
+    `).get(studentId, taskId) as FrozenRow | undefined;
+    if (!frozen && head.origin === 'user' && head.status === 'submitted') {
+      const assessment = readHighestValidUserFormalAssessment(this.database, studentId, nodeId, 80);
+      return optionalAssessment(assessment ? projectValidatedAssessment(assessment) : undefined);
+    }
+    if (!frozen) return optionalAssessment(this.readCurrentAssessment(studentId, nodeId));
+    const frozenDetails = parseJsonRecord(frozen.detailsJson);
+    const canonicalAttemptId = stringProperty(frozenDetails, 'nodeTestAttemptId');
+    const aliasAttemptId = stringProperty(frozenDetails, 'attemptId');
+    if (canonicalAttemptId && aliasAttemptId && canonicalAttemptId !== aliasAttemptId) {
+      return { assessmentLinkStatus: 'legacy-unlinked' };
+    }
+    const attemptId = canonicalAttemptId ?? aliasAttemptId;
+    if (!attemptId) return { assessmentLinkStatus: 'legacy-unlinked' };
+    const row = this.readFormalById(studentId, nodeId, attemptId);
+    const assessment = row ? projectFormalRow(row) : undefined;
+    if (!row || !assessment || !frozenAssessmentMatches({
+      assessment, frozen, details: frozenDetails, head, nodeId, reviewHistory, row,
+    })) return { assessmentLinkStatus: 'legacy-unlinked' };
+    return optionalAssessment(assessment);
   }
 
   private readFormalById(studentId: string, nodeId: string, attemptId: string): FormalRow | undefined {
@@ -187,12 +236,17 @@ export class ProfessionalOutputPortfolioReader {
       .get(attemptId, studentId, nodeId) as FormalRow | undefined;
   }
 
-  private readCurrentFormal(studentId: string, nodeId: string): FormalRow | undefined {
-    return this.database.prepare(`${formalSelect()}
+  private readCurrentAssessment(studentId: string, nodeId: string): PortfolioAssessmentFact | undefined {
+    const rows = this.database.prepare(`${formalSelect()}
       WHERE attempt.student_id = ? AND attempt.node_id = ?
       ORDER BY CASE attempt.origin WHEN 'user' THEN 0 ELSE 1 END,
-        julianday(attempt.completed_at) DESC, attempt.attempt_id DESC LIMIT 1
-    `).get(studentId, nodeId) as FormalRow | undefined;
+        julianday(attempt.completed_at) DESC, attempt.attempt_id DESC
+    `).all(studentId, nodeId) as FormalRow[];
+    for (const row of rows) {
+      const assessment = projectFormalRow(row);
+      if (assessment) return assessment;
+    }
+    return undefined;
   }
 }
 
@@ -216,6 +270,14 @@ function projectFormalRow(row: FormalRow): PortfolioAssessmentFact | undefined {
   if (!policy) return undefined;
   const value = validatePersistedAssessmentDiagnostic(row, policy);
   if (!value) return undefined;
+  const definition = getFormalAssessmentDefinitionByVersion(value.nodeId, value.questionVersion);
+  if (!definition || definition.gameId !== value.gameId) return undefined;
+  return projectValidatedAssessment(value);
+}
+
+function projectValidatedAssessment(
+  value: ValidatedPersistedAssessmentDiagnostic,
+): PortfolioAssessmentFact {
   return {
     assessmentId: value.assessmentId,
     attemptId: value.attemptId,
@@ -230,6 +292,68 @@ function projectFormalRow(row: FormalRow): PortfolioAssessmentFact | undefined {
   };
 }
 
+function frozenAssessmentMatches(input: {
+  assessment: PortfolioAssessmentFact;
+  frozen: FrozenRow;
+  details: Record<string, unknown> | undefined;
+  head: HeadRow;
+  nodeId: string;
+  reviewHistory: PortfolioReviewFact[];
+  row: FormalRow;
+}): boolean {
+  const { assessment, frozen, details, head, nodeId, reviewHistory, row } = input;
+  if (!details || head.status !== 'verified' || !assessment.passed
+    || frozen.origin !== head.origin || assessment.origin !== frozen.origin) return false;
+  if (stringProperty(details, 'assessmentId') !== assessment.assessmentId
+    || stringProperty(details, 'questionVersion') !== assessment.questionVersion) return false;
+
+  const test = recordProperty(details, 'test');
+  const frozenNodeId = stringProperty(test, 'nodeId') ?? stringProperty(details, 'nodeId');
+  const frozenGameId = stringProperty(test, 'gameId') ?? stringProperty(details, 'gameId');
+  const frozenFormalScore = numberProperty(test, 'score')
+    ?? numberProperty(details, 'nodeTestHighestScore');
+  if (frozenNodeId !== nodeId || frozenFormalScore !== assessment.totalScore) return false;
+  if ((test && frozenGameId !== row.gameId) || (!test && frozenGameId && frozenGameId !== row.gameId)) {
+    return false;
+  }
+
+  const output = recordProperty(details, 'output');
+  const frozenOutputId = stringProperty(output, 'outputId') ?? stringProperty(details, 'outputId');
+  const frozenOutputVersion = numberProperty(output, 'version')
+    ?? numberProperty(details, 'outputVersion');
+  const frozenRubricScore = numberProperty(output, 'rubricScore')
+    ?? numberProperty(details, 'outputRubricScore');
+  if (frozenOutputId !== head.outputId || frozenOutputVersion !== head.currentVersion) return false;
+
+  const reviewId = stringProperty(details, 'reviewId');
+  const review = reviewId
+    ? reviewHistory.find((candidate) => candidate.reviewId === reviewId)
+    : [...reviewHistory].reverse().find((candidate) => (
+      candidate.status === 'verified' && candidate.outputVersion === head.currentVersion
+    ));
+  if (!review || review.status !== 'verified' || review.outputVersion !== head.currentVersion
+    || review.origin !== frozen.origin || review.score === undefined
+    || frozenRubricScore !== review.score) return false;
+
+  const formulaVersion = stringProperty(details, 'formulaVersion');
+  if (formulaVersion && formulaVersion !== 'task-score-40-60-v1') return false;
+  if (test && numberProperty(test, 'weight') !== 0.4) return false;
+  if (output && numberProperty(output, 'weight') !== 0.6) return false;
+  const weights = recordProperty(details, 'weights');
+  if (weights && (numberProperty(weights, 'nodeTest') !== 0.4
+    || numberProperty(weights, 'professionalOutput') !== 0.6)) return false;
+
+  const expectedComposite = calculateTaskCompositeScore({
+    nodeTestHighestScore: assessment.totalScore,
+    outputRubricScore: review.score,
+  }).taskCompositeScore;
+  const frozenComposite = numberProperty(details, 'taskCompositeScore');
+  return expectedComposite !== undefined
+    && frozenComposite === expectedComposite
+    && frozen.provisionalScore === expectedComposite
+    && frozen.officialScore === expectedComposite;
+}
+
 function parseFields(value: string): Record<string, ProfessionalOutputFieldValue> {
   const record = parseJsonRecord(value);
   if (!record) return {};
@@ -241,8 +365,10 @@ function parseFields(value: string): Record<string, ProfessionalOutputFieldValue
 }
 
 function stringMetadata(value: string): Record<string, string> {
-  return Object.fromEntries(Object.entries(parseJsonRecord(value) ?? {})
-    .filter((entry): entry is [string, string] => typeof entry[1] === 'string'));
+  const source = parseJsonRecord(value) ?? {};
+  return Object.fromEntries(['evidenceType', 'annotation'].flatMap((key) => (
+    typeof source[key] === 'string' ? [[key, source[key]]] : []
+  )));
 }
 
 function parseJsonRecord(value: string | undefined): Record<string, unknown> | undefined {
@@ -260,6 +386,17 @@ function optionalAssessment(value: PortfolioAssessmentFact | undefined): Pick<P1
 
 function stringProperty(value: Record<string, unknown> | undefined, key: string): string | undefined {
   const item = value?.[key]; return typeof item === 'string' && item.trim() ? item : undefined;
+}
+
+function numberProperty(value: Record<string, unknown> | undefined, key: string): number | undefined {
+  const item = value?.[key]; return typeof item === 'number' && Number.isFinite(item) ? item : undefined;
+}
+
+function recordProperty(
+  value: Record<string, unknown> | undefined,
+  key: string,
+): Record<string, unknown> | undefined {
+  const item = value?.[key]; return isRecord(item) ? item : undefined;
 }
 
 function assertTaskId(value: string): asserts value is P1OutputTaskId {

@@ -14,6 +14,7 @@ import { ProfessionalOutputRepository } from './professional-output-repository.t
 import { loadSelfStudyCatalog } from '../features/textbook-scene/self-study-content.ts';
 import { professionalOutputSchemaForTask } from '../features/portfolio/output-schema.ts';
 import { assessmentDimensionKeys } from './formal-assessment-contract.ts';
+import { getFormalAssessmentDefinition } from './formal-assessment-catalog.server.ts';
 import {
   completePolicyGaps,
   seedLegalProfessionalOutputPracticeFacts,
@@ -79,7 +80,8 @@ test('teacher lists a submitted class output and verifies it through the unique 
     migrateDatabase(fixture.database);
     seedBase(fixture.database);
     seedLegalProfessionalOutputPracticeFacts(fixture.database, 'stu-01', 'P01');
-    insertUserFormalAssessment(fixture.database, 'api-review-attempt', 80);
+    insertUserFormalAssessment(fixture.database, 'api-review-attempt-92', 92, '2026-07-16T07:00:00.000Z');
+    insertUserFormalAssessment(fixture.database, 'api-review-attempt-later-60', 60, '2026-07-16T09:00:00.000Z');
     process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
     closeDatabase();
     const repository = new ProfessionalOutputRepository(fixture.database, () => 'api-review-output');
@@ -118,6 +120,15 @@ test('teacher lists a submitted class output and verifies it through the unique 
       listed.outputs[0].fieldSchema,
       schema.fields.map(({ key, label }) => ({ key, label })),
     );
+    assert.equal(listed.outputs[0].detail.currentVersion, 1);
+    assert.equal(listed.outputs[0].detail.versions.length, 1);
+    assert.equal(listed.outputs[0].detail.versions[0].fields.every((field: {
+      evidenceGap?: { gapText: string; nextActionText: string };
+    }) => Boolean(field.evidenceGap?.gapText && field.evidenceGap.nextActionText)), true);
+    assert.equal(listed.outputs[0].detail.assessment.totalScore, 92);
+    assert.equal(listed.outputs[0].detail.assessment.attemptId, 'api-review-attempt-92');
+    assert.equal(listed.outputs[0].detail.assessment.origin, 'user');
+    assert.equal(listed.outputs[0].detail.assessment.originLabel, '真实学习记录');
     const rubricScores = Object.fromEntries(schema.rubric.map(({ criterion, maxScore }) => [
       criterion,
       maxScore,
@@ -166,10 +177,14 @@ test('teacher lists a submitted class output and verifies it through the unique 
     assert.equal(response.status, 200);
     const result = await response.json();
     assert.equal(result.output.head.status, 'verified');
-    assert.equal(result.frozenTaskScore.officialScore, 92);
+    assert.equal(result.frozenTaskScore.officialScore, 97);
+    assert.equal(result.frozenTaskScore.details.nodeTestAttemptId, 'api-review-attempt-92');
+    assert.equal(result.frozenTaskScore.details.test.score, 92);
     assert.equal(fixture.database.prepare(`
-      SELECT COUNT(*) FROM formal_attempts WHERE attempt_id = 'api-review-attempt' AND score = 80
-    `).pluck().get(), 1);
+      SELECT COUNT(*) FROM formal_attempts
+      WHERE (attempt_id = 'api-review-attempt-92' AND score = 92)
+        OR (attempt_id = 'api-review-attempt-later-60' AND score = 60)
+    `).pluck().get(), 2);
   } finally {
     closeDatabase();
     if (previousPath === undefined) delete process.env.DGBOOK_SQLITE_PATH;
@@ -190,17 +205,29 @@ function insertUserFormalAssessment(
   database: ReturnType<typeof createTestDatabase>['database'],
   attemptId: string,
   score: number,
+  completedAt: string,
 ): void {
+  const definition = getFormalAssessmentDefinition('P1T1-N02');
+  assert.ok(definition);
   const assessmentId = `assessment-${attemptId}`;
-  const completedAt = '2026-07-16T08:00:00.000Z';
   database.prepare(`
     INSERT INTO formal_assessment_instances (
       assessment_id, node_id, game_id, question_version, status, closed_at
     ) VALUES (?, 'P1T1-N02', 'P1T1-N02-server-assessment', 'p01-n02-v1', 'closed', ?)
   `).run(assessmentId, completedAt);
-  const dimensions = Object.fromEntries(assessmentDimensionKeys.map((key) => [key, {
-    score: score / 4, maxScore: 25, feedback: `${key} feedback`,
-  }]));
+  const dimensions = Object.fromEntries(assessmentDimensionKeys.map((key) => {
+    const dimensionScore = score / assessmentDimensionKeys.length;
+    const remediationTarget = dimensionScore < 20
+      ? definition.grading[key].remediationTarget
+      : undefined;
+    return [key, {
+      score: dimensionScore, maxScore: 25, feedback: `${key} feedback`,
+      ...(remediationTarget ? { remediationTarget } : {}),
+    }];
+  }));
+  const remediationTargets = assessmentDimensionKeys.flatMap((key) => (
+    score / assessmentDimensionKeys.length < 20 ? [definition.grading[key].remediationTarget] : []
+  ));
   database.prepare(`
     INSERT INTO formal_attempts (
       attempt_id, student_id, node_id, assessment_id, game_id, score,
@@ -209,7 +236,7 @@ function insertUserFormalAssessment(
   `).run(attemptId, assessmentId, score, completedAt, JSON.stringify({
     assessmentId, attemptId, studentId: 'stu-01', nodeId: 'P1T1-N02',
     gameId: 'P1T1-N02-server-assessment', questionVersion: 'p01-n02-v1',
-    totalScore: score, passed: true, dimensions, remediationTargets: [],
+    totalScore: score, passed: score >= 80, dimensions, remediationTargets,
     origin: 'user', completedAt,
   }));
 }

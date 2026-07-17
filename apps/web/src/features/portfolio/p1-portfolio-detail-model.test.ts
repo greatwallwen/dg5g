@@ -166,10 +166,11 @@ function version(
   fields: Record<string, string | number | string[]>,
   evidenceLinks: PortfolioVersionFact['evidenceLinks'] = {},
   fieldSources: PortfolioVersionFact['fieldSources'] = [],
+  evidenceGaps: PortfolioVersionFact['evidenceGaps'] = {},
 ): PortfolioVersionFact {
   return {
     outputId: 'output-p01', taskId: 'P01', version: number, schemaVersion: 1,
-    fields, upstreamRefs: [], evidenceLinks, fieldSources,
+    fields, upstreamRefs: [], evidenceLinks, evidenceGaps, fieldSources,
   };
 }
 

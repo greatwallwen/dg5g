@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { assessmentDimensionKeys } from './formal-assessment-contract.ts';
+import { getFormalAssessmentDefinition } from './formal-assessment-catalog.server.ts';
 import { seedP01EvidenceLibrary } from '../features/portfolio/evidence-library.ts';
 import { p01OutputFieldKeys } from '../features/portfolio/p01-output-definition.ts';
 import { seedBase, seedDemo } from './db/demo-seed.ts';
@@ -99,6 +100,115 @@ test('does not expose a frozen diagnosis that fails the shared persisted-assessm
     const facts = new ProfessionalOutputPortfolioReader(fixture.database).read('stu-01', 'P01');
 
     assert.equal(facts.assessment, undefined);
+    assert.equal(facts.assessmentLinkStatus, 'legacy-unlinked');
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('rejects conflicting or stale frozen diagnosis bindings instead of presenting an unrelated attempt', () => {
+  const corruptions: Array<[string, (details: Record<string, unknown>) => void]> = [
+    ['conflicting attempt aliases', (details) => { details.attemptId = 'formal-user-newer'; }],
+    ['wrong assessment', (details) => { details.assessmentId = 'assessment-other'; }],
+    ['wrong output', (details) => { details.outputId = 'output-other'; }],
+    ['wrong review', (details) => { details.reviewId = 'review-return'; }],
+  ];
+  for (const [label, corrupt] of corruptions) {
+    const fixture = createTestDatabase();
+    try {
+      migrateDatabase(fixture.database);
+      seedBase(fixture.database);
+      seedP01EvidenceLibrary(fixture.database);
+      seedPortfolioFacts(fixture.database);
+      const details = JSON.parse(fixture.database.prepare(`
+        SELECT details_json FROM frozen_task_scores WHERE score_id = 'score-stu-01-p01'
+      `).pluck().get() as string) as Record<string, unknown>;
+      corrupt(details);
+      fixture.database.prepare(`
+        UPDATE frozen_task_scores SET details_json = ? WHERE score_id = 'score-stu-01-p01'
+      `).run(JSON.stringify(details));
+
+      const facts = new ProfessionalOutputPortfolioReader(fixture.database).read('stu-01', 'P01');
+
+      assert.equal(facts.assessment, undefined, label);
+      assert.equal(facts.assessmentLinkStatus, 'legacy-unlinked', label);
+    } finally {
+      fixture.cleanup();
+    }
+  }
+});
+
+test('never guesses a newer formal attempt for a legacy frozen score without an attempt binding', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    seedP01EvidenceLibrary(fixture.database);
+    seedPortfolioFacts(fixture.database);
+    fixture.database.prepare(`
+      UPDATE evidence_library SET metadata_json = json_set(
+        metadata_json, '$.answer', 'secret-answer', '$.filesystemPath', 'D:/private/source.png'
+      ) WHERE evidence_id = 'P01-EV-ROOM-OVERVIEW'
+    `).run();
+    fixture.database.prepare(`
+      UPDATE frozen_task_scores SET details_json = '{}'
+      WHERE score_id = 'score-stu-01-p01'
+    `).run();
+
+    const facts = new ProfessionalOutputPortfolioReader(fixture.database).read('stu-01', 'P01');
+    const model = buildP1PortfolioDetailModel(
+      buildP1PortfolioDetailDefinition('P01', loadP1DemoContent(), loadSelfStudyCatalog()),
+      facts,
+    );
+
+    assert.equal(facts.assessment, undefined, 'must not fall back to formal-user-newer');
+    assert.equal(facts.assessmentLinkStatus, 'legacy-unlinked');
+    assert.doesNotMatch(JSON.stringify(facts), /filesystemPath|private.source|secret-answer/);
+    assert.equal(model.assessment, undefined);
+    assert.equal(model.assessmentLinkStatus, 'legacy-unlinked');
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('an unfrozen submitted output selects the newest valid user assessment instead of stopping on malformed data', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    seedP01EvidenceLibrary(fixture.database);
+    seedPortfolioFacts(fixture.database);
+    fixture.database.prepare(`DELETE FROM frozen_task_scores WHERE score_id = 'score-stu-01-p01'`).run();
+    fixture.database.prepare(`UPDATE professional_outputs SET status = 'submitted' WHERE output_id = 'output-stu-01'`).run();
+    fixture.database.prepare(`
+      UPDATE formal_attempts SET diagnostics_json = json_set(
+        diagnostics_json, '$.dimensions.evidenceClassification.score', 30
+      ) WHERE attempt_id = 'formal-user-newer'
+    `).run();
+
+    const facts = new ProfessionalOutputPortfolioReader(fixture.database).read('stu-01', 'P01');
+
+    assert.equal(facts.assessment?.attemptId, 'formal-user-frozen');
+    assert.equal(facts.assessment?.origin, 'user');
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('an unfrozen submitted output shows the same highest passing user assessment used by certification', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    seedP01EvidenceLibrary(fixture.database);
+    seedPortfolioFacts(fixture.database);
+    fixture.database.prepare(`DELETE FROM frozen_task_scores WHERE score_id = 'score-stu-01-p01'`).run();
+    fixture.database.prepare(`UPDATE professional_outputs SET status = 'submitted' WHERE output_id = 'output-stu-01'`).run();
+
+    const facts = new ProfessionalOutputPortfolioReader(fixture.database).read('stu-01', 'P01');
+
+    assert.equal(facts.assessment?.attemptId, 'formal-user-frozen');
+    assert.equal(facts.assessment?.totalScore, 92);
   } finally {
     fixture.cleanup();
   }
@@ -123,7 +233,7 @@ test('production verification freezes and reads the exact highest valid attempt 
       outputId: 'output-production-reader', studentId: 'stu-01', taskId: 'P01',
       expectedStateRevision: 1, fields, upstreamRefs: [], evidenceGaps,
     });
-    insertFormal(fixture.database, 'formal-production-later-84', 'assessment-production-later-84', 'stu-01', 84, 'user', '2026-07-16T10:00:00.000Z');
+    insertFormal(fixture.database, 'formal-production-later-60', 'assessment-production-later-60', 'stu-01', 60, 'user', '2026-07-16T10:00:00.000Z');
     insertFormal(fixture.database, 'formal-malformed-100', 'assessment-malformed-100', 'stu-01', 100, 'user', '2026-07-16T11:00:00.000Z');
     fixture.database.prepare(`
       UPDATE formal_attempts SET diagnostics_json = json_set(
@@ -209,16 +319,25 @@ function seedPortfolioFacts(database: ReturnType<typeof createTestDatabase>['dat
 
   insertFormal(database, 'formal-demo-high', 'assessment-demo', 'stu-01', 99, 'demo', '2026-07-16T10:00:00.000Z');
   insertFormal(database, 'formal-user-frozen', 'assessment-user-frozen', 'stu-01', 92, 'user', '2026-07-16T07:00:00.000Z');
-  insertFormal(database, 'formal-user-newer', 'assessment-user-newer', 'stu-01', 84, 'user', '2026-07-16T11:00:00.000Z');
+  insertFormal(database, 'formal-user-newer', 'assessment-user-newer', 'stu-01', 60, 'user', '2026-07-16T11:00:00.000Z');
   database.prepare(`
     INSERT INTO frozen_task_scores (
       score_id, student_id, task_id, snapshot_version, provisional_score,
       official_score, details_json, origin
     ) VALUES ('score-stu-01-p01', 'stu-01', 'P01', 7, 93, 93, ?, 'user')
   `).run(JSON.stringify({
+    reviewId: 'review-verify',
+    formulaVersion: 'task-score-40-60-v1',
     nodeTestAttemptId: 'formal-user-frozen',
     assessmentId: 'assessment-user-frozen',
     questionVersion: 'p01-n02-v1',
+    nodeId: 'P1T1-N02',
+    nodeTestHighestScore: 92,
+    outputId: 'output-stu-01',
+    outputVersion: 2,
+    outputRubricScore: 94,
+    taskCompositeScore: 93,
+    weights: { nodeTest: 0.4, professionalOutput: 0.6 },
   }));
 }
 
@@ -280,14 +399,26 @@ function insertFormal(
   origin: 'demo' | 'user',
   completedAt: string,
 ): void {
+  const definition = getFormalAssessmentDefinition('P1T1-N02');
+  assert.ok(definition);
   database.prepare(`
     INSERT INTO formal_assessment_instances (
       assessment_id, node_id, game_id, question_version, status, created_at
     ) VALUES (?, 'P1T1-N02', 'P1T1-N02-server-assessment', 'p01-n02-v1', 'closed', ?)
   `).run(assessmentId, completedAt);
-  const dimensions = Object.fromEntries(assessmentDimensionKeys.map((key) => [key, {
-    score: score / 4, maxScore: 25, feedback: `${key} feedback`,
-  }]));
+  const dimensions = Object.fromEntries(assessmentDimensionKeys.map((key) => {
+    const dimensionScore = score / assessmentDimensionKeys.length;
+    const remediationTarget = dimensionScore < 20
+      ? definition.grading[key].remediationTarget
+      : undefined;
+    return [key, {
+      score: dimensionScore, maxScore: 25, feedback: `${key} feedback`,
+      ...(remediationTarget ? { remediationTarget } : {}),
+    }];
+  }));
+  const remediationTargets = assessmentDimensionKeys.flatMap((key) => (
+    score / assessmentDimensionKeys.length < 20 ? [definition.grading[key].remediationTarget] : []
+  ));
   database.prepare(`
     INSERT INTO formal_attempts (
       attempt_id, student_id, node_id, assessment_id, game_id, score,
@@ -297,6 +428,6 @@ function insertFormal(
     JSON.stringify({ secret: 'secret-answer' }),
     JSON.stringify({
       assessmentId, attemptId, studentId, nodeId: 'P1T1-N02', gameId: 'P1T1-N02-server-assessment', questionVersion: 'p01-n02-v1',
-      totalScore: score, passed: score >= 80, dimensions, remediationTargets: [], origin, completedAt,
+      totalScore: score, passed: score >= 80, dimensions, remediationTargets, origin, completedAt,
     }), origin);
 }

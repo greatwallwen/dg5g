@@ -1,43 +1,46 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import {
+  certificationBlockers,
+  OutputReviewCertification,
+} from './output-review-certification';
+import { formatOutputFieldValue, OutputReviewDetail } from './output-review-detail';
+import type { QueueResponse, ReviewField, ReviewQueueItem } from './output-review-types';
 
-interface ReviewQueueItem {
-  outputId: string;
-  studentId: string;
-  studentName: string;
-  taskId: 'P01' | 'P02' | 'P03';
-  nodeId: string;
-  status: 'submitted';
-  currentVersion: number;
-  stateRevision: number;
-  fields: Record<string, unknown>;
-  fieldSchema: Array<{ key: string; label: string }>;
-  rubric: Array<{ key: string; label: string; maxScore: number }>;
-}
-
-interface QueueResponse {
-  outputs: ReviewQueueItem[];
-  error?: string;
-}
+export { certificationBlockers } from './output-review-certification';
+export { formatOutputFieldValue } from './output-review-detail';
 
 export function OutputReviewPanel() {
   const [outputs, setOutputs] = useState<ReviewQueueItem[]>([]);
   const [selectedId, setSelectedId] = useState('');
   const [scores, setScores] = useState<Record<string, number>>({});
+  const [annotations, setAnnotations] = useState<Record<string, string>>({});
   const [feedback, setFeedback] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState<'return' | 'verify' | null>(null);
   const [message, setMessage] = useState('');
-
   const selected = useMemo(
     () => outputs.find((output) => output.outputId === selectedId) ?? outputs[0],
     [outputs, selectedId],
   );
-  const rubricScores = Object.fromEntries(
-    (selected?.rubric ?? []).map(({ key }) => [key, scores[key] ?? 0]),
-  );
+  const currentVersion = selected?.detail.versions.find(({ isCurrent }) => isCurrent);
+  const currentFields: ReviewField[] = selected ? currentVersion?.fields ?? selected.fieldSchema.map(
+    ({ key, label }) => ({
+      key, label, value: formatOutputFieldValue(selected.fields[key]),
+      displayValue: formatOutputFieldValue(selected.fields[key]),
+      evidence: [], sources: [], annotations: [], unknownField: false,
+    }),
+  ) : [];
+  const rubricScores = selected ? Object.fromEntries(
+    selected.rubric.map(({ key }) => [key, scores[key] ?? 0]),
+  ) : {};
   const totalScore = Object.values(rubricScores).reduce((sum, score) => sum + score, 0);
+  const blockers = selected ? certificationBlockers({
+    rubric: selected.rubric, scores, assessment: selected.detail.assessment,
+  }) : [];
+  const reviewAnnotations = Object.fromEntries(Object.entries(annotations)
+    .flatMap(([key, value]) => value.trim() ? [[key, value.trim()]] : []));
 
   async function loadQueue() {
     setLoading(true);
@@ -47,8 +50,7 @@ export function OutputReviewPanel() {
       if (!response.ok) throw new Error(body.error ?? '读取批阅队列失败');
       setOutputs(body.outputs);
       setSelectedId((current) => body.outputs.some((item) => item.outputId === current)
-        ? current
-        : (body.outputs[0]?.outputId ?? ''));
+        ? current : (body.outputs[0]?.outputId ?? ''));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '读取批阅队列失败');
     } finally {
@@ -56,21 +58,35 @@ export function OutputReviewPanel() {
     }
   }
 
-  useEffect(() => {
-    void loadQueue();
-  }, []);
+  useEffect(() => { void loadQueue(); }, []);
 
   function chooseOutput(outputId: string) {
     setSelectedId(outputId);
     setScores({});
+    setAnnotations({});
     setFeedback('');
     setMessage('');
   }
 
+  function updateScore(key: string, rawValue: string) {
+    setScores((current) => {
+      if (!rawValue.trim()) {
+        const next = { ...current };
+        delete next[key];
+        return next;
+      }
+      return { ...current, [key]: Number(rawValue) };
+    });
+  }
+
   async function submitReview(action: 'return' | 'verify') {
     if (!selected) return;
-    if (action === 'return' && !feedback.trim()) {
-      setMessage('退回修订时必须填写具体改正意见。');
+    if (action === 'return' && feedback.trim().length < 8) {
+      setMessage('退回意见至少 8 个字符，并应指出证据问题与改正动作。');
+      return;
+    }
+    if (action === 'verify' && blockers.length > 0) {
+      setMessage(blockers.join(' '));
       return;
     }
     setSubmitting(action);
@@ -81,23 +97,20 @@ export function OutputReviewPanel() {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           expectedStateRevision: selected.stateRevision,
+          expectedOutputVersion: selected.currentVersion,
           action,
           ...(feedback.trim() ? { feedback: feedback.trim() } : {}),
+          ...(Object.keys(reviewAnnotations).length > 0 ? { annotations: reviewAnnotations } : {}),
           ...(action === 'verify' ? { rubricScores } : {}),
         }),
       });
-      const body = await response.json() as {
-        error?: string;
-        frozenTaskScore?: { officialScore: number };
-      };
+      const body = await response.json() as { error?: string; frozenTaskScore?: { officialScore: number } };
       if (!response.ok) throw new Error(body.error ?? '批阅提交失败');
-      const frozenScore = body.frozenTaskScore?.officialScore;
       setMessage(action === 'return'
-        ? '已退回修订，学生将看到本次反馈。'
-        : frozenScore === undefined
-          ? '已完成教师认证；缺少节点测试成绩，暂不冻结任务综合分。'
-          : `已完成教师认证，任务综合分冻结为 ${frozenScore} 分。`);
+        ? '已退回修订，字段批注和改正意见已进入学生成果版本链。'
+        : `已完成教师认证，任务综合分冻结为 ${body.frozenTaskScore!.officialScore} 分。`);
       setScores({});
+      setAnnotations({});
       setFeedback('');
       await loadQueue();
     } catch (error) {
@@ -109,90 +122,32 @@ export function OutputReviewPanel() {
 
   return (
     <section className="teacher-review-panel output-review-panel" data-output-review-panel>
-      <header>
-        <span>待批阅专业产出</span>
-        <strong>{loading ? '正在同步…' : `${outputs.length} 份已提交产出`}</strong>
-      </header>
+      <header><span>专业成果复核台</span><strong>{loading ? '正在同步…' : `${outputs.length} 份待复核`}</strong></header>
       {outputs.length > 0 ? (
         <nav aria-label="待批阅产出" className="output-review-queue">
           {outputs.map((output) => (
-            <button
-              aria-pressed={selected?.outputId === output.outputId}
-              data-review-output-id={output.outputId}
-              key={output.outputId}
-              onClick={() => chooseOutput(output.outputId)}
-              type="button"
-            >
+            <button aria-pressed={selected?.outputId === output.outputId}
+              data-review-output-id={output.outputId} key={output.outputId}
+              onClick={() => chooseOutput(output.outputId)} type="button">
               <strong>{output.studentName}</strong>
               <span>{output.taskId} · {output.nodeId}</span>
-              <small>第 {output.currentVersion} 版</small>
+              <small>V{output.currentVersion} · {output.detail.statusLabel}</small>
             </button>
           ))}
         </nav>
       ) : !loading ? <p><b>队列状态</b>当前没有待批阅产出</p> : null}
       {selected ? (
         <>
-          <p><b>当前产出</b>{selected.studentName} · {selected.taskId} · 版本 {selected.currentVersion}</p>
-          <div className="output-review-fields">
-            {selected.fieldSchema.map(({ key, label }) => (
-              <p key={key}><b>{label}</b><span>{formatOutputFieldValue(selected.fields[key])}</span></p>
-            ))}
-          </div>
-          <fieldset className="output-review-rubric">
-            <legend>专业产出评价（总分 {totalScore}/100）</legend>
-            {selected.rubric.map((criterion) => (
-              <label key={criterion.key}>
-                <span>{criterion.label} / {criterion.maxScore}</span>
-                <input
-                  max={criterion.maxScore}
-                  min={0}
-                  onChange={(event) => setScores((current) => ({
-                    ...current,
-                    [criterion.key]: Math.min(
-                      criterion.maxScore,
-                      Math.max(0, Number(event.target.value)),
-                    ),
-                  }))}
-                  type="number"
-                  value={scores[criterion.key] ?? 0}
-                />
-              </label>
-            ))}
-          </fieldset>
-          <label>
-            <span>教师反馈</span>
-            <textarea
-              onChange={(event) => setFeedback(event.target.value)}
-              placeholder="指出证据缺口、判断问题或下一步改正路径"
-              value={feedback}
-            />
-          </label>
-          <div className="teacher-review-actions">
-            <button data-review-action="return" disabled={submitting !== null}
-              onClick={() => void submitReview('return')} type="button">
-              {submitting === 'return' ? '正在退回…' : '退回修订'}
-            </button>
-            <button data-review-action="verify" disabled={submitting !== null || totalScore > 100}
-              onClick={() => void submitReview('verify')} type="button">
-              {submitting === 'verify' ? '正在认证…' : '确认认证并冻结成绩'}
-            </button>
-          </div>
+          <OutputReviewDetail annotations={annotations} fields={currentFields}
+            onAnnotationChange={(key, value) => setAnnotations((current) => ({ ...current, [key]: value }))}
+            selected={selected} />
+          <OutputReviewCertification blockers={blockers} feedback={feedback}
+            onFeedbackChange={setFeedback} onScoreChange={updateScore}
+            onSubmit={(action) => void submitReview(action)} scores={scores}
+            selected={selected} submitting={submitting} totalScore={totalScore} />
         </>
       ) : null}
       {message ? <p aria-live="polite" className="output-review-message"><b>处理结果</b>{message}</p> : null}
     </section>
   );
-}
-
-export function formatOutputFieldValue(value: unknown): string {
-  if (value === undefined || value === '') return '未填写';
-  if (typeof value === 'string' || typeof value === 'number') return String(value);
-  if (Array.isArray(value)) return value.map(formatOutputFieldValue).join('、');
-  if (isRecord(value) && 'value' in value) return formatOutputFieldValue(value.value);
-  if (isRecord(value)) return JSON.stringify(value);
-  return String(value);
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }

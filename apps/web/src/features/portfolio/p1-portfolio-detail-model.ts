@@ -8,6 +8,7 @@ import type { LearningOrigin } from '../../platform/learning-origin.ts';
 import type {
   P1OutputTaskId,
   ProfessionalOutputFieldValue,
+  ProfessionalOutputEvidenceGap,
   ProfessionalOutputHead,
   ProfessionalOutputStatus,
   ProfessionalOutputUpstreamRef,
@@ -44,6 +45,7 @@ export interface PortfolioVersionFact {
   fields: Record<string, ProfessionalOutputFieldValue>;
   upstreamRefs: ProfessionalOutputUpstreamRef[];
   evidenceLinks: Record<string, PortfolioEvidenceFact[]>;
+  evidenceGaps: Record<string, ProfessionalOutputEvidenceGap>;
   fieldSources: ProfessionalOutputFieldSourceFact[];
 }
 
@@ -81,6 +83,7 @@ export interface P1PortfolioDetailFacts {
     reviewHistory: PortfolioReviewFact[];
   };
   assessment?: PortfolioAssessmentFact;
+  assessmentLinkStatus?: 'legacy-unlinked';
 }
 
 export interface P1PortfolioDetailTaskDefinition {
@@ -101,6 +104,7 @@ export interface P1PortfolioDetailFieldViewModel {
   value: ProfessionalOutputFieldValue;
   displayValue: string;
   evidence: Array<PortfolioEvidenceFact & { originLabel: string }>;
+  evidenceGap?: ProfessionalOutputEvidenceGap;
   sources: Array<ProfessionalOutputFieldSourceFact & { label: string; href: string }>;
   annotations: Array<{
     reviewId: string;
@@ -119,6 +123,7 @@ export interface P1PortfolioDetailViewModel {
   deliveryState: PortfolioDeliveryState;
   statusLabel: string;
   workflowState?: OutputWorkflowState;
+  origin?: LearningOrigin;
   originLabel?: string;
   currentVersion?: number;
   outputHref: string;
@@ -129,6 +134,7 @@ export interface P1PortfolioDetailViewModel {
     diffFromPrevious?: ProfessionalOutputVersionDiff;
   }>;
   reviewTimeline: Array<PortfolioReviewFact & { originLabel: string }>;
+  assessmentLinkStatus?: 'legacy-unlinked';
   assessment?: {
     assessmentId: string;
     attemptId: string;
@@ -137,6 +143,7 @@ export interface P1PortfolioDetailViewModel {
     questionVersion: string;
     totalScore: number;
     passed: boolean;
+    origin: LearningOrigin;
     originLabel: string;
     completedAt: string;
     dimensions: Array<AssessmentDimensionDiagnosis & { key: AssessmentDimensionKey; label: string }>;
@@ -189,10 +196,12 @@ export function buildP1PortfolioDetailModel(
       : output.head.status === 'verified' ? 'verified-deliverable' : 'not-deliverable',
     statusLabel: workflow.label,
     workflowState: workflow.state,
+    origin: output.head.origin,
     originLabel: originLabel(output.head.origin),
     currentVersion: output.head.currentVersion,
     versions: projectedVersions,
     reviewTimeline: reviews.map((review) => ({ ...review, originLabel: originLabel(review.origin) })),
+    ...(facts.assessmentLinkStatus ? { assessmentLinkStatus: facts.assessmentLinkStatus } : {}),
     ...(assessment ? { assessment } : {}),
   };
 }
@@ -213,6 +222,7 @@ function projectFields(
       ...item,
       originLabel: item.origin === 'demo' ? '演示证据' : '学习证据',
     })),
+    ...(version.evidenceGaps[key] ? { evidenceGap: version.evidenceGaps[key] } : {}),
     sources: version.fieldSources.filter(({ fieldKey }) => fieldKey === key).map((source) => ({
       ...source,
       label: `来自 ${source.sourceNodeId} 岗位练习`,
@@ -249,6 +259,7 @@ function projectAssessment(
     questionVersion: assessment.questionVersion,
     totalScore: assessment.totalScore,
     passed: assessment.passed,
+    origin: assessment.origin,
     originLabel: originLabel(assessment.origin),
     completedAt: assessment.completedAt,
     dimensions: assessmentDimensionKeys.map((key) => ({
