@@ -14,6 +14,11 @@ import { loadP1DemoContent } from '../features/platform/p1-content.ts';
 import { buildP1PortfolioDetailDefinition } from '../features/portfolio/p1-portfolio-detail-definition.ts';
 import { buildP1PortfolioDetailModel } from '../features/portfolio/p1-portfolio-detail-model.ts';
 import { loadSelfStudyCatalog } from '../features/textbook-scene/self-study-content.ts';
+import {
+  completePolicyGaps,
+  maximumPolicyRubricScores,
+  seedLegalProfessionalOutputPracticeFacts,
+} from './professional-output-policy-test-support.ts';
 
 test('reads only the owned output with immutable evidence, sources, annotations, and the frozen diagnosis', () => {
   const fixture = createTestDatabase();
@@ -105,17 +110,19 @@ test('production verification freezes and reads the exact highest valid attempt 
     migrateDatabase(fixture.database);
     seedBase(fixture.database);
     seedP01EvidenceLibrary(fixture.database);
+    seedLegalProfessionalOutputPracticeFacts(fixture.database, 'stu-01', 'P01');
+    insertFormal(fixture.database, 'formal-production-92', 'assessment-production-92', 'stu-01', 92, 'user', '2026-07-16T07:00:00.000Z');
     const repository = new ProfessionalOutputRepository(fixture.database, () => 'output-production-reader');
     const fields = Object.fromEntries(p01OutputFieldKeys.map((key) => [key, `已填写：${key}`]));
+    const evidenceGaps = completePolicyGaps('P01');
     repository.saveDraft({
       studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
-      fields, upstreamRefs: [],
+      fields, upstreamRefs: [], evidenceGaps,
     });
     repository.submit({
       outputId: 'output-production-reader', studentId: 'stu-01', taskId: 'P01',
-      expectedStateRevision: 1, fields, upstreamRefs: [],
+      expectedStateRevision: 1, fields, upstreamRefs: [], evidenceGaps,
     });
-    insertFormal(fixture.database, 'formal-production-92', 'assessment-production-92', 'stu-01', 92, 'user', '2026-07-16T07:00:00.000Z');
     insertFormal(fixture.database, 'formal-production-later-84', 'assessment-production-later-84', 'stu-01', 84, 'user', '2026-07-16T10:00:00.000Z');
     insertFormal(fixture.database, 'formal-malformed-100', 'assessment-malformed-100', 'stu-01', 100, 'user', '2026-07-16T11:00:00.000Z');
     fixture.database.prepare(`
@@ -125,8 +132,9 @@ test('production verification freezes and reads the exact highest valid attempt 
     `).run();
     const reviewed = repository.reviewSubmitted({
       teacherId: 'teacher-01', classId: 'demo-class', outputId: 'output-production-reader',
-      expectedStateRevision: 2, action: 'verify', feedback: '证据闭环。',
-      rubricScores: { evidence: 94 },
+      expectedStateRevision: 2, expectedOutputVersion: 1,
+      action: 'verify', feedback: '证据闭环。',
+      rubricScores: maximumPolicyRubricScores('P01'),
     });
 
     assert.equal(reviewed.frozenTaskScore?.details.nodeTestAttemptId, 'formal-production-92');
@@ -137,7 +145,7 @@ test('production verification freezes and reads the exact highest valid attempt 
     assert.equal(task?.demoTaskCertified, false);
     assert.equal(task?.frozenFormalAttemptId, 'formal-production-92');
     assert.equal(task?.frozenFormalScore, 92);
-    assert.equal(task?.taskCompositeScore, 93);
+    assert.equal(task?.taskCompositeScore, 97);
     const facts = new ProfessionalOutputPortfolioReader(fixture.database).read('stu-01', 'P01');
     assert.equal(facts.assessment?.attemptId, 'formal-production-92');
     assert.equal(facts.assessment?.totalScore, 92);
@@ -275,7 +283,7 @@ function insertFormal(
   database.prepare(`
     INSERT INTO formal_assessment_instances (
       assessment_id, node_id, game_id, question_version, status, created_at
-    ) VALUES (?, 'P1T1-N02', 'game-topology', 'p01-n02-v1', 'closed', ?)
+    ) VALUES (?, 'P1T1-N02', 'P1T1-N02-server-assessment', 'p01-n02-v1', 'closed', ?)
   `).run(assessmentId, completedAt);
   const dimensions = Object.fromEntries(assessmentDimensionKeys.map((key) => [key, {
     score: score / 4, maxScore: 25, feedback: `${key} feedback`,
@@ -284,11 +292,11 @@ function insertFormal(
     INSERT INTO formal_attempts (
       attempt_id, student_id, node_id, assessment_id, game_id, score,
       completed_at, question_version, answers_json, diagnostics_json, origin
-    ) VALUES (?, ?, 'P1T1-N02', ?, 'game-topology', ?, ?, 'p01-n02-v1', ?, ?, ?)
+    ) VALUES (?, ?, 'P1T1-N02', ?, 'P1T1-N02-server-assessment', ?, ?, 'p01-n02-v1', ?, ?, ?)
   `).run(attemptId, studentId, assessmentId, score, completedAt,
     JSON.stringify({ secret: 'secret-answer' }),
     JSON.stringify({
-      assessmentId, attemptId, studentId, nodeId: 'P1T1-N02', gameId: 'game-topology', questionVersion: 'p01-n02-v1',
+      assessmentId, attemptId, studentId, nodeId: 'P1T1-N02', gameId: 'P1T1-N02-server-assessment', questionVersion: 'p01-n02-v1',
       totalScore: score, passed: score >= 80, dimensions, remediationTargets: [], origin, completedAt,
     }), origin);
 }

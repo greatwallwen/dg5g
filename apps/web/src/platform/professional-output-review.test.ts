@@ -6,19 +6,30 @@ import { createTestDatabase } from './db/test-database.ts';
 import { p01OutputFieldKeys } from '../features/portfolio/p01-output-definition.ts';
 import { assessmentDimensionKeys } from './formal-assessment-contract.ts';
 import { ProfessionalOutputRepository } from './professional-output-repository.ts';
+import {
+  completePolicyGaps,
+  maximumPolicyRubricScores,
+  seedLegalProfessionalOutputPracticeFacts,
+  seedLegalProfessionalOutputSubmissionFacts,
+} from './professional-output-policy-test-support.ts';
+import { TeacherCertificationPolicyError } from './teacher-certification-policy.ts';
 
-test('teacher verification freezes 80/90 as 86 without changing the N02 attempt history', () => {
+test('teacher verification freezes 80/100 as 92 without changing the N02 attempt history', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
     seedBase(fixture.database);
+    seedLegalProfessionalOutputPracticeFacts(fixture.database, 'stu-01', 'P01');
+    insertUserFormalAssessment(fixture.database, 'attempt-review-80', 80, '2026-07-16T08:00:00.000Z');
     const repository = new ProfessionalOutputRepository(fixture.database, () => 'output-review-p01');
+    const evidenceGaps = completePolicyGaps('P01');
     const draft = repository.saveDraft({
       studentId: 'stu-01',
       taskId: 'P01',
       expectedStateRevision: 0,
       fields: completeP01Fields('已完成室内信息采集成果'),
       upstreamRefs: [],
+      evidenceGaps,
     });
     const submitted = repository.submit({
       outputId: draft.head.outputId,
@@ -27,46 +38,57 @@ test('teacher verification freezes 80/90 as 86 without changing the N02 attempt 
       expectedStateRevision: draft.head.stateRevision,
       fields: draft.versions[0]!.fields,
       upstreamRefs: [],
+      evidenceGaps,
     });
-    insertUserFormalAssessment(fixture.database, 'attempt-review-80', 80, '2026-07-16T08:00:00.000Z');
     insertUserFormalAssessment(fixture.database, 'attempt-review-later-70', 70, '2026-07-16T09:00:00.000Z');
     const attemptsBefore = fixture.database.prepare(`
       SELECT attempt_id AS attemptId, score FROM formal_attempts
       WHERE student_id = 'stu-01' AND node_id = 'P1T1-N02' ORDER BY attempt_id
     `).all();
     const globalBefore = topicVersion('global');
+    const rubricScores = maximumPolicyRubricScores('P01');
 
     const result = repository.reviewSubmitted({
       teacherId: 'teacher-01',
       classId: 'demo-class',
       outputId: submitted.head.outputId,
       expectedStateRevision: submitted.head.stateRevision,
+      expectedOutputVersion: submitted.head.currentVersion,
       action: 'verify',
       feedback: '证据完整，达到岗位交付标准。',
-      rubricScores: { evidenceCompleteness: 40, professionalJudgement: 50 },
+      rubricScores,
     });
 
     assert.equal(result.output.head.status, 'verified');
     assert.equal(result.output.head.stateRevision, submitted.head.stateRevision + 1);
-    assert.equal(result.review.score, 90);
+    assert.equal(result.review.score, 100);
     assert.deepEqual(result.frozenTaskScore, {
       studentId: 'stu-01',
       taskId: 'P01',
       snapshotVersion: globalBefore + 1,
-      provisionalScore: 86,
-      officialScore: 86,
+      provisionalScore: 92,
+      officialScore: 92,
       details: {
-        nodeId: 'P1T1-N02',
+        reviewId: result.review.reviewId,
+        formulaVersion: 'task-score-40-60-v1',
         nodeTestAttemptId: 'attempt-review-80',
+        attemptId: 'attempt-review-80',
         assessmentId: 'assessment-attempt-review-80',
         questionVersion: 'p01-n02-v1',
-        nodeTestHighestScore: 80,
-        outputId: submitted.head.outputId,
-        outputVersion: 1,
-        outputRubricScore: 90,
-        rubricScores: { evidenceCompleteness: 40, professionalJudgement: 50 },
-        taskCompositeScore: 86,
-        weights: { nodeTest: 0.4, professionalOutput: 0.6 },
+        test: {
+          nodeId: 'P1T1-N02',
+          gameId: 'P1T1-N02-server-assessment',
+          score: 80,
+          weight: 0.4,
+        },
+        output: {
+          outputId: submitted.head.outputId,
+          version: 1,
+          rubricScore: 100,
+          weight: 0.6,
+        },
+        rubric: rubricScores,
+        taskCompositeScore: 92,
       },
     });
     assert.equal(topicVersion('global'), globalBefore + 1);
@@ -92,14 +114,15 @@ test('teacher verification never launders a demo-only formal score into a user f
     seedBase(fixture.database);
     const repository = new ProfessionalOutputRepository(fixture.database, () => 'demo-score-output-p01');
     const fields = completeP01Fields('demo score must remain labelled');
+    const evidenceGaps = completePolicyGaps('P01');
     repository.saveDraft({
       studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
-      fields, upstreamRefs: [],
+      fields, upstreamRefs: [], evidenceGaps,
     });
-    repository.submit({
-      outputId: 'demo-score-output-p01', studentId: 'stu-01', taskId: 'P01',
-      expectedStateRevision: 1, fields, upstreamRefs: [],
-    });
+    fixture.database.prepare(`
+      UPDATE professional_outputs SET status = 'submitted', state_revision = 2
+      WHERE output_id = 'demo-score-output-p01'
+    `).run();
     fixture.database.prepare(`
       INSERT INTO formal_attempts (
         attempt_id, student_id, node_id, game_id, score, origin
@@ -108,15 +131,15 @@ test('teacher verification never launders a demo-only formal score into a user f
       )
     `).run();
 
-    const result = repository.reviewSubmitted({
+    assert.throws(() => repository.reviewSubmitted({
       teacherId: 'teacher-01', classId: 'demo-class',
       outputId: 'demo-score-output-p01', expectedStateRevision: 2,
+      expectedOutputVersion: 1,
       action: 'verify', feedback: '成果本身通过。',
-      rubricScores: { evidenceCompleteness: 40, professionalJudgement: 50 },
-    });
+      rubricScores: maximumPolicyRubricScores('P01'),
+    }), TeacherCertificationPolicyError);
 
-    assert.equal(result.output.head.status, 'verified');
-    assert.equal(result.frozenTaskScore, undefined);
+    assert.equal(repository.read('stu-01', 'P01')?.head.status, 'submitted');
     assert.equal(fixture.database.prepare(`
       SELECT COUNT(*) FROM frozen_task_scores
       WHERE student_id = 'stu-01' AND task_id = 'P01'
@@ -134,17 +157,19 @@ test('teacher review queue contains only current submitted outputs from the teac
   try {
     migrateDatabase(fixture.database);
     seedBase(fixture.database);
+    seedLegalProfessionalOutputSubmissionFacts(fixture.database, 'stu-01');
     const ids = ['submitted-stu-01', 'draft-stu-02'];
     const repository = new ProfessionalOutputRepository(fixture.database, () => ids.shift()!);
     const submittedFields = completeP01Fields('stu-01 submitted result');
+    const evidenceGaps = completePolicyGaps('P01');
     const submittedDraft = repository.saveDraft({
       studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
-      fields: submittedFields, upstreamRefs: [],
+      fields: submittedFields, upstreamRefs: [], evidenceGaps,
     });
     repository.submit({
       outputId: submittedDraft.head.outputId,
       studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 1,
-      fields: submittedDraft.versions[0]!.fields, upstreamRefs: [],
+      fields: submittedDraft.versions[0]!.fields, upstreamRefs: [], evidenceGaps,
     });
     repository.saveDraft({
       studentId: 'stu-02', taskId: 'P01', expectedStateRevision: 0,
@@ -175,15 +200,17 @@ test('returning a submitted output records feedback and advances revision withou
   try {
     migrateDatabase(fixture.database);
     seedBase(fixture.database);
+    seedLegalProfessionalOutputSubmissionFacts(fixture.database, 'stu-01');
     const repository = new ProfessionalOutputRepository(fixture.database, () => 'output-return-p01');
+    const evidenceGaps = completePolicyGaps('P01');
     const draft = repository.saveDraft({
       studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
-      fields: completeP01Fields('missing evidence index'), upstreamRefs: [],
+      fields: completeP01Fields('missing evidence index'), upstreamRefs: [], evidenceGaps,
     });
     const submitted = repository.submit({
       outputId: draft.head.outputId,
       studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 1,
-      fields: draft.versions[0]!.fields, upstreamRefs: [],
+      fields: draft.versions[0]!.fields, upstreamRefs: [], evidenceGaps,
     });
     const globalBefore = topicVersion('global');
     const studentBefore = topicVersion('learning:stu-01');
@@ -193,6 +220,7 @@ test('returning a submitted output records feedback and advances revision withou
       classId: 'demo-class',
       outputId: submitted.head.outputId,
       expectedStateRevision: submitted.head.stateRevision,
+      expectedOutputVersion: submitted.head.currentVersion,
       action: 'return',
       feedback: '请补充照片编号与对象的一一对应关系。',
     });
@@ -228,20 +256,23 @@ test('portfolio facts expose the current head, current-version review, and froze
   try {
     migrateDatabase(fixture.database);
     seedBase(fixture.database);
+    seedLegalProfessionalOutputPracticeFacts(fixture.database, 'stu-01', 'P01');
+    insertUserFormalAssessment(fixture.database, 'portfolio-attempt', 80, '2026-07-16T08:00:00.000Z');
     const repository = new ProfessionalOutputRepository(fixture.database, () => 'portfolio-output-p01');
+    const evidenceGaps = completePolicyGaps('P01');
     const draft = repository.saveDraft({
       studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
-      fields: completeP01Fields('must not leave repository aggregate'), upstreamRefs: [],
+      fields: completeP01Fields('must not leave repository aggregate'), upstreamRefs: [], evidenceGaps,
     });
     const submitted = repository.submit({
       outputId: draft.head.outputId,
       studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 1,
-      fields: draft.versions[0]!.fields, upstreamRefs: [],
+      fields: draft.versions[0]!.fields, upstreamRefs: [], evidenceGaps,
     });
-    insertUserFormalAssessment(fixture.database, 'portfolio-attempt', 80, '2026-07-16T08:00:00.000Z');
     repository.reviewSubmitted({
       teacherId: 'teacher-01', classId: 'demo-class', outputId: submitted.head.outputId,
-      expectedStateRevision: 2, action: 'verify', feedback: '通过', rubricScores: { result: 90 },
+      expectedStateRevision: 2, expectedOutputVersion: 1,
+      action: 'verify', feedback: '通过', rubricScores: maximumPolicyRubricScores('P01'),
     });
 
     const facts = repository.readPortfolioFacts('stu-01');
@@ -250,10 +281,10 @@ test('portfolio facts expose the current head, current-version review, and froze
     assert.deepEqual(facts[0]!.review, {
       reviewId: 'portfolio-output-p01:review:r3',
       status: 'verified',
-      score: 90,
+      score: 100,
       feedback: '通过',
     });
-    assert.equal(facts[0]!.frozenTaskScore?.officialScore, 86);
+    assert.equal(facts[0]!.frozenTaskScore?.officialScore, 92);
     assert.deepEqual({
       taskId: facts[0]!.taskId,
       outputId: facts[0]!.outputId,
@@ -281,7 +312,7 @@ function insertUserFormalAssessment(
   database.prepare(`
     INSERT INTO formal_assessment_instances (
       assessment_id, node_id, game_id, question_version, status, closed_at
-    ) VALUES (?, 'P1T1-N02', 'p01-n02-formal', 'p01-n02-v1', 'closed', ?)
+    ) VALUES (?, 'P1T1-N02', 'P1T1-N02-server-assessment', 'p01-n02-v1', 'closed', ?)
   `).run(assessmentId, completedAt);
   const dimensions = Object.fromEntries(assessmentDimensionKeys.map((key) => [key, {
     score: score / 4, maxScore: 25, feedback: `${key} feedback`,
@@ -290,10 +321,10 @@ function insertUserFormalAssessment(
     INSERT INTO formal_attempts (
       attempt_id, student_id, node_id, assessment_id, game_id, score,
       completed_at, question_version, answers_json, diagnostics_json, origin
-    ) VALUES (?, 'stu-01', 'P1T1-N02', ?, 'p01-n02-formal', ?, ?, 'p01-n02-v1', '{}', ?, 'user')
+    ) VALUES (?, 'stu-01', 'P1T1-N02', ?, 'P1T1-N02-server-assessment', ?, ?, 'p01-n02-v1', '{}', ?, 'user')
   `).run(attemptId, assessmentId, score, completedAt, JSON.stringify({
     assessmentId, attemptId, studentId: 'stu-01', nodeId: 'P1T1-N02',
-    gameId: 'p01-n02-formal', questionVersion: 'p01-n02-v1',
+    gameId: 'P1T1-N02-server-assessment', questionVersion: 'p01-n02-v1',
     totalScore: score, passed: score >= 80, dimensions, remediationTargets: [],
     origin: 'user', completedAt,
   }));

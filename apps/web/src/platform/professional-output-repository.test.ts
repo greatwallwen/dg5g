@@ -22,17 +22,23 @@ import {
   ProfessionalOutputStateRevisionConflictError,
   ProfessionalOutputUpstreamError,
 } from './professional-output-repository.ts';
+import {
+  completePolicyGaps,
+  seedLegalProfessionalOutputSubmissionFacts,
+} from './professional-output-policy-test-support.ts';
 
 test('saving a draft creates immutable v1 and submitting the same fields advances only the head', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
     seedBase(fixture.database);
+    seedLegalProfessionalOutputSubmissionFacts(fixture.database, 'stu-01');
     const repository = new ProfessionalOutputRepository(
       fixture.database,
       () => 'output-stu-01-p01',
     );
     const fields = completeP01Fields();
+    const evidenceGaps = completePolicyGaps('P01');
 
     const draft = repository.saveDraft({
       studentId: 'stu-01',
@@ -40,6 +46,7 @@ test('saving a draft creates immutable v1 and submitting the same fields advance
       expectedStateRevision: 0,
       fields,
       upstreamRefs: [],
+      evidenceGaps,
     });
     assert.deepEqual(draft.head, {
       outputId: 'output-stu-01-p01',
@@ -58,9 +65,13 @@ test('saving a draft creates immutable v1 and submitting the same fields advance
       fields,
       upstreamRefs: [],
       evidenceLinks: {},
-      evidenceGaps: {},
-      fieldSources: [],
+      evidenceGaps,
+      fieldSources: draft.versions[0]!.fieldSources,
     }]);
+    assert.deepEqual(
+      new Set(draft.versions[0]!.fieldSources.map(({ sourceNodeId }) => sourceNodeId)),
+      new Set(['P1T1-N01', 'P1T1-N02', 'P1T1-N03']),
+    );
     assert.equal(draft.submissionCount, 0);
     assert.deepEqual(draft.reviewHistory, []);
 
@@ -71,6 +82,7 @@ test('saving a draft creates immutable v1 and submitting the same fields advance
       expectedStateRevision: 1,
       fields,
       upstreamRefs: [],
+      evidenceGaps,
     });
     assert.equal(submitted.head.currentVersion, 1);
     assert.equal(submitted.head.stateRevision, 2);
@@ -152,15 +164,18 @@ test('a returned output keeps v1 immutable and appends v2 when the student revis
   try {
     migrateDatabase(fixture.database);
     seedBase(fixture.database);
+    seedLegalProfessionalOutputSubmissionFacts(fixture.database, 'stu-01');
     const repository = new ProfessionalOutputRepository(fixture.database, () => 'output-revision');
     const firstFields = completeP01Fields();
     const revisedFields = { ...firstFields, evidenceGap: 'corrected evidence gap' };
+    const evidenceGaps = completePolicyGaps('P01');
     repository.saveDraft({
       studentId: 'stu-01',
       taskId: 'P01',
       expectedStateRevision: 0,
       fields: firstFields,
       upstreamRefs: [],
+      evidenceGaps,
     });
     repository.submit({
       outputId: 'output-revision',
@@ -169,6 +184,7 @@ test('a returned output keeps v1 immutable and appends v2 when the student revis
       expectedStateRevision: 1,
       fields: firstFields,
       upstreamRefs: [],
+      evidenceGaps,
     });
     fixture.database.prepare(`
       UPDATE professional_outputs
@@ -183,6 +199,7 @@ test('a returned output keeps v1 immutable and appends v2 when the student revis
       expectedStateRevision: 3,
       fields: revisedFields,
       upstreamRefs: [],
+      evidenceGaps,
     });
     assert.equal(revised.head.currentVersion, 2);
     assert.equal(revised.head.stateRevision, 4);
@@ -250,11 +267,17 @@ test('P02 and P03 save and submit task-scoped evidence through the real reposito
     seedBase(fixture.database);
     seedEvidenceLibrary(fixture.database);
     seedGeneratedPracticeSources(fixture.database, 'stu-01');
+    seedLegalProfessionalOutputSubmissionFacts(fixture.database, 'stu-01', ['P01', 'P02', 'P03']);
     const outputIds = ['evidence-p01', 'evidence-p02', 'evidence-p03'];
     const repository = new ProfessionalOutputRepository(fixture.database, () => outputIds.shift()!);
-    const p01 = repository.saveDraft({
+    const p01Draft = repository.saveDraft({
       studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
-      fields: completeP01Fields(), upstreamRefs: [],
+      fields: completeP01Fields(), upstreamRefs: [], evidenceGaps: completePolicyGaps('P01'),
+    });
+    const p01 = repository.submit({
+      outputId: p01Draft.head.outputId,
+      studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 1,
+      fields: completeP01Fields(), upstreamRefs: [], evidenceGaps: completePolicyGaps('P01'),
     });
 
     let upstream = { outputId: p01.head.outputId, version: p01.head.currentVersion };
@@ -419,40 +442,43 @@ test('a returned output cannot be resubmitted until fields, evidence, sources, o
     migrateDatabase(fixture.database);
     seedBase(fixture.database);
     seedP01EvidenceLibrary(fixture.database);
+    seedLegalProfessionalOutputSubmissionFacts(fixture.database, 'stu-01');
     const repository = new ProfessionalOutputRepository(fixture.database, () => 'returned-output');
     const fields = completeP01Fields();
     const evidence = evidenceFor('photoIndex');
+    const evidenceGaps = completePolicyGaps('P01');
     const draft = repository.saveDraft({
       studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
-      fields, upstreamRefs: [], evidenceLinks: { photoIndex: [evidence[0]!] },
+      fields, upstreamRefs: [], evidenceLinks: { photoIndex: [evidence[0]!] }, evidenceGaps,
     });
     repository.submit({
       outputId: draft.head.outputId, studentId: 'stu-01', taskId: 'P01',
       expectedStateRevision: 1, fields, upstreamRefs: [],
-      evidenceLinks: { photoIndex: [evidence[0]!] },
+      evidenceLinks: { photoIndex: [evidence[0]!] }, evidenceGaps,
     });
     repository.reviewSubmitted({
       teacherId: 'teacher-01', classId: 'demo-class', outputId: draft.head.outputId,
-      expectedStateRevision: 2, action: 'return', feedback: '请补齐第二份证据。',
+      expectedStateRevision: 2, expectedOutputVersion: 1,
+      action: 'return', feedback: '请补齐第二份证据并标注对应对象。',
     });
     const before = mutationCounts(fixture.database, draft.head.outputId);
 
     assert.throws(() => repository.submit({
       outputId: draft.head.outputId, studentId: 'stu-01', taskId: 'P01',
       expectedStateRevision: 3, fields, upstreamRefs: [],
-      evidenceLinks: { photoIndex: [evidence[0]!] },
+      evidenceLinks: { photoIndex: [evidence[0]!] }, evidenceGaps,
     }), ProfessionalOutputRevisionRequiredError);
     assert.deepEqual(mutationCounts(fixture.database, draft.head.outputId), before);
 
     const revised = repository.saveDraft({
       outputId: draft.head.outputId, studentId: 'stu-01', taskId: 'P01',
       expectedStateRevision: 3, fields, upstreamRefs: [],
-      evidenceLinks: { photoIndex: [evidence[0]!, evidence[1]!] },
+      evidenceLinks: { photoIndex: [evidence[0]!, evidence[1]!] }, evidenceGaps,
     });
     const resubmitted = repository.submit({
       outputId: draft.head.outputId, studentId: 'stu-01', taskId: 'P01',
       expectedStateRevision: 4, fields, upstreamRefs: [],
-      evidenceLinks: { photoIndex: [evidence[0]!, evidence[1]!] },
+      evidenceLinks: { photoIndex: [evidence[0]!, evidence[1]!] }, evidenceGaps,
     });
     assert.equal(revised.head.currentVersion, 2);
     assert.equal(resubmitted.head.currentVersion, 2);
@@ -468,15 +494,17 @@ test('persisted returned head status blocks unchanged resubmission even for a le
   try {
     migrateDatabase(fixture.database);
     seedBase(fixture.database);
+    seedLegalProfessionalOutputSubmissionFacts(fixture.database, 'stu-01');
     const repository = new ProfessionalOutputRepository(fixture.database, () => 'legacy-returned-output');
     const fields = completeP01Fields();
+    const evidenceGaps = completePolicyGaps('P01');
     repository.saveDraft({
       studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
-      fields, upstreamRefs: [],
+      fields, upstreamRefs: [], evidenceGaps,
     });
     repository.submit({
       outputId: 'legacy-returned-output', studentId: 'stu-01', taskId: 'P01',
-      expectedStateRevision: 1, fields, upstreamRefs: [],
+      expectedStateRevision: 1, fields, upstreamRefs: [], evidenceGaps,
     });
     fixture.database.prepare(`
       UPDATE professional_outputs
@@ -486,7 +514,7 @@ test('persisted returned head status blocks unchanged resubmission even for a le
 
     assert.throws(() => repository.submit({
       outputId: 'legacy-returned-output', studentId: 'stu-01', taskId: 'P01',
-      expectedStateRevision: 3, fields, upstreamRefs: [],
+      expectedStateRevision: 3, fields, upstreamRefs: [], evidenceGaps,
     }), ProfessionalOutputRevisionRequiredError);
   } finally {
     fixture.cleanup();
@@ -498,25 +526,28 @@ test('new provenance alone cannot satisfy a teacher return when editable fields 
   try {
     migrateDatabase(fixture.database);
     seedBase(fixture.database);
+    seedLegalProfessionalOutputSubmissionFacts(fixture.database, 'stu-01');
     const repository = new ProfessionalOutputRepository(fixture.database, () => 'source-only-revision');
     const fields = completeP01Fields();
+    const evidenceGaps = completePolicyGaps('P01');
     repository.saveDraft({
       studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
-      fields, upstreamRefs: [],
+      fields, upstreamRefs: [], evidenceGaps,
     });
     repository.submit({
       outputId: 'source-only-revision', studentId: 'stu-01', taskId: 'P01',
-      expectedStateRevision: 1, fields, upstreamRefs: [],
+      expectedStateRevision: 1, fields, upstreamRefs: [], evidenceGaps,
     });
     repository.reviewSubmitted({
       teacherId: 'teacher-01', classId: 'demo-class', outputId: 'source-only-revision',
-      expectedStateRevision: 2, action: 'return', feedback: '请修订最终可交付字段。',
+      expectedStateRevision: 2, expectedOutputVersion: 1,
+      action: 'return', feedback: '请修订最终可交付字段并补充复核证据。',
     });
     seedPassedP01Activities(fixture.database, 'stu-01');
 
     assert.throws(() => repository.submit({
       outputId: 'source-only-revision', studentId: 'stu-01', taskId: 'P01',
-      expectedStateRevision: 3, fields, upstreamRefs: [],
+      expectedStateRevision: 3, fields, upstreamRefs: [], evidenceGaps,
     }), ProfessionalOutputRevisionRequiredError);
     const unchanged = repository.read('stu-01', 'P01', 'source-only-revision')!;
     assert.equal(unchanged.head.status, 'returned');
@@ -532,36 +563,39 @@ test('changing then reverting to the exact returned fields cannot bypass the rev
   try {
     migrateDatabase(fixture.database);
     seedBase(fixture.database);
+    seedLegalProfessionalOutputSubmissionFacts(fixture.database, 'stu-01');
     const repository = new ProfessionalOutputRepository(fixture.database, () => 'reverted-revision');
     const returnedFields = completeP01Fields();
+    const evidenceGaps = completePolicyGaps('P01');
     repository.saveDraft({
       studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
-      fields: returnedFields, upstreamRefs: [],
+      fields: returnedFields, upstreamRefs: [], evidenceGaps,
     });
     repository.submit({
       outputId: 'reverted-revision', studentId: 'stu-01', taskId: 'P01',
-      expectedStateRevision: 1, fields: returnedFields, upstreamRefs: [],
+      expectedStateRevision: 1, fields: returnedFields, upstreamRefs: [], evidenceGaps,
     });
     repository.reviewSubmitted({
       teacherId: 'teacher-01', classId: 'demo-class', outputId: 'reverted-revision',
-      expectedStateRevision: 2, action: 'return', feedback: '连接方向需要实质修订。',
+      expectedStateRevision: 2, expectedOutputVersion: 1,
+      action: 'return', feedback: '连接方向需要实质修订并补充两端证据。',
     });
     const changed = repository.saveDraft({
       outputId: 'reverted-revision', studentId: 'stu-01', taskId: 'P01',
       expectedStateRevision: 3,
       fields: { ...returnedFields, connectionDirection: '曾经修改但最终撤销' },
-      upstreamRefs: [],
+      upstreamRefs: [], evidenceGaps,
     });
     const reverted = repository.saveDraft({
       outputId: 'reverted-revision', studentId: 'stu-01', taskId: 'P01',
-      expectedStateRevision: 4, fields: returnedFields, upstreamRefs: [],
+      expectedStateRevision: 4, fields: returnedFields, upstreamRefs: [], evidenceGaps,
     });
     assert.equal(changed.head.currentVersion, 2);
     assert.equal(reverted.head.currentVersion, 3);
 
     assert.throws(() => repository.submit({
       outputId: 'reverted-revision', studentId: 'stu-01', taskId: 'P01',
-      expectedStateRevision: 5, fields: returnedFields, upstreamRefs: [],
+      expectedStateRevision: 5, fields: returnedFields, upstreamRefs: [], evidenceGaps,
     }), ProfessionalOutputRevisionRequiredError);
     assert.equal(repository.read('stu-01', 'P01', 'reverted-revision')!.head.status, 'draft');
   } finally {
@@ -613,21 +647,26 @@ test('field provenance never crosses students and aggregate reads every version 
     seedBase(fixture.database);
     seedP01EvidenceLibrary(fixture.database);
     seedPassedP01Activities(fixture.database, 'stu-02');
+    seedLegalProfessionalOutputSubmissionFacts(fixture.database, 'stu-01');
     const repository = new ProfessionalOutputRepository(fixture.database, () => 'student-isolated');
     const fields = completeP01Fields();
     const evidence = evidenceFor('photoIndex')[0]!;
+    const evidenceGaps = completePolicyGaps('P01');
     const draft = repository.saveDraft({
       studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
-      fields, upstreamRefs: [], evidenceLinks: { photoIndex: [evidence] },
+      fields, upstreamRefs: [], evidenceLinks: { photoIndex: [evidence] }, evidenceGaps,
     });
-    assert.deepEqual(draft.versions[0]?.fieldSources, []);
+    assert.equal(draft.versions[0]?.fieldSources.every(({ sourceAttemptId }) => (
+      sourceAttemptId.startsWith('policy-fixture-stu-01-')
+    )), true);
     repository.submit({
       outputId: draft.head.outputId, studentId: 'stu-01', taskId: 'P01',
-      expectedStateRevision: 1, fields, upstreamRefs: [], evidenceLinks: { photoIndex: [evidence] },
+      expectedStateRevision: 1, fields, upstreamRefs: [], evidenceLinks: { photoIndex: [evidence] }, evidenceGaps,
     });
     repository.reviewSubmitted({
       teacherId: 'teacher-01', classId: 'demo-class', outputId: draft.head.outputId,
-      expectedStateRevision: 2, action: 'return', feedback: '补充本端来源。',
+      expectedStateRevision: 2, expectedOutputVersion: 1,
+      action: 'return', feedback: '请补充本端来源并标注对应端口证据。',
     });
 
     const aggregate = repository.read('stu-01', 'P01', draft.head.outputId)!;
@@ -636,7 +675,9 @@ test('field provenance never crosses students and aggregate reads every version 
     assert.equal(aggregate.reviewHistory[0]?.outputVersion, 1);
     assert.equal(aggregate.reviewHistory[0]?.origin, 'user');
     assert.deepEqual(aggregate.versions[0]?.evidenceLinks, { photoIndex: [evidence] });
-    assert.deepEqual(aggregate.versions[0]?.fieldSources, []);
+    assert.equal(aggregate.versions[0]?.fieldSources.every(({ sourceAttemptId }) => (
+      sourceAttemptId.startsWith('policy-fixture-stu-01-')
+    )), true);
   } finally {
     fixture.cleanup();
   }

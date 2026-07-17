@@ -378,7 +378,9 @@ function findCertifiedTaskScore({
   for (const frozen of candidates) {
     if (frozen.origin !== output.origin || frozen.officialScore === undefined) continue;
     const details = isRecord(frozen.details) ? frozen.details : undefined;
-    const attemptId = stringValue(details?.nodeTestAttemptId);
+    const testDetails = details && isRecord(details.test) ? details.test : undefined;
+    const outputDetails = details && isRecord(details.output) ? details.output : undefined;
+    const attemptId = stringValue(details?.nodeTestAttemptId) ?? stringValue(details?.attemptId);
     const attempt = attemptId
       ? facts.attempts.find((candidate) => candidate.attemptId === attemptId)
       : undefined;
@@ -401,6 +403,17 @@ function findCertifiedTaskScore({
       instanceStatus: attempt.instanceStatus ?? null,
     }, policy);
     const taskCompositeScore = numberValue(details.taskCompositeScore);
+    const frozenNodeId = stringValue(testDetails?.nodeId) ?? stringValue(details.nodeId);
+    const frozenGameId = stringValue(testDetails?.gameId);
+    const frozenFormalScore = numberValue(testDetails?.score)
+      ?? numberValue(details.nodeTestHighestScore);
+    const frozenOutputId = stringValue(outputDetails?.outputId) ?? stringValue(details.outputId);
+    const frozenOutputVersion = numberValue(outputDetails?.version)
+      ?? numberValue(details.outputVersion);
+    const frozenRubricScore = numberValue(outputDetails?.rubricScore)
+      ?? numberValue(details.outputRubricScore);
+    const frozenReviewId = stringValue(details.reviewId);
+    const formulaVersion = stringValue(details.formulaVersion);
     const expectedComposite = calculateTaskCompositeScore({
       nodeTestHighestScore: validated?.totalScore,
       outputRubricScore: outputReview.score,
@@ -408,13 +421,16 @@ function findCertifiedTaskScore({
     if (
       !validated?.passed
       || validated.nodeId !== testNodeId
-      || details.nodeId !== testNodeId
+      || frozenNodeId !== testNodeId
+      || (frozenGameId !== undefined && frozenGameId !== validated.gameId)
       || details.assessmentId !== validated.assessmentId
       || details.questionVersion !== validated.questionVersion
-      || details.nodeTestHighestScore !== validated.totalScore
-      || details.outputId !== output.outputId
-      || details.outputVersion !== output.currentVersion
-      || details.outputRubricScore !== outputReview.score
+      || frozenFormalScore !== validated.totalScore
+      || frozenOutputId !== output.outputId
+      || frozenOutputVersion !== output.currentVersion
+      || frozenRubricScore !== outputReview.score
+      || (frozenReviewId !== undefined && frozenReviewId !== outputReview.reviewId)
+      || (formulaVersion !== undefined && formulaVersion !== 'task-score-40-60-v1')
       || taskCompositeScore === undefined
       || expectedComposite !== taskCompositeScore
       || frozen.provisionalScore !== taskCompositeScore

@@ -14,6 +14,7 @@ import {
   deriveGeneratedOutputFieldSources,
   type ProfessionalOutputFieldSource,
 } from './professional-output-provenance.ts';
+import { assertProfessionalOutputSubmissionPolicy } from './professional-output-submission-policy.ts';
 import {
   normalizeProfessionalOutputWrite,
   stableJson,
@@ -286,6 +287,9 @@ export class ProfessionalOutputRepository {
         ? this.readFieldSources(outputId, currentVersion)
         : [];
       const fieldSources = this.deriveFieldSources(command, currentFieldSources);
+      if (targetStatus === 'submitted') {
+        assertProfessionalOutputSubmissionPolicy(this.database, command, fieldSources);
+      }
       const appendVersion = !current
         || current.fieldsJson !== command.fieldsJson
         || current.upstreamRefsJson !== command.upstreamRefsJson
@@ -300,6 +304,7 @@ export class ProfessionalOutputRepository {
           : this.readVersion(outputId, returnedVersion);
         if (returned
           && stableJson(JSON.parse(returned.fieldsJson)) === command.fieldsJson
+          && stableJson(JSON.parse(returned.upstreamRefsJson)) === command.upstreamRefsJson
           && stableJson(this.readEvidenceLinks(outputId, returned.version)) === command.evidenceLinksJson
           && stableJson(this.readEvidenceGaps(outputId, returned.version)) === command.evidenceGapsJson) {
           throw new ProfessionalOutputRevisionRequiredError();
@@ -371,7 +376,7 @@ export class ProfessionalOutputRepository {
       });
       this.advanceSnapshotVersions(command.studentId);
       return this.readAggregate(this.requireOwnedHead(outputId, command.studentId, command.taskId));
-    })();
+    }).immediate();
   }
 
   private assertUpstreamRefs(command: NormalizedProfessionalOutputWrite): void {
@@ -580,7 +585,7 @@ export class ProfessionalOutputRepository {
         taskId: input.taskId,
         version: input.version,
         stateRevision: input.stateRevision,
-        upstreamRefs: input.upstreamRefs,
+        ...(input.status === 'draft' ? { upstreamRefs: input.upstreamRefs } : {}),
       }),
     );
   }

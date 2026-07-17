@@ -17,6 +17,10 @@ import {
   ProfessionalOutputNotFoundError,
   ProfessionalOutputRepository,
 } from './professional-output-repository.ts';
+import {
+  completePolicyGaps,
+  seedLegalProfessionalOutputSubmissionFacts,
+} from './professional-output-policy-test-support.ts';
 
 const studentOne: AuthenticatedActor = {
   userId: 'stu-01',
@@ -327,6 +331,7 @@ test('professional output commands reuse node access and derive ownership from t
       DELETE FROM professional_outputs
       WHERE student_id = 'stu-02' AND task_id = 'P01'
     `).run();
+    seedLegalProfessionalOutputSubmissionFacts(fixture.database, 'stu-02');
     const learningRepository = new LearningRepository(fixture.database);
     const outputRepository = new ProfessionalOutputRepository(
       fixture.database,
@@ -334,11 +339,13 @@ test('professional output commands reuse node access and derive ownership from t
     );
     const service = new LearningCommandService(learningRepository, undefined, outputRepository);
     const fields = completeP01Fields('student two evidence');
+    const evidenceGaps = completePolicyGaps('P01');
 
     const draft = service.saveProfessionalOutputDraft(studentTwo, 'P01', {
       expectedStateRevision: 0,
       fields,
       upstreamRefs: [],
+      evidenceGaps,
     });
     assert.equal(draft.head.studentId, 'stu-02');
     assert.equal(draft.head.status, 'draft');
@@ -347,12 +354,13 @@ test('professional output commands reuse node access and derive ownership from t
       expectedStateRevision: 1,
       fields,
       upstreamRefs: [],
+      evidenceGaps,
     });
     assert.equal(submitted.head.status, 'submitted');
     const envelope = service.readProfessionalOutput(studentTwo, 'P01', draft.head.outputId);
     assert.equal(envelope.output?.head.outputId, draft.head.outputId);
     assert.equal(envelope.prefill.siteRoom?.sources.some(
-      ({ sourceAttemptId }) => sourceAttemptId === 'demo-stu2-n01',
+      ({ sourceAttemptId }) => sourceAttemptId === 'policy-fixture-stu-02-P1T1-N01-micro-01',
     ), true);
     assert.equal(envelope.evidenceLibrary.length, p01EvidenceLibrary.length);
     for (const taskId of ['P02', 'P03'] as const) {

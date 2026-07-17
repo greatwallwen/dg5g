@@ -9,6 +9,10 @@ import { createTestDatabase } from './db/test-database.ts';
 import { projectP1Project, readP1ProjectProjection } from './p1-project-projection.ts';
 import type { StudentLearningSnapshot } from './learning-read-model.ts';
 import { ProfessionalOutputRepository } from './professional-output-repository.ts';
+import {
+  completePolicyGaps,
+  seedLegalProfessionalOutputSubmissionFacts,
+} from './professional-output-policy-test-support.ts';
 
 test('projects the authoritative P01 to P03 chain for each seeded student', () => {
   const fixture = createTestDatabase();
@@ -81,14 +85,17 @@ test('a returned v1 revised and resubmitted as v2 is current on both project and
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    seedLegalProfessionalOutputSubmissionFacts(fixture.database, 'stu-01');
     const repository = new ProfessionalOutputRepository(fixture.database, () => 'projection-output-p01');
     const firstFields = completeP01Fields('v1');
+    const evidenceGaps = completePolicyGaps('P01');
     const draft = repository.saveDraft({
       studentId: 'stu-01',
       taskId: 'P01',
       expectedStateRevision: 0,
       fields: firstFields,
       upstreamRefs: [],
+      evidenceGaps,
     });
     const submitted = repository.submit({
       outputId: draft.head.outputId,
@@ -97,14 +104,16 @@ test('a returned v1 revised and resubmitted as v2 is current on both project and
       expectedStateRevision: 1,
       fields: draft.versions[0]!.fields,
       upstreamRefs: [],
+      evidenceGaps,
     });
     const returned = repository.reviewSubmitted({
       teacherId: 'teacher-01',
       classId: 'demo-class',
       outputId: submitted.head.outputId,
       expectedStateRevision: 2,
+      expectedOutputVersion: 1,
       action: 'return',
-      feedback: '补齐连接方向证据。',
+      feedback: '请补齐连接方向证据并标注两端端口。',
     });
     const revised = repository.saveDraft({
       outputId: returned.output.head.outputId,
@@ -113,6 +122,7 @@ test('a returned v1 revised and resubmitted as v2 is current on both project and
       expectedStateRevision: 3,
       fields: { ...firstFields, connectionDirection: 'v2' },
       upstreamRefs: [],
+      evidenceGaps,
     });
     repository.submit({
       outputId: revised.head.outputId,
@@ -121,6 +131,7 @@ test('a returned v1 revised and resubmitted as v2 is current on both project and
       expectedStateRevision: 4,
       fields: revised.versions.at(-1)!.fields,
       upstreamRefs: [],
+      evidenceGaps,
     });
 
     const projection = readP1ProjectProjection('stu-01', fixture.database);

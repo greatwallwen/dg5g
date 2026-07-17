@@ -31,6 +31,7 @@ import {
   type ProfessionalOutputAggregate,
   type WriteProfessionalOutputInput,
 } from './professional-output-repository.ts';
+import { ProfessionalOutputSubmissionPolicyError } from './professional-output-submission-policy.ts';
 
 export interface LearningEventCommand extends Omit<AppendLearningEventInput, 'studentId'> {
   expectedVersion: number;
@@ -301,7 +302,8 @@ export function describeLearningCommandError(error: unknown): LearningCommandPro
   }
   if (error instanceof ProfessionalOutputUpstreamError
     || error instanceof ProfessionalOutputEvidenceError
-    || error instanceof ProfessionalOutputRevisionRequiredError) {
+    || error instanceof ProfessionalOutputRevisionRequiredError
+    || error instanceof ProfessionalOutputSubmissionPolicyError) {
     return { status: 422, body: { error: error.message } };
   }
   if (error instanceof LearningCommandValidationError || error instanceof FormalAttemptPolicyError) {
@@ -319,6 +321,7 @@ const professionalOutputCommandKeys = new Set([
   'fields',
   'upstreamRefs',
   'evidenceLinks',
+  'evidenceGaps',
 ]);
 
 export function parseProfessionalOutputCommand(body: unknown): ProfessionalOutputCommand {
@@ -334,6 +337,7 @@ export function parseProfessionalOutputCommand(body: unknown): ProfessionalOutpu
     fields: body.fields as ProfessionalOutputCommand['fields'],
     upstreamRefs: body.upstreamRefs as ProfessionalOutputCommand['upstreamRefs'],
     evidenceLinks: (body.evidenceLinks ?? {}) as ProfessionalOutputCommand['evidenceLinks'],
+    evidenceGaps: (body.evidenceGaps ?? {}) as ProfessionalOutputCommand['evidenceGaps'],
   };
 }
 

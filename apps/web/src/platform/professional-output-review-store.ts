@@ -1,11 +1,11 @@
 import type { AppDatabase } from './db/database.ts';
-import { getFormalAssessmentValidationPolicy } from './formal-assessment-catalog.server.ts';
 import { calculateTaskCompositeScore } from './learning-mastery.ts';
-import {
-  validatePersistedAssessmentDiagnostic,
-  type PersistedAssessmentCandidate,
-} from './persisted-assessment-diagnostic.ts';
 import { SnapshotClock } from './snapshot-clock.ts';
+import {
+  assertTeacherCertificationPolicy,
+  TeacherCertificationPolicyError,
+  type TeacherCertificationDecision,
+} from './teacher-certification-policy.ts';
 import type {
   P1OutputTaskId,
   ProfessionalOutputFieldValue,
@@ -20,9 +20,11 @@ export interface ReviewProfessionalOutputInput {
   classId: string;
   outputId: string;
   expectedStateRevision: number;
+  expectedOutputVersion?: number;
   action: ProfessionalOutputReviewAction;
   feedback?: string;
   rubricScores?: ProfessionalOutputRubricScores;
+  annotations?: Record<string, string>;
 }
 
 export interface ProfessionalOutputReview {
@@ -41,17 +43,16 @@ export interface FrozenTaskScore {
   provisionalScore: number;
   officialScore: number;
   details: {
-    nodeId: string;
+    reviewId: string;
+    formulaVersion: 'task-score-40-60-v1';
     nodeTestAttemptId: string;
+    attemptId: string;
     assessmentId: string;
     questionVersion: string;
-    nodeTestHighestScore: number;
-    outputId: string;
-    outputVersion: number;
-    outputRubricScore: number;
-    rubricScores: ProfessionalOutputRubricScores;
+    test: { nodeId: string; gameId: string; score: number; weight: 0.4 };
+    output: { outputId: string; version: number; rubricScore: number; weight: 0.6 };
+    rubric: ProfessionalOutputRubricScores;
     taskCompositeScore: number;
-    weights: { nodeTest: 0.4; professionalOutput: 0.6 };
   };
 }
 
@@ -122,14 +123,16 @@ interface HeadRow {
   stateRevision: number;
 }
 
-interface NormalizedReview {
+export interface NormalizedProfessionalOutputReview {
   teacherId: string;
   classId: string;
   outputId: string;
   expectedStateRevision: number;
+  expectedOutputVersion: number;
   action: ProfessionalOutputReviewAction;
   feedback?: string;
   rubricScores?: ProfessionalOutputRubricScores;
+  annotations: Record<string, string>;
 }
 
 const outputNodeByTask: Record<P1OutputTaskId, string> = {
@@ -205,16 +208,16 @@ export class ProfessionalOutputReviewStore {
         );
       }
       if (head.status !== 'submitted') throw new ProfessionalOutputStateError(head.status);
+      const decision = assertTeacherCertificationPolicy(this.database, head, command);
 
       const nextRevision = head.stateRevision + 1;
       const status: ProfessionalOutputReview['status'] = command.action === 'verify'
         ? 'verified'
         : 'returned';
       const reviewId = `${head.outputId}:review:r${nextRevision}`;
-      const outputRubricScore = command.rubricScores
-        ? Object.values(command.rubricScores).reduce((sum, score) => sum + score, 0)
-        : undefined;
+      const outputRubricScore = decision.outputRubricScore;
       this.insertReview(command, head, reviewId, status, outputRubricScore);
+      this.insertAnnotations(reviewId, decision.annotations);
       this.database.prepare(`
         UPDATE professional_outputs SET status = ?, state_revision = ?, updated_at = CURRENT_TIMESTAMP
         WHERE output_id = ?
@@ -222,7 +225,14 @@ export class ProfessionalOutputReviewStore {
       this.appendReviewEvent(command, head, reviewId, status, nextRevision, outputRubricScore);
       const globalVersion = this.advanceSnapshotVersions(head.studentId);
       const frozenTaskScore = command.action === 'verify' && outputRubricScore !== undefined
-        ? this.freezeTaskScore(head, outputRubricScore, command.rubricScores!, globalVersion, nextRevision)
+        ? this.freezeTaskScore(
+            head,
+            reviewId,
+            outputRubricScore,
+            decision,
+            globalVersion,
+            nextRevision,
+          )
         : undefined;
       return {
         review: {
@@ -236,7 +246,7 @@ export class ProfessionalOutputReviewStore {
         outputIdentity: { outputId: head.outputId, studentId: head.studentId, taskId: head.taskId },
         ...(frozenTaskScore === undefined ? {} : { frozenTaskScore }),
       };
-    })();
+    }).immediate();
   }
 
   private projectPortfolioFact(
@@ -305,7 +315,7 @@ export class ProfessionalOutputReviewStore {
   }
 
   private insertReview(
-    command: NormalizedReview,
+    command: NormalizedProfessionalOutputReview,
     head: HeadRow,
     reviewId: string,
     status: 'returned' | 'verified',
@@ -318,8 +328,18 @@ export class ProfessionalOutputReviewStore {
     `).run(reviewId, head.outputId, command.teacherId, status, score ?? null, command.feedback ?? null);
   }
 
+  private insertAnnotations(reviewId: string, annotations: Record<string, string>): void {
+    const insert = this.database.prepare(`
+      INSERT INTO output_review_annotations (review_id, field_key, comment)
+      VALUES (?, ?, ?)
+    `);
+    for (const [fieldKey, comment] of Object.entries(annotations)) {
+      insert.run(reviewId, fieldKey, comment);
+    }
+  }
+
   private appendReviewEvent(
-    command: NormalizedReview,
+    command: NormalizedProfessionalOutputReview,
     head: HeadRow,
     reviewId: string,
     status: 'returned' | 'verified',
@@ -349,45 +369,46 @@ export class ProfessionalOutputReviewStore {
 
   private freezeTaskScore(
     head: HeadRow,
+    reviewId: string,
     outputRubricScore: number,
-    rubricScores: ProfessionalOutputRubricScores,
+    decision: TeacherCertificationDecision,
     snapshotVersion: number,
     stateRevision: number,
-  ): FrozenTaskScore | undefined {
+  ): FrozenTaskScore {
     const nodeId = testNodeByTask[head.taskId];
-    const validationPolicy = getFormalAssessmentValidationPolicy(nodeId);
-    if (!validationPolicy) return undefined;
-    const formalAttempts = this.database.prepare(`
-      SELECT attempt.attempt_id AS attemptId, attempt.assessment_id AS assessmentId,
-        attempt.student_id AS studentId, attempt.node_id AS nodeId,
-        attempt.game_id AS gameId, attempt.question_version AS questionVersion,
-        attempt.score, attempt.diagnostics_json AS diagnosticsJson,
-        attempt.origin, attempt.completed_at AS completedAt,
-        assessment.assessment_id AS instanceAssessmentId,
-        assessment.node_id AS instanceNodeId, assessment.game_id AS instanceGameId,
-        assessment.question_version AS instanceQuestionVersion,
-        assessment.status AS instanceStatus
-      FROM formal_attempts AS attempt
-      INNER JOIN formal_assessment_instances AS assessment
-        ON assessment.assessment_id = attempt.assessment_id
-      WHERE attempt.student_id = ? AND attempt.node_id = ? AND attempt.origin = 'user'
-      ORDER BY attempt.score DESC, julianday(attempt.completed_at) DESC, attempt.attempt_id DESC
-    `).all(head.studentId, nodeId) as PersistedAssessmentCandidate[];
-    const formalAttempt = formalAttempts
-      .map((candidate) => validatePersistedAssessmentDiagnostic(candidate, validationPolicy))
-      .find((candidate) => candidate !== undefined);
-    if (!formalAttempt) return undefined;
+    const formalAttempt = decision.formalAssessment;
+    const rubricScores = decision.rubricScores;
+    if (!formalAttempt || !rubricScores) {
+      throw new TeacherCertificationPolicyError('Verified output is missing its certification decision.');
+    }
     const nodeTestHighestScore = formalAttempt.totalScore;
     const taskCompositeScore = calculateTaskCompositeScore({
       nodeTestHighestScore, outputRubricScore,
     }).taskCompositeScore;
-    if (taskCompositeScore === undefined) return undefined;
+    if (taskCompositeScore === undefined) {
+      throw new TeacherCertificationPolicyError('The 40/60 task score could not be calculated.');
+    }
     const details: FrozenTaskScore['details'] = {
-      nodeId, nodeTestAttemptId: formalAttempt.attemptId,
-      assessmentId: formalAttempt.assessmentId, questionVersion: formalAttempt.questionVersion,
-      nodeTestHighestScore, outputId: head.outputId, outputVersion: head.currentVersion,
-      outputRubricScore, rubricScores, taskCompositeScore,
-      weights: { nodeTest: 0.4, professionalOutput: 0.6 },
+      reviewId,
+      formulaVersion: 'task-score-40-60-v1',
+      nodeTestAttemptId: formalAttempt.attemptId,
+      attemptId: formalAttempt.attemptId,
+      assessmentId: formalAttempt.assessmentId,
+      questionVersion: formalAttempt.questionVersion,
+      test: {
+        nodeId,
+        gameId: formalAttempt.gameId,
+        score: nodeTestHighestScore,
+        weight: 0.4,
+      },
+      output: {
+        outputId: head.outputId,
+        version: head.currentVersion,
+        rubricScore: outputRubricScore,
+        weight: 0.6,
+      },
+      rubric: rubricScores,
+      taskCompositeScore,
     };
     this.database.prepare(`
       INSERT INTO frozen_task_scores (
@@ -405,12 +426,15 @@ export class ProfessionalOutputReviewStore {
   }
 }
 
-function normalizeReview(input: ReviewProfessionalOutputInput): NormalizedReview {
+function normalizeReview(input: ReviewProfessionalOutputInput): NormalizedProfessionalOutputReview {
   assertNonEmpty('teacherId', input.teacherId);
   assertNonEmpty('classId', input.classId);
   assertNonEmpty('outputId', input.outputId);
   if (!Number.isSafeInteger(input.expectedStateRevision) || input.expectedStateRevision < 0) {
     throw new TypeError('expectedStateRevision must be a non-negative safe integer.');
+  }
+  if (!Number.isSafeInteger(input.expectedOutputVersion) || Number(input.expectedOutputVersion) <= 0) {
+    throw new TypeError('expectedOutputVersion must be a positive safe integer.');
   }
   if (input.action !== 'return' && input.action !== 'verify') {
     throw new TypeError('action must be return or verify.');
@@ -428,9 +452,21 @@ function normalizeReview(input: ReviewProfessionalOutputInput): NormalizedReview
   return {
     teacherId: input.teacherId, classId: input.classId, outputId: input.outputId,
     expectedStateRevision: input.expectedStateRevision, action: input.action,
+    expectedOutputVersion: Number(input.expectedOutputVersion),
     ...(feedback ? { feedback } : {}),
     ...(rubricScores ? { rubricScores } : {}),
+    annotations: normalizedAnnotations(input.annotations),
   };
+}
+
+function normalizedAnnotations(value: Record<string, string> | undefined): Record<string, string> {
+  if (value === undefined) return {};
+  if (!isRecord(value)) throw new TypeError('annotations must be an object.');
+  return Object.fromEntries(Object.entries(value).map(([fieldKey, comment]) => {
+    assertNonEmpty('annotation field', fieldKey);
+    assertNonEmpty(`annotation ${fieldKey}`, comment);
+    return [fieldKey, comment.trim()];
+  }));
 }
 
 function normalizedRubricScores(value: ProfessionalOutputRubricScores): ProfessionalOutputRubricScores {

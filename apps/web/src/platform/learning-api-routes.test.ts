@@ -16,6 +16,11 @@ import { professionalOutputSchemaForTask } from '../features/portfolio/output-sc
 import { p01Activities } from '../features/learning-activities/activity-catalog.ts';
 import { p01EvidenceLibrary } from '../features/portfolio/evidence-library.ts';
 import { ActivityRepository } from '../features/learning-activities/activity-repository.ts';
+import {
+  completePolicyGaps,
+  outputMutationCounts,
+  seedLegalProfessionalOutputSubmissionFacts,
+} from './professional-output-policy-test-support.ts';
 
 registerHooks({
   resolve(specifier, context, nextResolve) {
@@ -63,8 +68,10 @@ test('professional output routes derive ownership from Cookie and expose the aut
       DELETE FROM professional_outputs
       WHERE student_id = 'stu-02' AND task_id = 'P01'
     `).run();
+    seedLegalProfessionalOutputSubmissionFacts(database, 'stu-02');
     const schema = professionalOutputSchemaForTask(loadSelfStudyCatalog(), 'P01');
     const fields = Object.fromEntries(schema.fields.map(({ key, label }) => [key, `已填写：${label}`]));
+    const evidenceGaps = completePolicyGaps('P01');
     const draftResponse = await outputDraftRoute.POST(jsonRequest(
       'http://localhost/api/outputs/P01/draft',
       studentTwoCookie,
@@ -73,6 +80,7 @@ test('professional output routes derive ownership from Cookie and expose the aut
         fields,
         upstreamRefs: [],
         evidenceLinks: { siteRoom: ['P01-EV-ROOM-OVERVIEW'] },
+        evidenceGaps,
       },
     ), { params: { taskId: 'P01' } });
     assert.equal(draftResponse.status, 200);
@@ -89,6 +97,7 @@ test('professional output routes derive ownership from Cookie and expose the aut
         fields,
         upstreamRefs: [],
         evidenceLinks: { siteRoom: ['P01-EV-ROOM-OVERVIEW'] },
+        evidenceGaps,
       },
     ), { params: { taskId: 'P01' } });
     assert.equal(staleResponse.status, 409);
@@ -103,6 +112,7 @@ test('professional output routes derive ownership from Cookie and expose the aut
         fields,
         upstreamRefs: [],
         evidenceLinks: { siteRoom: ['P01-EV-ROOM-OVERVIEW'] },
+        evidenceGaps,
       },
     ), { params: { taskId: 'P01' } });
     assert.equal(submitResponse.status, 200);
@@ -247,20 +257,22 @@ test('a returned output maps unchanged resubmission to 422 and accepts a semanti
       DELETE FROM professional_outputs
       WHERE student_id = 'stu-02' AND task_id = 'P01'
     `).run();
+    seedLegalProfessionalOutputSubmissionFacts(database, 'stu-02');
     const fields = Object.fromEntries(
       professionalOutputSchemaForTask(loadSelfStudyCatalog(), 'P01').fields
         .map(({ key, label }) => [key, `已填写：${label}`]),
     );
+    const evidenceGaps = completePolicyGaps('P01');
     const draftResponse = await outputDraftRoute.POST(jsonRequest(
       'http://localhost/api/outputs/P01/draft', studentTwoCookie,
-      { expectedStateRevision: 0, fields, upstreamRefs: [], evidenceLinks: {} },
+      { expectedStateRevision: 0, fields, upstreamRefs: [], evidenceLinks: {}, evidenceGaps },
     ), { params: { taskId: 'P01' } });
     const draft = await draftResponse.json();
     const submitResponse = await outputSubmitRoute.POST(jsonRequest(
       'http://localhost/api/outputs/P01/submit', studentTwoCookie,
       {
         outputId: draft.head.outputId, expectedStateRevision: 1,
-        fields, upstreamRefs: [], evidenceLinks: {},
+        fields, upstreamRefs: [], evidenceLinks: {}, evidenceGaps,
       },
     ), { params: { taskId: 'P01' } });
     assert.equal(submitResponse.status, 200);
@@ -275,7 +287,7 @@ test('a returned output maps unchanged resubmission to 422 and accepts a semanti
       'http://localhost/api/outputs/P01/submit', studentTwoCookie,
       {
         outputId: draft.head.outputId, expectedStateRevision: 3,
-        fields, upstreamRefs: [], evidenceLinks: {},
+        fields, upstreamRefs: [], evidenceLinks: {}, evidenceGaps,
       },
     ), { params: { taskId: 'P01' } });
     assert.equal(unchangedResponse.status, 422);
@@ -287,7 +299,7 @@ test('a returned output maps unchanged resubmission to 422 and accepts a semanti
       {
         outputId: draft.head.outputId, expectedStateRevision: 3,
         fields: { ...fields, connectionDirection: 'BBU → ODF → AAU，已补充连续路径证据' },
-        upstreamRefs: [], evidenceLinks: {},
+        upstreamRefs: [], evidenceLinks: {}, evidenceGaps,
       },
     ), { params: { taskId: 'P01' } });
     assert.equal(revisedResponse.status, 200);
@@ -318,6 +330,7 @@ test('professional output routes allow incomplete drafts but reject unknown fiel
       DELETE FROM professional_outputs
       WHERE student_id = 'stu-02' AND task_id = 'P01'
     `).run();
+    seedLegalProfessionalOutputSubmissionFacts(database, 'stu-02');
     const schema = professionalOutputSchemaForTask(loadSelfStudyCatalog(), 'P01');
     const first = schema.fields[0]!;
     const unknownResponse = await outputDraftRoute.POST(jsonRequest(
@@ -365,6 +378,7 @@ test('professional output routes allow incomplete drafts but reject unknown fiel
     const completeFields = Object.fromEntries(
       schema.fields.map(({ key, label }) => [key, `已填写：${label}`]),
     );
+    const evidenceGaps = completePolicyGaps('P01');
     const completeSubmit = await outputSubmitRoute.POST(jsonRequest(
       'http://localhost/api/outputs/P01/submit',
       studentTwoCookie,
@@ -373,6 +387,7 @@ test('professional output routes allow incomplete drafts but reject unknown fiel
         expectedStateRevision: 1,
         fields: completeFields,
         upstreamRefs: [],
+        evidenceGaps,
       },
     ), { params: { taskId: 'P01' } });
     assert.equal(completeSubmit.status, 200);
@@ -756,33 +771,6 @@ function jsonRequest(url: string, cookie: string, body: unknown): Request {
     headers: { cookie, 'content-type': 'application/json' },
     body: JSON.stringify(body),
   });
-}
-
-function outputMutationCounts(database: AppDatabase, studentId: string) {
-  return {
-    heads: database.prepare('SELECT COUNT(*) FROM professional_outputs WHERE student_id = ?').pluck().get(studentId),
-    versions: database.prepare(`
-      SELECT COUNT(*) FROM professional_output_versions AS version
-      JOIN professional_outputs AS output ON output.output_id = version.output_id
-      WHERE output.student_id = ?
-    `).pluck().get(studentId),
-    links: database.prepare(`
-      SELECT COUNT(*) FROM output_evidence_links AS link
-      JOIN professional_outputs AS output ON output.output_id = link.output_id
-      WHERE output.student_id = ?
-    `).pluck().get(studentId),
-    sources: database.prepare(`
-      SELECT COUNT(*) FROM output_field_sources AS source
-      JOIN professional_outputs AS output ON output.output_id = source.output_id
-      WHERE output.student_id = ?
-    `).pluck().get(studentId),
-    events: database.prepare(`
-      SELECT COUNT(*) FROM learning_events
-      WHERE student_id = ? AND event_type IN ('evidence_draft_saved', 'evidence_submitted')
-    `).pluck().get(studentId),
-    snapshot: database.prepare('SELECT version FROM snapshot_versions WHERE topic = ?')
-      .pluck().get(`learning:${studentId}`),
-  };
 }
 
 function passRequiredPractice(

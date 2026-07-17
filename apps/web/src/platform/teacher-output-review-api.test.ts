@@ -14,6 +14,10 @@ import { ProfessionalOutputRepository } from './professional-output-repository.t
 import { loadSelfStudyCatalog } from '../features/textbook-scene/self-study-content.ts';
 import { professionalOutputSchemaForTask } from '../features/portfolio/output-schema.ts';
 import { assessmentDimensionKeys } from './formal-assessment-contract.ts';
+import {
+  completePolicyGaps,
+  seedLegalProfessionalOutputPracticeFacts,
+} from './professional-output-policy-test-support.ts';
 
 registerHooks({
   resolve(specifier, context, nextResolve) {
@@ -74,20 +78,22 @@ test('teacher lists a submitted class output and verifies it through the unique 
   try {
     migrateDatabase(fixture.database);
     seedBase(fixture.database);
+    seedLegalProfessionalOutputPracticeFacts(fixture.database, 'stu-01', 'P01');
+    insertUserFormalAssessment(fixture.database, 'api-review-attempt', 80);
     process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
     closeDatabase();
     const repository = new ProfessionalOutputRepository(fixture.database, () => 'api-review-output');
     const schema = professionalOutputSchemaForTask(loadSelfStudyCatalog(), 'P01');
     const fields = Object.fromEntries(schema.fields.map(({ key }) => [key, `submitted output: ${key}`]));
+    const evidenceGaps = completePolicyGaps('P01');
     const draft = repository.saveDraft({
       studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
-      fields, upstreamRefs: [],
+      fields, upstreamRefs: [], evidenceGaps,
     });
     repository.submit({
       outputId: draft.head.outputId, studentId: 'stu-01', taskId: 'P01',
-      expectedStateRevision: 1, fields: draft.versions[0]!.fields, upstreamRefs: [],
+      expectedStateRevision: 1, fields: draft.versions[0]!.fields, upstreamRefs: [], evidenceGaps,
     });
-    insertUserFormalAssessment(fixture.database, 'api-review-attempt', 80);
     const teacher = new AuthService(fixture.database).login({
       username: 'teacher01', password: process.env.DGBOOK_DEMO_PASSWORD ?? '123456',
     });
@@ -112,9 +118,9 @@ test('teacher lists a submitted class output and verifies it through the unique 
       listed.outputs[0].fieldSchema,
       schema.fields.map(({ key, label }) => ({ key, label })),
     );
-    const rubricScores = Object.fromEntries(schema.rubric.map(({ criterion, maxScore }, index) => [
+    const rubricScores = Object.fromEntries(schema.rubric.map(({ criterion, maxScore }) => [
       criterion,
-      index === schema.rubric.length - 1 ? 0 : maxScore,
+      maxScore,
     ]));
 
     const invalidResponse = await reviewsRoute.POST(jsonRequest(
@@ -122,6 +128,7 @@ test('teacher lists a submitted class output and verifies it through the unique 
       cookie,
       {
         expectedStateRevision: 2,
+        expectedOutputVersion: 1,
         action: 'verify',
         rubricScores: { fakeCriterion: 90 },
       },
@@ -134,6 +141,7 @@ test('teacher lists a submitted class output and verifies it through the unique 
       cookie,
       {
         expectedStateRevision: 2,
+        expectedOutputVersion: 1,
         action: 'verify',
         rubricScores: {
           ...rubricScores,
@@ -149,6 +157,7 @@ test('teacher lists a submitted class output and verifies it through the unique 
       cookie,
       {
         expectedStateRevision: 2,
+        expectedOutputVersion: 1,
         action: 'verify',
         feedback: '达到岗位交付标准。',
         rubricScores,
@@ -157,7 +166,7 @@ test('teacher lists a submitted class output and verifies it through the unique 
     assert.equal(response.status, 200);
     const result = await response.json();
     assert.equal(result.output.head.status, 'verified');
-    assert.equal(result.frozenTaskScore.officialScore, 86);
+    assert.equal(result.frozenTaskScore.officialScore, 92);
     assert.equal(fixture.database.prepare(`
       SELECT COUNT(*) FROM formal_attempts WHERE attempt_id = 'api-review-attempt' AND score = 80
     `).pluck().get(), 1);

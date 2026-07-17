@@ -173,7 +173,9 @@ export class ProfessionalOutputPortfolioReader {
       ORDER BY CASE origin WHEN 'user' THEN 0 ELSE 1 END,
         snapshot_version DESC, frozen_at DESC, score_id DESC LIMIT 1
     `).get(studentId, taskId) as { detailsJson: string } | undefined;
-    const attemptId = stringProperty(parseJsonRecord(frozen?.detailsJson), 'nodeTestAttemptId');
+    const frozenDetails = parseJsonRecord(frozen?.detailsJson);
+    const attemptId = stringProperty(frozenDetails, 'attemptId')
+      ?? stringProperty(frozenDetails, 'nodeTestAttemptId');
     const row = attemptId
       ? this.readFormalById(studentId, nodeId, attemptId)
       : this.readCurrentFormal(studentId, nodeId);

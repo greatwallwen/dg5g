@@ -44,9 +44,11 @@ export async function POST(request: Request, { params }: { params: { outputId: s
       classId: actor.classId,
       outputId: params.outputId,
       expectedStateRevision: body.expectedStateRevision as number,
+      expectedOutputVersion: body.expectedOutputVersion as number,
       action: body.action as 'return' | 'verify',
       ...(typeof body.feedback === 'string' ? { feedback: body.feedback } : {}),
       ...(rubricScores ? { rubricScores } : {}),
+      annotations: (body.annotations ?? {}) as Record<string, string>,
     });
     return NextResponse.json(result);
   } catch (error) {
