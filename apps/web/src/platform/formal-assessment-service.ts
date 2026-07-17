@@ -153,37 +153,65 @@ export class FormalAssessmentService {
     createLearningCommandService(this.database).requireFormalAssessmentReadiness(actor, nodeId);
     const now = this.now();
     const serverNow = now.toISOString();
-    const classroomRun = context.classroomSessionId
-      ? this.requireActiveClassroomRun(actor, nodeId, context.classroomSessionId, definition)
-      : undefined;
 
     return this.database.transaction(() => {
-      const missingTargets = this.readMissingRemediationTargets(studentId, definition);
-      if (missingTargets.length > 0) throw new AssessmentRemediationRequiredError(missingTargets);
-
       const running = this.readStudentAssessmentInstance(studentId, nodeId, 'running');
       if (running) {
-        if (running.expiresAt && now.getTime() >= Date.parse(running.expiresAt)) {
+        const boundClassroomRun = this.authorizeExistingIssueContext(
+          actor,
+          nodeId,
+          context.classroomSessionId,
+          definition,
+          running,
+        );
+        const terminalClassroomRun = boundClassroomRun
+          && (boundClassroomRun.status === 'closed'
+            || now.getTime() >= Date.parse(boundClassroomRun.expiresAt));
+        if (terminalClassroomRun
+          || (running.expiresAt && now.getTime() >= Date.parse(running.expiresAt))) {
           this.expireInstance(running.assessmentId, serverNow);
-          if (!context.restart) {
+          if (!context.restart || boundClassroomRun) {
             return this.projectIssuedAssessment(running, studentId, serverNow, 'expired');
           }
         } else {
           if (context.restart) {
             throw new TypeError('A running formal assessment cannot be restarted.');
           }
-          this.assertIssueContextMatches(running, classroomRun);
+          if (boundClassroomRun) {
+            const activeRun = this.requireActiveClassroomRun(
+              actor,
+              nodeId,
+              boundClassroomRun.sessionId,
+              definition,
+            );
+            if (activeRun.runId !== boundClassroomRun.runId) {
+              throw new AssessmentClassroomWindowError();
+            }
+          }
           return this.issueReplacementToken(running, studentId, serverNow);
         }
       }
 
       const latest = this.readStudentAssessmentInstance(studentId, nodeId);
       if (!context.restart && latest?.closureReason === 'expired') {
+        this.authorizeExistingIssueContext(
+          actor,
+          nodeId,
+          context.classroomSessionId,
+          definition,
+          latest,
+        );
         return this.projectIssuedAssessment(latest, studentId, serverNow, 'expired');
       }
       if (context.restart && latest?.closureReason !== 'expired') {
         throw new TypeError('Only an expired formal assessment can be restarted.');
       }
+
+      const missingTargets = this.readMissingRemediationTargets(studentId, definition);
+      if (missingTargets.length > 0) throw new AssessmentRemediationRequiredError(missingTargets);
+      const classroomRun = context.classroomSessionId
+        ? this.requireActiveClassroomRun(actor, nodeId, context.classroomSessionId, definition)
+        : undefined;
 
       const selectedDefinition = this.selectDefinition(studentId, nodeId);
       const assessmentId = `assessment-${this.randomId()}`;
@@ -332,22 +360,39 @@ export class FormalAssessmentService {
     `).run(expiredAt, assessmentId);
   }
 
-  private assertIssueContextMatches(
-    instance: StudentAssessmentInstanceRow,
-    classroomRun: { sessionId: string; runId: string } | undefined,
-  ): void {
-    if (!classroomRun) {
+  private authorizeExistingIssueContext(
+    actor: AuthenticatedActor, nodeId: string, requestedSessionId: string | undefined,
+    definition: FormalAssessmentDefinition, instance: StudentAssessmentInstanceRow,
+  ): BoundClassroomAssessmentRunRow | undefined {
+    if (!requestedSessionId) {
       if (instance.classroomSessionId || instance.classroomRunId) {
         throw new AssessmentClassroomWindowError();
       }
-      return;
+      return undefined;
     }
-    if (instance.classroomSessionId !== classroomRun.sessionId
-      || instance.classroomRunId !== classroomRun.runId) {
+    if (instance.classroomSessionId !== requestedSessionId
+      || !instance.classroomRunId
+      || instance.nodeId !== nodeId
+      || instance.gameId !== definition.gameId) {
       throw new AssessmentClassroomWindowError();
     }
+    const row = this.database.prepare(`
+      SELECT run.session_id AS sessionId, run.run_id AS runId, run.expires_at AS expiresAt, run.status
+      FROM classroom_assessment_runs AS run
+      INNER JOIN classroom_sessions AS classroom ON classroom.session_id = run.session_id
+      INNER JOIN classroom_members AS member ON member.session_id = classroom.session_id
+        AND member.student_id = ?
+      WHERE run.run_id = ? AND run.session_id = ? AND classroom.class_id = ?
+        AND run.node_id = ? AND run.game_id = ?
+      LIMIT 1
+    `).get(
+      actor.userId, instance.classroomRunId, requestedSessionId, actor.classId, nodeId, definition.gameId,
+    ) as BoundClassroomAssessmentRunRow | undefined;
+    if (!row || row.runId !== instance.classroomRunId) {
+      throw new AssessmentClassroomWindowError();
+    }
+    return row;
   }
-
   private requireActiveClassroomRun(
     actor: AuthenticatedActor,
     nodeId: string,
@@ -700,10 +745,11 @@ function hashToken(token: string): string {
 }
 
 interface ActiveClassroomAssessmentRunRow {
-  sessionId: string;
-  runId: string;
-  expiresAt: string;
-  status: 'running' | 'paused';
+  sessionId: string; runId: string; expiresAt: string; status: 'running' | 'paused';
+}
+
+interface BoundClassroomAssessmentRunRow {
+  sessionId: string; runId: string; expiresAt: string; status: 'running' | 'paused' | 'closed';
 }
 
 function parseRemediationTargets(diagnosticsJson: string): RemediationTarget[] {

@@ -20,7 +20,6 @@ import type {
 import { describeLearningCommandError } from '@/platform/learning-command-service';
 import {
   FORMAL_ASSESSMENT_BODY_MAX_BYTES,
-  utf8ByteLength,
 } from '@/platform/formal-assessment-limits';
 
 export const dynamic = 'force-dynamic';
@@ -85,16 +84,47 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 async function readBoundedAssessmentJson(request: Request): Promise<unknown> {
   const declaredLength = Number(request.headers.get('content-length'));
   if (Number.isFinite(declaredLength) && declaredLength > FORMAL_ASSESSMENT_BODY_MAX_BYTES) {
-    throw new TypeError('Assessment request exceeds the maximum body size.');
+    throw new AssessmentRequestTooLargeError();
   }
-  const serialized = await request.text();
-  if (utf8ByteLength(serialized) > FORMAL_ASSESSMENT_BODY_MAX_BYTES) {
-    throw new TypeError('Assessment request exceeds the maximum body size.');
+
+  const chunks: Uint8Array[] = [];
+  let byteLength = 0;
+  const reader = request.body?.getReader();
+  if (reader) {
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        byteLength += value.byteLength;
+        if (byteLength > FORMAL_ASSESSMENT_BODY_MAX_BYTES) {
+          await reader.cancel();
+          throw new AssessmentRequestTooLargeError();
+        }
+        chunks.push(value);
+      }
+    } finally {
+      reader.releaseLock();
+    }
   }
+
+  const bytes = new Uint8Array(byteLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  const serialized = new TextDecoder().decode(bytes);
   try {
     return JSON.parse(serialized) as unknown;
   } catch {
     throw new TypeError('Assessment request must contain valid JSON.');
+  }
+}
+
+class AssessmentRequestTooLargeError extends Error {
+  constructor() {
+    super('Assessment request exceeds the maximum body size.');
+    this.name = 'AssessmentRequestTooLargeError';
   }
 }
 
@@ -150,6 +180,9 @@ function parseDraftBody(value: unknown): {
 function assessmentError(error: unknown): NextResponse {
   const learningProblem = describeLearningCommandError(error);
   if (learningProblem) return response(learningProblem.body, learningProblem.status);
+  if (error instanceof AssessmentRequestTooLargeError) {
+    return response({ error: error.message }, 413);
+  }
   if (error instanceof AssessmentRemediationRequiredError) {
     return response({ error: error.message, remediationTargets: error.targets }, 409);
   }

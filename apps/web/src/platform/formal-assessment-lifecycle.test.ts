@@ -14,6 +14,7 @@ import {
   FormalAssessmentService,
   type AssessmentAnswers,
 } from './formal-assessment-service.ts';
+import { FORMAL_ASSESSMENT_BODY_MAX_BYTES } from './formal-assessment-limits.ts';
 
 const studentOne: AuthenticatedActor = {
   userId: 'stu-01', studentId: 'stu-01', username: 'student01',
@@ -207,7 +208,7 @@ test('assessment PATCH rejects unknown options and oversized drafts with zero wr
       },
       expectedRevision: 0,
     }, issued.attemptToken), assessmentRouteContext());
-    assert.equal(oversized.status, 400);
+    assert.equal(oversized.status, 413);
     assert.equal(fixture.database.prepare(`
       SELECT COUNT(*) FROM formal_assessment_drafts WHERE assessment_id = ?
     `).pluck().get(issued.assessmentId), 0);
@@ -221,7 +222,7 @@ test('assessment PATCH rejects unknown options and oversized drafts with zero wr
         },
       },
     }, issued.attemptToken), assessmentRouteContext());
-    assert.equal(oversizedSubmission.status, 400);
+    assert.equal(oversizedSubmission.status, 413);
     assert.match(
       (await oversizedSubmission.json() as { error: string }).error,
       /maximum body size/i,
@@ -235,6 +236,61 @@ test('assessment PATCH rejects unknown options and oversized drafts with zero wr
       INNER JOIN formal_assessment_tokens AS token ON token.assessment_id = instance.assessment_id
       WHERE instance.assessment_id = ?
     `).get(issued.assessmentId), { status: 'running', usedAt: null });
+  } finally {
+    closeDatabase();
+    if (previousPath === undefined) delete process.env.DGBOOK_SQLITE_PATH;
+    else process.env.DGBOOK_SQLITE_PATH = previousPath;
+    fixture.cleanup();
+  }
+});
+
+test('assessment PATCH and POST stop oversized streamed bodies before parsing or persistence', async () => {
+  const fixture = createTestDatabase();
+  const previousPath = process.env.DGBOOK_SQLITE_PATH;
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    readyForFormalAssessment(fixture.database, studentOne.userId);
+    const session = new AuthService(fixture.database).login({ username: 'student01', password: '123456' });
+    assert.ok(session);
+    process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
+    closeDatabase();
+    const route = await import('../app/api/learning/nodes/[nodeId]/assessment/route.ts');
+    const cookie = `${AUTH_COOKIE_NAME}=${session.token}`;
+    const before = assessmentPersistenceCounts(fixture.database);
+    const chunkBytes = 16 * 1_024;
+    const totalBytes = 4 * 1_024 * 1_024;
+
+    for (const method of ['PATCH', 'POST'] as const) {
+      for (const declaredLength of [undefined, '1'] as const) {
+        const streamed = oversizedAssessmentStream(totalBytes, chunkBytes);
+        const request = new Request(
+          'http://localhost/api/learning/nodes/P1T1-N02/assessment',
+          {
+            method,
+            headers: {
+              cookie,
+              'content-type': 'application/json',
+              'x-assessment-token': 'unused-stream-token-0123456789abcdef',
+              ...(declaredLength === undefined ? {} : { 'content-length': declaredLength }),
+            },
+            body: streamed.body,
+            duplex: 'half',
+          } as RequestInit & { duplex: 'half' },
+        );
+
+        const response = await route[method](request, assessmentRouteContext());
+
+        assert.equal(response.status, 413, `${method} content-length=${declaredLength ?? 'absent'}`);
+        assert.equal(streamed.cancelled(), true, `${method} must cancel the unread stream`);
+        assert.ok(
+          streamed.pulledBytes() <= FORMAL_ASSESSMENT_BODY_MAX_BYTES + chunkBytes,
+          `${method} pulled ${streamed.pulledBytes()} bytes`,
+        );
+        assert.ok(streamed.pulledBytes() < totalBytes, `${method} must not drain the body`);
+        assert.deepEqual(assessmentPersistenceCounts(fixture.database), before);
+      }
+    }
   } finally {
     closeDatabase();
     if (previousPath === undefined) delete process.env.DGBOOK_SQLITE_PATH;
@@ -372,6 +428,86 @@ test('binds a classroom paper to the exact relational run and its authoritative 
   }
 });
 
+test('classroom assessment GET preserves the bound draft when its run is closed or expires', async () => {
+  const previousPath = process.env.DGBOOK_SQLITE_PATH;
+  for (const terminal of ['closed', 'expired'] as const) {
+    const fixture = createTestDatabase();
+    try {
+      migrateDatabase(fixture.database);
+      seedDemo(fixture.database);
+      readyForFormalAssessment(fixture.database, studentOne.userId);
+      const runId = `classroom-resume-${terminal}`;
+      openRelationalClassroomAssessmentRun(fixture.database, {
+        runId,
+        expiresAt: '2099-07-16T10:15:00.000Z',
+      });
+      const session = new AuthService(fixture.database).login({ username: 'student01', password: '123456' });
+      assert.ok(session);
+      process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
+      closeDatabase();
+      const route = await import('../app/api/learning/nodes/[nodeId]/assessment/route.ts');
+      const cookie = `${AUTH_COOKIE_NAME}=${session.token}`;
+      const issueUrl = 'http://localhost/api/learning/nodes/P1T1-N02/assessment?classroomSessionId=demo-class';
+      const issuedResponse = route.GET(new Request(issueUrl, { headers: { cookie } }), assessmentRouteContext());
+      assert.equal(issuedResponse.status, 200, terminal);
+      const issued = await issuedResponse.json() as { assessmentId: string; attemptToken: string };
+      const draftResponse = await route.PATCH(assessmentRequest('PATCH', cookie, {
+        answers: { evidenceClassification: 'nameplate-photo' },
+        expectedRevision: 0,
+      }, issued.attemptToken), assessmentRouteContext());
+      assert.equal(draftResponse.status, 200, terminal);
+
+      if (terminal === 'closed') {
+        fixture.database.prepare(`
+          UPDATE classroom_assessment_runs
+          SET status = 'closed', closed_at = '2026-07-16T10:01:00.000Z',
+            closed_reason = 'teacher-collected'
+          WHERE run_id = ?
+        `).run(runId);
+      } else {
+        fixture.database.prepare(`
+          UPDATE classroom_assessment_runs SET expires_at = '2000-01-01T00:00:00.000Z'
+          WHERE run_id = ?
+        `).run(runId);
+      }
+
+      const countsBeforeResume = assessmentPersistenceCounts(fixture.database);
+      const terminalResponse = route.GET(new Request(issueUrl, { headers: { cookie } }), assessmentRouteContext());
+      assert.equal(terminalResponse.status, 200, terminal);
+      const terminalPaper = await terminalResponse.json() as Record<string, unknown>;
+      assert.equal(terminalPaper.assessmentId, issued.assessmentId, terminal);
+      assert.equal(terminalPaper.state, 'expired', terminal);
+      assert.equal(Object.hasOwn(terminalPaper, 'attemptToken'), false, terminal);
+      assert.deepEqual(
+        {
+          answers: (terminalPaper.draft as { answers: unknown }).answers,
+          revision: (terminalPaper.draft as { revision: number }).revision,
+        },
+        { answers: { evidenceClassification: 'nameplate-photo' }, revision: 1 },
+        terminal,
+      );
+      assert.deepEqual(assessmentPersistenceCounts(fixture.database), countsBeforeResume, terminal);
+      assert.deepEqual(fixture.database.prepare(`
+        SELECT status, closure_reason AS closureReason
+        FROM formal_assessment_instances WHERE assessment_id = ?
+      `).get(issued.assessmentId), { status: 'closed', closureReason: 'expired' }, terminal);
+      assert.deepEqual(fixture.database.prepare(`
+        SELECT COUNT(*) AS tokenCount,
+          SUM(CASE WHEN used_at IS NOT NULL THEN 1 ELSE 0 END) AS consumedCount
+        FROM formal_assessment_tokens WHERE assessment_id = ?
+      `).get(issued.assessmentId), { tokenCount: 1, consumedCount: 1 }, terminal);
+      assert.equal(fixture.database.prepare(`
+        SELECT COUNT(*) FROM formal_attempts WHERE assessment_id = ?
+      `).pluck().get(issued.assessmentId), 0, terminal);
+    } finally {
+      closeDatabase();
+      fixture.cleanup();
+    }
+  }
+  if (previousPath === undefined) delete process.env.DGBOOK_SQLITE_PATH;
+  else process.env.DGBOOK_SQLITE_PATH = previousPath;
+});
+
 test('rejects a classroom-bound submission after its shared run has left the active window', () => {
   const fixture = createTestDatabase();
   try {
@@ -479,6 +615,43 @@ function assessmentRequest(method: string, cookie: string, body?: unknown, token
 
 function assessmentRouteContext() {
   return { params: { nodeId: 'P1T1-N02' } };
+}
+
+function oversizedAssessmentStream(totalBytes: number, chunkBytes: number) {
+  let pulledBytes = 0;
+  let wasCancelled = false;
+  const invalidPrefix = new TextEncoder().encode('{ definitely-not-json ');
+  const body = new ReadableStream<Uint8Array>({
+    pull(controller) {
+      if (pulledBytes >= totalBytes) {
+        controller.close();
+        return;
+      }
+      const size = Math.min(chunkBytes, totalBytes - pulledBytes);
+      const chunk = new Uint8Array(size).fill(120);
+      if (pulledBytes === 0) chunk.set(invalidPrefix.subarray(0, size));
+      pulledBytes += size;
+      controller.enqueue(chunk);
+    },
+    cancel() {
+      wasCancelled = true;
+    },
+  });
+  return {
+    body,
+    cancelled: () => wasCancelled,
+    pulledBytes: () => pulledBytes,
+  };
+}
+
+function assessmentPersistenceCounts(database: AppDatabase) {
+  const count = (table: string) => database.prepare(`SELECT COUNT(*) FROM ${table}`).pluck().get();
+  return {
+    instances: count('formal_assessment_instances'),
+    tokens: count('formal_assessment_tokens'),
+    attempts: count('formal_attempts'),
+    drafts: count('formal_assessment_drafts'),
+  };
 }
 
 function openRelationalClassroomAssessmentRun(
