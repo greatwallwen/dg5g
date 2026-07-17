@@ -132,6 +132,10 @@ test('cursor save rejects teacher, inactive, and missing identities with zero si
   }
 });
 
+const cursorTestDay = new Date(Date.now() + 24 * 60 * 60 * 1000)
+  .toISOString()
+  .slice(0, 10);
+
 function at(time: string): Date {
-  return new Date(`2026-07-16T${time}.000Z`);
+  return new Date(`${cursorTestDay}T${time}.000Z`);
 }
