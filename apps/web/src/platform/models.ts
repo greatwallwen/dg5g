@@ -104,6 +104,7 @@ export interface ClassroomDeviceSnapshot {
 
 export interface GameAttemptSummary {
   attemptId: string;
+  assessmentId?: string;
   gameId: string;
   nodeId: string;
   score: number;

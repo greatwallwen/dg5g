@@ -14,7 +14,12 @@ export function hydrateClassSessionLearning(session: ClassSession): ClassSession
     ...session.formalTest,
     participants: session.formalTest.participants.map((participant) => {
       const progress = getSkillProgress(participant.studentId, nodeId);
-      const latestAttempt = progress.gameAttempts?.filter(({ origin }) => origin === 'user').at(-1);
+      const latestAttempt = session.formalTest?.runId
+        ? undefined
+        : progress.gameAttempts?.filter((attempt) => (
+            attempt.origin === 'user'
+            && attempt.assessmentId === session.formalTest?.assessmentId
+          )).at(-1);
       const { score: _score, durationSeconds: _durationSeconds, ...identity } = participant;
       if (!latestAttempt) return {
         ...identity,
