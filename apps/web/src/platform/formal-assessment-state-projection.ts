@@ -11,6 +11,12 @@ export function currentUserFormalAssessmentState(
     return definition?.gameId === instance.gameId;
   }).at(-1);
   if (!current) return undefined;
+  if (current.status !== 'running') {
+    return current.status === 'closed'
+      && (current.closureReason === 'expired' || current.closureReason === 'cancelled')
+      ? 'expired'
+      : undefined;
+  }
   const expiresAt = current.expiresAt ? Date.parse(current.expiresAt) : Number.NaN;
   if (
     current.closureReason === 'expired'
@@ -21,5 +27,5 @@ export function currentUserFormalAssessmentState(
     || (current.status === 'running' && Number.isFinite(expiresAt) && expiresAt <= Date.now())
   ) return 'expired';
   if (current.classroomRunStatus === 'paused') return 'paused';
-  return current.status === 'running' ? 'in-progress' : undefined;
+  return 'in-progress';
 }
