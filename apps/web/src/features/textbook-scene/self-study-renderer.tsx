@@ -11,6 +11,7 @@ import { FigureSection, ProblemSection, SelfStudyGlossary, StepsSection } from '
 import { PracticeSection, practiceIdsFor } from './self-study-practice-section.tsx';
 import { CorrectionSection, OutputSection } from './self-study-secondary-sections.tsx';
 import {
+  createSelfStudyCursorPersistenceCoordinator,
   readSelfStudyCursor,
   saveSelfStudyCursor,
   selfStudySectionFromCursor,
@@ -38,6 +39,10 @@ export function SelfStudyRenderer({
   const [readingSaving, setReadingSaving] = useState(false);
   const activeSectionRef = useRef<SelfStudySectionId>(initialSection);
   const textbookBodyRef = useRef<HTMLDivElement>(null);
+  const cursorPersistence = useMemo(
+    () => createSelfStudyCursorPersistenceCoordinator(saveSelfStudyCursor),
+    [document.nodeId],
+  );
   const activeIndex = selfStudySectionDefinitions.findIndex(({ id }) => id === activeSection);
   const practiceIds = useMemo(() => practiceIdsFor(document), [document]);
   const practiceComplete = completed || practiceIds.every((id) => passedPracticeIds.includes(id));
@@ -48,17 +53,19 @@ export function SelfStudyRenderer({
     setActiveSection(initialSection);
     setPassedPracticeIds([]);
     let current = true;
-    void readSelfStudyCursor(document.nodeId).then((cursor) => {
+    void cursorPersistence.restore(readSelfStudyCursor(document.nodeId)).then((cursor) => {
+      if (!cursor) return;
       const restored = selfStudySectionFromCursor(cursor);
       if (!current || !restored) return;
       activeSectionRef.current = restored;
       setActiveSection(restored);
-      void persistSection(restored);
     }).catch(() => {
-      if (current) void persistSection(initialSection);
+      if (current && !cursorPersistence.hasLocalInteraction()) {
+        void persistSection(initialSection);
+      }
     });
     return () => { current = false; };
-  }, [document.nodeId, initialSection]);
+  }, [cursorPersistence, document.nodeId, initialSection]);
 
   useEffect(() => {
     const onPlaybackTarget = (event: Event) => {
@@ -72,14 +79,7 @@ export function SelfStudyRenderer({
 
   useEffect(() => {
     const saveBeforeUnload = () => {
-      const sectionId = activeSectionRef.current;
-      void fetch(`/api/self-study/cursors/${encodeURIComponent(document.nodeId)}`, {
-        method: 'PUT',
-        credentials: 'same-origin',
-        keepalive: true,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cursorDraft(sectionId)),
-      });
+      void persistSection(activeSectionRef.current);
     };
     window.addEventListener('beforeunload', saveBeforeUnload);
     return () => {
@@ -101,6 +101,7 @@ export function SelfStudyRenderer({
   }
 
   function selectSection(sectionId: SelfStudySectionId) {
+    cursorPersistence.markLocalInteraction();
     activeSectionRef.current = sectionId;
     setActiveSection(sectionId);
     void persistSection(sectionId);
@@ -116,7 +117,7 @@ export function SelfStudyRenderer({
   }
 
   function persistSection(sectionId: SelfStudySectionId) {
-    return saveSelfStudyCursor(document.nodeId, cursorDraft(sectionId)).catch(() => undefined);
+    return cursorPersistence.schedule(document.nodeId, cursorDraft(sectionId));
   }
 
   async function completeReadingSection(sectionId: ReadingSectionId) {

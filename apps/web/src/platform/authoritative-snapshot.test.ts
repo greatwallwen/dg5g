@@ -135,6 +135,50 @@ test('score and submission fields keep their distinct authoritative meanings', (
   }
 });
 
+test('classroom activity metrics count only the exact active lesson run', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    fixture.database.exec(`
+      INSERT INTO classroom_lesson_runs (
+        lesson_run_id, session_id, lesson_id, task_id, node_id, status, teaching_cursor_json
+      ) VALUES
+        ('snapshot-lesson-old', 'demo-class', 'P01-L1', 'P01', 'P1T1-N02', 'closed', '{}'),
+        ('snapshot-lesson-active', 'demo-class', 'P01-L2', 'P01', 'P1T1-N02', 'active', '{}');
+      UPDATE classroom_sessions
+      SET status = 'active', active_node_id = 'P1T1-N02',
+          active_lesson_run_id = 'snapshot-lesson-active'
+      WHERE session_id = 'demo-class';
+      INSERT INTO practice_attempts (
+        attempt_id, student_id, activity_id, node_id, passed, origin,
+        delivery_channel, classroom_session_id, classroom_run_id, attempt_number
+      ) VALUES (
+        'snapshot-practice-old', 'stu-01', 'P1T1-N02-foundation-01', 'P1T1-N02',
+        1, 'user', 'classroom', 'demo-class', 'snapshot-lesson-old', 1
+      );
+    `);
+
+    const reader = new AuthoritativeSnapshotReader(fixture.database);
+    assert.equal(reader.read(teacherActor(), 'teacher', { now })
+      .submissions.classroomActivity.submittedCount, 0);
+
+    fixture.database.prepare(`
+      INSERT INTO practice_attempts (
+        attempt_id, student_id, activity_id, node_id, passed, origin,
+        delivery_channel, classroom_session_id, classroom_run_id, attempt_number
+      ) VALUES (
+        'snapshot-practice-active', 'stu-01', 'P1T1-N02-foundation-01', 'P1T1-N02',
+        1, 'user', 'classroom', 'demo-class', 'snapshot-lesson-active', 2
+      )
+    `).run();
+    assert.equal(reader.read(teacherActor(), 'teacher', { now })
+      .submissions.classroomActivity.submittedCount, 1);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
 test('historical demo attempts never enter active assessment submission statistics', () => {
   const fixture = createTestDatabase();
   try {

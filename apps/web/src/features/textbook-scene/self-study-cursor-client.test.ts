@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  createSelfStudyCursorPersistenceCoordinator,
   createSelfStudyCursorClient,
   selfStudySectionFromCursor,
 } from './self-study-cursor-client.ts';
@@ -52,3 +53,70 @@ test('cursor restoration accepts six canonical sections and seeded legacy playba
   }
   assert.equal(selfStudySectionFromCursor({ actionId: 'not-a-section' }), undefined);
 });
+
+test('cursor persistence ignores a late restore after local section interaction', async () => {
+  const restored = deferred<{ actionId: string }>();
+  const coordinator = createSelfStudyCursorPersistenceCoordinator(async () => undefined);
+
+  const pending = coordinator.restore(restored.promise);
+  coordinator.markLocalInteraction();
+  restored.resolve({ actionId: 'problem' });
+
+  assert.equal(await pending, undefined);
+});
+
+test('cursor persistence serializes writes and coalesces rapid changes to the latest section', async () => {
+  const first = deferred<void>();
+  const second = deferred<void>();
+  const saved: string[] = [];
+  const coordinator = createSelfStudyCursorPersistenceCoordinator(async (_nodeId, draft) => {
+    saved.push(draft.actionId ?? '');
+    await (saved.length === 1 ? first.promise : second.promise);
+  });
+
+  const problem = coordinator.schedule('P1T1-N02', cursor('problem'));
+  const figure = coordinator.schedule('P1T1-N02', cursor('figure'));
+  const steps = coordinator.schedule('P1T1-N02', cursor('steps'));
+  assert.deepEqual(saved, ['problem']);
+
+  first.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.deepEqual(saved, ['problem', 'steps']);
+
+  second.resolve();
+  await Promise.all([problem, figure, steps]);
+  assert.deepEqual(saved, ['problem', 'steps']);
+});
+
+test('cleanup scheduling cannot overtake the newest queued cursor', async () => {
+  const first = deferred<void>();
+  const final = deferred<void>();
+  const saved: string[] = [];
+  const coordinator = createSelfStudyCursorPersistenceCoordinator(async (_nodeId, draft) => {
+    saved.push(draft.actionId ?? '');
+    await (saved.length === 1 ? first.promise : final.promise);
+  });
+
+  const problem = coordinator.schedule('P1T1-N02', cursor('problem'));
+  const figure = coordinator.schedule('P1T1-N02', cursor('figure'));
+  const cleanup = coordinator.schedule('P1T1-N02', cursor('output'));
+  first.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.deepEqual(saved, ['problem', 'output']);
+
+  final.resolve();
+  await Promise.all([problem, figure, cleanup]);
+  assert.deepEqual(saved, ['problem', 'output']);
+});
+
+function cursor(actionId: 'problem' | 'figure' | 'steps' | 'correction' | 'practice' | 'output') {
+  return { unitId: 'P01-ku-02', actionId, actionIndex: 0, positionMs: 0 };
+}
+
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((next) => { resolve = next; });
+  return { promise, resolve };
+}

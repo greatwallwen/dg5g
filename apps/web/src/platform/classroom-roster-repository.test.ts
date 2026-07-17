@@ -160,22 +160,46 @@ test('historical generic classroom events never become roster submission authori
   }
 });
 
-test('classroom roster submission counts derive only from classroom-delivered practice attempts', () => {
+test('classroom roster submission counts derive only from the active lesson run', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    fixture.database.exec(`
+      INSERT INTO classroom_lesson_runs (
+        lesson_run_id, session_id, lesson_id, task_id, node_id, status, teaching_cursor_json
+      ) VALUES
+        ('lesson-run-old', 'demo-class', 'P01-L1', 'P01', 'P1T1-N02', 'closed', '{}'),
+        ('lesson-run-active', 'demo-class', 'P01-L2', 'P01', 'P1T1-N02', 'active', '{}');
+      UPDATE classroom_sessions
+      SET active_lesson_run_id = 'lesson-run-active'
+      WHERE session_id = 'demo-class';
+      INSERT INTO practice_attempts (
+        attempt_id, student_id, activity_id, node_id, passed, origin,
+        delivery_channel, classroom_session_id, classroom_run_id, attempt_number
+      ) VALUES (
+        'classroom-practice-old', 'stu-01', 'P1T1-N02-foundation-01', 'P1T1-N02',
+        1, 'user', 'classroom', 'demo-class', 'lesson-run-old', 1
+      );
+    `);
+
+    const repository = new ClassroomRosterRepository(fixture.database);
+    const beforeActiveAttempt = repository.readStudentRoster('demo-class', 'P1T1-N02')
+      .find(({ studentId }) => studentId === 'stu-01');
+    assert.equal(beforeActiveAttempt?.submissionState, 'draft');
+    assert.equal(beforeActiveAttempt?.evidenceCount, 0);
+
     fixture.database.prepare(`
       INSERT INTO practice_attempts (
         attempt_id, student_id, activity_id, node_id, passed, origin,
         delivery_channel, classroom_session_id, classroom_run_id, attempt_number
       ) VALUES (
-        'classroom-practice-real', 'stu-01', 'P1T1-N02-foundation-01', 'P1T1-N02',
-        1, 'user', 'classroom', 'demo-class', 'lesson-run-real', 1
+        'classroom-practice-active', 'stu-01', 'P1T1-N02-foundation-01', 'P1T1-N02',
+        1, 'user', 'classroom', 'demo-class', 'lesson-run-active', 2
       )
     `).run();
 
-    const student = new ClassroomRosterRepository(fixture.database)
+    const student = repository
       .readStudentRoster('demo-class', 'P1T1-N02')
       .find(({ studentId }) => studentId === 'stu-01');
 

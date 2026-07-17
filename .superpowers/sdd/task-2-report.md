@@ -36,6 +36,13 @@ Complete. Task 2 now has one append-only practice-attempt fact model for self-st
 
 The two Task 2-touched files initially over the structure limits were brought below them by extracting reading-fact persistence and compacting the practice-attempt row type. `pnpm web:check-structure` now reports exactly one remaining failure: the untouched, branch-pre-existing `apps/web/src/platform/db/migrations.test.ts` is 854 lines against an 800-line limit. Task 2 does not modify or absorb that separate test-structure repair.
 
+## Independent review corrections
+
+- Bound classroom activity aggregation to the exact `classroom_sessions.active_lesson_run_id`; attempts from a closed or otherwise non-active run no longer count in either the roster or authoritative snapshot.
+- Added a cursor persistence coordinator that ignores a restore resolving after learner interaction, serializes writes, coalesces rapid navigation to the latest section, and routes unload cleanup through the same ordered queue.
+- Review RED: the new focused suite failed for the missing coordinator and both stale-run aggregates.
+- Review GREEN: focused regression suite 25/25 passed; expanded Task 2 suite 49/49 passed; full unit suite, TypeScript check, and `git diff --check` passed.
+
 ## Scope boundary and concerns
 
 - This commit establishes the shared activity contract and truthful projections; it does not claim the end-to-end classroom activity UI, which remains Task 8.

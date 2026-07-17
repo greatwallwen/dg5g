@@ -420,15 +420,18 @@ function projectSubmissionMetrics(
   const classroomSubmitted = !activeNodeId ? 0 : Number(database.prepare(`
     SELECT COUNT(DISTINCT attempt.student_id)
     FROM practice_attempts AS attempt
+    INNER JOIN classroom_sessions AS classroom
+      ON classroom.session_id = attempt.classroom_session_id
+     AND classroom.active_lesson_run_id = attempt.classroom_run_id
     INNER JOIN classroom_members AS member
-      ON member.session_id = ? AND member.student_id = attempt.student_id
+      ON member.session_id = classroom.session_id AND member.student_id = attempt.student_id
     INNER JOIN users AS student
       ON student.id = member.student_id AND student.role = 'student' AND student.is_active = 1
-    WHERE attempt.node_id = ?
+    WHERE classroom.session_id = ?
+      AND attempt.node_id = ?
       AND attempt.delivery_channel = 'classroom'
-      AND attempt.classroom_session_id = ?
       AND attempt.origin = 'user'
-  `).pluck().get(session.sessionId, activeNodeId, session.sessionId));
+  `).pluck().get(session.sessionId, activeNodeId));
   const storedFormalTest = session.state.formalTest;
   const formalTest = storedFormalTest && activeNodeId && storedFormalTest.nodeId === activeNodeId
     ? storedFormalTest

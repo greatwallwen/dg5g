@@ -123,14 +123,17 @@ export class ClassroomRosterRepository {
     const classroomPracticeAttempts = this.database.prepare(`
       SELECT attempt.student_id AS studentId, attempt.activity_id AS activityId, attempt.passed
       FROM practice_attempts AS attempt
+      INNER JOIN classroom_sessions AS classroom
+        ON classroom.session_id = attempt.classroom_session_id
+       AND classroom.active_lesson_run_id = attempt.classroom_run_id
       INNER JOIN classroom_members AS member
-        ON member.session_id = ? AND member.student_id = attempt.student_id
-      WHERE attempt.node_id = ?
+        ON member.session_id = classroom.session_id AND member.student_id = attempt.student_id
+      WHERE classroom.session_id = ?
+        AND attempt.node_id = ?
         AND attempt.delivery_channel = 'classroom'
-        AND attempt.classroom_session_id = ?
         AND attempt.origin = 'user'
       ORDER BY attempt.student_id, attempt.attempt_number, attempt.attempted_at, attempt.attempt_id
-    `).all(classroomSessionId, nodeId, classroomSessionId) as ClassroomPracticeAttemptRow[];
+    `).all(classroomSessionId, nodeId) as ClassroomPracticeAttemptRow[];
     const classroomAttemptsByStudent = new Map<string, ClassroomPracticeAttemptRow[]>();
     for (const attempt of classroomPracticeAttempts) {
       const studentAttempts = classroomAttemptsByStudent.get(attempt.studentId) ?? [];

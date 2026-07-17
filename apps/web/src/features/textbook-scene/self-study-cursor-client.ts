@@ -29,6 +29,7 @@ export function createSelfStudyCursorClient(fetchImpl: FetchLike = fetch) {
       return request(fetchImpl, nodeId, {
         method: 'PUT',
         credentials: 'same-origin',
+        keepalive: true,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(draft),
       });
@@ -45,6 +46,53 @@ export function saveSelfStudyCursor(
   draft: SelfStudyCursorDraft,
 ): Promise<SelfStudyCursor> {
   return createSelfStudyCursorClient().save(nodeId, draft);
+}
+
+export function createSelfStudyCursorPersistenceCoordinator(
+  persist: (nodeId: string, draft: SelfStudyCursorDraft) => Promise<unknown>,
+) {
+  let interactionRevision = 0;
+  let queued: { nodeId: string; draft: SelfStudyCursorDraft } | undefined;
+  let running = false;
+  let waiters: Array<() => void> = [];
+
+  async function drain() {
+    running = true;
+    while (queued) {
+      const current = queued;
+      queued = undefined;
+      try {
+        await persist(current.nodeId, current.draft);
+      } catch {
+        // Reading navigation remains usable while an unavailable server is retried
+        // by the next cursor write. Never allow an older request to overtake it.
+      }
+    }
+    running = false;
+    const completed = waiters;
+    waiters = [];
+    for (const resolve of completed) resolve();
+  }
+
+  return {
+    markLocalInteraction() {
+      interactionRevision += 1;
+    },
+    hasLocalInteraction() {
+      return interactionRevision > 0;
+    },
+    async restore<T>(pending: Promise<T>): Promise<T | undefined> {
+      const revisionAtStart = interactionRevision;
+      const restored = await pending;
+      return revisionAtStart === interactionRevision ? restored : undefined;
+    },
+    schedule(nodeId: string, draft: SelfStudyCursorDraft): Promise<void> {
+      queued = { nodeId, draft };
+      const settled = new Promise<void>((resolve) => { waiters.push(resolve); });
+      if (!running) void drain();
+      return settled;
+    },
+  };
 }
 
 const canonicalSectionIds = new Set<SelfStudySectionId>([
