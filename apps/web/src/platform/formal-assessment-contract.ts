@@ -50,6 +50,19 @@ export interface AssessmentAnswers {
   professionalConclusion: ProfessionalConclusionAnswer;
 }
 
+export type AssessmentDraftAnswers = Partial<{
+  evidenceClassification: string;
+  linkReconstruction: string[];
+  defectiveOutputRevision: string[];
+  professionalConclusion: Partial<ProfessionalConclusionAnswer>;
+}>;
+
+export interface AssessmentDraftDto {
+  answers: AssessmentDraftAnswers;
+  revision: number;
+  updatedAt?: string;
+}
+
 export interface AssessmentDimensionDiagnosis {
   score: number;
   maxScore: 25;
@@ -66,6 +79,12 @@ export interface AssessmentDiagnosis {
   passed: boolean;
   dimensions: Record<AssessmentDimensionKey, AssessmentDimensionDiagnosis>;
   remediationTargets: RemediationTarget[];
+  correction?: {
+    level: 1 | 2 | 3;
+    stage: 'diagnosis' | 'rule-location' | 'worked-correction';
+    guidance: string[];
+    rotateNext: boolean;
+  };
   origin: 'user';
   completedAt: string;
   version: number;
@@ -73,9 +92,21 @@ export interface AssessmentDiagnosis {
   paper: AssessmentPaper;
 }
 
-export interface IssuedAssessmentPaper {
+export interface IssuedAssessmentSnapshot {
   paper: AssessmentPaper;
-  attemptToken: string;
   assessmentId: string;
+  serverNow: string;
   expiresAt: string;
+  state: 'in-progress' | 'paused' | 'expired';
+  draft: AssessmentDraftDto;
 }
+
+export type ActiveIssuedAssessmentPaper = IssuedAssessmentSnapshot & {
+  state: 'in-progress';
+  attemptToken: string;
+};
+
+export type IssuedAssessmentPaper = ActiveIssuedAssessmentPaper | (IssuedAssessmentSnapshot & {
+  state: 'paused' | 'expired';
+  attemptToken?: never;
+});

@@ -2,33 +2,49 @@ import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import type { AuthenticatedActor } from './auth/actor.ts';
 import { getDatabase, type AppDatabase } from './db/database.ts';
 import {
-  assessmentDimensionKeys,
+  type ActiveIssuedAssessmentPaper,
   type AssessmentAnswers,
-  type AssessmentDimensionKey,
+  type AssessmentDraftAnswers,
+  type AssessmentDraftDto,
   type AssessmentDiagnosis,
-  type AssessmentDimensionDiagnosis,
   type AssessmentPaper,
   type IssuedAssessmentPaper,
-  type ProfessionalConclusionAnswer,
+  type IssuedAssessmentSnapshot,
   type RemediationTarget,
 } from './formal-assessment-contract.ts';
 import {
+  AssessmentDraftRevisionConflictError,
+  FormalAssessmentAttemptRepository,
+} from './formal-assessment-attempt-repository.ts';
+import {
+  gradeAnswers,
+  normalizeAnswers,
+  normalizeDraftAnswers,
+  validateAnswerOptions,
+} from './formal-assessment-evaluator.server.ts';
+import {
   getFormalAssessmentDefinition,
+  getFormalAssessmentDefinitionByVersion,
+  getFormalAssessmentDefinitions,
   projectAssessmentPaper,
   type FormalAssessmentDefinition,
 } from './formal-assessment-catalog.server.ts';
 import { createLearningCommandService, LearningAuthorizationError } from './learning-command-service.ts';
 import { SnapshotClock } from './snapshot-clock.ts';
-import { ClassroomSessionRepository } from './classroom-session-repository.ts';
 
 export type {
   AssessmentAnswers,
+  ActiveIssuedAssessmentPaper,
+  AssessmentDraftAnswers,
+  AssessmentDraftDto,
   AssessmentDiagnosis,
   AssessmentDimensionDiagnosis,
   AssessmentPaper,
   IssuedAssessmentPaper,
+  IssuedAssessmentSnapshot,
   RemediationTarget,
 } from './formal-assessment-contract.ts';
+export { AssessmentDraftRevisionConflictError } from './formal-assessment-attempt-repository.ts';
 
 export interface FormalAssessmentServiceOptions {
   now?: () => Date;
@@ -39,6 +55,7 @@ export interface FormalAssessmentServiceOptions {
 
 export interface FormalAssessmentIssueContext {
   classroomSessionId?: string;
+  restart?: boolean;
 }
 
 export class AssessmentCatalogError extends Error {
@@ -80,10 +97,26 @@ interface TokenRow {
   questionVersion: string;
   issuedAt: string;
   expiresAt: string;
+  instanceExpiresAt: string | null;
+  openedAt: string | null;
   usedAt: string | null;
   instanceNodeId: string;
   instanceQuestionVersion: string;
+  instanceGameId: string;
   status: string;
+  classroomSessionId: string | null;
+  classroomRunId: string | null;
+}
+
+interface StudentAssessmentInstanceRow {
+  assessmentId: string;
+  nodeId: string;
+  gameId: string;
+  questionVersion: string;
+  status: string;
+  openedAt: string | null;
+  expiresAt: string | null;
+  closureReason: string | null;
   classroomSessionId: string | null;
   classroomRunId: string | null;
 }
@@ -98,7 +131,6 @@ export class FormalAssessmentService {
   private readonly now: () => Date;
   private readonly randomId: () => string;
   private readonly randomToken: () => string;
-  private readonly tokenTtlMs: number;
 
   constructor(
     private readonly database: AppDatabase,
@@ -107,10 +139,9 @@ export class FormalAssessmentService {
     this.now = options.now ?? (() => new Date());
     this.randomId = options.randomId ?? randomUUID;
     this.randomToken = options.randomToken ?? (() => randomBytes(32).toString('base64url'));
-    this.tokenTtlMs = options.tokenTtlMs ?? 30 * 60 * 1_000;
   }
 
-  issuePaper(
+  openOrResume(
     actor: AuthenticatedActor,
     nodeId: string,
     context: FormalAssessmentIssueContext = {},
@@ -119,11 +150,7 @@ export class FormalAssessmentService {
     const definition = requireDefinition(nodeId);
     createLearningCommandService(this.database).requireFormalAssessmentReadiness(actor, nodeId);
     const now = this.now();
-    const openedAt = now.toISOString();
-    const expiresAt = new Date(now.getTime() + this.tokenTtlMs).toISOString();
-    const assessmentId = `assessment-${this.randomId()}`;
-    const attemptToken = this.randomToken();
-    if (attemptToken.trim().length < 24) throw new Error('Formal assessment token entropy is insufficient.');
+    const serverNow = now.toISOString();
     const classroomRun = context.classroomSessionId
       ? this.requireActiveClassroomRun(actor, nodeId, context.classroomSessionId, definition)
       : undefined;
@@ -132,54 +159,196 @@ export class FormalAssessmentService {
       const missingTargets = this.readMissingRemediationTargets(studentId, definition);
       if (missingTargets.length > 0) throw new AssessmentRemediationRequiredError(missingTargets);
 
-      this.database.prepare(`
-        UPDATE formal_assessment_tokens
-        SET used_at = ?
-        WHERE student_id = ? AND node_id = ? AND used_at IS NULL
-      `).run(openedAt, studentId, nodeId);
-      this.database.prepare(`
-        UPDATE formal_assessment_instances
-        SET status = 'closed', closed_at = ?
-        WHERE status = 'running' AND assessment_id IN (
-          SELECT assessment_id FROM formal_assessment_tokens
-          WHERE student_id = ? AND node_id = ?
-        )
-      `).run(openedAt, studentId, nodeId);
+      const running = this.readStudentAssessmentInstance(studentId, nodeId, 'running');
+      if (running) {
+        if (running.expiresAt && now.getTime() >= Date.parse(running.expiresAt)) {
+          this.expireInstance(running.assessmentId, serverNow);
+          if (!context.restart) {
+            return this.projectIssuedAssessment(running, studentId, serverNow, 'expired');
+          }
+        } else {
+          if (context.restart) {
+            throw new TypeError('A running formal assessment cannot be restarted.');
+          }
+          this.assertIssueContextMatches(running, classroomRun);
+          return this.issueReplacementToken(running, studentId, serverNow);
+        }
+      }
+
+      const latest = this.readStudentAssessmentInstance(studentId, nodeId);
+      if (!context.restart && latest?.closureReason === 'expired') {
+        return this.projectIssuedAssessment(latest, studentId, serverNow, 'expired');
+      }
+      if (context.restart && latest?.closureReason !== 'expired') {
+        throw new TypeError('Only an expired formal assessment can be restarted.');
+      }
+
+      const selectedDefinition = this.selectDefinition(studentId, nodeId);
+      const assessmentId = `assessment-${this.randomId()}`;
+      const expiresAt = classroomRun?.expiresAt
+        ?? new Date(now.getTime() + selectedDefinition.paper.durationMinutes * 60_000).toISOString();
       this.database.prepare(`
         INSERT INTO formal_assessment_instances (
           assessment_id, session_id, classroom_run_id, node_id, game_id,
-          question_version, status, opened_at, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, 'running', ?, ?)
+          question_version, status, opened_at, expires_at, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, 'running', ?, ?, ?)
       `).run(
         assessmentId,
         classroomRun?.sessionId ?? null,
         classroomRun?.runId ?? null,
         nodeId,
-        definition.gameId,
-        definition.paper.questionVersion,
-        openedAt,
-        openedAt,
+        selectedDefinition.gameId,
+        selectedDefinition.paper.questionVersion,
+        serverNow,
+        expiresAt,
+        serverNow,
       );
-      this.database.prepare(`
-        INSERT INTO formal_assessment_tokens (
-          token_hash, assessment_id, student_id, node_id, question_version, issued_at, expires_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(
-        hashToken(attemptToken),
+      return this.issueReplacementToken({
         assessmentId,
-        studentId,
         nodeId,
-        definition.paper.questionVersion,
-        openedAt,
+        gameId: selectedDefinition.gameId,
+        questionVersion: selectedDefinition.paper.questionVersion,
+        status: 'running',
+        openedAt: serverNow,
         expiresAt,
-      );
-      return {
-        paper: projectAssessmentPaper(definition),
-        attemptToken,
-        assessmentId,
-        expiresAt,
-      };
-    })();
+        closureReason: null,
+        classroomSessionId: classroomRun?.sessionId ?? null,
+        classroomRunId: classroomRun?.runId ?? null,
+      }, studentId, serverNow);
+    }).immediate();
+  }
+
+  issuePaper(
+    actor: AuthenticatedActor,
+    nodeId: string,
+    context: FormalAssessmentIssueContext = {},
+  ): ActiveIssuedAssessmentPaper {
+    const issued = this.openOrResume(actor, nodeId, context);
+    if (issued.state !== 'in-progress') throw new AssessmentTokenError('expired-token');
+    return issued;
+  }
+
+  private selectDefinition(studentId: string, nodeId: string): FormalAssessmentDefinition {
+    const definitions = getFormalAssessmentDefinitions(nodeId);
+    if (definitions.length === 0) throw new AssessmentCatalogError(nodeId);
+    const completedAttemptCount = this.database.prepare(`
+      SELECT COUNT(*)
+      FROM formal_attempts
+      WHERE student_id = ? AND node_id = ? AND origin = 'user'
+    `).pluck().get(studentId, nodeId) as number;
+    return definitions[completedAttemptCount % definitions.length];
+  }
+
+  private readStudentAssessmentInstance(
+    studentId: string,
+    nodeId: string,
+    status?: 'running',
+  ): StudentAssessmentInstanceRow | undefined {
+    return this.database.prepare(`
+      SELECT DISTINCT instance.assessment_id AS assessmentId,
+        instance.node_id AS nodeId, instance.game_id AS gameId,
+        instance.question_version AS questionVersion, instance.status,
+        instance.opened_at AS openedAt, instance.expires_at AS expiresAt,
+        instance.closure_reason AS closureReason,
+        instance.session_id AS classroomSessionId,
+        instance.classroom_run_id AS classroomRunId
+      FROM formal_assessment_instances AS instance
+      INNER JOIN formal_assessment_tokens AS token
+        ON token.assessment_id = instance.assessment_id
+      WHERE token.student_id = ? AND instance.node_id = ?
+        ${status ? "AND instance.status = 'running'" : ''}
+      ORDER BY julianday(COALESCE(instance.opened_at, instance.created_at)) DESC,
+        instance.assessment_id DESC
+      LIMIT 1
+    `).get(studentId, nodeId) as StudentAssessmentInstanceRow | undefined;
+  }
+
+  private issueReplacementToken(
+    instance: StudentAssessmentInstanceRow,
+    studentId: string,
+    serverNow: string,
+  ): ActiveIssuedAssessmentPaper {
+    if (!instance.expiresAt || !Number.isFinite(Date.parse(instance.expiresAt))) {
+      throw new AssessmentTokenError('invalid-token');
+    }
+    const attemptToken = this.randomToken();
+    if (attemptToken.trim().length < 24) {
+      throw new Error('Formal assessment token entropy is insufficient.');
+    }
+    this.database.prepare(`
+      UPDATE formal_assessment_tokens
+      SET used_at = ?
+      WHERE assessment_id = ? AND student_id = ? AND used_at IS NULL
+    `).run(serverNow, instance.assessmentId, studentId);
+    this.database.prepare(`
+      INSERT INTO formal_assessment_tokens (
+        token_hash, assessment_id, student_id, node_id, question_version, issued_at, expires_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      hashToken(attemptToken),
+      instance.assessmentId,
+      studentId,
+      instance.nodeId,
+      instance.questionVersion,
+      serverNow,
+      instance.expiresAt,
+    );
+    return {
+      ...this.projectIssuedAssessment(instance, studentId, serverNow, 'in-progress'),
+      state: 'in-progress',
+      attemptToken,
+    };
+  }
+
+  private projectIssuedAssessment<State extends IssuedAssessmentSnapshot['state']>(
+    instance: StudentAssessmentInstanceRow,
+    studentId: string,
+    serverNow: string,
+    state: State,
+  ): Omit<IssuedAssessmentSnapshot, 'state'> & { state: State } {
+    if (!instance.expiresAt) throw new AssessmentTokenError('invalid-token');
+    const definition = requireDefinitionVersion(instance.nodeId, instance.questionVersion);
+    if (definition.gameId !== instance.gameId) {
+      throw new AssessmentTokenError('invalid-token');
+    }
+    return {
+      paper: projectAssessmentPaper(definition),
+      assessmentId: instance.assessmentId,
+      serverNow,
+      expiresAt: instance.expiresAt,
+      state,
+      draft: new FormalAssessmentAttemptRepository(this.database)
+        .readDraft(instance.assessmentId, studentId),
+    };
+  }
+
+  private expireInstance(assessmentId: string, expiredAt: string): void {
+    this.database.prepare(`
+      UPDATE formal_assessment_instances
+      SET status = 'closed', closed_at = ?, closure_reason = 'expired'
+      WHERE assessment_id = ? AND status = 'running'
+    `).run(expiredAt, assessmentId);
+    this.database.prepare(`
+      UPDATE formal_assessment_tokens
+      SET used_at = ?
+      WHERE assessment_id = ? AND used_at IS NULL
+    `).run(expiredAt, assessmentId);
+  }
+
+  private assertIssueContextMatches(
+    instance: StudentAssessmentInstanceRow,
+    classroomRun: { sessionId: string; runId: string } | undefined,
+  ): void {
+    if (!classroomRun) {
+      if (instance.classroomSessionId || instance.classroomRunId) {
+        throw new AssessmentClassroomWindowError();
+      }
+      return;
+    }
+    if (instance.classroomSessionId !== classroomRun.sessionId
+      || instance.classroomRunId !== classroomRun.runId) {
+      throw new AssessmentClassroomWindowError();
+    }
   }
 
   private requireActiveClassroomRun(
@@ -187,27 +356,77 @@ export class FormalAssessmentService {
     nodeId: string,
     sessionId: string,
     definition: FormalAssessmentDefinition,
-  ): { sessionId: string; runId: string } {
-    const session = new ClassroomSessionRepository(this.database).readSession(sessionId);
-    const isMember = this.database.prepare(`
-      SELECT EXISTS(
-        SELECT 1 FROM classroom_members
-        WHERE session_id = ? AND student_id = ?
-      )
-    `).pluck().get(sessionId, actor.userId) === 1;
-    const formalTest = session?.state.formalTest;
-    if (!session
-      || session.classId !== actor.classId
-      || session.status !== 'active'
-      || !isMember
-      || session.activeNodeId !== nodeId
-      || formalTest?.status !== 'running'
-      || formalTest.nodeId !== nodeId
-      || formalTest.gameId !== definition.gameId
-      || !formalTest.runId) {
+  ): ActiveClassroomAssessmentRunRow {
+    const row = this.database.prepare(`
+      SELECT run.session_id AS sessionId, run.run_id AS runId,
+        run.expires_at AS expiresAt, run.status
+      FROM classroom_assessment_runs AS run
+      INNER JOIN classroom_lesson_runs AS lesson
+        ON lesson.lesson_run_id = run.lesson_run_id
+        AND lesson.session_id = run.session_id
+      INNER JOIN classroom_sessions AS classroom
+        ON classroom.session_id = run.session_id
+        AND classroom.active_lesson_run_id = lesson.lesson_run_id
+      INNER JOIN classroom_members AS member
+        ON member.session_id = classroom.session_id
+        AND member.student_id = ?
+      WHERE run.session_id = ?
+        AND classroom.class_id = ?
+        AND classroom.status = 'active'
+        AND lesson.status IN ('active', 'paused')
+        AND lesson.node_id = ?
+        AND run.node_id = ?
+        AND run.game_id = ?
+        AND run.status IN ('running', 'paused')
+      ORDER BY julianday(run.started_at) DESC, run.run_id DESC
+      LIMIT 1
+    `).get(
+      actor.userId,
+      sessionId,
+      actor.classId,
+      nodeId,
+      nodeId,
+      definition.gameId,
+    ) as ActiveClassroomAssessmentRunRow | undefined;
+    if (!row || row.status !== 'running' || Date.parse(row.expiresAt) <= this.now().getTime()) {
       throw new AssessmentClassroomWindowError();
     }
-    return { sessionId, runId: formalTest.runId };
+    return row;
+  }
+
+  saveDraft(
+    actor: AuthenticatedActor,
+    attemptToken: string,
+    answers: AssessmentDraftAnswers,
+    expectedRevision: number,
+    expectedNodeId?: string,
+  ): AssessmentDraftDto {
+    const studentId = requireStudent(actor);
+    if (typeof attemptToken !== 'string' || attemptToken.trim().length < 24) {
+      throw new AssessmentTokenError('invalid-token');
+    }
+    const normalizedAnswers = normalizeDraftAnswers(answers);
+    const updatedAt = this.now().toISOString();
+    const outcome = this.database.transaction(() => {
+      const token = this.readToken(hashToken(attemptToken));
+      if (!token || token.studentId !== studentId) throw new AssessmentTokenError('invalid-token');
+      if (token.usedAt !== null) throw new AssessmentTokenError('used-token');
+      this.assertTokenInstanceBinding(token, expectedNodeId);
+      if (Date.parse(token.instanceExpiresAt ?? '') <= Date.parse(updatedAt)) {
+        this.expireInstance(token.assessmentId, updatedAt);
+        return undefined;
+      }
+      this.requireClassroomRunStillOpen(token);
+      return new FormalAssessmentAttemptRepository(this.database).saveDraft({
+        assessmentId: token.assessmentId,
+        studentId,
+        answers: normalizedAnswers,
+        expectedRevision,
+        updatedAt,
+      });
+    }).immediate();
+    if (!outcome) throw new AssessmentTokenError('expired-token');
+    return outcome;
   }
 
   submitAnswers(
@@ -223,30 +442,25 @@ export class FormalAssessmentService {
     const normalizedAnswers = normalizeAnswers(answers);
     const completedAt = this.now().toISOString();
 
-    return this.database.transaction(() => {
+    const outcome = this.database.transaction(() => {
       const tokenHash = hashToken(attemptToken);
       const token = this.readToken(tokenHash);
       if (!token || token.studentId !== studentId) throw new AssessmentTokenError('invalid-token');
       if (token.usedAt !== null) throw new AssessmentTokenError('used-token');
-      if (new Date(token.expiresAt).getTime() <= new Date(completedAt).getTime()) {
-        throw new AssessmentTokenError('expired-token');
-      }
-      if (expectedNodeId !== undefined && token.nodeId !== expectedNodeId) {
-        throw new AssessmentTokenError('invalid-token');
-      }
-      if (token.status !== 'running'
-        || token.nodeId !== token.instanceNodeId
-        || token.questionVersion !== token.instanceQuestionVersion) {
-        throw new AssessmentTokenError('invalid-token');
+      this.assertTokenInstanceBinding(token, expectedNodeId);
+      if (Date.parse(token.instanceExpiresAt ?? '') <= Date.parse(completedAt)) {
+        this.expireInstance(token.assessmentId, completedAt);
+        return undefined;
       }
       this.requireClassroomRunStillOpen(token);
 
-      const definition = requireDefinition(token.nodeId);
-      if (definition.paper.questionVersion !== token.questionVersion) {
-        throw new AssessmentTokenError('invalid-token');
-      }
+      const definition = requireDefinitionVersion(token.nodeId, token.questionVersion);
       validateAnswerOptions(definition, normalizedAnswers);
       const graded = gradeAnswers(definition, normalizedAnswers);
+      const passed = graded.totalScore >= definition.paper.passScore;
+      const correction = passed
+        ? undefined
+        : this.projectProgressiveCorrection(studentId, token.nodeId, definition.paper.passScore);
       const attemptId = `formal-attempt-${this.randomId()}`;
       const diagnosisBase = {
         assessmentId: token.assessmentId,
@@ -256,14 +470,14 @@ export class FormalAssessmentService {
         gameId: definition.gameId,
         questionVersion: token.questionVersion,
         totalScore: graded.totalScore,
-        passed: graded.totalScore >= definition.paper.passScore,
+        passed,
         dimensions: graded.dimensions,
         remediationTargets: graded.remediationTargets,
         origin: 'user' as const,
         completedAt,
       };
       const durationSeconds = Math.max(0, Math.round(
-        (new Date(completedAt).getTime() - new Date(token.issuedAt).getTime()) / 1_000,
+        (new Date(completedAt).getTime() - new Date(token.openedAt ?? token.issuedAt).getTime()) / 1_000,
       ));
 
       const consumed = this.database.prepare(`
@@ -273,8 +487,8 @@ export class FormalAssessmentService {
       if (consumed.changes !== 1) throw new AssessmentTokenError('used-token');
       this.database.prepare(`
         UPDATE formal_assessment_tokens SET used_at = ?
-        WHERE student_id = ? AND node_id = ? AND used_at IS NULL
-      `).run(completedAt, studentId, token.nodeId);
+        WHERE assessment_id = ? AND student_id = ? AND used_at IS NULL
+      `).run(completedAt, token.assessmentId, studentId);
       this.database.prepare(`
         INSERT INTO formal_attempts (
           attempt_id, student_id, node_id, assessment_id, game_id, score, duration_seconds,
@@ -297,12 +511,9 @@ export class FormalAssessmentService {
       );
       this.database.prepare(`
         UPDATE formal_assessment_instances
-        SET status = 'closed', closed_at = ?
-        WHERE status = 'running' AND assessment_id IN (
-          SELECT assessment_id FROM formal_assessment_tokens
-          WHERE student_id = ? AND node_id = ?
-        )
-      `).run(completedAt, studentId, token.nodeId);
+        SET status = 'closed', closed_at = ?, closure_reason = 'submitted'
+        WHERE status = 'running' AND assessment_id = ?
+      `).run(completedAt, token.assessmentId);
       const versions = new SnapshotClock(this.database).advance(
         [`learning:${studentId}`],
         completedAt,
@@ -310,11 +521,14 @@ export class FormalAssessmentService {
 
       return {
         ...diagnosisBase,
+        ...(correction ? { correction } : {}),
         version: versions.topicVersions[`learning:${studentId}`],
         globalVersion: versions.globalVersion,
         paper: projectAssessmentPaper(definition),
       };
-    })();
+    }).immediate();
+    if (!outcome) throw new AssessmentTokenError('expired-token');
+    return outcome;
   }
 
   private readToken(tokenHash: string): TokenRow | undefined {
@@ -324,7 +538,10 @@ export class FormalAssessmentService {
         token.issued_at AS issuedAt, token.expires_at AS expiresAt, token.used_at AS usedAt,
         instance.node_id AS instanceNodeId,
         instance.question_version AS instanceQuestionVersion,
+        instance.game_id AS instanceGameId,
         instance.status,
+        instance.opened_at AS openedAt,
+        instance.expires_at AS instanceExpiresAt,
         instance.session_id AS classroomSessionId,
         instance.classroom_run_id AS classroomRunId
       FROM formal_assessment_tokens AS token
@@ -334,18 +551,55 @@ export class FormalAssessmentService {
     `).get(tokenHash) as TokenRow | undefined;
   }
 
+  private assertTokenInstanceBinding(token: TokenRow, expectedNodeId?: string): void {
+    if (expectedNodeId !== undefined && token.nodeId !== expectedNodeId) {
+      throw new AssessmentTokenError('invalid-token');
+    }
+    if (token.status !== 'running'
+      || token.nodeId !== token.instanceNodeId
+      || token.questionVersion !== token.instanceQuestionVersion
+      || !token.instanceExpiresAt
+      || token.expiresAt !== token.instanceExpiresAt) {
+      throw new AssessmentTokenError('invalid-token');
+    }
+  }
+
   private requireClassroomRunStillOpen(token: TokenRow): void {
     if (token.classroomSessionId === null && token.classroomRunId === null) return;
     if (!token.classroomSessionId || !token.classroomRunId) {
       throw new AssessmentTokenError('invalid-token');
     }
-    const session = new ClassroomSessionRepository(this.database).readSession(token.classroomSessionId);
-    const formalTest = session?.state.formalTest;
-    if (!session
-      || session.status !== 'active'
-      || formalTest?.status !== 'running'
-      || formalTest.runId !== token.classroomRunId
-      || formalTest.nodeId !== token.nodeId) {
+    const stillOpen = this.database.prepare(`
+      SELECT EXISTS(
+        SELECT 1
+        FROM classroom_assessment_runs AS run
+        INNER JOIN classroom_lesson_runs AS lesson
+          ON lesson.lesson_run_id = run.lesson_run_id
+          AND lesson.session_id = run.session_id
+        INNER JOIN classroom_sessions AS classroom
+          ON classroom.session_id = run.session_id
+          AND classroom.active_lesson_run_id = lesson.lesson_run_id
+        INNER JOIN classroom_members AS member
+          ON member.session_id = classroom.session_id
+          AND member.student_id = ?
+        WHERE run.run_id = ?
+          AND run.session_id = ?
+          AND run.node_id = ?
+          AND run.game_id = ?
+          AND run.status = 'running'
+          AND run.expires_at = ?
+          AND classroom.status = 'active'
+          AND lesson.status IN ('active', 'paused')
+      )
+    `).pluck().get(
+      token.studentId,
+      token.classroomRunId,
+      token.classroomSessionId,
+      token.nodeId,
+      token.instanceGameId,
+      token.instanceExpiresAt,
+    ) === 1;
+    if (!stillOpen) {
       throw new AssessmentClassroomWindowError();
     }
   }
@@ -357,13 +611,12 @@ export class FormalAssessmentService {
     const latest = this.database.prepare(`
       SELECT score, diagnostics_json AS diagnosticsJson, completed_at AS completedAt
       FROM formal_attempts
-      WHERE student_id = ? AND node_id = ? AND question_version = ? AND origin = 'user'
+      WHERE student_id = ? AND node_id = ? AND origin = 'user'
       ORDER BY julianday(completed_at) DESC, attempt_id DESC
       LIMIT 1
     `).get(
       studentId,
       definition.paper.nodeId,
-      definition.paper.questionVersion,
     ) as LatestAttemptRow | undefined;
     if (!latest || latest.score >= definition.paper.passScore) return [];
 
@@ -386,6 +639,41 @@ export class FormalAssessmentService {
       completedAt: latest.completedAt,
     }) !== 1);
   }
+
+  private projectProgressiveCorrection(
+    studentId: string,
+    nodeId: string,
+    passScore: number,
+  ): NonNullable<AssessmentDiagnosis['correction']> {
+    const priorFailureCount = this.database.prepare(`
+      SELECT COUNT(*)
+      FROM formal_attempts
+      WHERE student_id = ? AND node_id = ? AND origin = 'user' AND score < ?
+    `).pluck().get(studentId, nodeId, passScore) as number;
+    const level = Math.min(3, priorFailureCount + 1) as 1 | 2 | 3;
+    if (level === 1) {
+      return {
+        level,
+        stage: 'diagnosis',
+        guidance: ['先查看四个失分维度，再进入对应岗位活动完成定向补强。'],
+        rotateNext: false,
+      };
+    }
+    if (level === 2) {
+      return {
+        level,
+        stage: 'rule-location',
+        guidance: ['按位置、身份、方向三类证据规则定位错误，再用字段来源逐项复核。'],
+        rotateNext: false,
+      };
+    }
+    return {
+      level,
+      stage: 'worked-correction',
+      guidance: ['查看完整纠正示例，说明错误证据、适用规则、修订动作和复核结论。'],
+      rotateNext: true,
+    };
+  }
 }
 
 export function createFormalAssessmentService(
@@ -407,146 +695,21 @@ function requireDefinition(nodeId: string): FormalAssessmentDefinition {
   return definition;
 }
 
+function requireDefinitionVersion(nodeId: string, questionVersion: string): FormalAssessmentDefinition {
+  const definition = getFormalAssessmentDefinitionByVersion(nodeId, questionVersion);
+  if (!definition) throw new AssessmentTokenError('invalid-token');
+  return definition;
+}
+
 function hashToken(token: string): string {
   return createHash('sha256').update(token, 'utf8').digest('hex');
 }
 
-function normalizeAnswers(value: AssessmentAnswers): AssessmentAnswers {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new TypeError('Assessment answers must be an object.');
-  }
-  const record = value as unknown as Record<string, unknown>;
-  if (Object.keys(record).length !== assessmentDimensionKeys.length
-    || assessmentDimensionKeys.some((key) => !Object.hasOwn(record, key))) {
-    throw new TypeError('Assessment answers must contain exactly the four assessment dimensions.');
-  }
-  if (typeof record.evidenceClassification !== 'string'
-    || !Array.isArray(record.linkReconstruction)
-    || record.linkReconstruction.some((item) => typeof item !== 'string')
-    || !Array.isArray(record.defectiveOutputRevision)
-    || record.defectiveOutputRevision.some((item) => typeof item !== 'string')
-    || !record.professionalConclusion
-    || typeof record.professionalConclusion !== 'object'
-    || Array.isArray(record.professionalConclusion)) {
-    throw new TypeError('Assessment answers have invalid value types.');
-  }
-  return {
-    evidenceClassification: record.evidenceClassification,
-    linkReconstruction: [...record.linkReconstruction] as string[],
-    defectiveOutputRevision: [...record.defectiveOutputRevision] as string[],
-    professionalConclusion: normalizeProfessionalConclusion(record.professionalConclusion),
-  };
-}
-
-function normalizeProfessionalConclusion(value: object): ProfessionalConclusionAnswer {
-  const record = value as Record<string, unknown>;
-  const keys = ['confirmedFact', 'evidenceGap', 'risk', 'action'] as const;
-  if (Object.keys(record).length !== keys.length
-    || keys.some((key) => !Object.hasOwn(record, key) || typeof record[key] !== 'string')) {
-    throw new TypeError('Professional conclusion must contain exactly four text fields.');
-  }
-  const normalized = Object.fromEntries(
-    keys.map((key) => [key, (record[key] as string).trim()]),
-  ) as unknown as ProfessionalConclusionAnswer;
-  if (keys.some((key) => normalized[key].length > 2_000)) {
-    throw new TypeError('Professional conclusion fields must not exceed 2000 characters.');
-  }
-  return normalized;
-}
-
-function validateAnswerOptions(
-  definition: FormalAssessmentDefinition,
-  answers: AssessmentAnswers,
-): void {
-  const allowedFor = (dimension: AssessmentDimensionKey) => new Set(
-    definition.paper.questions.find(({ id }) => id === dimension)?.options?.map(({ id }) => id) ?? [],
-  );
-  const evidenceOptions = allowedFor('evidenceClassification');
-  if (!evidenceOptions.has(answers.evidenceClassification)) {
-    throw new TypeError('Evidence classification contains an unknown option.');
-  }
-
-  const linkOptions = allowedFor('linkReconstruction');
-  if (answers.linkReconstruction.length !== linkOptions.size
-    || new Set(answers.linkReconstruction).size !== linkOptions.size
-    || answers.linkReconstruction.some((optionId) => !linkOptions.has(optionId))) {
-    throw new TypeError('Link reconstruction must contain each allowed option exactly once.');
-  }
-
-  const revisionOptions = allowedFor('defectiveOutputRevision');
-  if (new Set(answers.defectiveOutputRevision).size !== answers.defectiveOutputRevision.length
-    || answers.defectiveOutputRevision.some((optionId) => !revisionOptions.has(optionId))) {
-    throw new TypeError('Defective output revision contains an unknown or duplicate option.');
-  }
-}
-
-function gradeAnswers(definition: FormalAssessmentDefinition, answers: AssessmentAnswers) {
-  const dimensions = {} as Record<AssessmentDimensionKey, AssessmentDimensionDiagnosis>;
-  const evidenceScore = definition.grading.evidenceClassification.acceptedOptionIds
-    ?.includes(answers.evidenceClassification) ? 25 : 0;
-  dimensions.evidenceClassification = diagnosis(
-    evidenceScore,
-    evidenceScore === 25 ? '设备身份的直接证据选择准确。' : '需要区分位置环境、端口状态与设备身份的直接证据。',
-    definition.grading.evidenceClassification.remediationTarget,
-  );
-
-  const expectedOrder = definition.grading.linkReconstruction.orderedOptionIds ?? [];
-  const orderMatches = expectedOrder.reduce(
-    (count, optionId, index) => count + (answers.linkReconstruction[index] === optionId ? 1 : 0),
-    0,
-  );
-  const linkScore = expectedOrder.length === 0 ? 0 : Math.round(orderMatches * 25 / expectedOrder.length);
-  dimensions.linkReconstruction = diagnosis(
-    linkScore,
-    linkScore === 25 ? '链路对象与连接方向完整。' : '链路必须同时保留两端设备、两端端口和中间线缆方向。',
-    definition.grading.linkReconstruction.remediationTarget,
-  );
-
-  const selected = new Set(answers.defectiveOutputRevision);
-  const required = definition.grading.defectiveOutputRevision.requiredOptionIds ?? [];
-  const forbidden = definition.grading.defectiveOutputRevision.forbiddenOptionIds ?? [];
-  const revisionUnits = required.filter((optionId) => selected.has(optionId)).length
-    - forbidden.filter((optionId) => selected.has(optionId)).length;
-  const revisionScore = Math.max(0, Math.min(25, Math.round(revisionUnits * 25 / Math.max(1, required.length))));
-  dimensions.defectiveOutputRevision = diagnosis(
-    revisionScore,
-    revisionScore === 25 ? '修订动作恢复了字段来源、照片索引和连接方向。' : '修订应保留证据缺口，并补齐字段来源、照片索引与方向。',
-    definition.grading.defectiveOutputRevision.remediationTarget,
-  );
-
-  const criteria = definition.grading.professionalConclusion.conclusionCriteria;
-  const conclusionFields = ['confirmedFact', 'evidenceGap', 'risk', 'action'] as const;
-  const conclusionMatches = criteria ? conclusionFields.filter((field) => {
-    const answer = answers.professionalConclusion[field].toLocaleLowerCase('zh-CN');
-    const meaningfulCharacters = Array.from(answer.replace(/\s/g, '')).length;
-    return meaningfulCharacters >= criteria.minimumCharacters
-      && criteria[field].every((variants) => variants.some((term) => answer.includes(term)));
-  }).length : 0;
-  const conclusionScore = Math.round(conclusionMatches * 25 / conclusionFields.length);
-  dimensions.professionalConclusion = diagnosis(
-    conclusionScore,
-    conclusionScore === 25 ? '结论区分了已确认事实、证据缺口、风险与复核动作。' : '职业结论需要说明已确认事实、未确认风险和可执行的复核动作。',
-    definition.grading.professionalConclusion.remediationTarget,
-  );
-
-  const totalScore = assessmentDimensionKeys.reduce((total, key) => total + dimensions[key].score, 0);
-  const remediationTargets = uniqueRemediationTargets(assessmentDimensionKeys
-    .filter((key) => dimensions[key].score < 20)
-    .map((key) => definition.grading[key].remediationTarget));
-  return { dimensions, totalScore, remediationTargets };
-}
-
-function diagnosis(
-  score: number,
-  feedback: string,
-  remediationTarget: RemediationTarget,
-): AssessmentDimensionDiagnosis {
-  return {
-    score,
-    maxScore: 25,
-    feedback,
-    ...(score < 20 ? { remediationTarget } : {}),
-  };
+interface ActiveClassroomAssessmentRunRow {
+  sessionId: string;
+  runId: string;
+  expiresAt: string;
+  status: 'running' | 'paused';
 }
 
 function parseRemediationTargets(diagnosticsJson: string): RemediationTarget[] {

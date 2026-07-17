@@ -23,9 +23,9 @@ import {
   AssessmentTokenError,
   FormalAssessmentService,
   type AssessmentAnswers,
+  type AssessmentPaper,
 } from './formal-assessment-service.ts';
 import { getFormalAssessmentDefinition } from './formal-assessment-catalog.server.ts';
-import { ClassroomSessionRepository } from './classroom-session-repository.ts';
 
 const studentOne: AuthenticatedActor = {
   userId: 'stu-01',
@@ -163,94 +163,6 @@ test('issues an answer-free paper and grades and persists only on the server', (
   }
 });
 
-test('binds a classroom-issued paper to the exact active shared run without replacing its unique assessment identity', () => {
-  const fixture = createTestDatabase();
-  try {
-    migrateDatabase(fixture.database);
-    seedDemo(fixture.database);
-    readyForFormalAssessment(fixture.database, studentOne.userId);
-    const classroom = new ClassroomSessionRepository(fixture.database).readSession('demo-class');
-    assert.ok(classroom);
-    classroom.state.formalTest = {
-      assessmentId: 'AS-P1T1-N02',
-      gameId: 'P1T1-N02-server-assessment',
-      nodeId: 'P1T1-N02',
-      durationSeconds: 900,
-      runId: 'classroom-run-live-01',
-      status: 'running',
-      startedAt: '2026-07-16T01:00:00.000Z',
-    };
-    fixture.database.prepare(`
-      UPDATE classroom_sessions
-      SET status = 'active', state_json = ?
-      WHERE session_id = 'demo-class'
-    `).run(JSON.stringify(classroom.state));
-    const service = new FormalAssessmentService(fixture.database, deterministicOptions());
-
-    const issued = service.issuePaper(studentOne, 'P1T1-N02', {
-      classroomSessionId: 'demo-class',
-    });
-    const stored = fixture.database.prepare(`
-      SELECT assessment_id AS assessmentId, session_id AS sessionId,
-        classroom_run_id AS classroomRunId
-      FROM formal_assessment_instances
-      WHERE assessment_id = ?
-    `).get(issued.assessmentId);
-
-    assert.deepEqual(stored, {
-      assessmentId: issued.assessmentId,
-      sessionId: 'demo-class',
-      classroomRunId: 'classroom-run-live-01',
-    });
-    assert.notEqual(issued.assessmentId, 'classroom-run-live-01');
-  } finally {
-    fixture.cleanup();
-  }
-});
-
-test('rejects a classroom-bound submission after its shared run has left the active window', () => {
-  const fixture = createTestDatabase();
-  try {
-    migrateDatabase(fixture.database);
-    seedDemo(fixture.database);
-    readyForFormalAssessment(fixture.database, studentOne.userId);
-    const classroom = new ClassroomSessionRepository(fixture.database).readSession('demo-class');
-    assert.ok(classroom);
-    classroom.state.formalTest = {
-      assessmentId: 'AS-P1T1-N02',
-      gameId: 'P1T1-N02-server-assessment',
-      nodeId: 'P1T1-N02',
-      durationSeconds: 900,
-      runId: 'classroom-run-closed-before-submit',
-      status: 'running',
-      startedAt: '2026-07-16T09:55:00.000Z',
-    };
-    fixture.database.prepare(`
-      UPDATE classroom_sessions SET status = 'active', state_json = ?
-      WHERE session_id = 'demo-class'
-    `).run(JSON.stringify(classroom.state));
-    const service = new FormalAssessmentService(fixture.database, deterministicOptions());
-    const issued = service.issuePaper(studentOne, 'P1T1-N02', {
-      classroomSessionId: 'demo-class',
-    });
-
-    classroom.state.formalTest.status = 'review';
-    fixture.database.prepare(`
-      UPDATE classroom_sessions SET state_json = ? WHERE session_id = 'demo-class'
-    `).run(JSON.stringify(classroom.state));
-
-    assert.throws(
-      () => service.submitAnswers(studentOne, issued.attemptToken, passingAnswers),
-      AssessmentClassroomWindowError,
-    );
-    assert.equal(fixture.database.prepare(`
-      SELECT COUNT(*) FROM formal_attempts WHERE assessment_id = ?
-    `).pluck().get(issued.assessmentId), 0);
-  } finally {
-    fixture.cleanup();
-  }
-});
-
 test('binds a single-use token to one student, node, version, and assessment instance', () => {
   const fixture = createTestDatabase();
   try {
@@ -274,7 +186,7 @@ test('binds a single-use token to one student, node, version, and assessment ins
   }
 });
 
-test('issuing a new paper atomically retires the prior paper so remediation cannot be bypassed', () => {
+test('opening a running paper rotates its token without resetting the assessment or timer', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
@@ -284,19 +196,21 @@ test('issuing a new paper atomically retires the prior paper so remediation cann
     const first = service.issuePaper(studentOne, 'P1T1-N02');
     const parallel = service.issuePaper(studentOne, 'P1T1-N02');
 
-    assert.throws(
-      () => service.submitAnswers(studentOne, first.attemptToken, wrongAnswers),
-      (error) => error instanceof AssessmentTokenError && error.code === 'used-token',
-    );
+    assert.equal(parallel.assessmentId, first.assessmentId);
+    assert.equal(parallel.expiresAt, first.expiresAt);
+    assert.throws(() => service.submitAnswers(studentOne, first.attemptToken, wrongAnswers),
+      (error) => error instanceof AssessmentTokenError && error.code === 'used-token');
     const stale = fixture.database.prepare(`
-      SELECT token.used_at AS usedAt, instance.status
+      SELECT SUM(CASE WHEN token.used_at IS NOT NULL THEN 1 ELSE 0 END) AS usedTokenCount,
+        instance.status
       FROM formal_assessment_tokens AS token
       INNER JOIN formal_assessment_instances AS instance
         ON instance.assessment_id = token.assessment_id
       WHERE token.assessment_id = ?
-    `).get(first.assessmentId) as { usedAt: string | null; status: string };
-    assert.notEqual(stale.usedAt, null);
-    assert.equal(stale.status, 'closed');
+      GROUP BY instance.status
+    `).get(first.assessmentId) as { usedTokenCount: number; status: string };
+    assert.equal(stale.usedTokenCount, 1);
+    assert.equal(stale.status, 'running');
 
     service.submitAnswers(studentOne, parallel.attemptToken, wrongAnswers);
     assert.throws(
@@ -373,7 +287,7 @@ test('requires a coherent four-part professional conclusion instead of keyword s
   }
 });
 
-test('stores only a token hash and rejects expiry plus node, version, and instance tampering', () => {
+test('stores only a token hash and rejects catalog expiry plus node, version, and instance tampering', () => {
   const fixture = createTestDatabase();
   let now = new Date('2026-07-16T10:00:00.000Z');
   try {
@@ -383,7 +297,6 @@ test('stores only a token hash and rejects expiry plus node, version, and instan
     const service = new FormalAssessmentService(fixture.database, {
       ...deterministicOptions(),
       now: () => now,
-      tokenTtlMs: 60_000,
     });
     const issued = service.issuePaper(studentOne, 'P1T1-N02');
     const storedHash = fixture.database.prepare(`
@@ -420,7 +333,7 @@ test('stores only a token hash and rejects expiry plus node, version, and instan
     fixture.database.prepare(`
       UPDATE formal_assessment_instances SET node_id = ? WHERE assessment_id = ?
     `).run(issued.paper.nodeId, issued.assessmentId);
-    now = new Date('2026-07-16T10:02:00.000Z');
+    now = new Date('2026-07-16T10:15:00.000Z');
     assert.throws(
       () => service.submitAnswers(studentOne, issued.attemptToken, wrongAnswers),
       (error) => error instanceof AssessmentTokenError && error.code === 'expired-token',
@@ -532,6 +445,100 @@ test('requires real post-failure passed activities and unlocks only after every 
     }
 
     assert.equal(service.issuePaper(studentOne, 'P1T1-N02').paper.nodeId, 'P1T1-N02');
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('three consecutive failures expose progressive correction levels and keep rotating equivalent variants', () => {
+  const fixture = createTestDatabase();
+  let now = new Date('2026-07-16T10:00:00.000Z');
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    readyForFormalAssessment(fixture.database, studentOne.userId);
+    const service = new FormalAssessmentService(fixture.database, {
+      ...deterministicOptions(),
+      now: () => now,
+    });
+    const expectedStages = ['diagnosis', 'rule-location', 'worked-correction'] as const;
+    const versions: string[] = [];
+
+    for (const [index, stage] of expectedStages.entries()) {
+      const issued = service.openOrResume(studentOne, 'P1T1-N02');
+      versions.push(issued.paper.questionVersion);
+      const failed = service.submitAnswers(
+        studentOne,
+        issued.attemptToken!,
+        wrongAnswersForPaper(issued.paper),
+      );
+      assert.equal(failed.passed, false);
+      assert.equal(failed.correction?.level, index + 1);
+      assert.equal(failed.correction?.stage, stage);
+      assert.equal(Object.keys(failed.dimensions).length, 4);
+      assert.ok(failed.remediationTargets.length > 0);
+
+      now = new Date(now.getTime() + 60_000);
+      for (const [targetIndex, target] of failed.remediationTargets.entries()) {
+        fixture.database.prepare(`
+          INSERT INTO practice_attempts (
+            attempt_id, student_id, activity_id, node_id, passed, origin, attempted_at
+          ) VALUES (?, ?, ?, ?, 1, 'user', ?)
+        `).run(
+          `progressive-remediation-${index}-${targetIndex}`,
+          studentOne.studentId,
+          target.activityId,
+          target.nodeId,
+          now.toISOString(),
+        );
+      }
+    }
+
+    assert.notEqual(versions[0], versions[1]);
+    assert.equal(versions[0], versions[2]);
+    const next = service.openOrResume(studentOne, 'P1T1-N02');
+    assert.notEqual(next.paper.questionVersion, versions.at(-1));
+    const resumed = service.openOrResume(studentOne, 'P1T1-N02');
+    assert.equal(resumed.assessmentId, next.assessmentId);
+    assert.equal(resumed.paper.questionVersion, next.paper.questionVersion);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('P01 equivalent variant B accepts its distinct material identifiers with the same four-dimension rubric', () => {
+  const fixture = createTestDatabase();
+  let now = new Date('2026-07-16T10:00:00.000Z');
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    readyForFormalAssessment(fixture.database, studentOne.userId);
+    const service = new FormalAssessmentService(fixture.database, {
+      ...deterministicOptions(),
+      now: () => now,
+    });
+    const first = service.openOrResume(studentOne, 'P1T1-N02');
+    const failed = service.submitAnswers(studentOne, first.attemptToken!, wrongAnswersForPaper(first.paper));
+    now = new Date('2026-07-16T10:01:00.000Z');
+    for (const [index, target] of failed.remediationTargets.entries()) {
+      fixture.database.prepare(`
+        INSERT INTO practice_attempts (
+          attempt_id, student_id, activity_id, node_id, passed, origin, attempted_at
+        ) VALUES (?, ?, ?, ?, 1, 'user', ?)
+      `).run(`p01-b-remediation-${index}`, studentOne.studentId, target.activityId, target.nodeId, now.toISOString());
+    }
+
+    const variantB = service.openOrResume(studentOne, 'P1T1-N02');
+    assert.equal(variantB.paper.questionVersion, 'p01-n02-v1-b');
+    const passed = service.submitAnswers(studentOne, variantB.attemptToken!, {
+      evidenceClassification: 'asset-tag-b',
+      linkReconstruction: ['peer-device-b', 'peer-port-b', 'fiber-label-b', 'source-port-b', 'source-device-b'],
+      defectiveOutputRevision: ['bind-asset-source-b', 'index-endpoints-b', 'record-reverse-direction-b'],
+      professionalConclusion: passingAnswers.professionalConclusion,
+    });
+    assert.equal(passed.totalScore, 100);
+    assert.equal(passed.passed, true);
+    assert.equal(Object.keys(passed.dimensions).length, 4);
   } finally {
     fixture.cleanup();
   }
@@ -739,6 +746,23 @@ function correctActivityResponse(activityId: string): Record<string, unknown> {
       },
     },
   }[activityId] ?? {};
+}
+
+function wrongAnswersForPaper(paper: AssessmentPaper): AssessmentAnswers {
+  const evidence = paper.questions.find(({ id }) => id === 'evidenceClassification')?.options ?? [];
+  const links = paper.questions.find(({ id }) => id === 'linkReconstruction')?.options ?? [];
+  const revisions = paper.questions.find(({ id }) => id === 'defectiveOutputRevision')?.options ?? [];
+  return {
+    evidenceClassification: evidence[0]?.id ?? '',
+    linkReconstruction: links.map(({ id }) => id).reverse(),
+    defectiveOutputRevision: [revisions.at(-1)?.id ?? ''],
+    professionalConclusion: {
+      confirmedFact: '不清楚',
+      evidenceGap: '不清楚',
+      risk: '不清楚',
+      action: '不清楚',
+    },
+  };
 }
 
 function routeRequest(method: string, cookie: string, body?: unknown, token?: string): Request {

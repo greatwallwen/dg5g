@@ -12,6 +12,7 @@ import {
   FormalAssessmentService,
   type AssessmentAnswers,
 } from './formal-assessment-service.ts';
+import { getFormalAssessmentDefinitions } from './formal-assessment-catalog.server.ts';
 
 const studentThree: AuthenticatedActor = {
   userId: 'stu-03',
@@ -38,6 +39,20 @@ const taskCases = [
       },
     },
     wrongEvidence: 'site-panorama',
+    correctB: {
+      evidenceClassification: 'bearing-sample-b',
+      linkReconstruction: [
+        'sector-anchor-b', 'route-sequence-b', 'coordinate-sample-b',
+        'boundary-segment-b', 'resurvey-flag-b',
+      ],
+      defectiveOutputRevision: ['bind-route-b', 'bind-sample-window-b', 'retain-outlier-b'],
+      professionalConclusion: {
+        confirmedFact: '已确认采样点坐标、时间和信号读数，覆盖边界证据可以复核。',
+        evidenceGap: '异常点缺少复测轨迹，当前仍是待复核证据缺口。',
+        risk: '若直接平均异常读数，会误判覆盖边界并影响优化结论。',
+        action: '返回异常点按相同时间窗复测并挂接轨迹后再更新成果。',
+      },
+    },
   },
   {
     nodeId: 'P1T3-N02',
@@ -54,8 +69,51 @@ const taskCases = [
       },
     },
     wrongEvidence: 'neighbour-photo',
+    correctB: {
+      evidenceClassification: 'ticket-timeline-b',
+      linkReconstruction: [
+        'ticket-window-b', 'indoor-reproduction-b', 'terminal-trace-b',
+        'radio-trace-b', 'attribution-boundary-b',
+      ],
+      defectiveOutputRevision: ['bind-ticket-b', 'bind-reproduction-window-b', 'record-conflict-b'],
+      professionalConclusion: {
+        confirmedFact: '已确认投诉工单、投诉地址和现场复现结果，事实可以复核。',
+        evidenceGap: '终端日志与无线测量存在矛盾，原因边界仍待复核。',
+        risk: '若直接归因网络故障，可能误判责任并形成错误投诉结论。',
+        action: '在投诉时间窗复测并核验终端日志后再更新调查结论。',
+      },
+    },
   },
 ] as const;
+
+test('every P1 N02 catalog contains two genuinely distinct but equivalent server-owned variants', () => {
+  for (const nodeId of ['P1T1-N02', 'P1T2-N02', 'P1T3-N02']) {
+    const definitions = getFormalAssessmentDefinitions(nodeId);
+    assert.equal(definitions.length, 2, nodeId);
+    const [variantA, variantB] = definitions;
+    assert.notEqual(variantA.paper.questionVersion, variantB.paper.questionVersion);
+    assert.equal(variantA.paper.durationMinutes, 15);
+    assert.equal(variantB.paper.durationMinutes, 15);
+    assert.deepEqual(
+      variantA.paper.questions.map(({ dimension }) => dimension),
+      variantB.paper.questions.map(({ dimension }) => dimension),
+    );
+    assert.ok(variantA.paper.questions.some((question, index) => (
+      question.prompt !== variantB.paper.questions[index]?.prompt
+    )));
+    for (const [index, questionA] of variantA.paper.questions.entries()) {
+      const questionB = variantB.paper.questions[index];
+      if (!questionA.options || !questionB.options) continue;
+      assert.equal(questionA.options.length, questionB.options.length);
+      const idsB = new Set(questionB.options.map(({ id }) => id));
+      assert.deepEqual(
+        questionA.options.map(({ id }) => id).filter((id) => idsB.has(id)),
+        [],
+        `${nodeId}:${questionA.dimension}`,
+      );
+    }
+  }
+});
 
 for (const taskCase of taskCases) {
   test(`${taskCase.nodeId} issues an answer-free task paper and enforces fail-remediate-retry-pass`, () => {
@@ -102,10 +160,11 @@ for (const taskCase of taskCases) {
         `).run(`remediation-${taskCase.nodeId}-${index}`, target.activityId, target.nodeId, now.toISOString());
       }
       const second = service.issuePaper(studentThree, taskCase.nodeId);
+      assert.notEqual(second.paper.questionVersion, first.paper.questionVersion);
       const passed = service.submitAnswers(
         studentThree,
         second.attemptToken,
-        taskCase.correct as unknown as AssessmentAnswers,
+        taskCase.correctB as unknown as AssessmentAnswers,
         taskCase.nodeId,
       );
       assert.equal(passed.passed, true);

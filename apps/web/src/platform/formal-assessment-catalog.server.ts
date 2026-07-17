@@ -309,14 +309,176 @@ const p03N02Definition: FormalAssessmentDefinition = {
   },
 };
 
+const p01N02VariantB = createEquivalentVariant(p01N02Definition, {
+  questionVersion: 'p01-n02-v1-b',
+  title: '室内设备与链路证据正式测试 · 等价案例B',
+  questions: {
+    evidenceClassification: {
+      prompt: '设备完成迁架后，需要重新确认新机柜中的唯一设备身份。哪项材料是首要证据？',
+      helpText: '选择能够把设备资产身份与本次迁架记录直接绑定的材料。',
+      options: [
+        { id: 'cabinet-panorama-b', label: '只显示新机柜位置的全景照片' },
+        { id: 'asset-tag-b', label: '同时包含资产标签、型号和序列号的设备近照' },
+        { id: 'loose-fiber-b', label: '没有端口编号的尾纤照片' },
+        { id: 'migration-note-b', label: '未标设备编号的迁架口头记录' },
+      ],
+    },
+    linkReconstruction: {
+      prompt: '从对端设备返回源端设备，重建迁架后的反向复核链路。',
+      helpText: '方向与案例A相反，但仍须保留两端设备、两端端口和中间纤缆标识。',
+      options: [
+        { id: 'fiber-label-b', label: '中间纤缆标签' },
+        { id: 'source-device-b', label: '源端设备身份' },
+        { id: 'peer-port-b', label: '对端端口编号' },
+        { id: 'peer-device-b', label: '对端设备身份' },
+        { id: 'source-port-b', label: '源端端口编号' },
+      ],
+    },
+    defectiveOutputRevision: {
+      prompt: '迁架成果表沿用了旧端口关系，且新照片没有字段索引。应执行哪些修订？',
+      helpText: '选择能恢复新版本字段来源与反向链路可审计性的动作。',
+      options: [
+        { id: 'bind-asset-source-b', label: '将设备字段绑定到新资产标签照片' },
+        { id: 'index-endpoints-b', label: '为两端设备和端口补充新照片索引' },
+        { id: 'record-reverse-direction-b', label: '记录本次反向复核的源端与对端方向' },
+        { id: 'suppress-gap-b', label: '隐藏仍未拍清的端口缺口' },
+      ],
+    },
+    professionalConclusion: {
+      prompt: '迁架后设备身份与源端口已确认，但对端端口标签被遮挡。写出职业化复核结论。',
+      helpText: '分别写明已确认事实、对端证据缺口、错误关联风险和补拍核验动作。',
+    },
+  },
+  evidenceOptionId: 'asset-tag-b',
+  linkOrder: ['peer-device-b', 'peer-port-b', 'fiber-label-b', 'source-port-b', 'source-device-b'],
+  requiredRevisionOptionIds: ['bind-asset-source-b', 'index-endpoints-b', 'record-reverse-direction-b'],
+  forbiddenRevisionOptionIds: ['suppress-gap-b'],
+});
+
+const p02N02VariantB = createEquivalentVariant(p02N02Definition, {
+  questionVersion: 'p02-n02-v1-b',
+  title: '室外站点与覆盖证据正式测试 · 等价案例B',
+  questions: {
+    evidenceClassification: {
+      prompt: '沿道路复测弱覆盖边界时，哪项记录能够证明读数属于指定路线与方向？',
+      helpText: '选择同时包含路线序号、坐标、朝向、时间和测量值的记录。',
+      options: [
+        { id: 'road-photo-b', label: '只显示道路环境的照片' },
+        { id: 'bearing-sample-b', label: '带路线序号、坐标、朝向、时间和读数的采样记录' },
+        { id: 'tower-board-b', label: '只显示站名的标牌照片' },
+        { id: 'heatmap-crop-b', label: '没有路线索引的热力图局部截图' },
+      ],
+    },
+    linkReconstruction: {
+      prompt: '重建“扇区锚点—道路路线—采样事实—边界—复测点”的证据链。',
+      helpText: '材料显示顺序已打乱，请按现场复核逻辑排序。',
+      options: [
+        { id: 'resurvey-flag-b', label: '需要复测的离群点' },
+        { id: 'coordinate-sample-b', label: '带坐标与时间的采样事实' },
+        { id: 'sector-anchor-b', label: '扇区与道路起点锚点' },
+        { id: 'boundary-segment-b', label: '连续采样形成的边界段' },
+        { id: 'route-sequence-b', label: '道路路线与采样顺序' },
+      ],
+    },
+    defectiveOutputRevision: {
+      prompt: '道路复测表缺少路线序号和时间窗，并把一个离群点平滑掉。应如何修订？',
+      helpText: '恢复路线可追溯性，并保留需要再次复测的异常事实。',
+      options: [
+        { id: 'bind-route-b', label: '为每组读数补挂路线和采样顺序' },
+        { id: 'bind-sample-window-b', label: '补录坐标、方向与采样时间窗' },
+        { id: 'retain-outlier-b', label: '保留离群点并登记复测要求' },
+        { id: 'smooth-outlier-b', label: '用相邻均值覆盖离群点原始读数' },
+      ],
+    },
+    professionalConclusion: {
+      prompt: '道路覆盖边界基本连续，但一个离群点没有同路线复测记录。提交职业化结论。',
+      helpText: '说明已确认边界、复测缺口、误判风险和补采动作。',
+    },
+  },
+  evidenceOptionId: 'bearing-sample-b',
+  linkOrder: [
+    'sector-anchor-b', 'route-sequence-b', 'coordinate-sample-b',
+    'boundary-segment-b', 'resurvey-flag-b',
+  ],
+  requiredRevisionOptionIds: ['bind-route-b', 'bind-sample-window-b', 'retain-outlier-b'],
+  forbiddenRevisionOptionIds: ['smooth-outlier-b'],
+});
+
+const p03N02VariantB = createEquivalentVariant(p03N02Definition, {
+  questionVersion: 'p03-n02-v1-b',
+  title: '投诉复现与原因边界正式测试 · 等价案例B',
+  questions: {
+    evidenceClassification: {
+      prompt: '复现室内掉线投诉前，哪项材料能够锁定投诉对象、楼层点位和发生时间？',
+      helpText: '选择可将现场复现与原始投诉时间线直接关联的材料。',
+      options: [
+        { id: 'lobby-photo-b', label: '只显示楼宇大厅的环境照片' },
+        { id: 'ticket-timeline-b', label: '包含工单号、楼层点位、用户描述和发生时间的投诉时间线' },
+        { id: 'phone-shell-b', label: '只显示终端外观的照片' },
+        { id: 'signal-crop-b', label: '没有工单与时间标记的信号截图' },
+      ],
+    },
+    linkReconstruction: {
+      prompt: '重建从投诉时间线到室内复现和原因边界的证据链。',
+      helpText: '材料顺序已打乱，请先锁定投诉窗口，再连接终端与无线事实。',
+      options: [
+        { id: 'radio-trace-b', label: '同一时间的无线测量轨迹' },
+        { id: 'ticket-window-b', label: '投诉工单与发生时间窗' },
+        { id: 'attribution-boundary-b', label: '证据支持的归因边界' },
+        { id: 'terminal-trace-b', label: '复现时的终端业务日志' },
+        { id: 'indoor-reproduction-b', label: '楼层内的现场复现点位' },
+      ],
+    },
+    defectiveOutputRevision: {
+      prompt: '调查单缺少复现时间窗，并忽略终端日志与无线轨迹冲突。应如何修订？',
+      helpText: '恢复工单关联和矛盾证据，避免直接越界归因。',
+      options: [
+        { id: 'bind-ticket-b', label: '补挂工单号、楼层点位与原始描述' },
+        { id: 'bind-reproduction-window-b', label: '补录复现时间窗和复现路线' },
+        { id: 'record-conflict-b', label: '登记终端日志与无线轨迹的冲突' },
+        { id: 'assign-cause-b', label: '不补证据，直接判定网络责任' },
+      ],
+    },
+    professionalConclusion: {
+      prompt: '掉线能够复现，但终端业务日志与无线轨迹的时间点不一致。提交职业化结论。',
+      helpText: '区分已确认投诉事实、时间证据缺口、误归因风险和联合复测动作。',
+    },
+  },
+  evidenceOptionId: 'ticket-timeline-b',
+  linkOrder: [
+    'ticket-window-b', 'indoor-reproduction-b', 'terminal-trace-b',
+    'radio-trace-b', 'attribution-boundary-b',
+  ],
+  requiredRevisionOptionIds: ['bind-ticket-b', 'bind-reproduction-window-b', 'record-conflict-b'],
+  forbiddenRevisionOptionIds: ['assign-cause-b'],
+});
+
 const definitionsByNode = new Map([
-  p01N02Definition,
-  p02N02Definition,
-  p03N02Definition,
-].map((definition) => [definition.paper.nodeId, definition]));
+  [p01N02Definition, p01N02VariantB],
+  [p02N02Definition, p02N02VariantB],
+  [p03N02Definition, p03N02VariantB],
+].map((definitions) => [definitions[0].paper.nodeId, definitions] as const));
+
+const definitionsByVersion = new Map(
+  [...definitionsByNode.values()].flatMap((definitions) => definitions.map((definition) => [
+    `${definition.paper.nodeId}:${definition.paper.questionVersion}`,
+    definition,
+  ] as const)),
+);
 
 export function getFormalAssessmentDefinition(nodeId: string): FormalAssessmentDefinition | undefined {
-  return definitionsByNode.get(nodeId);
+  return definitionsByNode.get(nodeId)?.[0];
+}
+
+export function getFormalAssessmentDefinitions(nodeId: string): readonly FormalAssessmentDefinition[] {
+  return definitionsByNode.get(nodeId) ?? [];
+}
+
+export function getFormalAssessmentDefinitionByVersion(
+  nodeId: string,
+  questionVersion: string,
+): FormalAssessmentDefinition | undefined {
+  return definitionsByVersion.get(`${nodeId}:${questionVersion}`);
 }
 
 export function getFormalAssessmentValidationPolicy(
@@ -356,5 +518,58 @@ function taskRemediation(
     nodeId,
     sectionId: 'practice',
     activityId: `${nodeId}-${level}-01`,
+  };
+}
+
+interface EquivalentVariantSpec {
+  questionVersion: string;
+  title: string;
+  questions: Record<AssessmentDimensionKey, {
+    prompt: string;
+    helpText: string;
+    options?: Array<{ id: string; label: string }>;
+  }>;
+  evidenceOptionId: string;
+  linkOrder: string[];
+  requiredRevisionOptionIds: string[];
+  forbiddenRevisionOptionIds: string[];
+}
+
+function createEquivalentVariant(
+  source: FormalAssessmentDefinition,
+  spec: EquivalentVariantSpec,
+): FormalAssessmentDefinition {
+  return {
+    gameId: source.gameId,
+    paper: {
+      ...source.paper,
+      title: spec.title,
+      questionVersion: spec.questionVersion,
+      questions: source.paper.questions.map((question) => ({
+        ...question,
+        ...spec.questions[question.dimension],
+        ...(spec.questions[question.dimension].options
+          ? { options: spec.questions[question.dimension].options?.map((option) => ({ ...option })) }
+          : {}),
+      })),
+    },
+    grading: {
+      evidenceClassification: {
+        ...source.grading.evidenceClassification,
+        acceptedOptionIds: [spec.evidenceOptionId],
+      },
+      linkReconstruction: {
+        ...source.grading.linkReconstruction,
+        orderedOptionIds: [...spec.linkOrder],
+      },
+      defectiveOutputRevision: {
+        ...source.grading.defectiveOutputRevision,
+        requiredOptionIds: [...spec.requiredRevisionOptionIds],
+        forbiddenOptionIds: [...spec.forbiddenRevisionOptionIds],
+      },
+      professionalConclusion: {
+        ...source.grading.professionalConclusion,
+      },
+    },
   };
 }

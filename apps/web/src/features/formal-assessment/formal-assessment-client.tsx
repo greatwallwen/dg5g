@@ -10,12 +10,14 @@ import type {
 import { FormalAssessmentResult } from './formal-assessment-result';
 
 export function FormalAssessmentClient({ issued }: { issued: IssuedAssessmentPaper }) {
+  const attemptToken = issued.state === 'in-progress' ? issued.attemptToken : undefined;
   const [result, setResult] = useState<AssessmentDiagnosis | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!attemptToken) return;
     const answers = readAssessmentAnswers(new FormData(event.currentTarget));
     setSubmitting(true);
     setError('');
@@ -26,7 +28,7 @@ export function FormalAssessmentClient({ issued }: { issued: IssuedAssessmentPap
           method: 'POST',
           headers: {
             'content-type': 'application/json',
-            'x-assessment-token': issued.attemptToken,
+            'x-assessment-token': attemptToken,
           },
           body: JSON.stringify({ answers }),
         },
@@ -42,6 +44,9 @@ export function FormalAssessmentClient({ issued }: { issued: IssuedAssessmentPap
   }
 
   if (result) return <FormalAssessmentResult result={result} />;
+  if (!attemptToken) {
+    return <section className="formal-assessment-entry"><h1>测试已到时，未形成成绩</h1></section>;
+  }
 
   return (
     <form
