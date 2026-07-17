@@ -14,6 +14,11 @@ import {
   deriveGeneratedOutputFieldSources,
   type ProfessionalOutputFieldSource,
 } from './professional-output-provenance.ts';
+import {
+  normalizeProfessionalOutputWrite,
+  stableJson,
+  type NormalizedProfessionalOutputWrite,
+} from './professional-output-write-normalizer.ts';
 import { SnapshotClock } from './snapshot-clock.ts';
 import {
   ProfessionalOutputNotFoundError,
@@ -157,21 +162,6 @@ interface ReviewHistoryRow {
   origin: 'demo' | 'user';
 }
 
-interface NormalizedWrite {
-  outputId?: string;
-  studentId: string;
-  taskId: P1OutputTaskId;
-  expectedStateRevision: number;
-  fields: Record<string, ProfessionalOutputFieldValue>;
-  fieldsJson: string;
-  upstreamRefs: ProfessionalOutputUpstreamRef[];
-  upstreamRefsJson: string;
-  evidenceLinks: Record<string, string[]>;
-  evidenceLinksJson: string;
-  evidenceGaps: Record<string, ProfessionalOutputEvidenceGap>;
-  evidenceGapsJson: string;
-}
-
 const outputNodeByTask: Record<P1OutputTaskId, string> = {
   P01: 'P1T1-N04',
   P02: 'P1T2-N04',
@@ -248,7 +238,7 @@ export class ProfessionalOutputRepository {
     input: WriteProfessionalOutputInput,
     targetStatus: 'draft' | 'submitted',
   ): ProfessionalOutputAggregate {
-    const command = normalizeWrite(input);
+    const command = normalizeProfessionalOutputWrite(input);
     return this.database.transaction(() => {
       const taskHead = this.readHeadForStudentTask(command.studentId, command.taskId);
       const requestedHead = command.outputId
@@ -384,7 +374,7 @@ export class ProfessionalOutputRepository {
     })();
   }
 
-  private assertUpstreamRefs(command: NormalizedWrite): void {
+  private assertUpstreamRefs(command: NormalizedProfessionalOutputWrite): void {
     const expectedTask = immediateUpstreamTask[command.taskId];
     if (!expectedTask) {
       if (command.upstreamRefs.length > 0) {
@@ -422,7 +412,7 @@ export class ProfessionalOutputRepository {
     );
   }
 
-  private assertEvidenceLinks(command: NormalizedWrite): void {
+  private assertEvidenceLinks(command: NormalizedProfessionalOutputWrite): void {
     for (const [fieldKey, evidenceIds] of Object.entries(command.evidenceLinks)) {
       if (!(fieldKey in command.fields)) {
         throw new ProfessionalOutputEvidenceError(
@@ -446,7 +436,7 @@ export class ProfessionalOutputRepository {
     }
   }
 
-  private assertEvidenceGaps(command: NormalizedWrite): void {
+  private assertEvidenceGaps(command: NormalizedProfessionalOutputWrite): void {
     for (const fieldKey of Object.keys(command.evidenceGaps)) {
       if (!(fieldKey in command.fields)) {
         throw new ProfessionalOutputEvidenceError(
@@ -457,7 +447,7 @@ export class ProfessionalOutputRepository {
   }
 
   private deriveFieldSources(
-    command: NormalizedWrite,
+    command: NormalizedProfessionalOutputWrite,
     current: ProfessionalOutputFieldSource[],
   ): ProfessionalOutputFieldSource[] {
     if (command.taskId !== 'P01') {
@@ -747,89 +737,6 @@ function headSelect(): string {
   `;
 }
 
-function normalizeWrite(input: WriteProfessionalOutputInput): NormalizedWrite {
-  assertNonEmpty('studentId', input.studentId);
-  assertTaskId(input.taskId);
-  if (input.outputId !== undefined) assertNonEmpty('outputId', input.outputId);
-  if (!Number.isSafeInteger(input.expectedStateRevision) || input.expectedStateRevision < 0) {
-    throw new TypeError('expectedStateRevision must be a non-negative safe integer.');
-  }
-  if (!isRecord(input.fields) || Object.keys(input.fields).length === 0) {
-    throw new TypeError('fields must be a non-empty object.');
-  }
-  const fields = Object.fromEntries(Object.entries(input.fields).map(([key, value]) => {
-    assertNonEmpty('field name', key);
-    if (input.taskId === 'P01' && !isP01OutputFieldKey(key)) {
-      throw new TypeError(`Unsupported P01 professional output field: ${key}.`);
-    }
-    if (typeof value === 'string') return [key, value];
-    if (typeof value === 'number' && Number.isFinite(value)) return [key, value];
-    if (Array.isArray(value)
-      && value.every((item) => typeof item === 'string')) return [key, [...value]];
-    throw new TypeError(`Unsupported professional output field: ${key}.`);
-  })) as Record<string, ProfessionalOutputFieldValue>;
-  if (!Array.isArray(input.upstreamRefs)) throw new TypeError('upstreamRefs must be an array.');
-  const seen = new Set<string>();
-  const upstreamRefs = input.upstreamRefs.map((reference, index) => {
-    if (!isRecord(reference)) throw new TypeError(`upstreamRefs[${index}] must be an object.`);
-    const outputId = reference.outputId;
-    const version = reference.version;
-    assertNonEmpty(`upstreamRefs[${index}].outputId`, outputId as string);
-    if (!Number.isSafeInteger(version) || Number(version) <= 0) {
-      throw new TypeError(`upstreamRefs[${index}].version must be a positive safe integer.`);
-    }
-    const identity = `${String(outputId)}:${Number(version)}`;
-    if (seen.has(identity)) throw new TypeError('upstreamRefs must be unique.');
-    seen.add(identity);
-    return { outputId: String(outputId), version: Number(version) };
-  });
-  const evidenceInput = input.evidenceLinks ?? {};
-  if (!isRecord(evidenceInput)) throw new TypeError('evidenceLinks must be an object.');
-  const evidenceLinks = Object.fromEntries(Object.entries(evidenceInput).map(([fieldKey, value]) => {
-    assertNonEmpty('evidence field name', fieldKey);
-    if (!Array.isArray(value)) {
-      throw new TypeError(`evidenceLinks.${fieldKey} must be an array.`);
-    }
-    const ids = value.map((evidenceId, index) => {
-      if (typeof evidenceId !== 'string' || !evidenceId.trim()) {
-        throw new TypeError(`evidenceLinks.${fieldKey}[${index}] must be a non-empty string.`);
-      }
-      return evidenceId.trim();
-    });
-    return [fieldKey, [...new Set(ids)].sort()];
-  })) as Record<string, string[]>;
-  const evidenceGapInput = input.evidenceGaps ?? {};
-  if (!isRecord(evidenceGapInput)) throw new TypeError('evidenceGaps must be an object.');
-  const evidenceGaps = Object.fromEntries(Object.entries(evidenceGapInput).map(([fieldKey, value]) => {
-    assertNonEmpty('evidence gap field name', fieldKey);
-    if (!isRecord(value)) {
-      throw new TypeError(`evidenceGaps.${fieldKey} must be an object.`);
-    }
-    const gapText = typeof value.gapText === 'string' ? value.gapText.trim() : '';
-    const nextActionText = typeof value.nextActionText === 'string'
-      ? value.nextActionText.trim()
-      : '';
-    if (!gapText && !nextActionText) {
-      throw new TypeError(`Evidence gap must include gapText or nextActionText: ${fieldKey}.`);
-    }
-    return [fieldKey, { gapText, nextActionText }];
-  })) as Record<string, ProfessionalOutputEvidenceGap>;
-  return {
-    ...(input.outputId === undefined ? {} : { outputId: input.outputId }),
-    studentId: input.studentId,
-    taskId: input.taskId,
-    expectedStateRevision: input.expectedStateRevision,
-    fields,
-    fieldsJson: stableJson(fields),
-    upstreamRefs,
-    upstreamRefsJson: stableJson(upstreamRefs),
-    evidenceLinks,
-    evidenceLinksJson: stableJson(evidenceLinks),
-    evidenceGaps,
-    evidenceGapsJson: stableJson(evidenceGaps),
-  };
-}
-
 function toHead(row: HeadRow): ProfessionalOutputHead {
   return {
     outputId: row.outputId,
@@ -840,16 +747,6 @@ function toHead(row: HeadRow): ProfessionalOutputHead {
     status: row.status,
     origin: row.origin,
   };
-}
-
-function stableJson(value: unknown): string {
-  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
-  if (isRecord(value)) {
-    return `{${Object.keys(value).sort().map((key) => (
-      `${JSON.stringify(key)}:${stableJson(value[key])}`
-    )).join(',')}}`;
-  }
-  return JSON.stringify(value);
 }
 
 function normalizeFieldSources(sources: ProfessionalOutputFieldSource[]): ProfessionalOutputFieldSource[] {

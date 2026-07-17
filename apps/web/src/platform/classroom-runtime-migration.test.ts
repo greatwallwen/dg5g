@@ -38,7 +38,7 @@ test('migration 006 backfills revision seven and never lowers a newer classroom 
   }
 });
 
-test('migration 012 preserves schema 11 activity, output, review, and classroom facts', () => {
+test('migrations 012 and 013 preserve schema 11 activity, output, review, and classroom facts', () => {
   const fixture = createTestDatabase();
   try {
     applyMigrationsThrough(fixture.database, 11);
@@ -110,8 +110,8 @@ test('migration 012 preserves schema 11 activity, output, review, and classroom 
 
     const result = migrateDatabase(fixture.database);
 
-    assert.deepEqual(result.appliedVersions, [12]);
-    assert.equal(result.currentVersion, 12);
+    assert.deepEqual(result.appliedVersions, [12, 13]);
+    assert.equal(result.currentVersion, 13);
     assert.deepEqual(readSchema11Facts(), before);
     assert.deepEqual(fixture.database.prepare(`
       SELECT delivery_channel AS deliveryChannel,
