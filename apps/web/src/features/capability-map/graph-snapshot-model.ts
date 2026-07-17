@@ -6,9 +6,12 @@ import {
 } from '../../platform/learning-status.ts';
 import { authoritativeDomFacts, type AuthoritativeDomFacts } from '../snapshot/snapshot-dom-facts.ts';
 import type { LearningOrigin } from '../../platform/learning-origin.ts';
+import type { NodeStateAxes } from '../../platform/learning-projection.ts';
 
 export interface CanonicalGraphNodeProgress {
   nodeId: P1NodeId;
+  access: NodeStateAxes['access'];
+  axes: NodeStateAxes;
   learningState: NodeLearningState;
   stateCompletionPercent: number;
   nodeTestHighestScore?: number;
@@ -45,6 +48,8 @@ export function projectGraphSnapshot(snapshot: GraphAuthoritativeSnapshot): Grap
   if (snapshot.mode === 'student') {
     const nodes = snapshot.me.nodes.map((node): CanonicalGraphNodeProgress => ({
       nodeId: node.nodeId,
+      access: node.axes.access,
+      axes: node.axes,
       learningState: node.state,
       stateCompletionPercent: nodeLearningStateCompletionPercent[node.state],
       ...(node.nodeTestHighestScore === undefined ? {} : {
@@ -81,8 +86,16 @@ export function projectGraphSnapshot(snapshot: GraphAuthoritativeSnapshot): Grap
     };
   }
 
-  const nodes = nodeLearningPolicies.map(({ nodeId }): CanonicalGraphNodeProgress => ({
-    nodeId,
+  const nodes = nodeLearningPolicies.map((policy): CanonicalGraphNodeProgress => ({
+    nodeId: policy.nodeId,
+    access: 'open',
+    axes: {
+      access: 'open',
+      learning: 'not-started',
+      formalTest: policy.requiresFormalTest ? 'ready' : 'not-required',
+      output: policy.requiresProfessionalOutput ? 'editing' : 'not-required',
+      certification: 'not-reached',
+    },
     learningState: 'available',
     stateCompletionPercent: nodeLearningStateCompletionPercent.available,
     nextRequirement: '选择节点进入授课',
@@ -103,6 +116,8 @@ export function projectLegacyGraphNodes(
   records: ReadonlyArray<{
     nodeId: string;
     learningState?: NodeLearningState;
+    access?: NodeStateAxes['access'];
+    axes?: NodeStateAxes;
     bestGameScore?: number;
   }> | undefined,
 ): CanonicalGraphNodeProgress[] | undefined {
@@ -112,6 +127,14 @@ export function projectLegacyGraphNodes(
     if (!policy || !record.learningState) return [];
     return [{
       nodeId: policy.nodeId,
+      access: record.axes?.access ?? record.access ?? 'locked',
+      axes: record.axes ?? {
+        access: record.access ?? 'locked',
+        learning: 'not-started',
+        formalTest: 'not-required',
+        output: 'not-required',
+        certification: 'not-reached',
+      },
       learningState: record.learningState,
       stateCompletionPercent: nodeLearningStateCompletionPercent[record.learningState],
       ...(record.bestGameScore === undefined ? {} : { nodeTestHighestScore: record.bestGameScore }),

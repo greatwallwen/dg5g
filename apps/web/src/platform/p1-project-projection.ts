@@ -3,6 +3,7 @@ import { LearningReadModel, type StudentLearningSnapshot, type StudentNodeLearni
 import { LearningRepository } from './learning-repository.ts';
 import type { NodeLearningState } from './learning-status.ts';
 import type { LearningOrigin } from './learning-origin.ts';
+import type { NodeStateAxes } from './learning-projection.ts';
 import {
   loadP1DemoContent,
   type P1DemoContent,
@@ -20,15 +21,18 @@ export type TaskLearningState =
 
 export type ProfessionalOutputProjectionStatus =
   | 'not-started'
-  | 'draft'
+  | 'editing'
   | 'submitted'
   | 'returned'
+  | 'revising'
+  | 'resubmitted'
   | 'verified';
 
 export interface P1ProjectNodeProjection {
   nodeId: P1NodeId;
   title: string;
   goal: string;
+  access: NodeStateAxes['access'];
   state: NodeLearningState;
   href?: string;
 }
@@ -95,8 +99,9 @@ export function projectP1Project(
         nodeId: definition.id,
         title: definition.title,
         goal: definition.goal,
+        access: snapshot.axes.access,
         state: snapshot.state,
-        ...(snapshot.state === 'locked' ? {} : { href: `/learn/${definition.id}` }),
+        ...(snapshot.axes.access === 'open' ? { href: `/learn/${definition.id}` } : {}),
       };
     });
     const outputNode = requiredNode(nodesById, task.nodes[3].id);
@@ -111,7 +116,7 @@ export function projectP1Project(
       ? { outputId, version: currentOutputVersion }
       : undefined;
     const taskScore = scoresByTask.get(task.taskId);
-    const nextNode = nodes.find(({ state }) => state !== 'locked' && state !== 'achieved');
+    const nextNode = nodes.find(({ access, state }) => access === 'open' && state !== 'achieved');
 
     return {
       taskId: task.taskId,
@@ -169,20 +174,22 @@ function requiredNode(
 
 function projectOutputStatus(node: StudentNodeLearningSnapshot): ProfessionalOutputProjectionStatus {
   if (!node.evidence) return 'not-started';
-  if (node.evidence.status === 'returned') return 'returned';
-  if (node.review?.status === 'verified' && node.evidence.status === 'verified') return 'verified';
-  if (node.evidence.status === 'draft') return 'draft';
-  return 'submitted';
+  if (node.evidence.origin === 'demo') {
+    if (node.evidence.status === 'verified' && node.review?.status === 'verified') return 'verified';
+    if (node.evidence.status === 'returned' || node.review?.status === 'returned') return 'returned';
+    return node.evidence.status === 'draft' ? 'editing' : 'submitted';
+  }
+  return node.axes.output === 'not-required' ? 'not-started' : node.axes.output;
 }
 
 function projectTaskState(
   nodes: P1ProjectNodeProjection[],
   outputStatus: ProfessionalOutputProjectionStatus,
 ): TaskLearningState {
+  if (outputStatus === 'verified') return 'verified';
+  if (['editing', 'submitted', 'returned', 'revising', 'resubmitted'].includes(outputStatus)) return 'output-pending';
   if (nodes.every(({ state }) => state === 'locked')) return 'locked';
   if (nodes.every(({ state }) => state === 'achieved')) return 'complete';
-  if (outputStatus === 'verified') return 'verified';
-  if (['draft', 'submitted', 'returned'].includes(outputStatus)) return 'output-pending';
   if (nodes.every(({ state }) => state === 'locked' || state === 'available')) return 'available';
   return 'learning';
 }
@@ -192,7 +199,10 @@ function projectPortfolioStatus(
 ): P1ProjectProjection['portfolioStatus'] {
   if (tasks.every(({ realTaskCertified }) => realTaskCertified)) return 'complete';
   if (tasks.every(({ demoTaskCertified }) => demoTaskCertified)) return 'demo-complete';
-  if (tasks.some(({ outputStatus }) => outputStatus === 'submitted')) return 'awaiting-review';
+  if (tasks.some(({ outputStatus }) => (
+    outputStatus === 'submitted' || outputStatus === 'resubmitted'
+  ))) return 'awaiting-review';
+  if (tasks.some(({ outputStatus }) => outputStatus !== 'not-started')) return 'collecting';
   const hasActivity = tasks.some(({ nodes }) => nodes.some(
     ({ state }) => state !== 'locked' && state !== 'available',
   ));

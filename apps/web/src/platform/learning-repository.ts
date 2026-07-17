@@ -5,6 +5,7 @@ import {
   type SnapshotTopic,
 } from './snapshot-clock.ts';
 import type { LearningOrigin } from './learning-origin.ts';
+import { readFormalAssessmentLearningFacts } from './formal-assessment-fact-reader.ts';
 
 export type { SnapshotTopic } from './snapshot-clock.ts';
 export type LearningChannel = 'self-study' | 'classroom' | 'game';
@@ -80,6 +81,19 @@ export interface StoredFormalAttempt {
   instanceStatus?: string;
 }
 
+export interface StoredFormalAssessmentInstance {
+  assessmentId: string;
+  nodeId: string;
+  gameId: string;
+  questionVersion: string;
+  status: 'preparing' | 'running' | 'closed';
+  classroomRunStatus?: 'running' | 'paused' | 'reviewing' | 'closed' | 'expired';
+  expiresAt?: string;
+  closureReason?: 'submitted' | 'expired' | 'cancelled';
+  createdAt: string;
+  origin: LearningOrigin;
+}
+
 export interface StoredProfessionalOutput {
   outputId: string;
   studentId: string;
@@ -125,6 +139,7 @@ export interface StudentLearningFacts {
   globalVersion: number;
   events: StoredLearningEvent[];
   practiceAttempts: StoredPracticeAttempt[];
+  assessmentInstances: StoredFormalAssessmentInstance[];
   attempts: StoredFormalAttempt[];
   outputs: StoredProfessionalOutput[];
   reviews: StoredOutputReview[];
@@ -184,8 +199,7 @@ interface PracticeAttemptRow extends Omit<StoredPracticeAttempt,
   classroomRunId: string | null;
 }
 
-interface FormalAttemptRow {
-  attemptId: string;
+interface FormalAttemptWriteRow {
   studentId: string;
   nodeId: string;
   assessmentId: string | null;
@@ -194,15 +208,6 @@ interface FormalAttemptRow {
   durationSeconds: number | null;
   mistakeKnowledgePointIdsJson: string;
   completedAt: string;
-  questionVersion: string | null;
-  answersJson: string;
-  diagnosticsJson: string;
-  origin: LearningOrigin;
-  instanceAssessmentId?: string | null;
-  instanceNodeId?: string | null;
-  instanceGameId?: string | null;
-  instanceQuestionVersion?: string | null;
-  instanceStatus?: string | null;
 }
 
 interface ProfessionalOutputRow {
@@ -430,32 +435,10 @@ export class LearningRepository {
         WHERE student_id = ?
         ORDER BY attempted_at, attempt_id
       `).all(studentId) as PracticeAttemptRow[];
-      const attempts = this.database.prepare(`
-        SELECT
-          attempt.attempt_id AS attemptId,
-          attempt.student_id AS studentId,
-          attempt.node_id AS nodeId,
-          attempt.assessment_id AS assessmentId,
-          attempt.game_id AS gameId,
-          attempt.score,
-          attempt.duration_seconds AS durationSeconds,
-          attempt.mistake_knowledge_point_ids_json AS mistakeKnowledgePointIdsJson,
-          attempt.completed_at AS completedAt,
-          attempt.question_version AS questionVersion,
-          attempt.answers_json AS answersJson,
-          attempt.diagnostics_json AS diagnosticsJson,
-          attempt.origin,
-          instance.assessment_id AS instanceAssessmentId,
-          instance.node_id AS instanceNodeId,
-          instance.game_id AS instanceGameId,
-          instance.question_version AS instanceQuestionVersion,
-          instance.status AS instanceStatus
-        FROM formal_attempts AS attempt
-        LEFT JOIN formal_assessment_instances AS instance
-          ON instance.assessment_id = attempt.assessment_id
-        WHERE attempt.student_id = ?
-        ORDER BY attempt.completed_at, attempt.attempt_id
-      `).all(studentId) as FormalAttemptRow[];
+      const { assessmentInstances, attempts } = readFormalAssessmentLearningFacts(
+        this.database,
+        studentId,
+      );
       const outputs = this.database.prepare(`
         SELECT
           output_id AS outputId,
@@ -517,7 +500,8 @@ export class LearningRepository {
         globalVersion: this.readTopicVersion('global'),
         events: events.map(toStoredEvent),
         practiceAttempts: practiceAttempts.map(toStoredPracticeAttempt),
-        attempts: attempts.map(toStoredAttempt),
+        assessmentInstances,
+        attempts,
         outputs: outputs.map(toStoredOutput),
         reviews: reviews.map(toStoredReview),
         frozenTaskScores: frozenTaskScores.map(toStoredFrozenTaskScore),
@@ -559,7 +543,7 @@ export class LearningRepository {
     `).get(eventId) as EventRow | undefined;
   }
 
-  private readAttemptRow(attemptId: string): FormalAttemptRow | undefined {
+  private readAttemptRow(attemptId: string): FormalAttemptWriteRow | undefined {
     return this.database.prepare(`
       SELECT
         attempt_id AS attemptId,
@@ -577,7 +561,7 @@ export class LearningRepository {
         origin
       FROM formal_attempts
       WHERE attempt_id = ?
-    `).get(attemptId) as FormalAttemptRow | undefined;
+    `).get(attemptId) as FormalAttemptWriteRow | undefined;
   }
 }
 
@@ -642,7 +626,7 @@ function normalizeAttempt(input: RecordFormalAttemptInput) {
   };
 }
 
-function sameAttempt(existing: FormalAttemptRow, candidate: ReturnType<typeof normalizeAttempt>): boolean {
+function sameAttempt(existing: FormalAttemptWriteRow, candidate: ReturnType<typeof normalizeAttempt>): boolean {
   return existing.studentId === candidate.studentId
     && existing.nodeId === candidate.nodeId
     && existing.assessmentId === candidate.assessmentId
@@ -682,32 +666,6 @@ function toStoredPracticeAttempt(row: PracticeAttemptRow): StoredPracticeAttempt
     attemptNumber: row.attemptNumber,
     attemptedAt: row.attemptedAt,
     origin: row.origin,
-  };
-}
-
-function toStoredAttempt(row: FormalAttemptRow): StoredFormalAttempt {
-  const mistakeKnowledgePointIds = parseJson(row.mistakeKnowledgePointIdsJson);
-  return {
-    attemptId: row.attemptId,
-    studentId: row.studentId,
-    nodeId: row.nodeId,
-    ...(row.assessmentId === null ? {} : { assessmentId: row.assessmentId }),
-    ...(row.gameId === null ? {} : { gameId: row.gameId }),
-    score: row.score,
-    ...(row.durationSeconds === null ? {} : { durationSeconds: row.durationSeconds }),
-    mistakeKnowledgePointIds: Array.isArray(mistakeKnowledgePointIds)
-      ? mistakeKnowledgePointIds.filter((value): value is string => typeof value === 'string')
-      : [],
-    completedAt: row.completedAt,
-    ...(row.questionVersion === null ? {} : { questionVersion: row.questionVersion }),
-    answers: parseJson(row.answersJson),
-    diagnostics: parseJson(row.diagnosticsJson),
-    origin: row.origin,
-    ...(row.instanceAssessmentId ? { instanceAssessmentId: row.instanceAssessmentId } : {}),
-    ...(row.instanceNodeId ? { instanceNodeId: row.instanceNodeId } : {}),
-    ...(row.instanceGameId ? { instanceGameId: row.instanceGameId } : {}),
-    ...(row.instanceQuestionVersion ? { instanceQuestionVersion: row.instanceQuestionVersion } : {}),
-    ...(row.instanceStatus ? { instanceStatus: row.instanceStatus } : {}),
   };
 }
 

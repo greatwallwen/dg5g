@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadP1DemoContent } from '../features/platform/p1-content.ts';
 import {
-  deriveNodeLearningProjection,
   getNodeLearningPolicy,
   nodeLearningPolicies,
 } from './learning-policy.ts';
+import { deriveNodeLearningProjection, type PrerequisiteProgress } from './learning-projection.ts';
 
 test('P1 exposes twelve policies with N02 tests and N04 output review gates', () => {
   assert.equal(nodeLearningPolicies.length, 12);
@@ -34,49 +34,84 @@ test('P1 exposes twelve policies with N02 tests and N04 output review gates', ()
     assert.equal(outputPolicy.requiresProfessionalOutput, true);
     assert.equal(outputPolicy.requiresTeacherVerification, true);
   }
-  assert.deepEqual(getNodeLearningPolicy('P1T3-N01')?.prerequisiteNodeIds, ['P1T2-N04']);
+  assert.deepEqual(getNodeLearningPolicy('P1T3-N01')?.prerequisiteNodeIds, ['P1T2-N02', 'P1T2-N04']);
   assert.deepEqual(getNodeLearningPolicy('P1T3-N01')?.prerequisites, [{
+    nodeId: 'P1T2-N02',
+    condition: 'formal-test-passed',
+  }, {
     nodeId: 'P1T2-N04',
-    condition: 'achieved',
+    condition: 'professional-output-submitted-once',
+  }]);
+});
+
+test('P1 prerequisite matrix uses only explicit user completion facts', () => {
+  for (const prefix of ['P1T1', 'P1T2', 'P1T3']) {
+    assert.deepEqual(getNodeLearningPolicy(`${prefix}-N02`)?.prerequisites, [{
+      nodeId: `${prefix}-N01`,
+      condition: 'micro-practice-passed',
+    }]);
+    assert.deepEqual(getNodeLearningPolicy(`${prefix}-N03`)?.prerequisites, [{
+      nodeId: `${prefix}-N02`,
+      condition: 'micro-practice-passed',
+    }, {
+      nodeId: `${prefix}-N02`,
+      condition: 'formal-test-passed',
+    }]);
+    assert.deepEqual(getNodeLearningPolicy(`${prefix}-N04`)?.prerequisites, [{
+      nodeId: `${prefix}-N03`,
+      condition: 'micro-practice-passed',
+    }]);
+  }
+
+  assert.deepEqual(getNodeLearningPolicy('P1T2-N01')?.prerequisites, [{
+    nodeId: 'P1T1-N02',
+    condition: 'formal-test-passed',
+  }, {
+    nodeId: 'P1T1-N04',
+    condition: 'professional-output-submitted-once',
   }]);
 });
 
 test('task-end state records output submission and certification without a second formal test', () => {
   const policy = getNodeLearningPolicy('P1T1-N04')!;
+  const prerequisites: PrerequisiteProgress[] = [{
+    nodeId: 'P1T1-N03',
+    microPracticePassed: true,
+    formalTestPassed: false,
+    professionalOutputSubmittedOnce: false,
+    teacherVerified: false,
+  }];
 
   const tested = deriveNodeLearningProjection(policy, {
-    prerequisiteMet: true,
     hasActivity: true,
     microPracticePassed: true,
     evidenceReviewStatus: 'not-submitted',
-  });
+  }, prerequisites);
   assert.equal(tested.state, 'micro-practice-passed');
   assert.equal(tested.achieved, false);
   assert.equal(tested.stateTrail.includes('formal-test-passed'), false);
 
   const submitted = deriveNodeLearningProjection(policy, {
-    prerequisiteMet: true,
     hasActivity: true,
     microPracticePassed: true,
     evidenceReviewStatus: 'submitted',
-  });
+  }, prerequisites);
   assert.equal(submitted.state, 'awaiting-review');
   assert.deepEqual(submitted.stateTrail.slice(-2), ['evidence-submitted', 'awaiting-review']);
 
   const returned = deriveNodeLearningProjection(policy, {
-    prerequisiteMet: true,
     hasActivity: true,
     microPracticePassed: true,
     evidenceReviewStatus: 'returned',
-  });
+  }, prerequisites);
   assert.equal(returned.state, 'returned');
 
   const verified = deriveNodeLearningProjection(policy, {
-    prerequisiteMet: true,
     hasActivity: true,
     microPracticePassed: true,
     evidenceReviewStatus: 'verified',
-  });
+    teacherVerified: true,
+  }, prerequisites);
   assert.equal(verified.state, 'achieved');
   assert.deepEqual(verified.stateTrail.slice(-2), ['teacher-verified', 'achieved']);
 });
@@ -84,11 +119,10 @@ test('task-end state records output submission and certification without a secon
 test('ordinary node skips output review only because its policy says so', () => {
   const policy = getNodeLearningPolicy('P1T1-N01')!;
   const projection = deriveNodeLearningProjection(policy, {
-    prerequisiteMet: true,
     hasActivity: true,
     microPracticePassed: true,
     evidenceReviewStatus: 'not-submitted',
-  });
+  }, []);
   assert.equal(projection.state, 'achieved');
   assert.equal(projection.achieved, true);
 });

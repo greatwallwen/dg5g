@@ -119,20 +119,18 @@ test('score and submission fields keep their distinct authoritative meanings', (
       verifiedCount: 3,
     });
     assert.deepEqual(snapshot.classScores, {
-      activeNodeTestHighestScore: 93,
-      activeNodeTestAverageScore: 90.5,
       activeTaskCompositeAverageScore: 94,
       projectCompositeAverageScore: 92,
       distribution: [
-        { range: '90-100', count: 1 },
-        { range: 'pass-89', count: 1 },
+        { range: '90-100', count: 0 },
+        { range: 'pass-89', count: 0 },
         { range: '60-below-pass', count: 0 },
         { range: 'below-60', count: 0 },
       ],
       demoData: true,
     });
     assert.equal(snapshot.students[0]?.nodes.every(({ origin }) => origin === undefined), true);
-    assert.equal(snapshot.students[1]?.nodes.find(({ nodeId }) => nodeId === 'P1T1-N04')?.origin, 'demo');
+    assert.equal(snapshot.students[1]?.nodes.find(({ nodeId }) => nodeId === 'P1T1-N04')?.origin, undefined);
     assert.equal(snapshot.students[2]?.tasks.every(({ origin }) => origin === 'demo'), true);
   } finally {
     fixture.cleanup();

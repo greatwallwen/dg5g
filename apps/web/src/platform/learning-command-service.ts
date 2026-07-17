@@ -151,7 +151,7 @@ export class LearningCommandService {
       .find((node) => node.nodeId === nodeId);
     const isReplay = replayAttemptId !== undefined
       && (currentNode?.attempts.some((attempt) => attempt.attemptId === replayAttemptId) ?? false);
-    if (!isReplay && !currentNode?.stateTrail.includes('micro-practice-passed')) {
+    if (!isReplay && currentNode?.axes.learning !== 'practice-passed') {
       throw new FormalAssessmentReadinessError(nodeId);
     }
     return classification;
@@ -208,7 +208,10 @@ export class LearningCommandService {
     const studentId = requireStudentIdentity(actor);
     const snapshot = this.readModel.readStudentSnapshot(studentId);
     const node = snapshot.nodes.find((candidate) => candidate.nodeId === nodeId);
-    const classification = classifyNodeRoute(nodeId, node?.state === 'locked' ? 'locked' : node ? 'available' : undefined);
+    const classification = classifyNodeRoute(
+      nodeId,
+      node?.axes.access === 'locked' ? 'locked' : node?.axes.access === 'open' ? 'available' : undefined,
+    );
     if (classification.kind !== 'open') throw new NodeRouteAccessError(classification);
     return classification;
   }

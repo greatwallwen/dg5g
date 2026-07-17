@@ -28,22 +28,22 @@ test('missing node progress is never interpreted as an available node', () => {
     kind: 'loading',
     label: '正在读取学习状态',
     disabled: true,
-    prerequisiteNodeIds: ['P1T1-N04'],
+    prerequisiteNodeIds: ['P1T1-N02', 'P1T1-N04'],
   });
   assert.deepEqual(projectNodeAccess('P1T2-N01', []), {
     nodeId: 'P1T2-N01',
     kind: 'unavailable',
     label: '学习状态不可用',
     disabled: true,
-    prerequisiteNodeIds: ['P1T1-N04'],
+    prerequisiteNodeIds: ['P1T1-N02', 'P1T1-N04'],
   });
 });
 
 test('P02 and P03 entries stay disabled until their upstream projected facts unlock them', () => {
   const progress = [
-    { nodeId: 'P1T1-N01', learningState: 'available' as const },
-    { nodeId: 'P1T2-N01', learningState: 'locked' as const },
-    { nodeId: 'P1T3-N01', learningState: 'locked' as const },
+    { nodeId: 'P1T1-N01', access: 'open' as const, learningState: 'available' as const },
+    { nodeId: 'P1T2-N01', access: 'locked' as const, learningState: 'locked' as const },
+    { nodeId: 'P1T3-N01', access: 'locked' as const, learningState: 'locked' as const },
   ];
 
   assert.deepEqual(projectNodeAccess('P1T1-N01', progress), {
@@ -66,11 +66,11 @@ test('P02 and P03 entries stay disabled until their upstream projected facts unl
 test('task entry access is the same authoritative projection as its N01 node', () => {
   assert.equal(projectTaskAccess('P02', undefined).kind, 'loading');
   assert.deepEqual(
-    projectTaskAccess('P02', [{ nodeId: 'P1T2-N01', learningState: 'locked' }]),
-    projectNodeAccess('P1T2-N01', [{ nodeId: 'P1T2-N01', learningState: 'locked' }]),
+    projectTaskAccess('P02', [{ nodeId: 'P1T2-N01', access: 'locked', learningState: 'locked' }]),
+    projectNodeAccess('P1T2-N01', [{ nodeId: 'P1T2-N01', access: 'locked', learningState: 'locked' }]),
   );
   assert.deepEqual(
-    projectTaskAccess('P03', [{ nodeId: 'P1T3-N01', learningState: 'locked' }]),
-    projectNodeAccess('P1T3-N01', [{ nodeId: 'P1T3-N01', learningState: 'locked' }]),
+    projectTaskAccess('P03', [{ nodeId: 'P1T3-N01', access: 'locked', learningState: 'locked' }]),
+    projectNodeAccess('P1T3-N01', [{ nodeId: 'P1T3-N01', access: 'locked', learningState: 'locked' }]),
   );
 });

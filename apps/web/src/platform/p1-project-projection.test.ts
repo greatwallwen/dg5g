@@ -33,10 +33,16 @@ test('projects the authoritative P01 to P03 chain for each seeded student', () =
     assert.equal(new Set(studentOne.tasks.flatMap(({ nodes }) => nodes.map(({ nodeId }) => nodeId))).size, 12);
 
     assert.equal(studentOne.tasks[0].nextNodeId, 'P1T1-N01');
-    assert.equal(studentTwo.tasks[0].nextNodeId, 'P1T1-N04');
+    assert.equal(studentTwo.tasks[0].nextNodeId, 'P1T1-N01');
     assert.equal(studentThree.tasks[2].nextNodeId, undefined);
     assert.equal(studentTwo.tasks[0].outputOrigin, 'demo');
+    assert.equal(studentTwo.tasks[0].outputStatus, 'returned');
+    assert.equal(studentTwo.tasks[0].state, 'output-pending');
+    assert.equal(studentTwo.tasks[0].nodeTestHighestScore, 88);
+    assert.equal(studentTwo.tasks[0].taskScoreOrigin, 'demo');
     assert.equal(studentThree.tasks.every(({ outputOrigin }) => outputOrigin === 'demo'), true);
+    assert.equal(studentThree.tasks.every(({ outputStatus }) => outputStatus === 'verified'), true);
+    assert.equal(studentThree.tasks.every(({ state }) => state === 'verified'), true);
     assert.equal(studentThree.portfolioStatus, 'demo-complete');
 
     assert.equal(studentOne.tasks[1].state, 'locked');
@@ -139,7 +145,7 @@ test('a returned v1 revised and resubmitted as v2 is current on both project and
 
     assert.equal(projection.tasks[0].currentOutputVersion, 2);
     assert.equal(projection.tasks[0].outputOrigin, 'user');
-    assert.equal(projection.tasks[0].outputStatus, 'submitted');
+    assert.equal(projection.tasks[0].outputStatus, 'resubmitted');
     assert.equal(projection.tasks[0].teacherFeedback, undefined);
     assert.equal(projection.tasks[0].verifiedOutputReference, undefined);
     assert.equal(portfolio.items[0]?.versionLabel, 'v2');
@@ -178,6 +184,13 @@ function certifiedLearningFixture(origin: 'demo' | 'user'): StudentLearningSnaps
     studentId: 'stu-certification',
     nodes: content.tasks.flatMap((task) => task.nodes.map((node) => ({
       nodeId: node.id,
+      axes: {
+        access: 'open' as const,
+        learning: 'practice-passed' as const,
+        formalTest: 'not-required' as const,
+        output: outputNodes.has(node.id) ? 'verified' as const : 'not-required' as const,
+        certification: 'achieved' as const,
+      },
       state: 'achieved' as const,
       stateTrail: ['available', 'achieved'],
       completedSections: [],
@@ -208,6 +221,7 @@ function certifiedLearningFixture(origin: 'demo' | 'user'): StudentLearningSnaps
       } : {}),
       prerequisites: [],
       nextRequirement: '已完成',
+      taskAdvanceReady: outputNodes.has(node.id),
       origin,
     }))),
     tasks: content.tasks.map((task, index) => ({

@@ -18,6 +18,13 @@ test('reads only the authenticated student snapshot from /api/learning/me', asyn
       studentId: 'stu-02',
       nodes: [{
         nodeId: 'P1T1-N02',
+        axes: {
+          access: 'open',
+          learning: 'practice-passed',
+          formalTest: 'passed',
+          output: 'not-required',
+          certification: 'achieved',
+        },
         state: 'formal-test-passed',
         stateTrail: ['learning', 'micro-practice-passed', 'formal-test-passed'],
         completedSections: ['problem', 'figure', 'steps', 'correction'],
@@ -33,6 +40,7 @@ test('reads only the authenticated student snapshot from /api/learning/me', asyn
         prerequisites: [],
         bestFormalScore: 88,
         nextRequirement: '进入下一节点',
+        taskAdvanceReady: false,
       }],
       tasks: [{ taskId: 'P01', nodeTestHighestScore: 88 }],
     });
@@ -85,6 +93,7 @@ test('compatibility projection keeps an untested node and unformed task score ab
     studentId: 'stu-01',
     nodes: [{
       nodeId: 'P1T1-N02',
+      axes: { access: 'open', learning: 'not-started', formalTest: 'ready', output: 'not-required', certification: 'not-reached' },
       state: 'available',
       stateTrail: ['available'],
       completedSections: [],
@@ -92,6 +101,7 @@ test('compatibility projection keeps an untested node and unformed task score ab
       attempts: [],
       prerequisites: [],
       nextRequirement: '开始学习',
+      taskAdvanceReady: false,
     }],
     tasks: [{ taskId: 'P01', realTaskCertified: false, demoTaskCertified: false }],
   });
@@ -111,6 +121,7 @@ test('compatibility projection preserves persisted origins for node, attempts, t
     studentId: 'stu-03',
     nodes: [{
       nodeId: 'P1T1-N02',
+      axes: { access: 'open', learning: 'practice-passed', formalTest: 'passed', output: 'not-required', certification: 'achieved' },
       state: 'formal-test-passed',
       stateTrail: ['learning', 'micro-practice-passed', 'formal-test-passed'],
       completedSections: ['problem', 'figure', 'steps', 'correction'],
@@ -127,6 +138,7 @@ test('compatibility projection preserves persisted origins for node, attempts, t
       prerequisites: [],
       bestFormalScore: 93,
       nextRequirement: '继续学习',
+      taskAdvanceReady: false,
       origin: 'demo',
     }],
     tasks: [{
@@ -154,6 +166,7 @@ test('compatibility projection preserves a real zero score while workflow comple
     studentId: 'stu-01',
     nodes: [{
       nodeId: 'P1T1-N02',
+      axes: { access: 'open', learning: 'practice-passed', formalTest: 'passed', output: 'not-required', certification: 'achieved' },
       state: 'formal-test-passed',
       stateTrail: ['learning', 'micro-practice-passed', 'formal-test-passed'],
       completedSections: [],
@@ -169,6 +182,7 @@ test('compatibility projection preserves a real zero score while workflow comple
       prerequisites: [],
       bestFormalScore: 0,
       nextRequirement: '继续学习',
+      taskAdvanceReady: false,
     }],
     tasks: [{
       taskId: 'P01', nodeTestHighestScore: 0,
@@ -300,12 +314,13 @@ test('does not invent a passed formal test for an achieved node without a formal
     studentId: 'stu-01',
     nodes: [{
       nodeId: 'P1T1-N04',
+      axes: { access: 'open', learning: 'practice-passed', formalTest: 'not-required', output: 'verified', certification: 'achieved' },
       state: 'achieved',
       stateTrail: ['learning', 'micro-practice-passed', 'evidence-submitted', 'awaiting-review', 'teacher-verified', 'achieved'],
       completedSections: ['problem', 'figure', 'steps', 'correction'],
       classroomSubmitted: false,
       attempts: [],
-      prerequisites: [{ nodeId: 'P1T1-N03', condition: 'achieved', state: 'achieved', met: true }],
+      prerequisites: [{ nodeId: 'P1T1-N03', condition: 'micro-practice-passed', state: 'achieved', met: true }],
       evidence: {
         outputId: 'output-1',
         taskId: 'P01',
@@ -317,6 +332,7 @@ test('does not invent a passed formal test for an achieved node without a formal
         updatedAt: '2026-07-15T11:00:00.000Z',
       },
       nextRequirement: '进入下一任务',
+      taskAdvanceReady: true,
     }],
     tasks: [{
       taskId: 'P01', nodeTestHighestScore: 88, outputRubricScore: 90, taskCompositeScore: 89,
@@ -340,12 +356,13 @@ test('does not certify a task when an output row says verified but verified revi
     studentId: 'stu-01',
     nodes: [{
       nodeId: 'P1T1-N04',
+      axes: { access: 'open', learning: 'practice-passed', formalTest: 'not-required', output: 'verified', certification: 'pending-review' },
       state: 'awaiting-review',
       stateTrail: ['learning', 'micro-practice-passed', 'evidence-submitted', 'awaiting-review'],
       completedSections: [],
       classroomSubmitted: false,
       attempts: [],
-      prerequisites: [{ nodeId: 'P1T1-N03', condition: 'achieved', state: 'achieved', met: true }],
+      prerequisites: [{ nodeId: 'P1T1-N03', condition: 'micro-practice-passed', state: 'achieved', met: true }],
       evidence: {
         outputId: 'inconsistent-output',
         taskId: 'P01',
@@ -356,6 +373,7 @@ test('does not certify a task when an output row says verified but verified revi
         updatedAt: '2026-07-15T11:00:00.000Z',
       },
       nextRequirement: '等待教师复核',
+      taskAdvanceReady: true,
     }],
     tasks: [{
       taskId: 'P01', nodeTestHighestScore: 88,

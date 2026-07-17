@@ -13,6 +13,7 @@ import { getNodeLearningPolicy, nodeLearningPolicies } from './learning-policy.t
 import { LearningRepository } from './learning-repository.ts';
 import type { NodeLearningState } from './learning-status.ts';
 import { nodeLearningStateCompletionPercent } from './learning-status.ts';
+import type { NodeStateAxes } from './learning-projection.ts';
 import { projectP1Project, type P1ProjectProjection } from './p1-project-projection.ts';
 import { SnapshotClock } from './snapshot-clock.ts';
 import type { LearningOrigin } from './learning-origin.ts';
@@ -100,6 +101,7 @@ export interface StudentSnapshotDetail {
   studentVersion: number;
   nodes: Array<{
     nodeId: P1NodeId;
+    axes: NodeStateAxes;
     state: NodeLearningState;
     nodeTestHighestScore?: number;
     nextRequirement: string;
@@ -521,6 +523,7 @@ function projectStudentDetail(student: ProjectedStudent): StudentSnapshotDetail 
   const { studentVersion: _studentVersion, snapshotVersion: _snapshotVersion, ...project } = fullProject;
   const nodes: StudentSnapshotDetail['nodes'] = student.learning.nodes.map((node) => ({
     nodeId: node.nodeId,
+    axes: node.axes,
     state: node.state,
     ...(node.bestFormalScore === undefined ? {} : { nodeTestHighestScore: node.bestFormalScore }),
     nextRequirement: node.nextRequirement,

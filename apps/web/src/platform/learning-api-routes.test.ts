@@ -739,6 +739,8 @@ async function withAuthenticatedFixture(
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
     passRequiredPractice(fixture.database, 'stu-01', 'P1T1-N01-micro-01', 'P1T1-N01');
+    passRequiredPractice(fixture.database, 'stu-02', 'P1T1-N03-micro-01', 'P1T1-N03');
+    passRequiredPractice(fixture.database, 'stu-03', 'P1T2-N03-micro-01', 'P1T2-N03');
     process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
     closeDatabase();
     const auth = new AuthService(fixture.database);

@@ -1,10 +1,4 @@
-import {
-  deriveNodeLearningProjection as deriveProjection,
-  type EvidenceReviewState,
-  type LearningPrerequisite,
-  type NodeLearningProjection,
-  type PrerequisiteProgress,
-} from './learning-projection.ts';
+import type { LearningPrerequisite } from './learning-projection.ts';
 
 export type P1TaskId = 'P01' | 'P02' | 'P03';
 export type P1NodeId = `P1T${1 | 2 | 3}-N0${1 | 2 | 3 | 4}`;
@@ -28,23 +22,15 @@ export interface NodeLearningPolicy {
   professionalOutputTitle?: string;
 }
 
-export interface NodeLearningSignals {
-  prerequisiteMet: boolean;
-  hasActivity: boolean;
-  microPracticePassed: boolean;
-  bestFormalTestScore?: number;
-  evidenceReviewStatus: EvidenceReviewState;
-}
-
 const taskDefinitions: Array<{
   taskId: P1TaskId;
   prefix: 'P1T1' | 'P1T2' | 'P1T3';
-  entryPrerequisite?: P1NodeId;
+  upstreamPrefix?: 'P1T1' | 'P1T2';
   outputTitle: string;
 }> = [
   { taskId: 'P01', prefix: 'P1T1', outputTitle: '室内设备与链路证据表' },
-  { taskId: 'P02', prefix: 'P1T2', entryPrerequisite: 'P1T1-N04', outputTitle: '室外站点与覆盖采集表' },
-  { taskId: 'P03', prefix: 'P1T3', entryPrerequisite: 'P1T2-N04', outputTitle: '投诉信息调查单' },
+  { taskId: 'P02', prefix: 'P1T2', upstreamPrefix: 'P1T1', outputTitle: '室外站点与覆盖采集表' },
+  { taskId: 'P03', prefix: 'P1T3', upstreamPrefix: 'P1T2', outputTitle: '投诉信息调查单' },
 ];
 
 const requiredActivityIdsByNode: Record<P1NodeId, readonly string[]> = {
@@ -81,21 +67,27 @@ export const nodeLearningPolicies: NodeLearningPolicy[] = taskDefinitions.flatMa
     const isTaskEntry = index === 1;
     const isNodeTest = index === 2;
     const isTaskEnd = index === 4;
-    const prerequisiteNodeId = isTaskEntry
-      ? task.entryPrerequisite
-      : `${task.prefix}-N0${index - 1}` as P1NodeId;
-    const prerequisites: LearningPrerequisite[] = prerequisiteNodeId
-      ? [{
-        nodeId: prerequisiteNodeId,
-        condition: 'achieved',
-      }]
-      : [];
+    const prerequisites: LearningPrerequisite[] = isTaskEntry
+      ? task.upstreamPrefix
+        ? [
+            { nodeId: `${task.upstreamPrefix}-N02`, condition: 'formal-test-passed' },
+            { nodeId: `${task.upstreamPrefix}-N04`, condition: 'professional-output-submitted-once' },
+          ]
+        : []
+      : index === 2
+        ? [{ nodeId: `${task.prefix}-N01`, condition: 'micro-practice-passed' }]
+        : index === 3
+          ? [
+              { nodeId: `${task.prefix}-N02`, condition: 'micro-practice-passed' },
+              { nodeId: `${task.prefix}-N02`, condition: 'formal-test-passed' },
+            ]
+          : [{ nodeId: `${task.prefix}-N03`, condition: 'micro-practice-passed' }];
     return {
       nodeId,
       taskId: task.taskId,
       publicationStatus: 'published',
       prerequisites,
-      prerequisiteNodeIds: prerequisites.map((item) => item.nodeId),
+      prerequisiteNodeIds: [...new Set(prerequisites.map((item) => item.nodeId))],
       requiresMicroPractice: true,
       requiredActivityIds: requiredActivityIdsByNode[nodeId],
       requiresFormalTest: isNodeTest,
@@ -112,21 +104,4 @@ const policyByNode = new Map(nodeLearningPolicies.map((policy) => [policy.nodeId
 
 export function getNodeLearningPolicy(nodeId: string): NodeLearningPolicy | undefined {
   return policyByNode.get(nodeId as P1NodeId);
-}
-
-/**
- * Temporary adapter for legacy callers. New services must call the three-argument
- * projector from learning-projection.ts with real prerequisite facts.
- */
-export function deriveNodeLearningProjection(
-  policy: NodeLearningPolicy,
-  signals: NodeLearningSignals,
-): NodeLearningProjection {
-  const prerequisiteProgress: PrerequisiteProgress[] = policy.prerequisites.map((item) => ({
-    nodeId: item.nodeId,
-    achieved: signals.prerequisiteMet,
-    formalTestPassed: signals.prerequisiteMet,
-    professionalOutputSubmitted: signals.prerequisiteMet,
-  }));
-  return deriveProjection(policy, signals, prerequisiteProgress);
 }

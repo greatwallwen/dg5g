@@ -51,6 +51,8 @@ function projectSkillProgress(studentId: string, node: StudentNodeLearningSnapsh
   return {
     studentId,
     nodeId: node.nodeId,
+    access: node.axes.access,
+    axes: node.axes,
     state: node.state === 'locked' ? 'locked' : node.state === 'available' ? 'available' : node.state === 'achieved' ? 'mastered' : 'learning',
     masteryPercent: nodeLearningStateCompletionPercent[node.state],
     completedSectionIds: node.completedSections,

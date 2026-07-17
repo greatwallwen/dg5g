@@ -1,5 +1,6 @@
 import { nodeLearningStateLabel, type NodeLearningState } from './learning-status';
 import { getNodeLearningPolicy, type P1TaskId } from './learning-policy';
+import type { NodeStateAxes } from './learning-projection';
 
 export type NodeAccessKind = 'open' | 'locked' | 'loading' | 'unavailable';
 
@@ -14,6 +15,8 @@ export interface NodeAccessProjection {
 
 export interface NodeAccessProgress {
   nodeId: string;
+  access?: NodeStateAxes['access'];
+  axes?: Pick<NodeStateAxes, 'access'>;
   learningState?: NodeLearningState;
 }
 
@@ -36,14 +39,15 @@ export function projectNodeAccess(
     return { nodeId, kind: 'loading', label: '正在读取学习状态', disabled: true, prerequisiteNodeIds };
   }
   const record = progress.find((item) => item.nodeId === nodeId);
-  if (!record?.learningState) {
+  const access = record?.axes?.access ?? record?.access;
+  if (!record?.learningState || !access) {
     return { nodeId, kind: 'unavailable', label: '学习状态不可用', disabled: true, prerequisiteNodeIds };
   }
   return {
     nodeId,
-    kind: record.learningState === 'locked' ? 'locked' : 'open',
+    kind: access === 'open' ? 'open' : 'locked',
     label: nodeLearningStateLabel[record.learningState],
-    disabled: record.learningState === 'locked',
+    disabled: access !== 'open',
     prerequisiteNodeIds,
     state: record.learningState,
   };

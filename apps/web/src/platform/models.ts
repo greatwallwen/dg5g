@@ -1,5 +1,6 @@
 import type { NodeLearningState } from './learning-status';
 import type { LearningOrigin } from './learning-origin';
+import type { NodeStateAxes } from './learning-projection';
 
 export type { NodeLearningState } from './learning-status';
 
@@ -157,6 +158,8 @@ export interface SkillLearningEvent {
 export interface SkillProgress {
   studentId: string;
   nodeId: string;
+  access?: NodeStateAxes['access'];
+  axes?: NodeStateAxes;
   state: SkillMasteryState;
   masteryPercent: number;
   completedSectionIds: string[];

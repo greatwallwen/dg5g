@@ -125,9 +125,11 @@ const taskStateLabels: Record<TaskLearningState, string> = {
 
 const outputStatusLabels: Record<ProfessionalOutputProjectionStatus, string> = {
   'not-started': '尚未形成',
-  draft: '草稿',
+  editing: '编辑中',
   submitted: '待教师复核',
   returned: '退回修订',
+  revising: '修订中',
+  resubmitted: '再次提交，待教师复核',
   verified: '教师已认证',
 };
 
