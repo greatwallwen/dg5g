@@ -236,7 +236,7 @@ function aggregate(
     },
     versions: [{
       outputId: 'output-p01', taskId: 'P01', version: 1, schemaVersion: 1,
-      fields, upstreamRefs: [], evidenceLinks, fieldSources,
+      fields, upstreamRefs: [], evidenceLinks, evidenceGaps: {}, fieldSources,
     }],
     submissionCount,
     reviewHistory,

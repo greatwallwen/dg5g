@@ -63,6 +63,10 @@ export interface ProfessionalOutputEvidenceLink {
   fieldKey: string;
   evidenceId: string;
 }
+export interface ProfessionalOutputEvidenceGap {
+  gapText: string;
+  nextActionText: string;
+}
 export interface ProfessionalOutputReviewHistoryEntry {
   reviewId: string;
   reviewerId: string;
@@ -81,6 +85,7 @@ export interface ProfessionalOutputVersion {
   fields: Record<string, ProfessionalOutputFieldValue>;
   upstreamRefs: ProfessionalOutputUpstreamRef[];
   evidenceLinks: Record<string, string[]>;
+  evidenceGaps: Record<string, ProfessionalOutputEvidenceGap>;
   fieldSources: ProfessionalOutputFieldSource[];
 }
 export interface ProfessionalOutputAggregate {
@@ -102,6 +107,7 @@ export interface WriteProfessionalOutputInput {
   fields: Record<string, ProfessionalOutputFieldValue>;
   upstreamRefs: ProfessionalOutputUpstreamRef[];
   evidenceLinks?: Record<string, string[]>;
+  evidenceGaps?: Record<string, ProfessionalOutputEvidenceGap>;
 }
 export class ProfessionalOutputUpstreamError extends Error {
   constructor(message: string) {
@@ -162,6 +168,8 @@ interface NormalizedWrite {
   upstreamRefsJson: string;
   evidenceLinks: Record<string, string[]>;
   evidenceLinksJson: string;
+  evidenceGaps: Record<string, ProfessionalOutputEvidenceGap>;
+  evidenceGapsJson: string;
 }
 
 const outputNodeByTask: Record<P1OutputTaskId, string> = {
@@ -271,6 +279,7 @@ export class ProfessionalOutputRepository {
 
       this.assertUpstreamRefs(command);
       this.assertEvidenceLinks(command);
+      this.assertEvidenceGaps(command);
       const outputId = head?.outputId ?? command.outputId ?? this.createOutputId();
       assertNonEmpty('outputId', outputId);
       const currentVersion = head?.currentVersion ?? 0;
@@ -280,6 +289,9 @@ export class ProfessionalOutputRepository {
       const currentEvidenceLinks = current
         ? this.readEvidenceLinks(outputId, currentVersion)
         : {};
+      const currentEvidenceGaps = current
+        ? this.readEvidenceGaps(outputId, currentVersion)
+        : {};
       const currentFieldSources = current
         ? this.readFieldSources(outputId, currentVersion)
         : [];
@@ -288,6 +300,7 @@ export class ProfessionalOutputRepository {
         || current.fieldsJson !== command.fieldsJson
         || current.upstreamRefsJson !== command.upstreamRefsJson
         || stableJson(currentEvidenceLinks) !== command.evidenceLinksJson
+        || stableJson(currentEvidenceGaps) !== command.evidenceGapsJson
         || stableJson(currentFieldSources) !== stableJson(fieldSources);
       if (targetStatus === 'submitted' && current) {
         const returnedVersion = this.latestReturnedVersion(outputId)
@@ -297,7 +310,8 @@ export class ProfessionalOutputRepository {
           : this.readVersion(outputId, returnedVersion);
         if (returned
           && stableJson(JSON.parse(returned.fieldsJson)) === command.fieldsJson
-          && stableJson(this.readEvidenceLinks(outputId, returned.version)) === command.evidenceLinksJson) {
+          && stableJson(this.readEvidenceLinks(outputId, returned.version)) === command.evidenceLinksJson
+          && stableJson(this.readEvidenceGaps(outputId, returned.version)) === command.evidenceGapsJson) {
           throw new ProfessionalOutputRevisionRequiredError();
         }
       }
@@ -351,6 +365,7 @@ export class ProfessionalOutputRepository {
           command.upstreamRefsJson,
         );
         this.insertEvidenceLinks(outputId, nextVersion, command.evidenceLinks);
+        this.insertEvidenceGaps(outputId, nextVersion, command.evidenceGaps);
         this.insertFieldSources(outputId, nextVersion, fieldSources);
       }
 
@@ -431,6 +446,16 @@ export class ProfessionalOutputRepository {
     }
   }
 
+  private assertEvidenceGaps(command: NormalizedWrite): void {
+    for (const fieldKey of Object.keys(command.evidenceGaps)) {
+      if (!(fieldKey in command.fields)) {
+        throw new ProfessionalOutputEvidenceError(
+          `Evidence gap field must exist in this output version: ${fieldKey}.`,
+        );
+      }
+    }
+  }
+
   private deriveFieldSources(
     command: NormalizedWrite,
     current: ProfessionalOutputFieldSource[],
@@ -488,6 +513,21 @@ export class ProfessionalOutputRepository {
     `);
     for (const [fieldKey, evidenceIds] of Object.entries(links)) {
       for (const evidenceId of evidenceIds) insert.run(outputId, version, fieldKey, evidenceId);
+    }
+  }
+
+  private insertEvidenceGaps(
+    outputId: string,
+    version: number,
+    gaps: Record<string, ProfessionalOutputEvidenceGap>,
+  ): void {
+    const insert = this.database.prepare(`
+      INSERT INTO output_evidence_gaps (
+        output_id, version, field_key, gap_text, next_action_text
+      ) VALUES (?, ?, ?, ?, ?)
+    `);
+    for (const [fieldKey, gap] of Object.entries(gaps)) {
+      insert.run(outputId, version, fieldKey, gap.gapText, gap.nextActionText);
     }
   }
 
@@ -589,6 +629,7 @@ export class ProfessionalOutputRepository {
       fields: JSON.parse(row.fieldsJson) as Record<string, ProfessionalOutputFieldValue>,
       upstreamRefs: JSON.parse(row.upstreamRefsJson) as ProfessionalOutputUpstreamRef[],
       evidenceLinks: this.readEvidenceLinks(row.outputId, row.version),
+      evidenceGaps: this.readEvidenceGaps(row.outputId, row.version),
       fieldSources: this.readFieldSources(row.outputId, row.version),
     };
   }
@@ -605,6 +646,23 @@ export class ProfessionalOutputRepository {
       (links[fieldKey] ??= []).push(evidenceId);
     }
     return links;
+  }
+
+  private readEvidenceGaps(
+    outputId: string,
+    version: number,
+  ): Record<string, ProfessionalOutputEvidenceGap> {
+    const rows = this.database.prepare(`
+      SELECT field_key AS fieldKey, gap_text AS gapText,
+        next_action_text AS nextActionText
+      FROM output_evidence_gaps
+      WHERE output_id = ? AND version = ?
+      ORDER BY field_key
+    `).all(outputId, version) as Array<ProfessionalOutputEvidenceGap & { fieldKey: string }>;
+    return Object.fromEntries(rows.map(({ fieldKey, gapText, nextActionText }) => [
+      fieldKey,
+      { gapText, nextActionText },
+    ]));
   }
 
   private readFieldSources(outputId: string, version: number): ProfessionalOutputFieldSource[] {
@@ -740,6 +798,22 @@ function normalizeWrite(input: WriteProfessionalOutputInput): NormalizedWrite {
     });
     return [fieldKey, [...new Set(ids)].sort()];
   })) as Record<string, string[]>;
+  const evidenceGapInput = input.evidenceGaps ?? {};
+  if (!isRecord(evidenceGapInput)) throw new TypeError('evidenceGaps must be an object.');
+  const evidenceGaps = Object.fromEntries(Object.entries(evidenceGapInput).map(([fieldKey, value]) => {
+    assertNonEmpty('evidence gap field name', fieldKey);
+    if (!isRecord(value)) {
+      throw new TypeError(`evidenceGaps.${fieldKey} must be an object.`);
+    }
+    const gapText = typeof value.gapText === 'string' ? value.gapText.trim() : '';
+    const nextActionText = typeof value.nextActionText === 'string'
+      ? value.nextActionText.trim()
+      : '';
+    if (!gapText && !nextActionText) {
+      throw new TypeError(`Evidence gap must include gapText or nextActionText: ${fieldKey}.`);
+    }
+    return [fieldKey, { gapText, nextActionText }];
+  })) as Record<string, ProfessionalOutputEvidenceGap>;
   return {
     ...(input.outputId === undefined ? {} : { outputId: input.outputId }),
     studentId: input.studentId,
@@ -751,6 +825,8 @@ function normalizeWrite(input: WriteProfessionalOutputInput): NormalizedWrite {
     upstreamRefsJson: stableJson(upstreamRefs),
     evidenceLinks,
     evidenceLinksJson: stableJson(evidenceLinks),
+    evidenceGaps,
+    evidenceGapsJson: stableJson(evidenceGaps),
   };
 }
 

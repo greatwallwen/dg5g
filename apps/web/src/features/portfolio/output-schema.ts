@@ -8,6 +8,10 @@ export interface ProfessionalOutputFieldSchema {
   label: string;
   required: true;
   valueType: 'text';
+  evidencePolicy: {
+    requirement: 'evidence-or-gap';
+    completeGapRequires: readonly ['gapText', 'nextActionText'];
+  };
 }
 
 export interface ProfessionalOutputSchema {
@@ -48,6 +52,10 @@ export function professionalOutputSchemaForTask(
       label: descriptor.trim(),
       required: true,
       valueType: 'text',
+      evidencePolicy: {
+        requirement: 'evidence-or-gap',
+        completeGapRequires: ['gapText', 'nextActionText'],
+      },
     } satisfies ProfessionalOutputFieldSchema;
   });
   if (fields.length === 0) {

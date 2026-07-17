@@ -13,12 +13,12 @@ test('applies ordered migrations once and replays idempotently', () => {
       'SELECT version FROM schema_migrations ORDER BY version',
     ).all() as Array<{ version: number }>;
 
-    assert.deepEqual(first.appliedVersions, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    assert.deepEqual(first.appliedVersions, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
     assert.deepEqual(replay.appliedVersions, []);
-    assert.equal(replay.currentVersion, 12);
+    assert.equal(replay.currentVersion, 13);
     assert.deepEqual(
       recorded.map(({ version }) => version),
-      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
     );
   } finally {
     testDatabase.cleanup();
@@ -29,10 +29,10 @@ test('rejects a database whose schema version is newer than this runtime', () =>
   const testDatabase = createTestDatabase();
 
   try {
-    testDatabase.database.pragma('user_version = 13');
+    testDatabase.database.pragma('user_version = 14');
     assert.throws(
       () => migrateDatabase(testDatabase.database),
-      /schema version 13 is newer than supported version 12/i,
+      /schema version 14 is newer than supported version 13/i,
     );
   } finally {
     testDatabase.cleanup();
@@ -44,10 +44,10 @@ test('rejects migration history ahead of PRAGMA user_version', () => {
 
   try {
     migrateDatabase(testDatabase.database);
-    testDatabase.database.pragma('user_version = 11');
+    testDatabase.database.pragma('user_version = 12');
     assert.throws(
       () => migrateDatabase(testDatabase.database),
-      /migration history version 12 does not match PRAGMA user_version 11/i,
+      /migration history version 13 does not match PRAGMA user_version 12/i,
     );
   } finally {
     testDatabase.cleanup();
@@ -59,10 +59,10 @@ test('rejects PRAGMA user_version ahead of migration history', () => {
 
   try {
     migrateDatabase(testDatabase.database);
-    testDatabase.database.prepare('DELETE FROM schema_migrations WHERE version = 12').run();
+    testDatabase.database.prepare('DELETE FROM schema_migrations WHERE version = 13').run();
     assert.throws(
       () => migrateDatabase(testDatabase.database),
-      /migration history version 11 does not match PRAGMA user_version 12/i,
+      /migration history version 12 does not match PRAGMA user_version 13/i,
     );
   } finally {
     testDatabase.cleanup();
@@ -76,11 +76,11 @@ test('rejects migration history versions unsupported by this runtime', () => {
     migrateDatabase(testDatabase.database);
     testDatabase.database.prepare(`
       INSERT INTO schema_migrations (version, name, checksum)
-        VALUES (13, 'unexpected', 'unexpected')
+        VALUES (14, 'unexpected', 'unexpected')
     `).run();
     assert.throws(
       () => migrateDatabase(testDatabase.database),
-      /migration history contains unsupported version 13/i,
+      /migration history contains unsupported version 14/i,
     );
   } finally {
     testDatabase.cleanup();
@@ -143,6 +143,7 @@ test('creates the exact versioned domain tables without superseded storage model
       'formal_assessment_tokens',
       'evidence_library',
       'output_evidence_links',
+      'output_evidence_gaps',
       'output_field_sources',
       'output_review_annotations',
       'self_study_cursors',
@@ -307,7 +308,7 @@ test('migration 005 promotes legacy content to immutable canonical output v1', (
     `);
 
     const result = migrateDatabase(testDatabase.database);
-    assert.deepEqual(result.appliedVersions, [5, 6, 7, 8, 9, 10, 11, 12]);
+    assert.deepEqual(result.appliedVersions, [5, 6, 7, 8, 9, 10, 11, 12, 13]);
     assert.deepEqual(testDatabase.database.prepare(`
       SELECT
         task_id AS taskId,
@@ -404,7 +405,7 @@ test('migration 006 backfills classroom revision topics without rolling a newer 
     `);
 
     const result = migrateDatabase(testDatabase.database);
-    assert.deepEqual(result.appliedVersions, [6, 7, 8, 9, 10, 11, 12]);
+    assert.deepEqual(result.appliedVersions, [6, 7, 8, 9, 10, 11, 12, 13]);
     assert.deepEqual(testDatabase.database.prepare(`
       SELECT version, updated_at AS updatedAt
       FROM snapshot_versions WHERE topic = 'classroom:session-revision-7'
@@ -442,8 +443,8 @@ test('migration 008 upgrades a v5 cursor row to the per-student per-node key wit
     `);
 
     const result = migrateDatabase(testDatabase.database);
-    assert.deepEqual(result.appliedVersions, [6, 7, 8, 9, 10, 11, 12]);
-    assert.equal(result.currentVersion, 12);
+    assert.deepEqual(result.appliedVersions, [6, 7, 8, 9, 10, 11, 12, 13]);
+    assert.equal(result.currentVersion, 13);
     const columns = testDatabase.database.prepare(`
       PRAGMA table_info(self_study_cursors)
     `).all() as Array<{ name: string; pk: number }>;
@@ -634,6 +635,66 @@ test('migration 011 gives every student assessment instance an optional shared c
       SELECT name FROM pragma_index_list('formal_assessment_instances')
     `).pluck().all() as string[]);
     assert.equal(indexes.has('formal_assessment_instances_classroom_run_idx'), true);
+  } finally {
+    testDatabase.cleanup();
+  }
+});
+
+test('migration 013 stores immutable evidence gaps against exact output versions', () => {
+  const testDatabase = createTestDatabase();
+
+  try {
+    migrateDatabase(testDatabase.database);
+    testDatabase.database.exec(`
+      INSERT INTO users (id, username, display_name, role, password_hash)
+      VALUES ('gap-student', 'gap-student', 'Gap student', 'student', 'disabled');
+      INSERT INTO professional_outputs (
+        output_id, student_id, task_id, node_id, status, content_json,
+        current_version, state_revision, origin
+      ) VALUES (
+        'output-gap', 'gap-student', 'P01', 'P1T1-N04', 'draft', '{}', 1, 1, 'user'
+      );
+      INSERT INTO professional_output_versions (
+        output_id, task_id, version, schema_version, fields_json, upstream_refs_json
+      ) VALUES ('output-gap', 'P01', 1, 1, '{}', '[]');
+      INSERT INTO output_evidence_gaps (
+        output_id, version, field_key, gap_text, next_action_text
+      ) VALUES (
+        'output-gap', 1, 'deviceIdentity', '铭牌被遮挡', '补拍铭牌并复核台账'
+      );
+    `);
+
+    assert.deepEqual(testDatabase.database.prepare(`
+      SELECT output_id AS outputId, version, field_key AS fieldKey,
+        gap_text AS gapText, next_action_text AS nextActionText
+      FROM output_evidence_gaps
+    `).get(), {
+      outputId: 'output-gap',
+      version: 1,
+      fieldKey: 'deviceIdentity',
+      gapText: '铭牌被遮挡',
+      nextActionText: '补拍铭牌并复核台账',
+    });
+    assert.throws(() => testDatabase.database.prepare(`
+      INSERT INTO output_evidence_gaps (
+        output_id, version, field_key, gap_text, next_action_text
+      ) VALUES ('output-gap', 1, 'connectionDirection', '', '')
+    `).run(), /CHECK constraint failed/i);
+    assert.throws(() => testDatabase.database.prepare(`
+      UPDATE output_evidence_gaps SET gap_text = 'tampered'
+      WHERE output_id = 'output-gap' AND version = 1
+    `).run(), /output evidence gaps are immutable/i);
+    assert.throws(() => testDatabase.database.prepare(`
+      DELETE FROM output_evidence_gaps
+      WHERE output_id = 'output-gap' AND version = 1
+    `).run(), /output evidence gaps are immutable/i);
+
+    testDatabase.database.prepare(`
+      DELETE FROM professional_outputs WHERE output_id = 'output-gap'
+    `).run();
+    assert.equal(testDatabase.database.prepare(`
+      SELECT COUNT(*) FROM output_evidence_gaps WHERE output_id = 'output-gap'
+    `).pluck().get(), 0);
   } finally {
     testDatabase.cleanup();
   }

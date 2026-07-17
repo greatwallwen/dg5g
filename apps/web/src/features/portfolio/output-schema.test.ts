@@ -33,6 +33,20 @@ test('P01 uses the exact ten-field indoor evidence sheet while P02 and P03 retai
   }
 });
 
+test('every output field declares its evidence-or-complete-gap policy explicitly', () => {
+  const catalog = loadSelfStudyCatalog();
+  for (const taskId of ['P01', 'P02', 'P03'] as const) {
+    const schema = professionalOutputSchemaForTask(catalog, taskId);
+    assert.ok(schema.fields.length > 0);
+    for (const field of schema.fields) {
+      assert.deepEqual(field.evidencePolicy, {
+        requirement: 'evidence-or-gap',
+        completeGapRequires: ['gapText', 'nextActionText'],
+      }, `${taskId}:${field.key}`);
+    }
+  }
+});
+
 test('generated fieldsets visibly cover each task evidence domain without a second field list', () => {
   const catalog = loadSelfStudyCatalog();
   const expectedCopy = {

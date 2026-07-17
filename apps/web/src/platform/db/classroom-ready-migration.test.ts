@@ -15,7 +15,7 @@ test('migration 012 adds classroom-ready runtime contracts', () => {
       SELECT name FROM pragma_table_info(?)
     `).pluck().all(table) as string[]);
 
-    assert.equal(result.currentVersion, 12);
+    assert.equal(result.currentVersion, 13);
     for (const table of [
       'classroom_lesson_runs',
       'classroom_assessment_runs',

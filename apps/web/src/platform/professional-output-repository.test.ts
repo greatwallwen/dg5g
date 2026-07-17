@@ -58,6 +58,7 @@ test('saving a draft creates immutable v1 and submitting the same fields advance
       fields,
       upstreamRefs: [],
       evidenceLinks: {},
+      evidenceGaps: {},
       fieldSources: [],
     }]);
     assert.equal(draft.submissionCount, 0);
@@ -95,6 +96,86 @@ test('saving a draft creates immutable v1 and submitting the same fields advance
     return fixture.database.prepare(
       'SELECT version FROM snapshot_versions WHERE topic = ?',
     ).pluck().get(topic) as number;
+  }
+});
+
+test('draft evidence gaps may be partial and append an immutable version when revised', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    const repository = new ProfessionalOutputRepository(fixture.database, () => 'output-gap-draft');
+    const fields = completeP01Fields();
+    const v1 = repository.saveDraft({
+      studentId: 'stu-01',
+      taskId: 'P01',
+      expectedStateRevision: 0,
+      fields,
+      upstreamRefs: [],
+      evidenceGaps: {
+        deviceIdentity: { gapText: '铭牌被遮挡', nextActionText: '' },
+        connectionDirection: { gapText: '', nextActionText: '补拍远端端口' },
+      },
+    });
+
+    assert.deepEqual(v1.versions[0]?.evidenceGaps, {
+      connectionDirection: { gapText: '', nextActionText: '补拍远端端口' },
+      deviceIdentity: { gapText: '铭牌被遮挡', nextActionText: '' },
+    });
+    const v2 = repository.saveDraft({
+      outputId: v1.head.outputId,
+      studentId: 'stu-01',
+      taskId: 'P01',
+      expectedStateRevision: 1,
+      fields,
+      upstreamRefs: [],
+      evidenceGaps: {
+        deviceIdentity: { gapText: '铭牌被遮挡', nextActionText: '补拍铭牌并复核台账' },
+      },
+    });
+
+    assert.equal(v2.head.currentVersion, 2);
+    assert.deepEqual(v2.versions.map(({ version, evidenceGaps }) => ({ version, evidenceGaps })), [
+      { version: 1, evidenceGaps: {
+        connectionDirection: { gapText: '', nextActionText: '补拍远端端口' },
+        deviceIdentity: { gapText: '铭牌被遮挡', nextActionText: '' },
+      } },
+      { version: 2, evidenceGaps: {
+        deviceIdentity: { gapText: '铭牌被遮挡', nextActionText: '补拍铭牌并复核台账' },
+      } },
+    ]);
+    assert.equal(fixture.database.prepare(`
+      SELECT COUNT(*) FROM output_evidence_gaps WHERE output_id = 'output-gap-draft'
+    `).pluck().get(), 3);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('empty or unknown-field evidence gaps are rejected before output facts are written', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    const repository = new ProfessionalOutputRepository(fixture.database, () => 'output-invalid-gap');
+    const invalidGaps: Array<Record<string, { gapText: string; nextActionText: string }>> = [
+      { deviceIdentity: { gapText: ' ', nextActionText: '' } },
+      { inventedField: { gapText: '无法采集', nextActionText: '升级处理' } },
+    ];
+    for (const evidenceGaps of invalidGaps) {
+      assert.throws(() => repository.saveDraft({
+        studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
+        fields: completeP01Fields(), upstreamRefs: [], evidenceGaps,
+      }), /evidence gap|field/i);
+      assert.deepEqual(mutationCounts(fixture.database, 'output-invalid-gap'), {
+        heads: 0, versions: 0, links: 0, sources: 0, events: 0,
+      });
+      assert.equal(fixture.database.prepare(`
+        SELECT COUNT(*) FROM output_evidence_gaps WHERE output_id = 'output-invalid-gap'
+      `).pluck().get(), 0);
+    }
+  } finally {
+    fixture.cleanup();
   }
 });
 
