@@ -12,6 +12,36 @@ import {
   type ReviewProfessionalOutputInput,
 } from './professional-output-repository.ts';
 import { ProfessionalOutputPortfolioReader } from './professional-output-portfolio-reader.ts';
+import {
+  assertTeacherCertificationPolicy,
+  TeacherCertificationPolicyError,
+} from './teacher-certification-policy.ts';
+
+test('teacher certification policy independently rejects a demo-origin output head', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    insertSubmittedOutput(fixture.database, 'cert-policy-demo-origin');
+    fixture.database.prepare(`
+      UPDATE professional_outputs SET origin = 'demo'
+      WHERE output_id = 'cert-policy-demo-origin'
+    `).run();
+    const head = {
+      outputId: 'cert-policy-demo-origin', studentId: 'stu-01', taskId: 'P01' as const,
+      currentVersion: 1, origin: 'demo' as const,
+    };
+
+    assert.throws(() => assertTeacherCertificationPolicy(fixture.database, head, {
+      teacherId: 'teacher-01', classId: 'demo-class', outputId: head.outputId,
+      expectedStateRevision: 2, expectedOutputVersion: 1,
+      action: 'return', feedback: 'Replace the missing field evidence before resubmitting.',
+      annotations: {},
+    }), TeacherCertificationPolicyError);
+  } finally {
+    fixture.cleanup();
+  }
+});
 
 test('teacher verify rejects a non-catalog rubric before review, head, score, event, or snapshot writes', () => {
   const fixture = createTestDatabase();

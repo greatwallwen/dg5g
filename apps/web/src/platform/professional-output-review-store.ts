@@ -121,6 +121,7 @@ interface HeadRow {
   status: ProfessionalOutputStatus;
   currentVersion: number;
   stateRevision: number;
+  origin: 'demo' | 'user';
 }
 
 export interface NormalizedProfessionalOutputReview {
@@ -168,6 +169,7 @@ export class ProfessionalOutputReviewStore {
       INNER JOIN professional_output_versions AS version
         ON version.output_id = output.output_id AND version.version = output.current_version
       WHERE output.status = 'submitted'
+        AND output.origin = 'user'
         AND EXISTS (
           SELECT 1 FROM classroom_sessions AS session
           INNER JOIN classroom_members AS member ON member.session_id = session.session_id
@@ -199,7 +201,9 @@ export class ProfessionalOutputReviewStore {
     const command = normalizeReview(input);
     return this.database.transaction(() => {
       const head = this.readHead(command.outputId);
-      if (!head || !this.teacherCanReviewStudent(command.teacherId, command.classId, head.studentId)) {
+      if (!head
+        || head.origin !== 'user'
+        || !this.teacherCanReviewStudent(command.teacherId, command.classId, head.studentId)) {
         throw new ProfessionalOutputNotFoundError(command.outputId);
       }
       if (head.stateRevision !== command.expectedStateRevision) {
@@ -301,7 +305,7 @@ export class ProfessionalOutputReviewStore {
   private readHead(outputId: string): HeadRow | undefined {
     return this.database.prepare(`
       SELECT output_id AS outputId, student_id AS studentId, task_id AS taskId,
-        status, current_version AS currentVersion, state_revision AS stateRevision
+        status, current_version AS currentVersion, state_revision AS stateRevision, origin
       FROM professional_outputs WHERE output_id = ?
     `).get(outputId) as HeadRow | undefined;
   }

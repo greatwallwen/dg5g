@@ -5,7 +5,10 @@ import { migrateDatabase } from './db/migrations.ts';
 import { createTestDatabase } from './db/test-database.ts';
 import { p01OutputFieldKeys } from '../features/portfolio/p01-output-definition.ts';
 import { assessmentDimensionKeys } from './formal-assessment-contract.ts';
-import { ProfessionalOutputRepository } from './professional-output-repository.ts';
+import {
+  ProfessionalOutputNotFoundError,
+  ProfessionalOutputRepository,
+} from './professional-output-repository.ts';
 import {
   completePolicyGaps,
   maximumPolicyRubricScores,
@@ -152,13 +155,13 @@ test('teacher verification never launders a demo-only formal score into a user f
   }
 });
 
-test('teacher review queue contains only current submitted outputs from the teacher class', () => {
+test('teacher review queue contains only current user-origin submitted outputs from the teacher class', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
     seedBase(fixture.database);
     seedLegalProfessionalOutputSubmissionFacts(fixture.database, 'stu-01');
-    const ids = ['submitted-stu-01', 'draft-stu-02'];
+    const ids = ['submitted-stu-01', 'draft-stu-02', 'demo-submitted-stu-03'];
     const repository = new ProfessionalOutputRepository(fixture.database, () => ids.shift()!);
     const submittedFields = completeP01Fields('stu-01 submitted result');
     const evidenceGaps = completePolicyGaps('P01');
@@ -175,6 +178,15 @@ test('teacher review queue contains only current submitted outputs from the teac
       studentId: 'stu-02', taskId: 'P01', expectedStateRevision: 0,
       fields: completeP01Fields('stu-02 draft result'), upstreamRefs: [],
     });
+    repository.saveDraft({
+      studentId: 'stu-03', taskId: 'P01', expectedStateRevision: 0,
+      fields: completeP01Fields('stu-03 demo submitted result'), upstreamRefs: [],
+    });
+    fixture.database.prepare(`
+      UPDATE professional_outputs
+      SET status = 'submitted', origin = 'demo'
+      WHERE output_id = 'demo-submitted-stu-03'
+    `).run();
 
     const queue = repository.listSubmittedForTeacher('teacher-01', 'demo-class');
     assert.equal(queue.length, 1);
@@ -190,6 +202,38 @@ test('teacher review queue contains only current submitted outputs from the teac
       fields: submittedFields,
     });
     assert.deepEqual(repository.listSubmittedForTeacher('teacher-outside', 'demo-class'), []);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('direct teacher review rejects a demo submitted output without a user review, event, or frozen score', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedBase(fixture.database);
+    seedLegalProfessionalOutputSubmissionFacts(fixture.database, 'stu-01');
+    const repository = new ProfessionalOutputRepository(fixture.database, () => 'demo-review-p01');
+    repository.saveDraft({
+      studentId: 'stu-01', taskId: 'P01', expectedStateRevision: 0,
+      fields: completeP01Fields('demo output must stay read-only'), upstreamRefs: [],
+      evidenceGaps: completePolicyGaps('P01'),
+    });
+    fixture.database.prepare(`
+      UPDATE professional_outputs
+      SET status = 'submitted', origin = 'demo'
+      WHERE output_id = 'demo-review-p01'
+    `).run();
+    const before = reviewMutationFacts(fixture.database, 'demo-review-p01');
+
+    assert.throws(() => repository.reviewSubmitted({
+      teacherId: 'teacher-01', classId: 'demo-class', outputId: 'demo-review-p01',
+      expectedStateRevision: 1, expectedOutputVersion: 1,
+      action: 'verify', feedback: 'Demo output cannot become a user certification.',
+      rubricScores: maximumPolicyRubricScores('P01'),
+    }), ProfessionalOutputNotFoundError);
+
+    assert.deepEqual(reviewMutationFacts(fixture.database, 'demo-review-p01'), before);
   } finally {
     fixture.cleanup();
   }
@@ -300,6 +344,35 @@ test('portfolio facts expose the current head, current-version review, and froze
 
 function completeP01Fields(value: string): Record<string, string> {
   return Object.fromEntries(p01OutputFieldKeys.map((fieldKey) => [fieldKey, `${value}: ${fieldKey}`]));
+}
+
+function reviewMutationFacts(
+  database: ReturnType<typeof createTestDatabase>['database'],
+  outputId: string,
+): Record<string, unknown> {
+  return {
+    head: database.prepare(`
+      SELECT status, state_revision AS stateRevision, origin
+      FROM professional_outputs WHERE output_id = ?
+    `).get(outputId),
+    reviews: database.prepare(`
+      SELECT COUNT(*) FROM output_reviews WHERE output_id = ? AND origin = 'user'
+    `).pluck().get(outputId),
+    events: database.prepare(`
+      SELECT COUNT(*) FROM learning_events
+      WHERE json_extract(payload_json, '$.outputId') = ? AND origin = 'user'
+    `).pluck().get(outputId),
+    frozen: database.prepare(`
+      SELECT COUNT(*) FROM frozen_task_scores
+      WHERE student_id = 'stu-01' AND task_id = 'P01' AND origin = 'user'
+    `).pluck().get(),
+    learningSnapshot: database.prepare(`
+      SELECT version FROM snapshot_versions WHERE topic = 'learning:stu-01'
+    `).pluck().get(),
+    globalSnapshot: database.prepare(`
+      SELECT version FROM snapshot_versions WHERE topic = 'global'
+    `).pluck().get(),
+  };
 }
 
 function insertUserFormalAssessment(

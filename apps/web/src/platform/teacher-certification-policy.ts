@@ -17,6 +17,7 @@ export interface TeacherCertificationHead {
   studentId: string;
   taskId: P1OutputTaskId;
   currentVersion: number;
+  origin: 'demo' | 'user';
 }
 
 export interface TeacherCertificationDecision {
@@ -38,6 +39,9 @@ export function assertTeacherCertificationPolicy(
   head: TeacherCertificationHead,
   command: NormalizedProfessionalOutputReview,
 ): TeacherCertificationDecision {
+  if (head.origin !== 'user') {
+    throw new TeacherCertificationPolicyError('Teacher review requires a user-origin professional output.');
+  }
   if (command.expectedOutputVersion !== head.currentVersion) {
     throw new TeacherCertificationPolicyError(
       `Teacher review must target current output version ${head.currentVersion}.`,

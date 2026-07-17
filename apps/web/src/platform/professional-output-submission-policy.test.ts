@@ -266,8 +266,10 @@ test('submission prerequisite matrix rejects each missing user node, missing sou
   }
 });
 
-test('P02 and P03 reject draft, returned, historical, and other-student upstreams with zero writes', () => {
-  const cases = ['draft', 'returned', 'historical', 'other-student'] as const;
+test('P02 and P03 reject draft, returned, historical, other-student, and demo upstreams with zero writes', () => {
+  const cases = [
+    'draft', 'returned', 'historical', 'other-student', 'demo-submitted', 'demo-verified',
+  ] as const;
   for (const taskId of ['P02', 'P03'] as const) {
     for (const invalidity of cases) {
       const fixture = createTestDatabase();
@@ -287,9 +289,11 @@ test('P02 and P03 reject draft, returned, historical, and other-student upstream
           outputId: upstreamId,
           taskId: upstreamTask,
           studentId: invalidity === 'other-student' ? 'stu-02' : 'stu-01',
-          status: invalidity === 'returned' ? 'returned'
+          status: invalidity === 'demo-verified' ? 'verified'
+            : invalidity === 'returned' ? 'returned'
             : invalidity === 'draft' ? 'draft' : 'submitted',
           currentVersion: invalidity === 'historical' ? 2 : 1,
+          origin: invalidity.startsWith('demo-') ? 'demo' : 'user',
         });
         const targetId = `submission-target-${taskId}-${invalidity}`;
         const repository = new ProfessionalOutputRepository(fixture.database, () => targetId);
@@ -467,8 +471,9 @@ function insertUpstreamHead(
     outputId: string;
     taskId: 'P01' | 'P02';
     studentId: string;
-    status: 'draft' | 'submitted' | 'returned';
+    status: 'draft' | 'submitted' | 'returned' | 'verified';
     currentVersion: number;
+    origin?: 'demo' | 'user';
   },
 ): void {
   const fieldsJson = JSON.stringify(completeFields(input.taskId));
@@ -476,7 +481,7 @@ function insertUpstreamHead(
     INSERT INTO professional_outputs (
       output_id, student_id, task_id, node_id, status, content_json,
       current_version, state_revision, origin
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'user')
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     input.outputId,
     input.studentId,
@@ -486,6 +491,7 @@ function insertUpstreamHead(
     fieldsJson,
     input.currentVersion,
     input.currentVersion,
+    input.origin ?? 'user',
   );
   const insert = database.prepare(`
     INSERT INTO professional_output_versions (

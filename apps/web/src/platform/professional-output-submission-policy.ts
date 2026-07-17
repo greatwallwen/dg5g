@@ -138,18 +138,20 @@ function assertCurrentUpstream(
   const expectedTask = upstreamTask[command.taskId];
   const row = reference ? database.prepare(`
     SELECT student_id AS studentId, task_id AS taskId, status,
-      current_version AS currentVersion
+      current_version AS currentVersion, origin
     FROM professional_outputs WHERE output_id = ?
   `).get(reference.outputId) as {
     studentId: string;
     taskId: string;
     status: string;
     currentVersion: number;
+    origin: 'demo' | 'user';
   } | undefined : undefined;
   if (!reference
     || !row
     || row.studentId !== command.studentId
     || row.taskId !== expectedTask
+    || row.origin !== 'user'
     || row.currentVersion !== reference.version
     || (row.status !== 'submitted' && row.status !== 'verified')) {
     throw new ProfessionalOutputSubmissionPolicyError(
