@@ -31,6 +31,9 @@ CREATE TABLE classroom_lesson_runs (
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) STRICT;
 
+CREATE UNIQUE INDEX classroom_lesson_runs_session_identity_idx
+  ON classroom_lesson_runs(lesson_run_id, session_id);
+
 CREATE UNIQUE INDEX classroom_lesson_runs_one_open_idx
   ON classroom_lesson_runs(session_id)
   WHERE status IN ('preparing', 'active', 'paused');
@@ -39,9 +42,47 @@ ALTER TABLE classroom_sessions
   ADD COLUMN active_lesson_run_id TEXT
     REFERENCES classroom_lesson_runs(lesson_run_id) ON DELETE SET NULL;
 
+CREATE TRIGGER classroom_sessions_active_lesson_run_insert_guard
+BEFORE INSERT ON classroom_sessions
+WHEN NEW.active_lesson_run_id IS NOT NULL
+  AND NOT EXISTS (
+    SELECT 1
+    FROM classroom_lesson_runs
+    WHERE lesson_run_id = NEW.active_lesson_run_id
+      AND session_id = NEW.session_id
+  )
+BEGIN
+  SELECT RAISE(ABORT, 'active lesson run must belong to its classroom session');
+END;
+
+CREATE TRIGGER classroom_sessions_active_lesson_run_update_guard
+BEFORE UPDATE OF active_lesson_run_id, session_id ON classroom_sessions
+WHEN NEW.active_lesson_run_id IS NOT NULL
+  AND NOT EXISTS (
+    SELECT 1
+    FROM classroom_lesson_runs
+    WHERE lesson_run_id = NEW.active_lesson_run_id
+      AND session_id = NEW.session_id
+  )
+BEGIN
+  SELECT RAISE(ABORT, 'active lesson run must belong to its classroom session');
+END;
+
+CREATE TRIGGER classroom_lesson_runs_active_session_update_guard
+BEFORE UPDATE OF session_id ON classroom_lesson_runs
+WHEN EXISTS (
+  SELECT 1
+  FROM classroom_sessions
+  WHERE active_lesson_run_id = OLD.lesson_run_id
+    AND session_id <> NEW.session_id
+)
+BEGIN
+  SELECT RAISE(ABORT, 'active lesson run must belong to its classroom session');
+END;
+
 CREATE TABLE classroom_assessment_runs (
   run_id TEXT PRIMARY KEY CHECK (length(trim(run_id)) > 0),
-  lesson_run_id TEXT NOT NULL REFERENCES classroom_lesson_runs(lesson_run_id) ON DELETE CASCADE,
+  lesson_run_id TEXT NOT NULL,
   session_id TEXT NOT NULL REFERENCES classroom_sessions(session_id) ON DELETE CASCADE,
   node_id TEXT NOT NULL CHECK (length(trim(node_id)) > 0),
   game_id TEXT NOT NULL CHECK (length(trim(game_id)) > 0),
@@ -55,7 +96,9 @@ CREATE TABLE classroom_assessment_runs (
     closed_reason IS NULL
     OR closed_reason IN ('all-submitted', 'time-expired', 'teacher-collected', 'lesson-ended')
   ),
-  revision INTEGER NOT NULL DEFAULT 0 CHECK (revision >= 0)
+  revision INTEGER NOT NULL DEFAULT 0 CHECK (revision >= 0),
+  FOREIGN KEY (lesson_run_id, session_id)
+    REFERENCES classroom_lesson_runs(lesson_run_id, session_id) ON DELETE CASCADE
 ) STRICT;
 
 CREATE UNIQUE INDEX classroom_assessment_runs_one_open_idx
