@@ -277,6 +277,7 @@ test('requires a coherent four-part professional conclusion instead of keyword s
     assert.equal(result.dimensions.professionalConclusion.score, 25);
     assert.equal(result.totalScore, 100);
 
+    readyForFormalAssessment(fixture.database, studentTwo.userId);
     const secondStudent = service.issuePaper(studentTwo, 'P1T1-N02');
     const stuffed = {
       ...passingAnswers,

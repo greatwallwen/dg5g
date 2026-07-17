@@ -6,6 +6,7 @@ import { closeDatabase, type AppDatabase } from '../../platform/db/database.ts';
 import { seedDemo } from '../../platform/db/demo-seed.ts';
 import { migrateDatabase } from '../../platform/db/migrations.ts';
 import { createTestDatabase } from '../../platform/db/test-database.ts';
+import { seedUserTaskAdvancementFacts } from '../../platform/professional-output-policy-test-support.ts';
 
 const activityRoute = await import('../../app/api/learning/activities/[activityId]/attempts/route.ts');
 
@@ -170,6 +171,7 @@ test('classroom activity submission requires joined membership and the active le
 
 test('P02 and P03 activity APIs return targeted failure then persist a corrected retry', async () => {
   await withFixture(async ({ database, completeStudentCookie }) => {
+    seedUserTaskAdvancementFacts(database, 'stu-03', 'P01');
     const cases = [
       {
         activityId: 'P1T2-N01-micro-01',
@@ -184,7 +186,7 @@ test('P02 and P03 activity APIs return targeted failure then persist a corrected
     ] as const;
 
     for (const [index, activity] of cases.entries()) {
-      if (index === 1) insertPassedP02Activities(database);
+      if (index === 1) seedUserTaskAdvancementFacts(database, 'stu-03', 'P02');
       const failedResponse = await activityRoute.POST(jsonRequest(activity.activityId, completeStudentCookie, {
         attemptId: `${activity.attemptId}-failed`,
         response: { fields: { response: '凭感觉判断' } },
@@ -267,22 +269,6 @@ function jsonRequest(activityId: string, cookie: string, body: unknown, query = 
 
 function context(activityId: string) {
   return { params: { activityId } };
-}
-
-function insertPassedP02Activities(database: AppDatabase): void {
-  const insert = database.prepare(`
-    INSERT OR IGNORE INTO practice_attempts (
-      attempt_id, student_id, activity_id, node_id, passed, origin
-    ) VALUES (?, 'stu-03', ?, ?, 1, 'user')
-  `);
-  for (const [activityId, nodeId] of [
-    ['P1T2-N01-micro-01', 'P1T2-N01'],
-    ['P1T2-N02-foundation-01', 'P1T2-N02'],
-    ['P1T2-N02-application-01', 'P1T2-N02'],
-    ['P1T2-N02-transfer-01', 'P1T2-N02'],
-    ['P1T2-N03-micro-01', 'P1T2-N03'],
-    ['P1T2-N04-micro-01', 'P1T2-N04'],
-  ]) insert.run(`api-unlock-${activityId}`, activityId, nodeId);
 }
 
 function activateClassroomActivity(database: AppDatabase, canonicalActivityId: string): void {

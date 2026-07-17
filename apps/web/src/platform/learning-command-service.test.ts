@@ -20,6 +20,7 @@ import {
 import {
   completePolicyGaps,
   seedLegalProfessionalOutputSubmissionFacts,
+  seedUserTaskAdvancementFacts,
 } from './professional-output-policy-test-support.ts';
 
 const studentOne: AuthenticatedActor = {
@@ -184,6 +185,7 @@ test('learning events reject evidence submission until the authoritative output 
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
     unlockN02(fixture.database);
+    seedLegalProfessionalOutputSubmissionFacts(fixture.database, 'stu-02');
     const repository = new LearningRepository(fixture.database);
     const service = new LearningCommandService(repository);
     const before = repository.readTopicVersion('learning:stu-02');
@@ -332,6 +334,9 @@ test('professional output commands reuse node access and derive ownership from t
       WHERE student_id = 'stu-02' AND task_id = 'P01'
     `).run();
     seedLegalProfessionalOutputSubmissionFacts(fixture.database, 'stu-02');
+    for (const taskId of ['P01', 'P02', 'P03'] as const) {
+      seedUserTaskAdvancementFacts(fixture.database, 'stu-03', taskId);
+    }
     const learningRepository = new LearningRepository(fixture.database);
     const outputRepository = new ProfessionalOutputRepository(
       fixture.database,
@@ -382,6 +387,7 @@ test('professional output access fails closed for locked, not-open, unknown, and
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
     unlockN02(fixture.database);
+    seedLegalProfessionalOutputSubmissionFacts(fixture.database, 'stu-03');
     const learningRepository = new LearningRepository(fixture.database);
     const service = new LearningCommandService(
       learningRepository,

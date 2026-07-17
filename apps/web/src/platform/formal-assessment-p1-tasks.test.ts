@@ -13,6 +13,10 @@ import {
   type AssessmentAnswers,
 } from './formal-assessment-service.ts';
 import { getFormalAssessmentDefinitions } from './formal-assessment-catalog.server.ts';
+import {
+  seedLegalProfessionalOutputPracticeFacts,
+  seedUserTaskAdvancementFacts,
+} from './professional-output-policy-test-support.ts';
 
 const studentThree: AuthenticatedActor = {
   userId: 'stu-03',
@@ -121,11 +125,7 @@ for (const taskCase of taskCases) {
     try {
       migrateDatabase(fixture.database);
       seedDemo(fixture.database);
-      fixture.database.prepare(`
-        INSERT INTO learning_events (
-          event_id, student_id, node_id, channel, event_type, payload_json, origin
-        ) VALUES (?, 'stu-03', ?, 'self-study', 'micro_practice_passed', '{"completed":true}', 'user')
-      `).run(`ready-${taskCase.nodeId}`, taskCase.nodeId);
+      readyForTaskAssessment(fixture.database, taskCase.nodeId);
       let sequence = 0;
       let now = new Date('2026-07-16T10:00:00.000Z');
       const service = new FormalAssessmentService(fixture.database, {
@@ -200,11 +200,7 @@ for (const taskCase of taskCases) {
     try {
       migrateDatabase(fixture.database);
       seedDemo(fixture.database);
-      fixture.database.prepare(`
-        INSERT INTO learning_events (
-          event_id, student_id, node_id, channel, event_type, payload_json, origin
-        ) VALUES (?, 'stu-03', ?, 'self-study', 'micro_practice_passed', '{"completed":true}', 'user')
-      `).run(`route-ready-${taskCase.nodeId}`, taskCase.nodeId);
+      readyForTaskAssessment(fixture.database, taskCase.nodeId);
       const session = new AuthService(fixture.database).login({
         username: 'student03',
         password: '123456',
@@ -228,6 +224,13 @@ for (const taskCase of taskCases) {
       fixture.cleanup();
     }
   });
+}
+
+function readyForTaskAssessment(database: import('./db/database.ts').AppDatabase, nodeId: string): void {
+  const targetTask = nodeId.startsWith('P1T2') ? 'P02' : 'P03';
+  seedUserTaskAdvancementFacts(database, 'stu-03', 'P01');
+  if (targetTask === 'P03') seedUserTaskAdvancementFacts(database, 'stu-03', 'P02');
+  seedLegalProfessionalOutputPracticeFacts(database, 'stu-03', targetTask);
 }
 
 function wrongAnswers(

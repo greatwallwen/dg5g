@@ -127,6 +127,31 @@ export function seedLegalProfessionalOutputSubmissionFacts(
   }
 }
 
+/**
+ * Seeds the monotonic facts that prove a student truthfully advanced past a task:
+ * user-owned practice, a catalog-valid user formal assessment, and the exact
+ * historical output-submission event consumed by the learning projection.
+ */
+export function seedUserTaskAdvancementFacts(
+  database: AppDatabase,
+  studentId: string,
+  taskId: PolicyTaskId,
+): void {
+  seedLegalProfessionalOutputSubmissionFacts(database, studentId, [taskId]);
+  const nodeId = `${taskPrefix[taskId]}-N04`;
+  const outputId = `policy-fixture-${studentId}-${taskId}-output`;
+  database.prepare(`
+    INSERT OR IGNORE INTO learning_events (
+      event_id, student_id, node_id, channel, event_type, payload_json, origin
+    ) VALUES (?, ?, ?, 'self-study', 'evidence_submitted', ?, 'user')
+  `).run(
+    `policy-fixture-${studentId}-${taskId}-submitted`,
+    studentId,
+    nodeId,
+    JSON.stringify({ taskId, outputId, version: 1, stateRevision: 1 }),
+  );
+}
+
 export function seedLegalProfessionalOutputPracticeFacts(
   database: AppDatabase,
   studentId: string,
