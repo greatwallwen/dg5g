@@ -64,6 +64,10 @@ test('labels seeded completion and scores as demonstration data instead of a rea
     assert.equal(model.portfolioStatusLabel, '演示成果包已形成');
     assert.match(model.projectCompositeScoreLabel, /演示数据/);
     assert.match(model.tasks[0]!.output.statusLabel, /演示数据/);
+    assert.deepEqual(
+      model.tasks.map(({ stateLabel }) => stateLabel),
+      ['教师已认证 · 演示数据', '教师已认证 · 演示数据', '教师已认证 · 演示数据'],
+    );
     assert.match(model.tasks[0]!.nodeTestHighestScoreLabel, /演示数据/);
     assert.match(model.tasks[0]!.taskCompositeScoreLabel, /演示数据/);
   } finally {

@@ -7,6 +7,7 @@ import { LearningReadModel } from './learning-read-model.ts';
 import { getNodeLearningPolicy } from './learning-policy.ts';
 import { LearningRepository } from './learning-repository.ts';
 import { seedUserFormalAssessment } from './professional-output-policy-test-support.ts';
+import { readHighestValidUserFormalAssessment } from './validated-user-formal-assessment.ts';
 
 test('a first valid user submission opens P02 and a later teacher return never relocks it', () => {
   const fixture = createTestDatabase();
@@ -98,8 +99,19 @@ test('N02 to N03 requires both user practice and a catalog-valid user score at t
     seedUserFormalAssessment(fixture.database, 'stu-01', 'P01', 79, 'edge-79');
     const model = new LearningReadModel(new LearningRepository(fixture.database));
 
+    const belowBoundary = readHighestValidUserFormalAssessment(
+      fixture.database,
+      'stu-01',
+      'P1T1-N02',
+    );
+    assert.equal(belowBoundary?.totalScore, 79);
+    assert.equal(belowBoundary?.passed, false);
     assert.equal(requiredNode(model.readStudentSnapshot('stu-01'), 'P1T1-N03').state, 'locked');
     seedUserFormalAssessment(fixture.database, 'stu-01', 'P01', 80, 'edge-80');
+    assert.equal(
+      readHighestValidUserFormalAssessment(fixture.database, 'stu-01', 'P1T1-N02')?.totalScore,
+      80,
+    );
     assert.equal(requiredNode(model.readStudentSnapshot('stu-01'), 'P1T1-N03').state, 'available');
 
     seedUserFormalAssessment(fixture.database, 'stu-02', 'P01', 100, 'formal-without-practice');

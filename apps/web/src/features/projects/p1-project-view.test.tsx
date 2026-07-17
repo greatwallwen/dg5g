@@ -66,6 +66,23 @@ test('keeps the long project and portfolio pages scrollable without hiding docum
   assert.ok((css.match(/overflow-x:\s*auto/g) ?? []).length >= 2);
 });
 
+test('renders every seeded verified task as explicit demonstration data', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    const model = buildP1ProjectViewModel(readP1ProjectProjection('stu-03', fixture.database));
+    const html = renderToStaticMarkup(<P1ProjectView displayName="学生三" model={model} />);
+
+    assert.equal(
+      (html.match(/class="p1-task-state is-verified">教师已认证 · 演示数据/g) ?? []).length,
+      3,
+    );
+  } finally {
+    fixture.cleanup();
+  }
+});
+
 test('shows every P01 P02 P03 task rail title in full at the 390px breakpoint', () => {
   const css = readFileSync(new URL('../../app/p1-project.css', import.meta.url), 'utf8');
   const mobile = css.match(/@media\s*\(max-width:\s*760px\)[\s\S]*?(?=\/\* P1 verified-output portfolio \*\/)/)?.[0] ?? '';

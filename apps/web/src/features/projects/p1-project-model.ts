@@ -87,6 +87,13 @@ function buildTask(task: P1ProjectTaskProjection, index: number): P1TaskCardView
     label: `继续 ${task.taskId} · ${nextNode.title}`,
     href: nextNode.href,
   } satisfies P1ProjectActionViewModel : undefined;
+  const taskStateOrigin = task.state === 'verified' && (
+    task.demoTaskCertified
+    || task.taskScoreOrigin === 'demo'
+    || task.outputOrigin === 'demo'
+  )
+    ? 'demo'
+    : undefined;
 
   return {
     taskId: task.taskId,
@@ -96,7 +103,7 @@ function buildTask(task: P1ProjectTaskProjection, index: number): P1TaskCardView
     taskOutputTitle: task.taskOutputTitle,
     completionStandard: `完成 4 个能力节点，正式测试达到 80 分，提交《${task.taskOutputTitle}》并通过教师复核。`,
     state: task.state,
-    stateLabel: taskStateLabels[task.state],
+    stateLabel: withOrigin(taskStateLabels[task.state], taskStateOrigin),
     nodes: task.nodes.map((node) => ({
       ...node,
       stateLabel: nodeLearningStateLabel[node.state],

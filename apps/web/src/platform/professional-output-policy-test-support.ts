@@ -184,18 +184,22 @@ export function seedUserFormalAssessment(
     definition.paper.questionVersion,
     completedAt,
   );
-  const dimensionScore = score / assessmentDimensionKeys.length;
-  const dimensions = Object.fromEntries(assessmentDimensionKeys.map((key) => [key, {
-    score: dimensionScore,
+  const quotient = Math.floor(score / assessmentDimensionKeys.length);
+  const remainder = score % assessmentDimensionKeys.length;
+  const dimensionScores = assessmentDimensionKeys.map((_, index) => (
+    quotient + (index < remainder ? 1 : 0)
+  ));
+  const dimensions = Object.fromEntries(assessmentDimensionKeys.map((key, index) => [key, {
+    score: dimensionScores[index],
     maxScore: 25,
     feedback: `${key} verified fixture feedback`,
-    ...(dimensionScore < 20
+    ...(dimensionScores[index]! < 20
       ? { remediationTarget: definition.grading[key].remediationTarget }
       : {}),
   }]));
-  const remediationTargets = dimensionScore < 20
-    ? assessmentDimensionKeys.map((key) => definition.grading[key].remediationTarget)
-    : [];
+  const remediationTargets = assessmentDimensionKeys.flatMap((key, index) => (
+    dimensionScores[index]! < 20 ? [definition.grading[key].remediationTarget] : []
+  ));
   database.prepare(`
     INSERT OR IGNORE INTO formal_attempts (
       attempt_id, student_id, node_id, assessment_id, game_id, score,
