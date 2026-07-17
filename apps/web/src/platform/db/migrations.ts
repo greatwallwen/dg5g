@@ -12,6 +12,7 @@ export interface Migration {
   fileName: string;
   sql: string;
   checksum: string;
+  compatibleChecksums: readonly string[];
 }
 
 export interface MigrationResult {
@@ -77,13 +78,15 @@ export function readMigrations(migrationsDirectory = resolveMigrationsDirectory(
     .map((entry) => {
       const match = /^(\d{3})_([a-z0-9_-]+)\.sql$/.exec(entry.name);
       if (!match) throw new Error(`Invalid migration file name: ${entry.name}`);
-      const sql = readFileSync(join(migrationsDirectory, entry.name), 'utf8');
+      const sql = normalizeMigrationSql(readFileSync(join(migrationsDirectory, entry.name), 'utf8'));
+      const compatibleChecksums = migrationChecksumVariants(sql);
       return {
         version: Number(match[1]),
         name: match[2],
         fileName: entry.name,
         sql,
-        checksum: createHash('sha256').update(sql).digest('hex'),
+        checksum: compatibleChecksums[0],
+        compatibleChecksums,
       };
     })
     .sort((left, right) => left.version - right.version);
@@ -153,7 +156,7 @@ function inspectMigrationState(database: AppDatabase, migrations: Migration[]): 
     if (record.name !== migration.name) {
       throw new Error(`Applied migration ${migration.fileName} does not match its recorded name.`);
     }
-    if (record.checksum !== migration.checksum) {
+    if (!migration.compatibleChecksums.includes(record.checksum)) {
       throw new Error(`Applied migration ${migration.fileName} does not match its recorded checksum.`);
     }
   }
@@ -182,4 +185,15 @@ function inspectMigrationState(database: AppDatabase, migrations: Migration[]): 
     recordedVersions: recorded.map(({ version }) => version),
     currentVersion: databaseVersion,
   };
+}
+
+function normalizeMigrationSql(sql: string): string {
+  return sql.replace(/\r\n?/g, '\n');
+}
+
+function migrationChecksumVariants(canonicalSql: string): readonly string[] {
+  const lineEndingVariants = [canonicalSql, canonicalSql.replace(/\n/g, '\r\n')];
+  return [...new Set(lineEndingVariants.map((sql) => (
+    createHash('sha256').update(sql).digest('hex')
+  )))];
 }

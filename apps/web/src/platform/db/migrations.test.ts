@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import test from 'node:test';
 import { migrateDatabase, readMigrations } from './migrations.ts';
 import { createTestDatabase } from './test-database.ts';
@@ -635,6 +636,40 @@ test('migration 011 gives every student assessment instance an optional shared c
       SELECT name FROM pragma_index_list('formal_assessment_instances')
     `).pluck().all() as string[]);
     assert.equal(indexes.has('formal_assessment_instances_classroom_run_idx'), true);
+  } finally {
+    testDatabase.cleanup();
+  }
+});
+
+test('treats LF and CRLF as the same migration content without accepting other drift', () => {
+  const testDatabase = createTestDatabase();
+
+  try {
+    migrateDatabase(testDatabase.database);
+    const migration = readMigrations().find(({ version }) => version === 1)!;
+    const canonicalSql = migration.sql.replace(/\r\n?/g, '\n');
+    const lfChecksum = createHash('sha256').update(canonicalSql).digest('hex');
+    const crlfChecksum = createHash('sha256')
+      .update(canonicalSql.replace(/\n/g, '\r\n'))
+      .digest('hex');
+    const recordedChecksum = testDatabase.database.prepare(`
+      SELECT checksum FROM schema_migrations WHERE version = 1
+    `).pluck().get() as string;
+    const equivalentChecksum = recordedChecksum === lfChecksum ? crlfChecksum : lfChecksum;
+    assert.notEqual(equivalentChecksum, recordedChecksum);
+
+    testDatabase.database.prepare(`
+      UPDATE schema_migrations SET checksum = ? WHERE version = 1
+    `).run(equivalentChecksum);
+
+    assert.doesNotThrow(() => migrateDatabase(testDatabase.database));
+    testDatabase.database.prepare(`
+      UPDATE schema_migrations SET checksum = 'tampered' WHERE version = 1
+    `).run();
+    assert.throws(
+      () => migrateDatabase(testDatabase.database),
+      /does not match its recorded checksum/i,
+    );
   } finally {
     testDatabase.cleanup();
   }
