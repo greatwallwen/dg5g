@@ -6,6 +6,7 @@ import { migrateDatabase } from '../../platform/db/migrations.ts';
 import { createTestDatabase } from '../../platform/db/test-database.ts';
 import { ClassroomParticipationRepository } from '../../platform/classroom-participation-repository.ts';
 import { AuthoritativeSnapshotReader } from '../../platform/authoritative-snapshot.ts';
+import { seedUserFormalAssessment } from '../../platform/professional-output-policy-test-support.ts';
 
 test('SQLite role-home read returns the current three-member class and persisted N02 teaching position', async () => {
   const { RoleHomeReadRepository } = await readModel();
@@ -37,7 +38,7 @@ test('SQLite role-home read returns the current three-member class and persisted
     assert.deepEqual(teacher.classSummary.weakPoints, [{
       id: 'P1T1-N02',
       label: '设备拓扑待巩固',
-      affectedCount: 1,
+      affectedCount: 3,
     }]);
     assert.deepEqual(teacher.classScores, authoritative.classScores);
     assert.equal(student.selfStudy?.progress.nodeTestHighestScore, undefined);
@@ -50,8 +51,8 @@ test('SQLite role-home read returns the current three-member class and persisted
         mistake_knowledge_point_ids_json
       ) VALUES ('zero-is-a-score', 'stu-03', 'P1T1-N02', 'node-test', 0, '[]')
     `).run();
-    const afterZero = repository.readTeacherWorkbenchSnapshot(teacherActor());
-    assert.equal(afterZero.classScores.activeNodeTestHighestScore, 93);
+    const afterInvalidAttempt = repository.readTeacherWorkbenchSnapshot(teacherActor());
+    assert.equal(afterInvalidAttempt.classScores.activeNodeTestHighestScore, undefined);
   } finally {
     fixture.cleanup();
   }
@@ -137,7 +138,7 @@ test('authoritative membership/session failures remain an explicit blocked home 
   }
 });
 
-test('all three seeded students have an explicit usable personal entry', async () => {
+test('seeded personal entries preserve truthful user-only access', async () => {
   const { RoleHomeReadRepository } = await readModel();
   const fixture = createTestDatabase();
   try {
@@ -157,8 +158,8 @@ test('all three seeded students have an explicit usable personal entry', async (
     ]);
     assert.deepEqual(entries.map((entry) => entry.selfStudy?.access.kind), [
       'open',
-      'open',
-      'open',
+      'locked',
+      'locked',
     ]);
     assert.equal(entries.some((entry: { dataIssue?: string }) => Boolean(entry.dataIssue)), false);
   } finally {
@@ -174,20 +175,15 @@ test('authoritative home adapters preserve a real zero test score instead of tre
     seedDemo(fixture.database);
     fixture.database.prepare(`
       UPDATE classroom_sessions
-      SET active_node_id = 'P1T3-N02', active_unit_id = 'P03-ku-02'
+      SET active_node_id = 'P1T1-N02', active_unit_id = 'P01-ku-02'
       WHERE session_id = 'demo-class'
     `).run();
     fixture.database.prepare(`
       UPDATE self_study_cursors
-      SET node_id = 'P1T3-N02', unit_id = 'P03-ku-02', action_id = 'P1T3-N02-lesson-case'
+      SET node_id = 'P1T1-N02', unit_id = 'P01-ku-02', action_id = 'P1T1-N02-lesson-case'
       WHERE student_id = 'stu-03'
     `).run();
-    fixture.database.prepare(`
-      INSERT INTO formal_attempts (
-        attempt_id, student_id, node_id, game_id, score,
-        mistake_knowledge_point_ids_json, origin
-      ) VALUES ('zero-score-is-real', 'stu-03', 'P1T3-N02', 'node-test', 0, '[]', 'user')
-    `).run();
+    seedUserFormalAssessment(fixture.database, 'stu-03', 'P01', 0, 'zero-score-is-real');
     const repository = new RoleHomeReadRepository(fixture.database);
     const student = repository.readStudentHomeSnapshot({
       ...studentActor(), userId: 'stu-03', studentId: 'stu-03', displayName: '学生三',

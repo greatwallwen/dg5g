@@ -33,7 +33,7 @@ test('teacher console model projects every numeric classroom fact from the autho
       follow: 0,
       self: 0,
       submitted: 0,
-      needsHelp: 1,
+      needsHelp: 3,
     });
     assert.equal(model.controlMode, 'follow');
     assert.equal(model.formalAssessment, snapshot.submissions.activeAssessment);
@@ -76,7 +76,7 @@ test('teacher console model distinguishes self-directed joined students and pres
       follow: 1,
       self: 1,
       submitted: 0,
-      needsHelp: 1,
+      needsHelp: 3,
     });
     assert.equal(model.controlMode, 'forced');
     assert.equal(model.classScores.activeNodeTestAverageScore, undefined);

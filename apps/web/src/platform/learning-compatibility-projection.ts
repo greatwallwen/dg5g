@@ -41,13 +41,17 @@ function projectSkillProgress(studentId: string, node: StudentNodeLearningSnapsh
     gameId: attempt.gameId ?? `${node.nodeId}-formal-test`,
     formal: true,
   }));
-  const scores = attempts.map((attempt) => attempt.score);
-  const bestFormalScore = node.bestFormalScore;
-  const evidenceStatus = node.stateTrail.includes('teacher-verified')
+  const userAttempts = attempts.filter(({ origin }) => origin === 'user');
+  const scores = userAttempts.map((attempt) => attempt.score);
+  const bestFormalScore = scores.length ? Math.max(...scores) : undefined;
+  const latestUserAttempt = userAttempts.at(-1);
+  const userEvidence = node.evidence?.origin === 'user' ? node.evidence : undefined;
+  const userReview = userEvidence && node.review?.origin === 'user' ? node.review : undefined;
+  const evidenceStatus = node.stateTrail.includes('teacher-verified') && userReview?.status === 'verified'
     ? 'verified'
-    : node.stateTrail.includes('returned')
+    : node.stateTrail.includes('returned') && userReview?.status === 'returned'
       ? 'returned'
-      : node.stateTrail.includes('evidence-submitted') ? 'submitted' : 'not-submitted';
+      : node.stateTrail.includes('evidence-submitted') && userEvidence ? 'submitted' : 'not-submitted';
   return {
     studentId,
     nodeId: node.nodeId,
@@ -57,22 +61,22 @@ function projectSkillProgress(studentId: string, node: StudentNodeLearningSnapsh
     masteryPercent: nodeLearningStateCompletionPercent[node.state],
     completedSectionIds: node.completedSections,
     requiredSectionIds: [...REQUIRED_SELF_STUDY_SECTIONS],
-    classroomSubmitted: node.classroomSubmitted,
+    classroomSubmitted: node.classroomSubmitted && node.origin === 'user',
     ...(bestFormalScore === undefined ? {} : { gameScore: bestFormalScore }),
     gameStars: bestFormalScore === undefined ? 0 : bestFormalScore >= 95 ? 3 : bestFormalScore >= 80 ? 2 : scores.length ? 1 : 0,
-    mistakeKnowledgePointIds: attempts.at(-1)?.mistakeKnowledgePointIds ?? [],
-    updatedAt: node.review?.reviewedAt ?? node.evidence?.updatedAt ?? attempts.at(-1)?.completedAt,
+    mistakeKnowledgePointIds: latestUserAttempt?.mistakeKnowledgePointIds ?? [],
+    updatedAt: userReview?.reviewedAt ?? userEvidence?.updatedAt ?? latestUserAttempt?.completedAt,
     achievementLevel: node.state === 'locked' ? 'locked' : node.state === 'available' ? 'available' : node.state === 'achieved' ? 'mastered' : 'learned',
     gameAttempts: attempts,
     firstGameScore: scores[0],
-    bestGameScore: node.bestFormalScore,
+    bestGameScore: bestFormalScore,
     latestGameScore: scores.at(-1),
-    attemptCount: attempts.length,
+    attemptCount: userAttempts.length,
     evidenceSubmitted: evidenceStatus !== 'not-submitted',
     evidenceReviewStatus: evidenceStatus,
-    evidenceText: evidenceText(node.evidence?.content),
-    teacherFeedback: node.review?.feedback,
-    teacherVerified: node.stateTrail.includes('teacher-verified'),
+    evidenceText: evidenceText(userEvidence?.content),
+    teacherFeedback: userReview?.feedback,
+    teacherVerified: node.stateTrail.includes('teacher-verified') && userReview?.status === 'verified',
     learningState: node.state,
     learningStateTrail: node.stateTrail,
     microPracticePassed: policy?.requiresMicroPractice === true && node.stateTrail.includes('micro-practice-passed'),
@@ -81,9 +85,9 @@ function projectSkillProgress(studentId: string, node: StudentNodeLearningSnapsh
     requiresFormalTest: policy?.requiresFormalTest,
     requiresProfessionalOutput: policy?.requiresProfessionalOutput,
     requiresTeacherVerification: policy?.requiresTeacherVerification,
-    professionalOutputId: node.evidence?.outputId,
-    professionalOutputVersion: node.evidence?.version,
-    ...(node.origin ? { origin: node.origin } : {}),
+    professionalOutputId: userEvidence?.outputId,
+    professionalOutputVersion: userEvidence?.version,
+    ...(node.origin === 'user' ? { origin: node.origin } : {}),
   };
 }
 

@@ -20,13 +20,25 @@ after(() => {
   fixture.cleanup();
 });
 
-test('projects seeded SQLite learning facts without a process-local event store', () => {
+test('keeps demo attempts visible without treating them as truthful mastery', () => {
   const progress = store.getSkillProgressForStudent('stu-02');
   const n02 = progress.find((item) => item.nodeId === 'P1T1-N02');
   const p01 = store.getTaskMasteryForStudent('stu-02').find((item) => item.taskId === 'P01');
 
-  assert.equal(n02?.bestGameScore, 88);
-  assert.equal(n02?.formalTestPassed, true);
+  assert.equal(n02?.bestGameScore, undefined);
+  assert.equal(n02?.firstGameScore, undefined);
+  assert.equal(n02?.latestGameScore, undefined);
+  assert.equal(n02?.attemptCount, 0);
+  assert.equal(n02?.updatedAt, undefined);
+  assert.equal(n02?.formalTestPassed, false);
+  assert.deepEqual(n02?.gameAttempts?.map(({ score, origin }) => ({ score, origin })), [
+    { score: 88, origin: 'demo' },
+  ]);
+  const n04 = progress.find((item) => item.nodeId === 'P1T1-N04');
+  assert.equal(n04?.evidenceSubmitted, false);
+  assert.equal(n04?.evidenceReviewStatus, 'not-submitted');
+  assert.equal(n04?.professionalOutputId, undefined);
+  assert.equal(n04?.teacherFeedback, undefined);
   assert.equal(p01?.taskScore, undefined);
   assert.equal(p01?.professionalOutputScore, undefined);
 });

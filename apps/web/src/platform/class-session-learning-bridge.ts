@@ -14,10 +14,14 @@ export function hydrateClassSessionLearning(session: ClassSession): ClassSession
     ...session.formalTest,
     participants: session.formalTest.participants.map((participant) => {
       const progress = getSkillProgress(participant.studentId, nodeId);
-      const latestAttempt = progress.gameAttempts?.at(-1);
-      if (!latestAttempt) return participant;
+      const latestAttempt = progress.gameAttempts?.filter(({ origin }) => origin === 'user').at(-1);
+      const { score: _score, durationSeconds: _durationSeconds, ...identity } = participant;
+      if (!latestAttempt) return {
+        ...identity,
+        state: participant.state === 'playing' ? 'playing' as const : 'waiting' as const,
+      };
       return {
-        ...participant,
+        ...identity,
         state: 'submitted' as const,
         score: latestAttempt.score,
         durationSeconds: latestAttempt.durationSeconds,
@@ -30,35 +34,51 @@ export function hydrateClassSessionLearning(session: ClassSession): ClassSession
 
 function hydrateStudent(student: StudentProgress, nodeId: string): StudentProgress {
   const progress = getSkillProgress(student.studentId, nodeId);
-  if (!hasLiveActivity(progress)) return student;
-
-  const latestAttempt = progress.gameAttempts?.at(-1);
+  const latestAttempt = progress.gameAttempts?.filter(({ origin }) => origin === 'user').at(-1);
+  const {
+    firstGameScore: _firstGameScore,
+    bestGameScore: _bestGameScore,
+    latestGameScore: _latestGameScore,
+    attemptCount: _attemptCount,
+    gameDurationSeconds: _gameDurationSeconds,
+    mistakeKnowledgePointIds: _mistakeKnowledgePointIds,
+    evidenceReviewStatus: _evidenceReviewStatus,
+    evidenceText: _evidenceText,
+    teacherFeedback: _teacherFeedback,
+    teacherVerified: _teacherVerified,
+    ...identity
+  } = student;
+  const selfStudyState = progress.completedSectionIds.length === 0
+    ? 'not_started' as const
+    : progress.completedSectionIds.length >= progress.requiredSectionIds.length
+      ? 'completed' as const
+      : 'in_progress' as const;
+  const submissionState = progress.evidenceReviewStatus === 'not-submitted'
+    ? 'draft' as const
+    : progress.evidenceReviewStatus === 'submitted'
+      ? 'submitted' as const
+      : 'reviewed' as const;
   return {
-    ...student,
+    ...identity,
     activeNodeId: nodeId,
-    firstGameScore: progress.firstGameScore,
-    bestGameScore: progress.bestGameScore,
-    latestGameScore: progress.latestGameScore,
-    attemptCount: progress.attemptCount,
-    gameDurationSeconds: latestAttempt?.durationSeconds,
+    selfStudyState,
+    submissionState,
+    evidenceCount: progress.evidenceSubmitted ? 1 : 0,
+    risk: progress.bestGameScore === undefined
+      ? 'watch'
+      : progress.bestGameScore >= 80 ? 'ok' : progress.bestGameScore >= 60 ? 'watch' : 'help',
+    ...(progress.firstGameScore === undefined ? {} : { firstGameScore: progress.firstGameScore }),
+    ...(progress.bestGameScore === undefined ? {} : { bestGameScore: progress.bestGameScore }),
+    ...(progress.latestGameScore === undefined ? {} : { latestGameScore: progress.latestGameScore }),
+    attemptCount: progress.attemptCount ?? 0,
+    ...(latestAttempt?.durationSeconds === undefined ? {} : { gameDurationSeconds: latestAttempt.durationSeconds }),
     mistakeKnowledgePointIds: progress.mistakeKnowledgePointIds,
     evidenceReviewStatus: progress.evidenceReviewStatus,
-    evidenceText: progress.evidenceText,
-    teacherFeedback: progress.teacherFeedback,
+    ...(progress.evidenceText === undefined ? {} : { evidenceText: progress.evidenceText }),
+    ...(progress.teacherFeedback === undefined ? {} : { teacherFeedback: progress.teacherFeedback }),
     teacherVerified: progress.teacherVerified,
-    lastAction: describeLastAction(progress, student.lastAction),
+    lastAction: describeLastAction(progress, '暂无真实学习记录'),
   };
-}
-
-function hasLiveActivity(progress: SkillProgress): boolean {
-  return Boolean(
-    progress.updatedAt
-    || progress.attemptCount
-    || progress.completedSectionIds.length
-    || progress.classroomSubmitted
-    || progress.evidenceSubmitted
-    || progress.evidenceReviewStatus !== 'not-submitted',
-  );
 }
 
 function describeLastAction(progress: SkillProgress, fallback: string): string {

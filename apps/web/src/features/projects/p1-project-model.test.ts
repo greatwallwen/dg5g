@@ -37,7 +37,7 @@ test('turns the student project projection into a clear current task and next ac
   }
 });
 
-test('labels verified task evidence with its current immutable version', () => {
+test('labels demo task evidence without letting it advance the truthful current action', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
@@ -47,7 +47,7 @@ test('labels verified task evidence with its current immutable version', () => {
     assert.equal(model.tasks[0].stateLabel, '产出处理中');
     assert.equal(model.tasks[0].output.statusLabel, '退回修订 · 演示数据');
     assert.equal(model.tasks[0].output.versionLabel, 'v1');
-    assert.equal(model.currentAction?.nodeId, 'P1T1-N04');
+    assert.equal(model.currentAction?.nodeId, 'P1T1-N01');
   } finally {
     fixture.cleanup();
   }

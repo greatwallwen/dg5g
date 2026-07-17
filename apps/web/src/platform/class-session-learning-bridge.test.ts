@@ -20,18 +20,19 @@ after(() => {
   fixture.cleanup();
 });
 
-test('hydrates teacher roster and formal-test participants from the SQLite learning read model', () => {
+test('does not expose origin-less demo scores in the live roster or assessment participants', () => {
   const session = getClassSession('demo-class');
   const hydrated = hydrateClassSessionLearning(session);
   const student = hydrated.studentRoster.find((item) => item.studentId === 'stu-02');
   const participant = hydrated.formalTest?.participants.find((item) => item.studentId === 'stu-02');
 
   assert.equal(student?.activeNodeId, 'P1T1-N02');
-  assert.equal(student?.firstGameScore, 88);
-  assert.equal(student?.bestGameScore, 88);
-  assert.equal(student?.latestGameScore, 88);
-  assert.equal(participant?.state, 'submitted');
-  assert.equal(participant?.score, 88);
+  assert.equal(student?.firstGameScore, undefined);
+  assert.equal(student?.bestGameScore, undefined);
+  assert.equal(student?.latestGameScore, undefined);
+  assert.equal(student?.attemptCount, 0);
+  assert.equal(participant?.state, 'waiting');
+  assert.equal(participant?.score, undefined);
 });
 
 test('hydrates a selected student with the same projection as its roster row', () => {
@@ -43,7 +44,7 @@ test('hydrates a selected student with the same projection as its roster row', (
   const rosterStudent = hydrated.studentRoster.find((student) => student.studentId === 'stu-02');
 
   assert.deepEqual(hydrated.studentProgress, rosterStudent);
-  assert.equal(hydrated.studentProgress?.latestGameScore, 88);
+  assert.equal(hydrated.studentProgress?.latestGameScore, undefined);
 });
 
 test('does not expose a process-local event store in the bridge implementation', async () => {
