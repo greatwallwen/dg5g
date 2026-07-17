@@ -52,6 +52,20 @@ export function saveSelfStudyCursor(
   return createSelfStudyCursorClient().save(nodeId, draft, mutationAt);
 }
 
+export function createServerCalibratedNow(
+  serverNow: string,
+  localNow: () => number = Date.now,
+): () => number {
+  const serverBase = Date.parse(serverNow);
+  if (!Number.isFinite(serverBase)) throw new TypeError('serverNow must be an ISO timestamp.');
+  const localBase = localNow();
+  let elapsed = 0;
+  return () => {
+    elapsed = Math.max(elapsed, localNow() - localBase, 0);
+    return serverBase + elapsed;
+  };
+}
+
 export function createSelfStudyCursorPersistenceCoordinator(
   persist: (nodeId: string, draft: SelfStudyCursorDraft, mutationAt: string) => Promise<unknown>,
   now: () => number = Date.now,

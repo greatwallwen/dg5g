@@ -12,19 +12,15 @@ import { PracticeSection, practiceIdsFor } from './self-study-practice-section.t
 import { CorrectionSection, OutputSection } from './self-study-secondary-sections.tsx';
 import {
   createSelfStudyCursorPersistenceCoordinator,
+  createServerCalibratedNow,
   readSelfStudyCursor,
   saveSelfStudyCursor,
   selfStudySectionFromCursor,
 } from './self-study-cursor-client.ts';
 
 export function SelfStudyRenderer({
-  document,
-  completed,
-  saving,
-  onComplete,
-  onReadingComplete,
-  initialSection = 'problem',
-  focusedActivityId,
+  document, completed, saving, onComplete, onReadingComplete,
+  initialSection = 'problem', focusedActivityId, serverNow,
 }: {
   document: SelfStudyDocument;
   completed: boolean;
@@ -33,15 +29,18 @@ export function SelfStudyRenderer({
   onReadingComplete?: (sectionId: ReadingSectionId) => Promise<void> | void;
   initialSection?: SelfStudySectionId;
   focusedActivityId?: string;
+  serverNow?: string;
 }) {
   const [activeSection, setActiveSection] = useState<SelfStudySectionId>(initialSection);
   const [passedPracticeIds, setPassedPracticeIds] = useState<string[]>([]);
   const [readingSaving, setReadingSaving] = useState(false);
   const activeSectionRef = useRef<SelfStudySectionId>(initialSection);
   const textbookBodyRef = useRef<HTMLDivElement>(null);
+  const authoritativeServerNow = useRef(serverNow ?? new Date().toISOString()).current;
+  const calibratedNow = useMemo(() => createServerCalibratedNow(authoritativeServerNow), [authoritativeServerNow]);
   const cursorPersistence = useMemo(
-    () => createSelfStudyCursorPersistenceCoordinator(saveSelfStudyCursor),
-    [document.nodeId],
+    () => createSelfStudyCursorPersistenceCoordinator(saveSelfStudyCursor, calibratedNow),
+    [calibratedNow, document.nodeId],
   );
   const activeIndex = selfStudySectionDefinitions.findIndex(({ id }) => id === activeSection);
   const practiceIds = useMemo(() => practiceIdsFor(document), [document]);

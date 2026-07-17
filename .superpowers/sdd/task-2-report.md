@@ -45,6 +45,8 @@ The two Task 2-touched files initially over the structure limits were brought be
 - Final lifecycle review then exposed two deeper cursor paths: a targeted practice attempt did not mark local interaction, and unload queued behind an in-flight request instead of dispatching immediately.
 - The final correction treats every practice attempt as local navigation, immediately flushes the unload cursor, attaches a client-monotonic mutation timestamp, and makes the SQLite repository ignore a delayed older mutation even if it reaches the server last.
 - Final lifecycle RED reproduced all paths at client, renderer-contract, route, and repository levels. Final GREEN: focused lifecycle suite 21/21, full unit suite 687/687, TypeScript check, structure gate, and `git diff --check` all passed.
+- A second narrow review rejected trusting the browser wall clock as the persistence watermark. The product now seeds a monotonic client clock from server-render time, rejects mutation timestamps more than five seconds ahead of receipt, and advances snapshot time from server observation rather than client order metadata.
+- Clock-trust RED covered an intentionally wrong 2040 browser clock, a far-future direct PUT, and snapshot timestamp separation. Final GREEN: focused lifecycle suite 22/22, full unit suite 688/688, TypeScript check, structure gate, and diff check passed.
 
 ## Scope boundary and concerns
 

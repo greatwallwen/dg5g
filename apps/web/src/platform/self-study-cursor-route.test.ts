@@ -54,7 +54,12 @@ test('cursor PUT persists a complete per-node cursor and ignores query identity 
 
 test('cursor PUT rejects a delayed older mutation instead of overwriting the latest section', async () => {
   await withFixture(async ({ studentCookie }) => {
-    const base = Date.now() + 24 * 60 * 60 * 1_000;
+    const base = Date.now();
+    const future = await cursorRoute.PUT(request('PUT', studentCookie, {
+      unitId: 'P01-ku-01', actionId: 'output', actionIndex: 5, positionMs: 0,
+      mutationAt: new Date(base + 24 * 60 * 60 * 1_000).toISOString(),
+    }), context());
+    assert.equal(future.status, 400);
     const newest = await cursorRoute.PUT(request('PUT', studentCookie, {
       unitId: 'P01-ku-01', actionId: 'output', actionIndex: 5, positionMs: 0,
       mutationAt: new Date(base + 1_000).toISOString(),

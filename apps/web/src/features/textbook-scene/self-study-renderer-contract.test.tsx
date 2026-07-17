@@ -96,6 +96,7 @@ test('renderer persists canonical six-section cursors and records reading only t
   assert.match(rendererSource, /function recordPracticeInteraction\(\)[\s\S]*?markLocalInteraction\(\)[\s\S]*?persistSection\('practice'\)/);
   assert.match(rendererSource, /onAttempt=\{recordPracticeInteraction\}/);
   assert.match(rendererSource, /cursorPersistence\.flush\(document\.nodeId/);
+  assert.match(rendererSource, /createServerCalibratedNow\(authoritativeServerNow\)/);
   for (const sectionId of ['problem', 'figure', 'steps', 'correction'] as const) {
     const sectionHtml = renderToStaticMarkup(
       <SelfStudyRenderer

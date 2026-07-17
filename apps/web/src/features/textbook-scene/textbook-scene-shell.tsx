@@ -39,7 +39,7 @@ export function TextbookSceneShell(props: TextbookSceneShellProps) {
   return <SupportedTextbookSceneShell {...props} initialNodeId={initialNodeId} initialTaskId={initialTaskId} profiles={profiles} />;
 }
 
-function SupportedTextbookSceneShell({ displayName, focusedActivityId, graph, initialSection, initialSnapshot, selfStudyCatalog, profiles, initialMode = 'course-map', initialNodeId, initialTaskId, sessionId, surface = 'sample', autoFocus = true }: TextbookSceneShellProps & { profiles: DemoTaskProfiles; initialNodeId: string; initialTaskId: DemoTaskId }) {
+function SupportedTextbookSceneShell({ displayName, focusedActivityId, graph, initialSection, initialSnapshot, selfStudyCatalog, profiles, initialMode = 'course-map', initialNodeId, initialTaskId, sessionId, surface = 'sample', autoFocus = true, serverNow }: TextbookSceneShellProps & { profiles: DemoTaskProfiles; initialNodeId: string; initialTaskId: DemoTaskId }) {
   const router = useRouter();
   const shellRef = useRef<HTMLDivElement>(null);
   const contextButtonRef = useRef<HTMLButtonElement>(null);
@@ -224,6 +224,7 @@ function SupportedTextbookSceneShell({ displayName, focusedActivityId, graph, in
                 sectionId, selectedNodeId, setSaving, setSnapshot, snapshot, taskId,
               })}
               saving={saving}
+              serverNow={serverNow}
             /></div>
             {contextOpen ? <SceneContext mastery={taskMastery} onClose={closeContext} profile={profile} unit={unit} /> : null}
           </div>

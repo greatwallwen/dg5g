@@ -91,12 +91,14 @@ export class SelfStudyCursorRepository {
     studentId: string,
     nodeId: P1NodeId,
     draft: SelfStudyCursorDraft,
-    now = new Date(),
+    mutationAt = new Date(),
+    observedAt = mutationAt,
   ): SelfStudyCursor {
     assertNonEmpty('studentId', studentId);
     assertNodeId(nodeId);
     const normalized = normalizeDraft(draft);
-    const timestamp = normalizeNow(now);
+    const timestamp = normalizeNow(mutationAt);
+    const observedTimestamp = normalizeNow(observedAt);
     return this.database.transaction(() => {
       this.requireActiveStudent(studentId);
       const latest = this.readLatestRow(studentId);
@@ -137,7 +139,7 @@ export class SelfStudyCursorRepository {
         normalized.positionMs,
         timestamp,
       );
-      this.clock.advance([`learning:${studentId}`], timestamp);
+      this.clock.advance([`learning:${studentId}`], observedTimestamp);
       const saved = this.readRow(studentId, nodeId);
       if (!saved) throw new Error(`Self-study cursor mutation did not persist: ${studentId}/${nodeId}.`);
       return cursorFromRow(saved);

@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   createSelfStudyCursorPersistenceCoordinator,
   createSelfStudyCursorClient,
+  createServerCalibratedNow,
   selfStudySectionFromCursor,
 } from './self-study-cursor-client.ts';
 
@@ -53,6 +54,17 @@ test('cursor restoration accepts six canonical sections and seeded legacy playba
     assert.equal(selfStudySectionFromCursor({ actionId }), expected, actionId);
   }
   assert.equal(selfStudySectionFromCursor({ actionId: 'not-a-section' }), undefined);
+});
+
+test('cursor mutation time advances from the server clock instead of the browser wall clock', () => {
+  let localNow = Date.parse('2040-01-01T00:00:00.000Z');
+  const calibratedNow = createServerCalibratedNow(
+    '2026-07-17T08:00:00.000Z',
+    () => localNow,
+  );
+  assert.equal(new Date(calibratedNow()).toISOString(), '2026-07-17T08:00:00.000Z');
+  localNow += 1_250;
+  assert.equal(new Date(calibratedNow()).toISOString(), '2026-07-17T08:00:01.250Z');
 });
 
 test('cursor persistence ignores a late restore after local section interaction', async () => {

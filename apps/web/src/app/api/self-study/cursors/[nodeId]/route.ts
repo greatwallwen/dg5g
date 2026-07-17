@@ -49,13 +49,15 @@ export async function PUT(request: Request, { params }: RouteContext) {
   const database = getDatabase();
   try {
     createLearningCommandService(database).requireNodeAccess(actor, params.nodeId);
-    const command = parseDraft(await request.json().catch(() => undefined));
+    const observedAt = new Date();
+    const command = parseDraft(await request.json().catch(() => undefined), observedAt);
     validateGeneratedCursor(params.nodeId as P1NodeId, command.draft);
     const cursor = new SelfStudyCursorRepository(database).save(
       actor.studentId,
       params.nodeId as P1NodeId,
       command.draft,
-      command.mutationAt,
+      command.mutationAt ?? observedAt,
+      observedAt,
     );
     return NextResponse.json({ cursor });
   } catch (error) {
@@ -63,7 +65,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
   }
 }
 
-function parseDraft(value: unknown): { draft: SelfStudyCursorDraft; mutationAt?: Date } {
+function parseDraft(value: unknown, observedAt: Date): { draft: SelfStudyCursorDraft; mutationAt?: Date } {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError('Self-study cursor body must be an object.');
   }
@@ -86,7 +88,7 @@ function parseDraft(value: unknown): { draft: SelfStudyCursorDraft; mutationAt?:
   if (!Number.isSafeInteger(record.positionMs) || Number(record.positionMs) < 0) {
     throw new TypeError('positionMs must be a non-negative safe integer.');
   }
-  const mutationAt = parseMutationAt(record.mutationAt);
+  const mutationAt = parseMutationAt(record.mutationAt, observedAt);
   return {
     draft: {
       ...(record.unitId === undefined ? {} : { unitId: record.unitId }),
@@ -98,12 +100,15 @@ function parseDraft(value: unknown): { draft: SelfStudyCursorDraft; mutationAt?:
   };
 }
 
-function parseMutationAt(value: unknown): Date | undefined {
+function parseMutationAt(value: unknown, observedAt: Date): Date | undefined {
   if (value === undefined) return undefined;
   if (typeof value !== 'string') throw new TypeError('mutationAt must be an ISO timestamp.');
   const parsed = new Date(value);
   if (!Number.isFinite(parsed.getTime()) || parsed.toISOString() !== value) {
     throw new TypeError('mutationAt must be an ISO timestamp.');
+  }
+  if (parsed.getTime() > observedAt.getTime() + 5_000) {
+    throw new TypeError('mutationAt cannot be ahead of the server clock.');
   }
   return parsed;
 }

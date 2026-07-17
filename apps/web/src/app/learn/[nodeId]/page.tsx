@@ -76,6 +76,7 @@ export default async function StudentSelfPage({ params, searchParams }: {
         initialSection={navigationTarget.kind === 'target' ? navigationTarget.sectionId : undefined}
         initialSnapshot={initialSnapshot}
         selfStudyCatalog={selfStudyCatalog}
+        serverNow={new Date().toISOString()}
         sessionId={studentCut.classroom.sessionId}
         surface="student"
       />

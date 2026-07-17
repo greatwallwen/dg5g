@@ -115,7 +115,7 @@ test('a delayed older cursor mutation cannot overwrite the newest saved position
       unitId: 'P01-ku-02', actionId: 'problem', actionIndex: 0, positionMs: 0,
     };
 
-    repository.save('stu-01', 'P1T1-N02', newest, at('05:01:00'));
+    repository.save('stu-01', 'P1T1-N02', newest, at('05:01:00'), at('05:00:05'));
     const versionAfterNewest = fixture.database.prepare(`
       SELECT version FROM snapshot_versions WHERE topic = 'learning:stu-01'
     `).pluck().get();
@@ -127,6 +127,9 @@ test('a delayed older cursor mutation cannot overwrite the newest saved position
     assert.equal(fixture.database.prepare(`
       SELECT version FROM snapshot_versions WHERE topic = 'learning:stu-01'
     `).pluck().get(), versionAfterNewest);
+    assert.equal(fixture.database.prepare(`
+      SELECT updated_at FROM snapshot_versions WHERE topic = 'learning:stu-01'
+    `).pluck().get(), at('05:00:05').toISOString());
   } finally {
     fixture.cleanup();
   }

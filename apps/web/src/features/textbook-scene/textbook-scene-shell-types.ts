@@ -14,4 +14,5 @@ export type TextbookSceneShellProps = {
   sessionId: string;
   surface?: 'sample' | 'student' | 'map';
   autoFocus?: boolean;
+  serverNow?: string;
 };
