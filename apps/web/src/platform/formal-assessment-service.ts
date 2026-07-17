@@ -165,7 +165,7 @@ export class FormalAssessmentService {
           running,
         );
         const terminalClassroomRun = boundClassroomRun
-          && (boundClassroomRun.status === 'closed'
+          && (['reviewing', 'closed', 'expired'].includes(boundClassroomRun.status)
             || now.getTime() >= Date.parse(boundClassroomRun.expiresAt));
         if (terminalClassroomRun
           || (running.expiresAt && now.getTime() >= Date.parse(running.expiresAt))) {
@@ -749,7 +749,7 @@ interface ActiveClassroomAssessmentRunRow {
 }
 
 interface BoundClassroomAssessmentRunRow {
-  sessionId: string; runId: string; expiresAt: string; status: 'running' | 'paused' | 'closed';
+  sessionId: string; runId: string; expiresAt: string; status: 'running' | 'paused' | 'reviewing' | 'closed' | 'expired';
 }
 
 function parseRemediationTargets(diagnosticsJson: string): RemediationTarget[] {

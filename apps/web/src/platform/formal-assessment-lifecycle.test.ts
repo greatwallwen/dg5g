@@ -428,84 +428,133 @@ test('binds a classroom paper to the exact relational run and its authoritative 
   }
 });
 
-test('classroom assessment GET preserves the bound draft when its run is closed or expires', async () => {
+test('classroom assessment GET preserves the bound draft for every terminal run status', async () => {
   const previousPath = process.env.DGBOOK_SQLITE_PATH;
-  for (const terminal of ['closed', 'expired'] as const) {
-    const fixture = createTestDatabase();
-    try {
-      migrateDatabase(fixture.database);
-      seedDemo(fixture.database);
-      readyForFormalAssessment(fixture.database, studentOne.userId);
-      const runId = `classroom-resume-${terminal}`;
-      openRelationalClassroomAssessmentRun(fixture.database, {
-        runId,
-        expiresAt: '2099-07-16T10:15:00.000Z',
-      });
-      const session = new AuthService(fixture.database).login({ username: 'student01', password: '123456' });
-      assert.ok(session);
-      process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
-      closeDatabase();
-      const route = await import('../app/api/learning/nodes/[nodeId]/assessment/route.ts');
-      const cookie = `${AUTH_COOKIE_NAME}=${session.token}`;
-      const issueUrl = 'http://localhost/api/learning/nodes/P1T1-N02/assessment?classroomSessionId=demo-class';
-      const issuedResponse = route.GET(new Request(issueUrl, { headers: { cookie } }), assessmentRouteContext());
-      assert.equal(issuedResponse.status, 200, terminal);
-      const issued = await issuedResponse.json() as { assessmentId: string; attemptToken: string };
-      const draftResponse = await route.PATCH(assessmentRequest('PATCH', cookie, {
-        answers: { evidenceClassification: 'nameplate-photo' },
-        expectedRevision: 0,
-      }, issued.attemptToken), assessmentRouteContext());
-      assert.equal(draftResponse.status, 200, terminal);
+  try {
+    for (const terminalStatus of ['closed', 'expired', 'reviewing'] as const) {
+      const fixture = createTestDatabase();
+      try {
+        migrateDatabase(fixture.database);
+        seedDemo(fixture.database);
+        readyForFormalAssessment(fixture.database, studentOne.userId);
+        const runId = `classroom-resume-${terminalStatus}`;
+        openRelationalClassroomAssessmentRun(fixture.database, {
+          runId,
+          expiresAt: '2099-07-16T10:15:00.000Z',
+        });
+        const session = new AuthService(fixture.database).login({ username: 'student01', password: '123456' });
+        assert.ok(session);
+        process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
+        closeDatabase();
+        const route = await import('../app/api/learning/nodes/[nodeId]/assessment/route.ts');
+        const cookie = `${AUTH_COOKIE_NAME}=${session.token}`;
+        const issueUrl = 'http://localhost/api/learning/nodes/P1T1-N02/assessment?classroomSessionId=demo-class';
+        const issuedResponse = route.GET(new Request(issueUrl, { headers: { cookie } }), assessmentRouteContext());
+        assert.equal(issuedResponse.status, 200, terminalStatus);
+        const issued = await issuedResponse.json() as { assessmentId: string; attemptToken: string };
+        const draftResponse = await route.PATCH(assessmentRequest('PATCH', cookie, {
+          answers: { evidenceClassification: 'nameplate-photo' },
+          expectedRevision: 0,
+        }, issued.attemptToken), assessmentRouteContext());
+        assert.equal(draftResponse.status, 200, terminalStatus);
 
-      if (terminal === 'closed') {
         fixture.database.prepare(`
-          UPDATE classroom_assessment_runs
-          SET status = 'closed', closed_at = '2026-07-16T10:01:00.000Z',
-            closed_reason = 'teacher-collected'
+          UPDATE classroom_assessment_runs SET status = ?
           WHERE run_id = ?
-        `).run(runId);
-      } else {
-        fixture.database.prepare(`
-          UPDATE classroom_assessment_runs SET expires_at = '2000-01-01T00:00:00.000Z'
-          WHERE run_id = ?
-        `).run(runId);
+        `).run(terminalStatus, runId);
+
+        const countsBeforeResume = assessmentPersistenceCounts(fixture.database);
+        const terminalResponse = route.GET(new Request(issueUrl, { headers: { cookie } }), assessmentRouteContext());
+        assert.equal(terminalResponse.status, 200, terminalStatus);
+        const terminalPaper = await terminalResponse.json() as Record<string, unknown>;
+        assert.equal(terminalPaper.assessmentId, issued.assessmentId, terminalStatus);
+        assert.equal(terminalPaper.state, 'expired', terminalStatus);
+        assert.equal(Object.hasOwn(terminalPaper, 'attemptToken'), false, terminalStatus);
+        assert.deepEqual(
+          {
+            answers: (terminalPaper.draft as { answers: unknown }).answers,
+            revision: (terminalPaper.draft as { revision: number }).revision,
+          },
+          { answers: { evidenceClassification: 'nameplate-photo' }, revision: 1 },
+          terminalStatus,
+        );
+        assert.deepEqual(assessmentPersistenceCounts(fixture.database), countsBeforeResume, terminalStatus);
+        assert.deepEqual(fixture.database.prepare(`
+          SELECT status, closure_reason AS closureReason
+          FROM formal_assessment_instances WHERE assessment_id = ?
+        `).get(issued.assessmentId), { status: 'closed', closureReason: 'expired' }, terminalStatus);
+        assert.deepEqual(fixture.database.prepare(`
+          SELECT COUNT(*) AS tokenCount,
+            SUM(CASE WHEN used_at IS NOT NULL THEN 1 ELSE 0 END) AS consumedCount
+          FROM formal_assessment_tokens WHERE assessment_id = ?
+        `).get(issued.assessmentId), { tokenCount: 1, consumedCount: 1 }, terminalStatus);
+        assert.equal(fixture.database.prepare(`
+          SELECT COUNT(*) FROM formal_attempts WHERE assessment_id = ?
+        `).pluck().get(issued.assessmentId), 0, terminalStatus);
+      } finally {
+        closeDatabase();
+        fixture.cleanup();
       }
-
-      const countsBeforeResume = assessmentPersistenceCounts(fixture.database);
-      const terminalResponse = route.GET(new Request(issueUrl, { headers: { cookie } }), assessmentRouteContext());
-      assert.equal(terminalResponse.status, 200, terminal);
-      const terminalPaper = await terminalResponse.json() as Record<string, unknown>;
-      assert.equal(terminalPaper.assessmentId, issued.assessmentId, terminal);
-      assert.equal(terminalPaper.state, 'expired', terminal);
-      assert.equal(Object.hasOwn(terminalPaper, 'attemptToken'), false, terminal);
-      assert.deepEqual(
-        {
-          answers: (terminalPaper.draft as { answers: unknown }).answers,
-          revision: (terminalPaper.draft as { revision: number }).revision,
-        },
-        { answers: { evidenceClassification: 'nameplate-photo' }, revision: 1 },
-        terminal,
-      );
-      assert.deepEqual(assessmentPersistenceCounts(fixture.database), countsBeforeResume, terminal);
-      assert.deepEqual(fixture.database.prepare(`
-        SELECT status, closure_reason AS closureReason
-        FROM formal_assessment_instances WHERE assessment_id = ?
-      `).get(issued.assessmentId), { status: 'closed', closureReason: 'expired' }, terminal);
-      assert.deepEqual(fixture.database.prepare(`
-        SELECT COUNT(*) AS tokenCount,
-          SUM(CASE WHEN used_at IS NOT NULL THEN 1 ELSE 0 END) AS consumedCount
-        FROM formal_assessment_tokens WHERE assessment_id = ?
-      `).get(issued.assessmentId), { tokenCount: 1, consumedCount: 1 }, terminal);
-      assert.equal(fixture.database.prepare(`
-        SELECT COUNT(*) FROM formal_attempts WHERE assessment_id = ?
-      `).pluck().get(issued.assessmentId), 0, terminal);
-    } finally {
-      closeDatabase();
-      fixture.cleanup();
     }
+  } finally {
+    if (previousPath === undefined) delete process.env.DGBOOK_SQLITE_PATH;
+    else process.env.DGBOOK_SQLITE_PATH = previousPath;
   }
-  if (previousPath === undefined) delete process.env.DGBOOK_SQLITE_PATH;
-  else process.env.DGBOOK_SQLITE_PATH = previousPath;
+});
+
+test('paused classroom assessment GET keeps the running instance and token unchanged', async () => {
+  const fixture = createTestDatabase();
+  const previousPath = process.env.DGBOOK_SQLITE_PATH;
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    readyForFormalAssessment(fixture.database, studentOne.userId);
+    const runId = 'classroom-resume-paused';
+    openRelationalClassroomAssessmentRun(fixture.database, {
+      runId,
+      expiresAt: '2099-07-16T10:15:00.000Z',
+    });
+    const session = new AuthService(fixture.database).login({ username: 'student01', password: '123456' });
+    assert.ok(session);
+    process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
+    closeDatabase();
+    const route = await import('../app/api/learning/nodes/[nodeId]/assessment/route.ts');
+    const cookie = `${AUTH_COOKIE_NAME}=${session.token}`;
+    const issueUrl = 'http://localhost/api/learning/nodes/P1T1-N02/assessment?classroomSessionId=demo-class';
+    const issuedResponse = route.GET(new Request(issueUrl, { headers: { cookie } }), assessmentRouteContext());
+    assert.equal(issuedResponse.status, 200);
+    const issued = await issuedResponse.json() as { assessmentId: string; attemptToken: string };
+    const draftResponse = await route.PATCH(assessmentRequest('PATCH', cookie, {
+      answers: { evidenceClassification: 'nameplate-photo' },
+      expectedRevision: 0,
+    }, issued.attemptToken), assessmentRouteContext());
+    assert.equal(draftResponse.status, 200);
+    fixture.database.prepare(`
+      UPDATE classroom_assessment_runs SET status = 'paused' WHERE run_id = ?
+    `).run(runId);
+
+    const countsBeforeResume = assessmentPersistenceCounts(fixture.database);
+    const pausedResponse = route.GET(new Request(issueUrl, { headers: { cookie } }), assessmentRouteContext());
+    assert.equal(pausedResponse.status, 409);
+    assert.deepEqual(assessmentPersistenceCounts(fixture.database), countsBeforeResume);
+    assert.deepEqual(fixture.database.prepare(`
+      SELECT status, closure_reason AS closureReason
+      FROM formal_assessment_instances WHERE assessment_id = ?
+    `).get(issued.assessmentId), { status: 'running', closureReason: null });
+    assert.deepEqual(fixture.database.prepare(`
+      SELECT COUNT(*) AS tokenCount,
+        SUM(CASE WHEN used_at IS NOT NULL THEN 1 ELSE 0 END) AS consumedCount
+      FROM formal_assessment_tokens WHERE assessment_id = ?
+    `).get(issued.assessmentId), { tokenCount: 1, consumedCount: 0 });
+    assert.equal(fixture.database.prepare(`
+      SELECT COUNT(*) FROM formal_attempts WHERE assessment_id = ?
+    `).pluck().get(issued.assessmentId), 0);
+  } finally {
+    closeDatabase();
+    if (previousPath === undefined) delete process.env.DGBOOK_SQLITE_PATH;
+    else process.env.DGBOOK_SQLITE_PATH = previousPath;
+    fixture.cleanup();
+  }
 });
 
 test('rejects a classroom-bound submission after its shared run has left the active window', () => {
