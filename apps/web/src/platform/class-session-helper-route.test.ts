@@ -71,7 +71,7 @@ test('helper route rejects requests without its helper token', async () => {
   assert.equal(response.status, 403);
 });
 
-test('teacher intent produces a server revision and three helpers acknowledge independently', async () => {
+test('teacher intent produces a server revision while helper simulators cannot acknowledge it', async () => {
   const sessionId = 'P1T1-N02-helper-integration';
   for (const studentId of ['stu-01', 'stu-02', 'stu-03']) {
     const heartbeatResponse = await helperRoute.PATCH(
@@ -122,7 +122,7 @@ test('teacher intent produces a server revision and three helpers acknowledge in
       }),
       { params: { sessionId } },
     );
-    assert.equal(ackResponse.status, 200);
+    assert.equal(ackResponse.status, 409);
   }
 
   const teacherResponse = await classRoute.GET(
@@ -131,11 +131,7 @@ test('teacher intent produces a server revision and three helpers acknowledge in
   );
   const teacher = (await teacherResponse.json()).session;
   assert.equal(teacher.devicePresence.length, 3);
-  assert.deepEqual(teacher.commandAcks.map((ack: { studentId: string; state: string }) => [ack.studentId, ack.state]), [
-    ['stu-01', 'applied'],
-    ['stu-02', 'queued'],
-    ['stu-03', 'queued'],
-  ]);
+  assert.deepEqual(teacher.commandAcks, []);
 });
 
 test('student and projector projections do not expose the class roster or private device state', async () => {

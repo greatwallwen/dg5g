@@ -32,6 +32,7 @@ seedClassroomSessions(fixture.database, [
   'P1T1-N02-intent-illegal',
 ]);
 const { startActiveLessonRun } = await import('./classroom-lesson-run-test-fixture.ts');
+const { ClassroomParticipationRepository } = await import('./classroom-participation-repository.ts');
 const activeLessonRuns = new Map([
   'P1T1-N02-intent-server-revision',
   'P1T1-N02-intent-conflict',
@@ -53,10 +54,17 @@ test('server owns the next classroom revision and publishes one device command',
   const sessionId = 'P1T1-N02-intent-server-revision';
   const lessonRun = activeLessonRuns.get(sessionId);
   assert.ok(lessonRun);
+  new ClassroomParticipationRepository(fixture.database).join(
+    sessionId,
+    'stu-01',
+    new Date(now.getTime() - 1_000),
+  );
   recordDeviceHeartbeat(sessionId, {
     actorRole: 'student',
     deviceId: `device-${sessionId}-stu-01`,
     studentId: 'stu-01',
+    clientKind: 'browser',
+    visibilityState: 'visible',
     pageState: 'ready',
     lastAppliedRevision: lessonRun.revision,
   }, now);
