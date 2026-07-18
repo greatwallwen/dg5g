@@ -112,3 +112,18 @@ test('simulator never steals the operator focus or impersonates a real browser c
   assert.match(helper, /演示设备模拟器/);
   assert.doesNotMatch(helper, /studentMode|studentSyncState|selfStudy|personalCursor/);
 });
+
+test('blocks only browser presence before a simulator context can authenticate or open a page', () => {
+  const helper = readFileSync(new URL('./classroom-helper.mjs', import.meta.url), 'utf8');
+  const routePattern = "await context.route('**/api/class-sessions/*/presence*', (route) => route.abort('blockedbyclient'));";
+  const routeIndex = helper.indexOf(routePattern);
+
+  assert.notEqual(routeIndex, -1);
+  assert.equal(helper.match(/browser\.newContext\(\)/g)?.length, 1);
+  assert.equal(helper.match(/context\.route\(/g)?.length, 1);
+  assert.ok(routeIndex > helper.indexOf('const context = await browser.newContext()'));
+  assert.ok(routeIndex < helper.indexOf('context.request.post('));
+  assert.ok(routeIndex < helper.indexOf('context.newPage()'));
+  assert.ok(routeIndex < helper.indexOf('page.goto('));
+  assert.doesNotMatch(helper, /context\.route\([^\n]*(?:participation|cursor)/i);
+});

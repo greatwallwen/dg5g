@@ -25,6 +25,7 @@ let stopping = false;
 try {
   for (const studentId of config.students) {
     const context = await browser.newContext();
+    await context.route('**/api/class-sessions/*/presence*', (route) => route.abort('blockedbyclient'));
     const login = await context.request.post(`${config.baseUrl}/api/auth/login`, {
       data: { username: studentUsername(studentId), password: config.demoPassword },
     });
