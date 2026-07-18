@@ -5,6 +5,7 @@ import {
   parseHelperArgs,
   shouldApplyCommand,
   shouldReloadForCommand,
+  simulatorPayload,
   studentUsername,
   studentPageUrl,
 } from './classroom-helper-core.mjs';
@@ -53,7 +54,7 @@ const healthServer = startHealthServer(config);
 await heartbeatAll();
 const heartbeatTimer = setInterval(() => { void heartbeatAll(); }, 2_000);
 const commandTimer = setInterval(() => { void pollCommand(); }, 400);
-console.log(`DGBook Classroom Helper online: ${config.sessionId} · ${config.students.join(', ')} · health ${config.healthPort}`);
+console.log(`DGBook 演示设备模拟器在线: ${config.sessionId} · ${config.students.join(', ')} · health ${config.healthPort}`);
 
 process.once('SIGINT', shutdown);
 process.once('SIGTERM', shutdown);
@@ -79,7 +80,6 @@ async function pollCommand() {
       if (client.page.isClosed()) {
         client.page = await client.context.newPage();
       }
-      await client.page.bringToFront();
       const expectedUrl = studentPageUrl(config, studentId);
       if (
         shouldReloadForCommand(client.lastAppliedRevision, client.lastAppliedCommandId, command)
@@ -145,7 +145,7 @@ function helperFetch(url, body) {
       'Content-Type': 'application/json',
       'x-dgbook-helper-token': config.token,
     },
-    body: body ? JSON.stringify(body) : undefined,
+    body: body ? JSON.stringify(simulatorPayload(body)) : undefined,
   });
 }
 

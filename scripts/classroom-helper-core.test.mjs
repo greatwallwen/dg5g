@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   helperHealth,
   parseHelperArgs,
+  simulatorPayload,
   shouldReloadForCommand,
   shouldApplyCommand,
   studentUsername,
@@ -73,6 +74,20 @@ test('reports the exact local health contract', () => {
   });
 });
 
+test('marks every helper request as an isolated simulator device', () => {
+  assert.deepEqual(simulatorPayload({
+    kind: 'heartbeat',
+    actorRole: 'student',
+    studentId: 'stu-01',
+    clientKind: 'browser',
+  }), {
+    kind: 'heartbeat',
+    actorRole: 'student',
+    studentId: 'stu-01',
+    clientKind: 'helper-simulator',
+  });
+});
+
 test('rejects missing sessions and empty student lists', () => {
   assert.throws(() => parseHelperArgs(['--students', 'stu-01'], demoEnv), /session/i);
   assert.throws(() => parseHelperArgs(['--session', 'demo-class', '--students', ''], demoEnv), /student/i);
@@ -87,4 +102,13 @@ test('helper authenticates each browser with the HttpOnly actor Cookie and has n
   assert.match(core, /DGBOOK_DEMO_PASSWORD/);
   assert.doesNotMatch(helper, /localStorage|addInitScript|studentIdentityStorage/);
   assert.doesNotMatch(core, /searchParams\.set\(['"]student/);
+});
+
+test('simulator never steals the operator focus or impersonates a real browser client', () => {
+  const helper = readFileSync(new URL('./classroom-helper.mjs', import.meta.url), 'utf8');
+
+  assert.doesNotMatch(helper, /bringToFront|\.focus\s*\(/);
+  assert.match(helper, /simulatorPayload\(body\)/);
+  assert.match(helper, /演示设备模拟器/);
+  assert.doesNotMatch(helper, /studentMode|studentSyncState|selfStudy|personalCursor/);
 });

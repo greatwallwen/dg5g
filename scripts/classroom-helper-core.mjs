@@ -75,6 +75,13 @@ export function helperHealth(config) {
   };
 }
 
+export function simulatorPayload(payload) {
+  return {
+    ...payload,
+    clientKind: 'helper-simulator',
+  };
+}
+
 function normalizeBaseUrl(value) {
   const url = new URL(value);
   if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new Error('Classroom Helper base URL must use HTTP or HTTPS.');
