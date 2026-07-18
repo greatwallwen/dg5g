@@ -26,7 +26,13 @@ import {
   getNodeLearningPolicy,
   type NodeLearningPolicy,
 } from './learning-policy.ts';
-import type { ClassSession, ClassroomCommand, StudentProgress } from './models.ts';
+import type {
+  ClassSession,
+  ClassroomCommand,
+  ClassroomPageState,
+  DevicePresence,
+  StudentProgress,
+} from './models.ts';
 import { getFormalAssessmentDefinition } from './formal-assessment-catalog.server.ts';
 import { classroomLessonPageCount } from './classroom-lesson-page-count.ts';
 import {
@@ -51,14 +57,6 @@ export class ClassroomAuthorizationError extends Error {
 
 export class ClassroomIntentError extends Error {
   override readonly name: string = 'ClassroomIntentError';
-}
-
-export class ClassroomHelperUnavailableError extends ClassroomIntentError {
-  override readonly name = 'ClassroomHelperUnavailableError';
-
-  constructor() {
-    super('Classroom helper is offline. Reconnect it before synchronizing or changing pages.');
-  }
 }
 
 export class ClassroomReviewUnavailableError extends ClassroomIntentError {
@@ -142,6 +140,34 @@ export class ClassroomSessionService {
     };
   }
 
+  recordBrowserPresence(
+    actor: AuthenticatedActor,
+    sessionId: string,
+    surface: 'actor' | 'projector',
+    input: {
+      deviceId: string;
+      visibilityState: DevicePresence['visibilityState'];
+      pageState: ClassroomPageState;
+      lastSeenClassroomRevision: number;
+    },
+    now = new Date(),
+  ): DevicePresence {
+    const aggregate = this.readAuthorizedAggregate(actor, sessionId);
+    if (!aggregate) throw new ClassroomSessionNotFoundError(sessionId);
+    const actorRole = surface === 'projector'
+      ? this.requireProjectorRole(actor)
+      : actor.role;
+    return this.repository.recordHeartbeat(sessionId, {
+      deviceId: input.deviceId,
+      actorRole,
+      ...(actor.studentId ? { studentId: actor.studentId } : {}),
+      clientKind: 'browser',
+      visibilityState: input.visibilityState,
+      pageState: input.pageState,
+      lastAppliedRevision: input.lastSeenClassroomRevision,
+    }, now);
+  }
+
   executeLessonLifecycle(
     actor: AuthenticatedActor,
     sessionId: string,
@@ -179,10 +205,6 @@ export class ClassroomSessionService {
         expectedRevision,
         aggregate.session.revision,
       );
-    }
-    if (intent.type !== 'phase_changed'
-      && !hasLiveStudentHelper(this.repository, sessionId, now)) {
-      throw new ClassroomHelperUnavailableError();
     }
     if (intent.type === 'page_changed') {
       if (intent.pageIndex >= classroomLessonPageCount(aggregate.session.state.lesson.activeNodeId)) {
@@ -255,10 +277,6 @@ export class ClassroomSessionService {
     if (!hasSessionPatch(normalized)) throw new ClassroomIntentError('Teacher patch has no shared classroom fields.');
     if (normalized.studentProgress) {
       throw new ClassroomIntentError('Student progress is not part of shared classroom state.');
-    }
-    if (requiresLiveHelper(normalized, aggregate.session)
-      && !hasLiveStudentHelper(this.repository, sessionId, now)) {
-      throw new ClassroomHelperUnavailableError();
     }
     const state = { ...aggregate.session.state };
     assignOptional(state, 'currentPageId', normalized.currentPageId);
@@ -508,27 +526,6 @@ function normalizeFormalTestMutation(
     durationSeconds: definition.paper.durationMinutes * 60,
     startedAt: now.toISOString(),
   };
-}
-
-function requiresLiveHelper(patch: SessionPatch, session: StoredClassroomSession): boolean {
-  return patch.studentSyncState === 'requested'
-    || patch.studentSyncState === 'forced'
-    || patch.currentPageId === 'P1-STUDENT-FOLLOW-N01'
-    || (patch.teacherSlideIndex !== undefined
-      && patch.teacherSlideIndex !== session.state.teacherSlideIndex)
-    || (patch.teacherSlideId !== undefined
-      && patch.teacherSlideId !== session.state.teacherSlideId)
-    || patch.formalTest?.status === 'running';
-}
-
-function hasLiveStudentHelper(
-  repository: ClassroomSessionRepository,
-  sessionId: string,
-  now: Date,
-): boolean {
-  return repository.readDeviceSnapshot(sessionId, now).devices.some(
-    ({ actorRole, helperState }) => actorRole === 'student' && helperState === 'online',
-  );
 }
 
 function sceneModeForPhase(phase: NonNullable<ClassSession['lessonState']>['phase']): NonNullable<ClassSession['sceneMode']> {

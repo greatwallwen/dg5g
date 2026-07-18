@@ -420,6 +420,17 @@ test('classroom lifecycle, participation, and helper availability remain separat
       deviceId: 'private-student-device',
       actorRole: 'student',
       studentId: 'stu-01',
+      clientKind: 'browser',
+      visibilityState: 'visible',
+      pageState: 'ready',
+      lastAppliedRevision: 0,
+    }, new Date('2026-07-16T01:19:59.000Z'));
+    new ClassroomSessionRepository(fixture.database).recordHeartbeat('demo-class', {
+      deviceId: 'private-student-simulator',
+      actorRole: 'student',
+      studentId: 'stu-01',
+      clientKind: 'helper-simulator',
+      visibilityState: 'visible',
       pageState: 'ready',
       lastAppliedRevision: 0,
     }, new Date('2026-07-16T01:19:59.000Z'));

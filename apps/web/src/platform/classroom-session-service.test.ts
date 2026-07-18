@@ -143,41 +143,32 @@ test('starts a formal assessment with a server-owned shared run identity and ser
   }
 });
 
-test('rejects synchronized page and follow mutations while every classroom helper is offline', () => {
+test('allows bounded teacher cursor changes when zero student browsers are online', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    seedActiveLessonRun(fixture.database);
     const service = new ClassroomSessionService(
       new ClassroomSessionRepository(fixture.database),
       new ClassroomRosterRepository(fixture.database),
     );
 
-    assert.throws(
-      () => service.patchTeacherState(teacher, 'demo-class', {
-        currentPageId: 'P1-STUDENT-FOLLOW-N01',
-        teacherSlideId: 'P1T1-N02-S02',
-        teacherSlideIndex: 2,
-        studentSyncState: 'requested',
-      }, 0, new Date('2026-07-16T04:00:00.000Z')),
-      { name: 'ClassroomHelperUnavailableError' },
+    const changed = service.applyTeacherIntent(
+      teacher,
+      'demo-class',
+      { type: 'page_changed', pageIndex: 1 },
+      0,
+      new Date('2026-07-16T04:00:00.000Z'),
     );
-    assert.throws(
-      () => service.applyTeacherIntent(
-        teacher,
-        'demo-class',
-        { type: 'playback_seeked', positionMs: 1_500 },
-        0,
-        new Date('2026-07-16T04:00:00.000Z'),
-      ),
-      { name: 'ClassroomHelperUnavailableError' },
-    );
+    assert.equal(changed.session.teacherSlideIndex, 2);
+    assert.equal(changed.session.lessonState?.revision, 1);
     assert.equal(fixture.database.prepare(`
       SELECT revision FROM classroom_sessions WHERE session_id = 'demo-class'
-    `).pluck().get(), 0);
+    `).pluck().get(), 1);
     assert.equal(fixture.database.prepare(`
       SELECT COUNT(*) FROM classroom_commands WHERE session_id = 'demo-class'
-    `).pluck().get(), 0);
+    `).pluck().get(), 1);
   } finally {
     fixture.cleanup();
   }
@@ -255,7 +246,7 @@ test('blocks review at zero real submissions and opens it after one valid submis
   }
 });
 
-test('applies projector page changes through one server revision and fails closed at page or helper boundaries', () => {
+test('applies projector page changes without online recipients while preserving page bounds', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
@@ -297,17 +288,15 @@ test('applies projector page changes through one server revision and fails close
       { name: 'ClassroomIntentError' },
     );
     assert.equal(repository.readSession('demo-class')?.revision, 1);
-    assert.throws(
-      () => service.applyTeacherIntent(
-        teacher,
-        'demo-class',
-        { type: 'page_changed', pageIndex: 10 },
-        1,
-        new Date('2026-07-16T05:00:10.000Z'),
-      ),
-      { name: 'ClassroomHelperUnavailableError' },
+    const offlineWarningOnly = service.applyTeacherIntent(
+      teacher,
+      'demo-class',
+      { type: 'page_changed', pageIndex: 10 },
+      1,
+      new Date('2026-07-16T05:00:17.000Z'),
     );
-    assert.equal(repository.readSession('demo-class')?.revision, 1);
+    assert.equal(offlineWarningOnly.session.lessonState?.playback.actionIndex, 10);
+    assert.equal(repository.readSession('demo-class')?.revision, 2);
   } finally {
     fixture.cleanup();
   }

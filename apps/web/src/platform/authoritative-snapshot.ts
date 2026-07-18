@@ -500,10 +500,10 @@ function projectHelper(
   device: ReturnType<ClassroomSessionRepository['readDeviceSnapshot']>,
   observedAt: Date,
 ): SnapshotCommon['helper'] {
-  const liveStudentDevices = device.devices.filter(({ actorRole, helperState }) => (
-    actorRole === 'student' && helperState !== 'offline'
+  const liveStudentDevices = device.devices.filter(({ actorRole, clientKind, syncHealth }) => (
+    actorRole === 'student' && clientKind === 'browser' && syncHealth !== 'offline'
   ));
-  const degraded = liveStudentDevices.some(({ helperState }) => helperState === 'degraded');
+  const degraded = liveStudentDevices.some(({ syncHealth }) => syncHealth === 'degraded');
   const status = liveStudentDevices.length === 0 ? 'offline' : degraded ? 'degraded' : 'online';
   return {
     status,
@@ -514,7 +514,7 @@ function projectHelper(
       pending: device.acks.filter(({ state }) => state === 'queued' || state === 'delivered').length,
       failed: device.acks.filter(({ state }) => state === 'failed' || state === 'expired').length,
     },
-    canPush: liveStudentDevices.some(({ helperState }) => helperState === 'online'),
+    canPush: liveStudentDevices.some(({ syncHealth }) => syncHealth === 'online'),
   };
 }
 

@@ -64,6 +64,9 @@ export interface ClassroomLessonState {
 export type CommandAckState = 'queued' | 'delivered' | 'applied' | 'failed' | 'expired';
 export type ClassroomHelperState = 'offline' | 'connecting' | 'online' | 'degraded';
 export type ClassroomPageState = 'closed' | 'opening' | 'ready' | 'hidden' | 'error';
+export type ClassroomSyncHealth = 'online' | 'degraded' | 'offline';
+export type ClassroomClientKind = 'browser' | 'helper-simulator';
+export type ClassroomVisibilityState = 'visible' | 'hidden';
 
 export interface ClassroomCommand {
   commandId: string;
@@ -80,8 +83,11 @@ export interface ClassroomCommand {
 
 export interface DevicePresence {
   deviceId: string;
-  actorRole: 'teacher' | 'student';
+  actorRole: 'teacher' | 'student' | 'projector';
   studentId?: string;
+  clientKind: ClassroomClientKind;
+  visibilityState: ClassroomVisibilityState;
+  syncHealth: ClassroomSyncHealth;
   helperState: ClassroomHelperState;
   pageState: ClassroomPageState;
   lastHeartbeatAt: string;

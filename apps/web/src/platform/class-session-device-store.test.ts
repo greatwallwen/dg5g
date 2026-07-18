@@ -4,6 +4,7 @@ import { closeDatabase } from './db/database.ts';
 import { seedDemo } from './db/demo-seed.ts';
 import { migrateDatabase } from './db/migrations.ts';
 import { createTestDatabase } from './db/test-database.ts';
+import { ClassroomParticipationRepository } from './classroom-participation-repository.ts';
 import {
   classroomDeviceSnapshot,
   publishClassroomCommand,
@@ -23,6 +24,8 @@ const deviceSessionIds = [
   'P1T1-N02-late-helper',
   'P1T1-N02-ack-identity',
   'P1T1-N02-command-revision',
+  'P1T1-N02-browser-presence',
+  'P1T1-N02-browser-recipients',
 ];
 seedClassroomSessions(fixture.database, deviceSessionIds);
 process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
@@ -36,10 +39,16 @@ after(() => {
 const at = (milliseconds: number) => new Date(Date.UTC(2026, 6, 13, 1, 0, 0, milliseconds));
 
 function heartbeat(sessionId: string, studentId: string, deviceId = deviceIdFor(sessionId, studentId)) {
+  fixture.database.prepare(`
+    UPDATE classroom_sessions SET status = 'active' WHERE session_id = ?
+  `).run(sessionId);
+  new ClassroomParticipationRepository(fixture.database).join(sessionId, studentId, at(-1));
   return recordDeviceHeartbeat(sessionId, {
     actorRole: 'student',
     deviceId,
     studentId,
+    clientKind: 'browser',
+    visibilityState: 'visible',
     pageState: 'ready',
     lastAppliedRevision: 0,
   }, at(0));
@@ -56,13 +65,49 @@ function command(sessionId: string, revision = 1, ttlMs = 15_000) {
   }, at(0));
 }
 
-test('expires a helper after six seconds without inventing an acknowledgement', () => {
+test('degrades after six seconds and expires after sixteen without inventing an acknowledgement', () => {
   const sessionId = 'P1T1-N02-device-expiry';
   heartbeat(sessionId, 'stu-01');
 
   assert.equal(classroomDeviceSnapshot(sessionId, at(5_999)).devices[0]?.helperState, 'online');
-  assert.equal(classroomDeviceSnapshot(sessionId, at(6_001)).devices[0]?.helperState, 'offline');
-  assert.equal(classroomDeviceSnapshot(sessionId, at(6_001)).acks.length, 0);
+  assert.equal(classroomDeviceSnapshot(sessionId, at(6_001)).devices[0]?.helperState, 'degraded');
+  assert.equal(classroomDeviceSnapshot(sessionId, at(16_001)).devices[0]?.helperState, 'offline');
+  assert.equal(classroomDeviceSnapshot(sessionId, at(16_001)).acks.length, 0);
+});
+
+test('round-trips browser presence and derives online degraded offline health without changing classroom revision', () => {
+  const sessionId = 'P1T1-N02-browser-presence';
+  const revisionBefore = fixture.database.prepare(`
+    SELECT revision FROM classroom_sessions WHERE session_id = ?
+  `).pluck().get(sessionId);
+  const topicBefore = fixture.database.prepare(`
+    SELECT version FROM snapshot_versions WHERE topic = ?
+  `).pluck().get(`classroom:${sessionId}`) as number | undefined;
+
+  const presence = recordDeviceHeartbeat(sessionId, {
+    actorRole: 'student',
+    clientKind: 'browser',
+    visibilityState: 'visible',
+    deviceId: `browser-${sessionId}-stu-01`,
+    studentId: 'stu-01',
+    pageState: 'ready',
+    lastAppliedRevision: 0,
+  }, at(0));
+
+  assert.equal(presence.actorRole, 'student');
+  assert.equal(presence.clientKind, 'browser');
+  assert.equal(presence.visibilityState, 'visible');
+  assert.equal(presence.syncHealth, 'online');
+  assert.equal(classroomDeviceSnapshot(sessionId, at(6_000)).devices[0]?.syncHealth, 'online');
+  assert.equal(classroomDeviceSnapshot(sessionId, at(6_001)).devices[0]?.syncHealth, 'degraded');
+  assert.equal(classroomDeviceSnapshot(sessionId, at(16_000)).devices[0]?.syncHealth, 'degraded');
+  assert.equal(classroomDeviceSnapshot(sessionId, at(16_001)).devices[0]?.syncHealth, 'offline');
+  assert.equal(fixture.database.prepare(`
+    SELECT revision FROM classroom_sessions WHERE session_id = ?
+  `).pluck().get(sessionId), revisionBefore);
+  assert.equal(fixture.database.prepare(`
+    SELECT version FROM snapshot_versions WHERE topic = ?
+  `).pluck().get(`classroom:${sessionId}`), (topicBefore ?? 0) + 1);
 });
 
 test('tracks three independent devices and applies one command to one student only', () => {
@@ -92,6 +137,63 @@ test('tracks three independent devices and applies one command to one student on
     ['stu-02', 'queued'],
     ['stu-03', 'queued'],
   ]);
+});
+
+test('queues commands only for joined following non-offline student browsers', () => {
+  const sessionId = 'P1T1-N02-browser-recipients';
+  fixture.database.prepare(`
+    UPDATE classroom_sessions SET status = 'active' WHERE session_id = ?
+  `).run(sessionId);
+  const participation = new ClassroomParticipationRepository(fixture.database);
+  participation.join(sessionId, 'stu-01', at(-20_000));
+  participation.join(sessionId, 'stu-02', at(-20_000));
+  participation.setMode(sessionId, 'stu-02', 'self', at(-19_000));
+  participation.join(sessionId, 'stu-03', at(-20_000));
+  participation.leave(sessionId, 'stu-03', at(-19_000));
+  const browserHeartbeat = (
+    deviceId: string,
+    actorRole: 'teacher' | 'student' | 'projector',
+    studentId?: string,
+    now = at(0),
+  ) => recordDeviceHeartbeat(sessionId, {
+    deviceId,
+    actorRole,
+    ...(studentId ? { studentId } : {}),
+    clientKind: 'browser',
+    visibilityState: 'visible',
+    pageState: 'ready',
+    lastAppliedRevision: 0,
+  }, now);
+  browserHeartbeat('browser-follow-online', 'student', 'stu-01');
+  browserHeartbeat('browser-follow-offline', 'student', 'stu-01', at(-16_001));
+  recordDeviceHeartbeat(sessionId, {
+    deviceId: 'simulator-follow-online',
+    actorRole: 'student',
+    studentId: 'stu-01',
+    clientKind: 'helper-simulator',
+    visibilityState: 'visible',
+    pageState: 'ready',
+    lastAppliedRevision: 0,
+  }, at(0));
+  browserHeartbeat('browser-self-online', 'student', 'stu-02');
+  browserHeartbeat('browser-left-online', 'student', 'stu-03');
+  browserHeartbeat('browser-teacher-online', 'teacher');
+  browserHeartbeat('browser-projector-online', 'projector');
+
+  command(sessionId);
+
+  assert.deepEqual(
+    classroomDeviceSnapshot(sessionId, at(1)).acks.map(({ deviceId }) => deviceId),
+    ['browser-follow-online'],
+  );
+  const published = classroomDeviceSnapshot(sessionId, at(1)).command;
+  assert.ok(published);
+  assert.throws(() => recordCommandAck(sessionId, {
+    commandId: published.commandId,
+    deviceId: 'simulator-follow-online',
+    studentId: 'stu-01',
+    state: 'applied',
+  }, at(2)), /recipient/i);
 });
 
 test('never rolls an applied acknowledgement back to delivered', () => {

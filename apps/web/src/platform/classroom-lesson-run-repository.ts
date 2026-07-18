@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { AppDatabase } from './db/database.ts';
 import type { ClassroomCommand } from './models.ts';
+import { queueClassroomCommandRecipients } from './classroom-command-recipients.ts';
 import { SnapshotClock } from './snapshot-clock.ts';
 import {
   createInitialTeachingCursor,
@@ -203,7 +204,7 @@ export class ClassroomLessonRunRepository {
         }
         throw new ClassroomLessonRunConflictError('Close the open lesson run before starting another lesson.');
       }
-      this.insertCommand(command);
+      this.insertCommand(command, now);
       this.clock.advance([`classroom:${input.sessionId}`], at);
       const run = this.readLessonRun(lessonRunId);
       if (!run) throw new ClassroomLessonRunNotFoundError(lessonRunId);
@@ -317,7 +318,7 @@ export class ClassroomLessonRunRepository {
         commandPhaseForCursor(nextCursor),
         now,
       );
-      this.insertCommand(command);
+      this.insertCommand(command, now);
       this.clock.advance([`classroom:${input.sessionId}`], at);
       const run = this.readLessonRun(input.lessonRunId);
       if (!run) throw new ClassroomLessonRunNotFoundError(input.lessonRunId);
@@ -412,7 +413,7 @@ export class ClassroomLessonRunRepository {
         commandPhaseForCursor(nextCursor),
         now,
       );
-      this.insertCommand(command);
+      this.insertCommand(command, now);
       this.clock.advance([`classroom:${input.sessionId}`], at);
       const run = this.readLessonRun(input.lessonRunId);
       if (!run) throw new ClassroomLessonRunNotFoundError(input.lessonRunId);
@@ -431,7 +432,7 @@ export class ClassroomLessonRunRepository {
     return row;
   }
 
-  private insertCommand(command: ClassroomCommand): void {
+  private insertCommand(command: ClassroomCommand, now: Date): void {
     this.database.prepare(`
       INSERT INTO classroom_commands (
         command_id, session_id, revision, kind, target_student_id,
@@ -450,19 +451,12 @@ export class ClassroomLessonRunRepository {
       command.createdAt,
       command.expiresAt,
     );
-    this.database.prepare(`
-      INSERT INTO command_acks (command_id, device_id, state, acknowledged_at)
-      SELECT ?, device.device_id, 'queued', ?
-      FROM device_presence AS device
-      INNER JOIN classroom_members AS member
-        ON member.session_id = device.session_id
-        AND member.student_id = device.user_id
-      INNER JOIN users AS user ON user.id = member.student_id
-      WHERE device.session_id = ?
-        AND device.role = 'student'
-        AND user.role = 'student'
-        AND user.is_active = 1
-    `).run(command.commandId, command.createdAt, command.sessionId);
+    queueClassroomCommandRecipients(this.database, {
+      commandId: command.commandId,
+      sessionId: command.sessionId,
+      acknowledgedAt: command.createdAt,
+      observedAt: now,
+    });
   }
 }
 

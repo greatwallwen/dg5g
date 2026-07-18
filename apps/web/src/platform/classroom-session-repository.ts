@@ -48,6 +48,14 @@ import {
   initialClassroomSessionState,
 } from './classroom-session-state-codec.ts';
 import { parseClassroomCommandRow } from './classroom-command-codec.ts';
+import {
+  devicePresenceFromRow,
+  type ClassroomDeviceRow,
+} from './classroom-device-codec.ts';
+import {
+  isClassroomCommandRecipient,
+  queueClassroomCommandRecipients,
+} from './classroom-command-recipients.ts';
 
 export type ClassroomSessionStatus = 'preparing' | 'active' | 'paused' | 'closed';
 
@@ -114,6 +122,8 @@ export interface DeviceHeartbeat {
   deviceId: string;
   actorRole: DevicePresence['actorRole'];
   studentId?: string;
+  clientKind?: DevicePresence['clientKind'];
+  visibilityState?: DevicePresence['visibilityState'];
   pageState: ClassroomPageState;
   lastAppliedRevision: number;
 }
@@ -162,17 +172,6 @@ type SessionRow = {
   revision: number;
   state_json: string;
   updated_at: string;
-};
-
-type DeviceRow = {
-  device_id: string;
-  session_id: string;
-  user_id: string;
-  role: 'teacher' | 'student' | 'projector';
-  helper_state: DevicePresence['helperState'];
-  page_state: ClassroomPageState;
-  last_heartbeat_at: string | null;
-  last_applied_revision: number;
 };
 
 type CommandRow = {
@@ -351,26 +350,13 @@ export class ClassroomSessionRepository {
         command.createdAt,
         command.expiresAt,
       );
-      this.database.prepare(`
-        INSERT INTO command_acks (command_id, device_id, state, acknowledged_at)
-        SELECT ?, device.device_id, 'queued', ?
-        FROM device_presence AS device
-        INNER JOIN classroom_members AS member
-          ON member.session_id = device.session_id
-          AND member.student_id = device.user_id
-        INNER JOIN users AS user ON user.id = member.student_id
-        WHERE device.session_id = ?
-          AND device.role = 'student'
-          AND user.role = 'student'
-          AND user.is_active = 1
-          AND (? IS NULL OR device.user_id = ?)
-      `).run(
-        command.commandId,
-        at,
-        command.sessionId,
-        command.studentId ?? null,
-        command.studentId ?? null,
-      );
+      queueClassroomCommandRecipients(this.database, {
+        commandId: command.commandId,
+        sessionId: command.sessionId,
+        acknowledgedAt: at,
+        observedAt: now,
+        ...(command.studentId ? { targetStudentId: command.studentId } : {}),
+      });
       this.advanceSnapshotTopics(input.sessionId, at);
       const session = this.readSession(input.sessionId);
       if (!session) throw new ClassroomSessionNotFoundError(input.sessionId);
@@ -387,6 +373,8 @@ export class ClassroomSessionRepository {
     const at = now.toISOString();
     assertHeartbeatRevision(input.lastAppliedRevision);
     const lastAppliedRevision = input.lastAppliedRevision;
+    const clientKind = input.clientKind ?? 'helper-simulator';
+    const visibilityState = input.visibilityState ?? 'visible';
     const transaction = this.database.transaction(() => {
       const session = this.database.prepare(`
         SELECT teacher_id, revision FROM classroom_sessions WHERE session_id = ?
@@ -397,20 +385,24 @@ export class ClassroomSessionRepository {
       }
       const userId = this.resolveHeartbeatUser(sessionId, session.teacher_id, input);
       const current = this.database.prepare(`
-        SELECT session_id, user_id, role FROM device_presence WHERE device_id = ?
-      `).get(input.deviceId) as Pick<DeviceRow, 'session_id' | 'user_id' | 'role'> | undefined;
-      if (current && (current.session_id !== sessionId || current.user_id !== userId || current.role !== input.actorRole)) {
+        SELECT session_id, user_id, role, client_kind FROM device_presence WHERE device_id = ?
+      `).get(input.deviceId) as Pick<ClassroomDeviceRow, 'session_id' | 'user_id' | 'role' | 'client_kind'> | undefined;
+      if (current && (current.session_id !== sessionId
+        || current.user_id !== userId
+        || current.role !== input.actorRole
+        || current.client_kind !== clientKind)) {
         throw new Error('Classroom helper device is already bound to another identity.');
       }
       const helperState: DevicePresence['helperState'] = input.pageState === 'error' ? 'degraded' : 'online';
       this.database.prepare(`
         INSERT INTO device_presence (
           device_id, session_id, user_id, role, helper_state, page_state,
-          last_heartbeat_at, last_applied_revision
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          last_heartbeat_at, last_applied_revision, client_kind, visibility_state
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(device_id) DO UPDATE SET
           helper_state = excluded.helper_state,
           page_state = excluded.page_state,
+          visibility_state = excluded.visibility_state,
           last_heartbeat_at = excluded.last_heartbeat_at,
           last_applied_revision = MAX(device_presence.last_applied_revision, excluded.last_applied_revision)
       `).run(
@@ -422,6 +414,8 @@ export class ClassroomSessionRepository {
         input.pageState,
         at,
         lastAppliedRevision,
+        clientKind,
+        visibilityState,
       );
       if (input.actorRole === 'student') this.queueLatestCommandForDevice(sessionId, input.deviceId, userId, at, now);
       this.advanceSnapshotTopics(sessionId, at);
@@ -429,6 +423,9 @@ export class ClassroomSessionRepository {
         deviceId: input.deviceId,
         actorRole: input.actorRole,
         ...(input.actorRole === 'student' ? { studentId: userId } : {}),
+        clientKind,
+        visibilityState,
+        syncHealth: helperState,
         helperState,
         pageState: input.pageState,
         lastHeartbeatAt: at,
@@ -458,12 +455,12 @@ export class ClassroomSessionRepository {
     const deviceRows = this.database.prepare(`
       SELECT
         device_id, session_id, user_id, role, helper_state, page_state,
-        last_heartbeat_at, last_applied_revision
+        last_heartbeat_at, last_applied_revision, client_kind, visibility_state
       FROM device_presence
-      WHERE session_id = ? AND role IN ('teacher', 'student')
+      WHERE session_id = ? AND role IN ('teacher', 'student', 'projector')
       ORDER BY device_id
-    `).all(sessionId) as DeviceRow[];
-    const devices = deviceRows.map((row) => deviceFromRow(row, now));
+    `).all(sessionId) as ClassroomDeviceRow[];
+    const devices = deviceRows.map((row) => devicePresenceFromRow(row, now));
     const acks = !latest
       ? []
       : (this.database.prepare(`
@@ -503,16 +500,24 @@ export class ClassroomSessionRepository {
       const device = this.database.prepare(`
         SELECT
           device_id, session_id, user_id, role, helper_state, page_state,
-          last_heartbeat_at, last_applied_revision
+          last_heartbeat_at, last_applied_revision, client_kind, visibility_state
         FROM device_presence
         WHERE device_id = ? AND session_id = ?
-      `).get(input.deviceId, sessionId) as DeviceRow | undefined;
+      `).get(input.deviceId, sessionId) as ClassroomDeviceRow | undefined;
       if (!device) throw new Error('Classroom helper device was not found.');
       if (device.role !== 'student' || device.user_id !== input.studentId) {
         throw new Error('Classroom helper device identity does not match the acknowledgement.');
       }
       if (!this.isActiveStudentMember(sessionId, input.studentId)) {
         throw new Error('Classroom acknowledgement requires an active member of this class session.');
+      }
+      if (!isClassroomCommandRecipient(this.database, {
+        sessionId,
+        deviceId: input.deviceId,
+        studentId: input.studentId,
+        observedAt: now,
+      })) {
+        throw new Error('Classroom acknowledgement requires an eligible browser recipient.');
       }
       if (command.studentId && command.studentId !== input.studentId) {
         throw new Error('Classroom command targets another student.');
@@ -574,7 +579,7 @@ export class ClassroomSessionRepository {
     teacherId: string,
     input: DeviceHeartbeat,
   ): string {
-    if (input.actorRole === 'teacher') {
+    if (input.actorRole === 'teacher' || input.actorRole === 'projector') {
       if (input.studentId) throw new Error('Teacher heartbeat cannot claim a student identity.');
       return teacherId;
     }
@@ -622,11 +627,14 @@ export class ClassroomSessionRepository {
       || !latest.expires_at
       || now.getTime() > Date.parse(latest.expires_at)
       || (latest.target_student_id && latest.target_student_id !== studentId)) return;
-    this.database.prepare(`
-      INSERT INTO command_acks (command_id, device_id, state, acknowledged_at)
-      VALUES (?, ?, 'queued', ?)
-      ON CONFLICT(command_id, device_id) DO NOTHING
-    `).run(latest.command_id, deviceId, at);
+    queueClassroomCommandRecipients(this.database, {
+      commandId: latest.command_id,
+      sessionId,
+      acknowledgedAt: at,
+      observedAt: now,
+      ...(latest.target_student_id ? { targetStudentId: latest.target_student_id } : {}),
+      deviceId,
+    });
   }
 
   private readDeviceLastAppliedRevision(deviceId: string): number {
@@ -767,23 +775,6 @@ function commandFromRow(row: CommandRow): ClassroomCommand {
   const command = parseClassroomCommandRow(row);
   if (!command) throw new ClassroomStateCorruptError(`Invalid classroom command payload: ${row.command_id}`);
   return command;
-}
-
-function deviceFromRow(row: DeviceRow, now: Date): DevicePresence {
-  const lastHeartbeatAt = row.last_heartbeat_at ?? '';
-  const heartbeatTime = Date.parse(lastHeartbeatAt);
-  const helperState = !Number.isFinite(heartbeatTime) || now.getTime() - heartbeatTime > 6_000
-    ? 'offline' as const
-    : row.page_state === 'error' ? 'degraded' as const : 'online' as const;
-  return {
-    deviceId: row.device_id,
-    actorRole: row.role === 'student' ? 'student' : 'teacher',
-    ...(row.role === 'student' ? { studentId: row.user_id } : {}),
-    helperState,
-    pageState: row.page_state,
-    lastHeartbeatAt,
-    lastAppliedRevision: row.last_applied_revision,
-  };
 }
 
 function ackFromRow(row: AckRow): CommandAck {

@@ -38,13 +38,11 @@ test('commits one teacher CAS mutation with its command, queued ack, and snapsho
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
-    fixture.database.prepare(`
-      INSERT INTO device_presence (
-        device_id, session_id, user_id, role, helper_state, page_state,
-        last_heartbeat_at, last_applied_revision
-      ) VALUES (?, ?, ?, 'student', 'online', 'ready', ?, 0)
-    `).run('device-stu-01', 'demo-class', 'stu-01', '2026-07-16T01:59:59.000Z');
     const repository = new ClassroomSessionRepository(fixture.database);
+    recordEligibleBrowser(
+      fixture.database, repository, 'device-stu-01', 'stu-01',
+      new Date('2026-07-16T01:59:59.000Z'),
+    );
     const current = repository.readSession('demo-class');
     assert.ok(current);
     const classroomVersion = topicVersion(fixture.database, 'classroom:demo-class');
@@ -112,13 +110,10 @@ test('persists a late student heartbeat and queues the live command without chan
     const classroomVersion = topicVersion(fixture.database, 'classroom:demo-class');
     const globalVersion = topicVersion(fixture.database, 'global');
 
-    const presence = repository.recordHeartbeat('demo-class', {
-      deviceId: 'late-device-stu-01',
-      actorRole: 'student',
-      studentId: 'stu-01',
-      pageState: 'ready',
-      lastAppliedRevision: 0,
-    }, new Date('2026-07-16T02:00:01.000Z'));
+    const presence = recordEligibleBrowser(
+      fixture.database, repository, 'late-device-stu-01', 'stu-01',
+      new Date('2026-07-16T02:00:01.000Z'),
+    );
     const snapshot = repository.readDeviceSnapshot(
       'demo-class',
       new Date('2026-07-16T02:00:01.000Z'),
@@ -148,13 +143,10 @@ test('persists monotonic acknowledgements without consuming teacher revision or 
       teacherMutation(current),
       new Date('2026-07-16T02:00:00.000Z'),
     );
-    repository.recordHeartbeat('demo-class', {
-      deviceId: 'ack-device-stu-01',
-      actorRole: 'student',
-      studentId: 'stu-01',
-      pageState: 'ready',
-      lastAppliedRevision: 0,
-    }, new Date('2026-07-16T02:00:01.000Z'));
+    recordEligibleBrowser(
+      fixture.database, repository, 'ack-device-stu-01', 'stu-01',
+      new Date('2026-07-16T02:00:01.000Z'),
+    );
     const classroomVersion = topicVersion(fixture.database, 'classroom:demo-class');
     const globalVersion = topicVersion(fixture.database, 'global');
 
@@ -244,13 +236,10 @@ test('retains session, command, presence, and acknowledgement after a real datab
       teacherMutation(current),
       new Date('2026-07-16T02:00:00.000Z'),
     );
-    repository.recordHeartbeat('demo-class', {
-      deviceId: 'reopen-device-stu-01',
-      actorRole: 'student',
-      studentId: 'stu-01',
-      pageState: 'ready',
-      lastAppliedRevision: 0,
-    }, new Date('2026-07-16T02:00:01.000Z'));
+    recordEligibleBrowser(
+      fixture.database, repository, 'reopen-device-stu-01', 'stu-01',
+      new Date('2026-07-16T02:00:01.000Z'),
+    );
     repository.recordAck('demo-class', {
       commandId: mutation.command.commandId,
       deviceId: 'reopen-device-stu-01',
@@ -364,13 +353,10 @@ test('keeps failed to delivered as a topic-free no-op while allowing failed to a
       teacherMutation(current),
       new Date('2026-07-16T02:00:00.000Z'),
     );
-    repository.recordHeartbeat('demo-class', {
-      deviceId: 'failed-ack-device',
-      actorRole: 'student',
-      studentId: 'stu-01',
-      pageState: 'ready',
-      lastAppliedRevision: 0,
-    }, new Date('2026-07-16T02:00:01.000Z'));
+    recordEligibleBrowser(
+      fixture.database, repository, 'failed-ack-device', 'stu-01',
+      new Date('2026-07-16T02:00:01.000Z'),
+    );
     const draft = {
       commandId: mutation.command.commandId,
       deviceId: 'failed-ack-device',
@@ -431,13 +417,10 @@ for (const membershipChange of [
         teacherMutation(current),
         new Date('2026-07-16T02:00:00.000Z'),
       );
-      repository.recordHeartbeat('demo-class', {
-        deviceId: 'revoked-member-device',
-        actorRole: 'student',
-        studentId: 'stu-01',
-        pageState: 'ready',
-        lastAppliedRevision: 0,
-      }, new Date('2026-07-16T02:00:01.000Z'));
+      recordEligibleBrowser(
+        fixture.database, repository, 'revoked-member-device', 'stu-01',
+        new Date('2026-07-16T02:00:01.000Z'),
+      );
       membershipChange.apply(fixture.database);
       const classroomVersion = topicVersion(fixture.database, 'classroom:demo-class');
       const globalVersion = topicVersion(fixture.database, 'global');
@@ -501,7 +484,7 @@ test('rejects command fields that disagree with the authoritative next state', (
   }
 });
 
-test('fans one broadcast command out to all 24 registered member devices', () => {
+test('fans one broadcast command out to all 24 joined following browser tabs', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
@@ -516,8 +499,13 @@ test('fans one broadcast command out to all 24 registered member devices', () =>
     const insertDevice = fixture.database.prepare(`
       INSERT INTO device_presence (
         device_id, session_id, user_id, role, helper_state, page_state,
-        last_heartbeat_at, last_applied_revision
-      ) VALUES (?, 'demo-class', ?, 'student', 'online', 'ready', ?, 0)
+        last_heartbeat_at, last_applied_revision, client_kind, visibility_state
+      ) VALUES (?, 'demo-class', ?, 'student', 'online', 'ready', ?, 0, 'browser', 'visible')
+    `);
+    const insertParticipation = fixture.database.prepare(`
+      INSERT INTO classroom_participation (
+        session_id, student_id, state, mode, joined_at, updated_at
+      ) VALUES ('demo-class', ?, 'joined', 'follow', ?, ?)
     `);
     fixture.database.transaction(() => {
       for (let index = 1; index <= 24; index += 1) {
@@ -528,6 +516,7 @@ test('fans one broadcast command out to all 24 registered member devices', () =>
           insertMember.run(studentId);
         }
         insertDevice.run(`fanout-device-${suffix}`, studentId, '2026-07-16T01:59:59.000Z');
+        insertParticipation.run(studentId, '2026-07-16T01:59:58.000Z', '2026-07-16T01:59:58.000Z');
       }
     })();
     const repository = new ClassroomSessionRepository(fixture.database);
@@ -553,6 +542,31 @@ function topicVersion(
 ): number {
   return database.prepare('SELECT version FROM snapshot_versions WHERE topic = ?')
     .pluck().get(topic) as number | undefined ?? 0;
+}
+
+function recordEligibleBrowser(
+  database: ReturnType<typeof createTestDatabase>['database'],
+  repository: ClassroomSessionRepository,
+  deviceId: string,
+  studentId: string,
+  now: Date,
+) {
+  database.prepare(`
+    INSERT INTO classroom_participation (
+      session_id, student_id, state, mode, joined_at, updated_at
+    ) VALUES ('demo-class', ?, 'joined', 'follow', ?, ?)
+    ON CONFLICT(session_id, student_id) DO UPDATE SET
+      state = 'joined', mode = 'follow', left_at = NULL, updated_at = excluded.updated_at
+  `).run(studentId, now.toISOString(), now.toISOString());
+  return repository.recordHeartbeat('demo-class', {
+    deviceId,
+    actorRole: 'student',
+    studentId,
+    clientKind: 'browser',
+    visibilityState: 'visible',
+    pageState: 'ready',
+    lastAppliedRevision: 0,
+  }, now);
 }
 
 function teacherMutation(current: StoredClassroomSession) {
