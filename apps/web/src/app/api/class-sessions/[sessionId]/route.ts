@@ -82,6 +82,12 @@ export async function PATCH(
     if (body.action !== undefined) {
       return NextResponse.json({ error: 'Student actions require a student session' }, { status: 403 });
     }
+    if (body.patch && typeof body.patch === 'object'
+      && Object.hasOwn(body.patch as Record<string, unknown>, 'formalTest')) {
+      return NextResponse.json({
+        error: 'Formal assessment lifecycle requires the narrow assessment endpoint',
+      }, { status: 400 });
+    }
     const expectedRevision = Number(body.expectedRevision);
     if (!body.patch
       || typeof body.patch !== 'object'

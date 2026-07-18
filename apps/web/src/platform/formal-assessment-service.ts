@@ -33,7 +33,7 @@ import {
 import { createLearningCommandService, LearningAuthorizationError } from './learning-command-service.ts';
 import { SnapshotClock } from './snapshot-clock.ts';
 import { getWorkedCorrectionGuidance } from './formal-assessment-correction.server.ts';
-
+import { recordClassroomAssessmentSubmission } from './classroom-assessment-run-repository.ts';
 export type {
   AssessmentAnswers,
   ActiveIssuedAssessmentPaper,
@@ -47,26 +47,22 @@ export type {
   RemediationTarget,
 } from './formal-assessment-contract.ts';
 export { AssessmentDraftRevisionConflictError } from './formal-assessment-attempt-repository.ts';
-
 export interface FormalAssessmentServiceOptions {
   now?: () => Date;
   randomId?: () => string;
   randomToken?: () => string;
   tokenTtlMs?: number;
 }
-
 export interface FormalAssessmentIssueContext {
   classroomSessionId?: string;
   restart?: boolean;
 }
-
 export class AssessmentCatalogError extends Error {
   constructor(readonly nodeId: string) {
     super(`Formal assessment is unavailable for ${nodeId}.`);
     this.name = 'AssessmentCatalogError';
   }
 }
-
 export class AssessmentTokenError extends Error {
   constructor(readonly code: 'invalid-token' | 'expired-token' | 'used-token') {
     super(code === 'expired-token'
@@ -77,21 +73,18 @@ export class AssessmentTokenError extends Error {
     this.name = 'AssessmentTokenError';
   }
 }
-
 export class AssessmentRemediationRequiredError extends Error {
   constructor(readonly targets: RemediationTarget[]) {
     super('Complete the targeted relearning activities before starting another formal assessment.');
     this.name = 'AssessmentRemediationRequiredError';
   }
 }
-
 export class AssessmentClassroomWindowError extends Error {
   constructor(message = 'The classroom formal-assessment window is not active.') {
     super(message);
     this.name = 'AssessmentClassroomWindowError';
   }
 }
-
 interface TokenRow {
   assessmentId: string;
   studentId: string;
@@ -109,7 +102,6 @@ interface TokenRow {
   classroomSessionId: string | null;
   classroomRunId: string | null;
 }
-
 interface StudentAssessmentInstanceRow {
   assessmentId: string;
   nodeId: string;
@@ -150,7 +142,6 @@ export class FormalAssessmentService {
   ): IssuedAssessmentPaper {
     const studentId = requireStudent(actor);
     const definition = requireDefinition(nodeId);
-    createLearningCommandService(this.database).requireFormalAssessmentReadiness(actor, nodeId);
     const now = this.now();
     const serverNow = now.toISOString();
 
@@ -164,6 +155,9 @@ export class FormalAssessmentService {
           definition,
           running,
         );
+        if (boundClassroomRun?.status === 'paused') {
+          return this.projectIssuedAssessment(running, studentId, serverNow, 'paused');
+        }
         const terminalClassroomRun = boundClassroomRun
           && (['reviewing', 'closed', 'expired'].includes(boundClassroomRun.status)
             || now.getTime() >= Date.parse(boundClassroomRun.expiresAt));
@@ -207,6 +201,7 @@ export class FormalAssessmentService {
         throw new TypeError('Only an expired formal assessment can be restarted.');
       }
 
+      createLearningCommandService(this.database).requireFormalAssessmentReadiness(actor, nodeId);
       const missingTargets = this.readMissingRemediationTargets(studentId, definition);
       if (missingTargets.length > 0) throw new AssessmentRemediationRequiredError(missingTargets);
       const classroomRun = context.classroomSessionId
@@ -452,7 +447,7 @@ export class FormalAssessmentService {
     const outcome = this.database.transaction(() => {
       const token = this.readToken(hashToken(attemptToken));
       if (!token || token.studentId !== studentId) throw new AssessmentTokenError('invalid-token');
-      if (token.usedAt !== null) throw new AssessmentTokenError('used-token');
+      if (token.usedAt !== null) this.rejectUsedToken(token);
       this.assertTokenInstanceBinding(token, expectedNodeId);
       if (Date.parse(token.instanceExpiresAt ?? '') <= Date.parse(updatedAt)) {
         this.expireInstance(token.assessmentId, updatedAt);
@@ -489,7 +484,7 @@ export class FormalAssessmentService {
     const outcome = this.database.transaction(() => {
       const token = this.readToken(hashToken(attemptToken));
       if (!token || token.studentId !== studentId) throw new AssessmentTokenError('invalid-token');
-      if (token.usedAt !== null) throw new AssessmentTokenError('used-token');
+      if (token.usedAt !== null) this.rejectUsedToken(token);
       this.assertTokenInstanceBinding(token, expectedNodeId);
       if (Date.parse(token.instanceExpiresAt ?? '') <= Date.parse(completedAt)) {
         this.expireInstance(token.assessmentId, completedAt);
@@ -554,7 +549,7 @@ export class FormalAssessmentService {
         WHERE status = 'running' AND assessment_id = ?
       `).run(completedAt, token.assessmentId);
       const versions = new SnapshotClock(this.database).advance(
-        [`learning:${studentId}`],
+        recordClassroomAssessmentSubmission(this.database, { ...token, studentId, completedAt }),
         completedAt,
       );
 
@@ -641,6 +636,11 @@ export class FormalAssessmentService {
     if (!stillOpen) {
       throw new AssessmentClassroomWindowError();
     }
+  }
+
+  private rejectUsedToken(token: TokenRow): never {
+    if (token.classroomRunId || token.classroomSessionId) this.requireClassroomRunStillOpen(token);
+    throw new AssessmentTokenError('used-token');
   }
 
   private readMissingRemediationTargets(

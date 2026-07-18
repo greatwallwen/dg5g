@@ -535,7 +535,13 @@ test('paused classroom assessment GET keeps the running instance and token uncha
 
     const countsBeforeResume = assessmentPersistenceCounts(fixture.database);
     const pausedResponse = route.GET(new Request(issueUrl, { headers: { cookie } }), assessmentRouteContext());
-    assert.equal(pausedResponse.status, 409);
+    assert.equal(pausedResponse.status, 200);
+    const paused = await pausedResponse.json();
+    assert.equal(paused.assessmentId, issued.assessmentId);
+    assert.equal(paused.state, 'paused');
+    assert.equal(paused.attemptToken, undefined);
+    assert.deepEqual(paused.draft.answers, { evidenceClassification: 'nameplate-photo' });
+    assert.equal(paused.draft.revision, 1);
     assert.deepEqual(assessmentPersistenceCounts(fixture.database), countsBeforeResume);
     assert.deepEqual(fixture.database.prepare(`
       SELECT status, closure_reason AS closureReason
