@@ -114,6 +114,7 @@ test('score and submission fields keep their distinct authoritative meanings', (
       playingCount: 0,
       passedCount: 0,
       submissionPercent: 0,
+      canBeginReview: false,
     });
     assert.deepEqual(snapshot.submissions.professionalOutputs, {
       submittedAwaitingReviewCount: 0,
@@ -134,6 +135,137 @@ test('score and submission fields keep their distinct authoritative meanings', (
     assert.equal(snapshot.students[0]?.nodes.every(({ origin }) => origin === undefined), true);
     assert.equal(snapshot.students[1]?.nodes.find(({ nodeId }) => nodeId === 'P1T1-N04')?.origin, undefined);
     assert.equal(snapshot.students[2]?.tasks.every(({ origin }) => origin === 'demo'), true);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('one classroom cut exposes server time and the exact active lesson cursor', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    const lesson = startActiveLessonRun(fixture.database, 'demo-class', {
+      lessonId: 'P01-L2',
+      now: new Date('2026-07-16T01:10:00.000Z'),
+    });
+
+    const snapshot = new AuthoritativeSnapshotReader(fixture.database)
+      .read(teacherActor(), 'teacher', { now });
+
+    assert.equal(snapshot.serverNow, now.toISOString());
+    assert.deepEqual(snapshot.classroom.activeLesson, {
+      runId: lesson.lessonRunId,
+      lessonId: 'P01-L2',
+      status: 'active',
+      revision: lesson.revision,
+      cursor: lesson.teachingCursor,
+      pageCount: 6,
+    });
+    assert.equal(snapshot.classroom.revision, lesson.revision);
+    assert.equal(snapshot.classroom.activeLesson.cursor.revision, lesson.revision);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('one classroom cut rejects a classroom revision that diverges from its lesson cursor', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    startActiveLessonRun(fixture.database, 'demo-class');
+    fixture.database.prepare(`
+      UPDATE classroom_sessions SET revision = revision + 1
+      WHERE session_id = 'demo-class'
+    `).run();
+
+    assert.throws(
+      () => new AuthoritativeSnapshotReader(fixture.database)
+        .read(teacherActor(), 'teacher', { now }),
+      /Invalid active lesson run|revisions are incoherent/,
+    );
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('one classroom cut rejects an assessment bound to the active lesson with mismatched node facts', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    const lesson = startActiveLessonRun(fixture.database, 'demo-class');
+    fixture.database.prepare(`
+      INSERT INTO classroom_assessment_runs (
+        run_id, lesson_run_id, session_id, node_id, game_id,
+        status, started_at, expires_at
+      ) VALUES (
+        'assessment-incoherent', ?, 'demo-class', 'P1T1-N03',
+        'P1T1-N02-server-assessment', 'running', ?, ?
+      )
+    `).run(
+      lesson.lessonRunId,
+      '2026-07-16T01:10:00.000Z',
+      '2026-07-16T01:25:00.000Z',
+    );
+
+    assert.throws(
+      () => new AuthoritativeSnapshotReader(fixture.database)
+        .read(teacherActor(), 'teacher', { now }),
+      /assessment run is incoherent with the active lesson cut/,
+    );
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('a completed assessment from an earlier lesson node does not poison the new active node cut', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    const lesson = openRelationalAssessmentRun(
+      fixture.database,
+      'assessment-finished-old-node',
+      '2026-07-16T01:10:00.000Z',
+      '2026-07-16T01:19:00.000Z',
+    );
+    fixture.database.prepare(`
+      UPDATE classroom_assessment_runs
+      SET status = 'closed', closed_at = ?, closed_reason = 'teacher-collected',
+        revision = revision + 1
+      WHERE run_id = 'assessment-finished-old-node'
+    `).run('2026-07-16T01:18:00.000Z');
+    new ClassroomLessonRunRepository(fixture.database).updateTeachingCursor({
+      sessionId: 'demo-class',
+      lessonRunId: lesson.lessonRunId,
+      expectedRevision: lesson.revision,
+      next: {
+        ...lesson.teachingCursor,
+        nodeId: 'P1T1-N03',
+        unitId: 'P01-ku-03',
+        pageId: 'P01-L2-P02',
+        pageIndex: 1,
+        phase: 'lecture',
+        actionId: 'P1T1-N03-S01',
+        actionIndex: 0,
+      },
+    }, new Date('2026-07-16T01:19:00.000Z'));
+
+    const snapshot = new AuthoritativeSnapshotReader(fixture.database)
+      .read(teacherActor(), 'teacher', { now });
+
+    assert.equal(snapshot.classroom.activeNodeId, 'P1T1-N03');
+    assert.deepEqual(snapshot.submissions.activeAssessment, {
+      status: 'idle',
+      eligibleCount: 3,
+      submittedCount: 0,
+      playingCount: 0,
+      passedCount: 0,
+      submissionPercent: 0,
+      canBeginReview: false,
+    });
   } finally {
     fixture.cleanup();
   }
@@ -209,109 +341,102 @@ test('historical demo attempts never enter active assessment submission statisti
       { now },
     );
     assert.deepEqual(snapshot.submissions.activeAssessment, {
-      status: 'running',
+      status: 'idle',
       eligibleCount: 3,
       submittedCount: 0,
-      playingCount: 3,
+      playingCount: 0,
       passedCount: 0,
       submissionPercent: 0,
+      canBeginReview: false,
     });
   } finally {
     fixture.cleanup();
   }
 });
 
-test('counts a real submission by shared classroom run while preserving its unique student assessment identity', () => {
+test('active assessment facts come from the relational run bound to the active lesson', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
-    readyForFormalAssessment(fixture.database, 'stu-01');
-    const classroom = new ClassroomSessionRepository(fixture.database).readSession('demo-class');
-    assert.ok(classroom);
-    classroom.state.formalTest = {
-      assessmentId: 'AS-P1T1-N02',
-      runId: 'classroom-run-shared-01',
-      gameId: 'P1T1-N02-server-assessment',
-      nodeId: 'P1T1-N02',
-      status: 'running',
-      durationSeconds: 900,
-      startedAt: '2026-07-16T01:10:00.000Z',
-    };
-    fixture.database.prepare(`
-      UPDATE classroom_sessions SET status = 'active', state_json = ?
-      WHERE session_id = 'demo-class'
-    `).run(JSON.stringify(classroom.state));
-    openRelationalAssessmentRun(
+    for (const studentId of ['stu-01', 'stu-02', 'stu-03']) {
+      readyForFormalAssessment(fixture.database, studentId);
+    }
+    const lesson = openRelationalAssessmentRun(
       fixture.database,
-      'classroom-run-shared-01',
+      'classroom-run-relational-cut',
       '2026-07-16T01:10:00.000Z',
       '2026-07-16T01:25:00.000Z',
     );
     let sequence = 0;
     const assessment = new FormalAssessmentService(fixture.database, {
       now: () => new Date('2026-07-16T01:15:00.000Z'),
-      randomId: () => `live-${++sequence}`,
-      randomToken: () => `live-token-${++sequence}-0123456789abcdef`,
+      randomId: () => `relational-${++sequence}`,
+      randomToken: () => `relational-token-${++sequence}-0123456789abcdef`,
     });
-    const selfIssued = assessment.issuePaper(studentActor('stu-01'), 'P1T1-N02');
+    const papers = (['stu-01', 'stu-02', 'stu-03'] as const).map((studentId) => (
+      assessment.issuePaper(studentActor(studentId), 'P1T1-N02', {
+        classroomSessionId: 'demo-class',
+      })
+    ));
     assessment.submitAnswers(
       studentActor('stu-01'),
-      selfIssued.attemptToken,
-      passingAssessmentAnswers(),
+      papers[0]!.attemptToken,
+      wrongAssessmentAnswers(papers[0]!.paper),
     );
-    const issued = assessment.issuePaper(studentActor('stu-01'), 'P1T1-N02', {
-      classroomSessionId: 'demo-class',
-    });
-    assessment.submitAnswers(
-      studentActor('stu-01'),
-      issued.attemptToken,
-      wrongAssessmentAnswers(issued.paper),
-    );
+    fixture.database.prepare(`
+      UPDATE formal_assessment_instances
+      SET status = 'closed', closed_at = ?, closure_reason = 'cancelled'
+      WHERE assessment_id = ?
+    `).run('2026-07-16T01:16:00.000Z', papers[1]!.assessmentId);
 
     const snapshot = new AuthoritativeSnapshotReader(fixture.database)
       .read(teacherActor(), 'teacher', { now });
 
-    assert.notEqual(issued.assessmentId, classroom.state.formalTest.runId);
-    const bindings = fixture.database.prepare(`
-      SELECT assessment_id AS assessmentId, classroom_run_id AS classroomRunId
-      FROM formal_assessment_instances
-      WHERE assessment_id IN (?, ?)
-      ORDER BY assessment_id
-    `).all(selfIssued.assessmentId, issued.assessmentId) as Array<{
-      assessmentId: string;
-      classroomRunId: string | null;
-    }>;
-    assert.equal(bindings.find(({ assessmentId }) => assessmentId === selfIssued.assessmentId)?.classroomRunId, null);
-    assert.equal(bindings.find(({ assessmentId }) => assessmentId === issued.assessmentId)?.classroomRunId, 'classroom-run-shared-01');
     assert.deepEqual(snapshot.submissions.activeAssessment, {
       status: 'running',
+      runId: 'classroom-run-relational-cut',
+      lessonRunId: lesson.lessonRunId,
+      nodeId: 'P1T1-N02',
+      gameId: 'P1T1-N02-server-assessment',
+      revision: 0,
+      startedAt: '2026-07-16T01:10:00.000Z',
+      expiresAt: '2026-07-16T01:25:00.000Z',
       eligibleCount: 3,
       submittedCount: 1,
-      playingCount: 2,
+      playingCount: 1,
       passedCount: 0,
       submissionPercent: 33.3,
       passRatePercent: 0,
+      canBeginReview: false,
     });
 
-    classroom.state.formalTest.status = 'review';
-    classroom.state.reviewState = 'reviewing';
     fixture.database.prepare(`
-      UPDATE classroom_sessions SET state_json = ? WHERE session_id = 'demo-class'
-    `).run(JSON.stringify(classroom.state));
-    const projectorReview = new AuthoritativeSnapshotReader(fixture.database)
-      .read(teacherActor(), 'projector', { now });
-    assert.deepEqual(projectorReview.submissions.activeAssessment.errorDistribution, [
-      { dimension: 'evidenceClassification', incorrectCount: 1, percent: 100 },
-      { dimension: 'linkReconstruction', incorrectCount: 1, percent: 100 },
-      { dimension: 'defectiveOutputRevision', incorrectCount: 1, percent: 100 },
-      { dimension: 'professionalConclusion', incorrectCount: 1, percent: 100 },
-    ]);
-    assertProjectorContainsNoPersonalData(projectorReview);
-    const serializedReview = JSON.stringify(projectorReview.submissions.activeAssessment);
-    for (const forbidden of ['stu-01', 'student01', 'answers', 'feedback', 'evidenceText']) {
-      assert.equal(serializedReview.includes(forbidden), false);
-    }
+      UPDATE classroom_assessment_runs
+      SET status = 'paused', remaining_seconds_when_paused = 240,
+        revision = revision + 1
+      WHERE run_id = 'classroom-run-relational-cut'
+    `).run();
+    const paused = new AuthoritativeSnapshotReader(fixture.database)
+      .read(teacherActor(), 'teacher', { now });
+    assert.deepEqual(paused.submissions.activeAssessment, {
+      status: 'paused',
+      runId: 'classroom-run-relational-cut',
+      lessonRunId: lesson.lessonRunId,
+      nodeId: 'P1T1-N02',
+      gameId: 'P1T1-N02-server-assessment',
+      revision: 1,
+      startedAt: '2026-07-16T01:10:00.000Z',
+      expiresAt: '2026-07-16T01:25:00.000Z',
+      remainingSecondsWhenPaused: 240,
+      eligibleCount: 3,
+      submittedCount: 1,
+      playingCount: 1,
+      passedCount: 0,
+      submissionPercent: 33.3,
+      passRatePercent: 0,
+      canBeginReview: false,
+    });
   } finally {
     fixture.cleanup();
   }
@@ -322,42 +447,36 @@ test('running assessment excludes unbound attempts even when their old assessmen
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
-    const classroom = new ClassroomSessionRepository(fixture.database).readSession('demo-class');
-    assert.ok(classroom);
-    classroom.state.formalTest = {
-      assessmentId: 'assessment-current',
-      runId: 'classroom-run-current',
-      gameId: 'P1T1-N02-formal',
-      nodeId: 'P1T1-N02',
-      status: 'running',
-      durationSeconds: 300,
-      startedAt: '2026-07-16T01:10:00.000Z',
-    };
+    const lesson = openRelationalAssessmentRun(
+      fixture.database,
+      'classroom-run-current',
+      '2026-07-16T01:10:00.000Z',
+      '2026-07-16T01:25:00.000Z',
+    );
     fixture.database.exec(`
       INSERT INTO formal_assessment_instances (
-        assessment_id, session_id, node_id, game_id, question_version, status, opened_at, closed_at
+        assessment_id, session_id, classroom_run_id, node_id, game_id,
+        question_version, status, opened_at, closed_at, expires_at
       ) VALUES
         (
-          'assessment-history', 'demo-class', 'P1T1-N02', 'P1T1-N02-formal',
-          'question-v0', 'closed', '2026-07-16T01:10:00.000Z', '2026-07-16T01:18:00.000Z'
+          'assessment-history', 'demo-class', NULL, 'P1T1-N02',
+          'P1T1-N02-server-assessment', 'question-v0', 'closed',
+          '2026-07-16T01:10:00.000Z', '2026-07-16T01:18:00.000Z',
+          '2026-07-16T01:25:00.000Z'
         ),
         (
-          'assessment-current', 'demo-class', 'P1T1-N02', 'P1T1-N02-formal',
-          'question-v1', 'running', '2026-07-16T01:10:00.000Z', NULL
+          'assessment-current', 'demo-class', 'classroom-run-current', 'P1T1-N02',
+          'P1T1-N02-server-assessment', 'question-v1', 'running',
+          '2026-07-16T01:10:00.000Z', NULL, '2026-07-16T01:25:00.000Z'
         );
     `);
-    fixture.database.prepare(`
-      UPDATE classroom_sessions
-      SET status = 'active', state_json = ?
-      WHERE session_id = 'demo-class'
-    `).run(JSON.stringify(classroom.state));
     const learning = new LearningRepository(fixture.database);
     learning.recordFormalAttempt({
       attemptId: 'current-window-zero',
       studentId: 'stu-01',
       nodeId: 'P1T1-N02',
       assessmentId: 'assessment-current',
-      gameId: 'P1T1-N02-formal',
+      gameId: 'P1T1-N02-server-assessment',
       score: 0,
       completedAt: '2026-07-16T01:15:00.000Z',
     }, learning.readTopicVersion('learning:stu-01'));
@@ -366,7 +485,7 @@ test('running assessment excludes unbound attempts even when their old assessmen
       studentId: 'stu-02',
       nodeId: 'P1T1-N02',
       assessmentId: 'assessment-history',
-      gameId: 'P1T1-N02-formal',
+      gameId: 'P1T1-N02-server-assessment',
       score: 100,
       completedAt: '2026-07-16T01:16:00.000Z',
     }, learning.readTopicVersion('learning:stu-02'));
@@ -384,7 +503,7 @@ test('running assessment excludes unbound attempts even when their old assessmen
       studentId: 'stu-03',
       nodeId: 'P1T1-N02',
       assessmentId: 'assessment-current',
-      gameId: 'P1T1-N02-formal',
+      gameId: 'P1T1-N02-server-assessment',
       score: 100,
       completedAt: '2026-07-16T01:21:00.000Z',
     }, learning.readTopicVersion('learning:stu-03'));
@@ -394,11 +513,19 @@ test('running assessment excludes unbound attempts even when their old assessmen
 
     assert.deepEqual(snapshot.submissions.activeAssessment, {
       status: 'running',
-      eligibleCount: 3,
+      runId: 'classroom-run-current',
+      lessonRunId: lesson.lessonRunId,
+      nodeId: 'P1T1-N02',
+      gameId: 'P1T1-N02-server-assessment',
+      revision: 0,
+      startedAt: '2026-07-16T01:10:00.000Z',
+      expiresAt: '2026-07-16T01:25:00.000Z',
+      eligibleCount: 1,
       submittedCount: 0,
-      playingCount: 3,
+      playingCount: 1,
       passedCount: 0,
       submissionPercent: 0,
+      canBeginReview: false,
     });
   } finally {
     fixture.cleanup();
@@ -532,6 +659,8 @@ function assertProjectorContainsNoPersonalData(snapshot: AuthoritativeSnapshot &
   const forbiddenKeys = new Set([
     'studentId', 'students', 'participants', 'roster', 'devices', 'acks',
     'displayName', 'username', 'deviceId', 'outputId', 'feedback', 'answers', 'evidenceText',
+    'assessmentId', 'attemptToken', 'instanceId', 'questionVersion', 'diagnostics',
+    'draft', 'token', 'personalScore',
   ]);
   visit(snapshot, (key) => assert.equal(forbiddenKeys.has(key), false, `projector leaked key ${key}`));
 }
@@ -596,26 +725,12 @@ function wrongAssessmentAnswers(paper: AssessmentPaper): AssessmentAnswers {
   };
 }
 
-function passingAssessmentAnswers(): AssessmentAnswers {
-  return {
-    evidenceClassification: 'nameplate-photo',
-    linkReconstruction: ['source-device', 'source-port', 'cable-label', 'peer-port', 'peer-device'],
-    defectiveOutputRevision: ['restore-source', 'add-photo-index', 'record-direction'],
-    professionalConclusion: {
-      confirmedFact: '设备铭牌与源端口证据清晰，设备身份和源端连接已经确认。',
-      evidenceGap: '对端端口照片仍需复核，当前不扩展未经证实的结论。',
-      risk: '证据不足时直接交付可能造成链路关系误判。',
-      action: '补拍对端端口并核验编号，完成证据索引后更新成果表。',
-    },
-  } as AssessmentAnswers;
-}
-
 function openRelationalAssessmentRun(
   database: ReturnType<typeof createTestDatabase>['database'],
   runId: string,
   startedAt: string,
   expiresAt: string,
-): void {
+): ReturnType<typeof startActiveLessonRun> {
   const lessonRun = startActiveLessonRun(database, 'demo-class', {
     now: new Date(startedAt),
   });
@@ -626,4 +741,5 @@ function openRelationalAssessmentRun(
     ) VALUES (?, ?, 'demo-class', 'P1T1-N02', 'P1T1-N02-server-assessment',
       'running', ?, ?)
   `).run(runId, lessonRun.lessonRunId, startedAt, expiresAt);
+  return lessonRun;
 }

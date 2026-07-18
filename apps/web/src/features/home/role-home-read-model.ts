@@ -286,7 +286,7 @@ function missingTeacherClass(actor: AuthenticatedActor): TeacherWorkbenchSnapsho
         classroomActivity: { submittedCount: 0, submissionPercent: 0 },
         activeAssessment: {
           status: 'idle', eligibleCount: 0, submittedCount: 0, playingCount: 0,
-          passedCount: 0, submissionPercent: 0,
+          passedCount: 0, submissionPercent: 0, canBeginReview: false,
         },
         professionalOutputs: {
           submittedAwaitingReviewCount: 0, returnedCount: 0, verifiedCount: 0,

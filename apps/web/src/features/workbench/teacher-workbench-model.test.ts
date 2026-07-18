@@ -64,6 +64,7 @@ test('membership scales from three to 24 or more without clamping or hard-coded 
         activeAssessment: {
           status: 'running', eligibleCount: 27, submittedCount: 21, playingCount: 4,
           passedCount: 18, submissionPercent: 78, passRatePercent: 86,
+          canBeginReview: false,
         },
         professionalOutputs: { submittedAwaitingReviewCount: 6, returnedCount: 2, verifiedCount: 7 },
       },
@@ -153,6 +154,7 @@ function teacherSnapshot(overrides: Partial<TeacherWorkbenchSnapshot> = {}): Tea
         activeAssessment: {
           status: 'running', eligibleCount: 3, submittedCount: 1, playingCount: 1,
           passedCount: 1, submissionPercent: 33, passRatePercent: 100,
+          canBeginReview: false,
         },
         professionalOutputs: { submittedAwaitingReviewCount: 1, returnedCount: 0, verifiedCount: 2 },
       },

@@ -17,9 +17,13 @@ import type { NodeStateAxes } from './learning-projection.ts';
 import { projectP1Project, type P1ProjectProjection } from './p1-project-projection.ts';
 import { SnapshotClock } from './snapshot-clock.ts';
 import type { LearningOrigin } from './learning-origin.ts';
-import { readValidatedClassroomRunAttempts } from './classroom-assessment-run-reader.ts';
 import {
-  assessmentDimensionKeys,
+  readClassroomAssessmentRunSnapshot,
+  type ClassroomAssessmentSnapshotStatus,
+} from './classroom-assessment-run-reader.ts';
+import type { ClassroomLessonRunStatus, TeachingCursor } from './teaching-cursor.ts';
+import { ClassroomAssessmentRunRepository } from './classroom-assessment-run-repository.ts';
+import {
   type AssessmentDimensionKey,
 } from './formal-assessment-contract.ts';
 
@@ -32,13 +36,24 @@ export interface SnapshotSubmissionMetrics {
     submissionPercent: number;
   };
   activeAssessment: {
-    status: 'idle' | 'running' | 'paused' | 'review';
+    status: 'idle' | ClassroomAssessmentSnapshotStatus;
+    runId?: string;
+    lessonRunId?: string;
+    nodeId?: string;
+    gameId?: string;
+    revision?: number;
+    startedAt?: string;
+    expiresAt?: string;
+    reviewStartedAt?: string;
+    remainingSecondsWhenPaused?: number;
+    closeReason?: 'all-submitted' | 'time-expired' | 'teacher-collected' | 'lesson-ended';
     eligibleCount: number;
     submittedCount: number;
     playingCount: number;
     passedCount: number;
     submissionPercent: number;
     passRatePercent?: number;
+    canBeginReview: boolean;
     errorDistribution?: Array<{
       dimension: AssessmentDimensionKey;
       incorrectCount: number;
@@ -64,11 +79,20 @@ export interface ClassScoreSnapshot {
 export interface SnapshotCommon {
   snapshotVersion: number;
   generatedAt: string;
+  serverNow: string;
   classroom: {
     sessionId: string;
     classId: string;
     revision: number;
     status: ClassroomSessionStatus;
+    activeLesson?: {
+      runId: string;
+      lessonId: TeachingCursor['lessonId'];
+      status: ClassroomLessonRunStatus;
+      revision: number;
+      cursor: TeachingCursor;
+      pageCount: number;
+    };
     activeTaskId?: P1TaskId;
     activeNodeId?: P1NodeId;
     activeUnitId?: string;
@@ -187,6 +211,7 @@ export class AuthoritativeSnapshotReader {
   ): AuthoritativeSnapshot {
     assertAudienceRole(actor, audience);
     const observedAt = normalizeNow(options.now);
+    this.expireDueAssessment(actor, options.sessionId, observedAt);
     const transaction = this.database.transaction(() => {
       const clock = new SnapshotClock(this.database);
       const openingVersion = clock.read('global');
@@ -210,6 +235,30 @@ export class AuthoritativeSnapshotReader {
       return snapshot;
     });
     return transaction.deferred();
+  }
+
+  private expireDueAssessment(
+    actor: AuthenticatedActor,
+    requestedSessionId: string | undefined,
+    observedAt: Date,
+  ): void {
+    const session = this.database.transaction(() => {
+      this.assertStoredActor(actor);
+      const authorized = this.readAuthorizedSession(actor, requestedSessionId);
+      assertActorMembership(actor, authorized, this.readMembers(authorized.sessionId));
+      return authorized;
+    }).deferred();
+    if (!session.activeLessonRunId || !session.activeNodeId) return;
+    const runId = this.database.prepare(`
+      SELECT run_id
+      FROM classroom_assessment_runs
+      WHERE session_id = ? AND lesson_run_id = ? AND node_id = ?
+        AND status = 'running'
+      ORDER BY julianday(started_at) DESC, run_id DESC
+      LIMIT 1
+    `).pluck().get(session.sessionId, session.activeLessonRunId, session.activeNodeId);
+    if (typeof runId !== 'string') return;
+    new ClassroomAssessmentRunRepository(this.database).expireIfDue(runId, observedAt);
   }
 
   private assertStoredActor(actor: AuthenticatedActor): void {
@@ -330,11 +379,20 @@ export class AuthoritativeSnapshotReader {
     return {
       snapshotVersion: version.version,
       generatedAt: version.updatedAt,
+      serverNow: observedAt.toISOString(),
       classroom: {
         sessionId: session.sessionId,
         classId: session.classId,
         revision: session.revision,
         status: session.status,
+        ...(session.activeLessonRunId && session.lessonRunStatus && session.teachingCursor
+          ? { activeLesson: projectActiveLesson(
+              session.revision,
+              session.activeLessonRunId,
+              session.lessonRunStatus,
+              session.teachingCursor,
+            ) }
+          : {}),
         ...(activePolicy ? { activeTaskId: activePolicy.taskId } : {}),
         ...(activeNodeId ? { activeNodeId } : {}),
         ...(session.activeUnitId ? { activeUnitId: session.activeUnitId } : {}),
@@ -410,6 +468,39 @@ export class AuthoritativeSnapshotReader {
   }
 }
 
+function projectActiveLesson(
+  classroomRevision: number,
+  lessonRunId: string,
+  lessonRunStatus: ClassroomLessonRunStatus,
+  teachingCursor: TeachingCursor,
+): NonNullable<SnapshotCommon['classroom']['activeLesson']> {
+  if (classroomRevision !== teachingCursor.revision) {
+    throw new Error('Classroom, lesson, and teaching cursor revisions are incoherent.');
+  }
+  const pageCount = lessonPageCount(teachingCursor.lessonId);
+  if (teachingCursor.pageIndex >= pageCount) {
+    throw new Error('Teaching cursor page is outside its lesson package.');
+  }
+  return {
+    runId: lessonRunId,
+    lessonId: teachingCursor.lessonId,
+    status: lessonRunStatus,
+    revision: teachingCursor.revision,
+    cursor: teachingCursor,
+    pageCount,
+  };
+}
+
+function lessonPageCount(lessonId: TeachingCursor['lessonId']): number {
+  switch (lessonId) {
+    case 'P01-L1':
+    case 'P01-L2':
+    case 'P02-L1':
+    case 'P03-L1':
+      return 6;
+  }
+}
+
 function projectSubmissionMetrics(
   database: AppDatabase,
   session: StoredClassroomSession,
@@ -434,35 +525,15 @@ function projectSubmissionMetrics(
       AND attempt.delivery_channel = 'classroom'
       AND attempt.origin = 'user'
   `).pluck().get(session.sessionId, activeNodeId));
-  const storedFormalTest = session.state.formalTest;
-  const formalTest = storedFormalTest && activeNodeId && storedFormalTest.nodeId === activeNodeId
-    ? storedFormalTest
-    : undefined;
-  const assessmentStatus = formalTest?.status ?? 'idle';
-  const windowStartedAt = formalTest?.startedAt ? Date.parse(formalTest.startedAt) : Number.NaN;
-  const windowObservedAt = observedAt.getTime();
-  const validatedAttemptsInWindow = assessmentStatus === 'idle'
-    || !formalTest
-    || !formalTest.runId
-    || !activeNodeId
-    || !Number.isFinite(windowStartedAt)
-    || !Number.isFinite(windowObservedAt)
-    ? []
-    : readValidatedClassroomRunAttempts(database, {
+  const relationalAssessment = session.activeLessonRunId && activeNodeId
+    ? readClassroomAssessmentRunSnapshot(database, {
         sessionId: session.sessionId,
-        classroomRunId: formalTest.runId,
+        lessonRunId: session.activeLessonRunId,
         nodeId: activeNodeId,
-        gameId: formalTest.gameId,
-        startedAt: new Date(windowStartedAt),
-        observedAt: new Date(windowObservedAt),
-      });
-  const attemptsInWindow = validatedAttemptsInWindow
-    .map(({ studentId, totalScore }) => ({ studentId, score: totalScore }));
-  const submittedCount = attemptsInWindow.length;
-  const passedCount = attemptsInWindow.filter(({ score }) => score >= passScore).length;
-  const playingCount = assessmentStatus === 'running'
-    ? Math.max(0, classSize - submittedCount)
-    : 0;
+        passScore,
+        observedAt,
+      })
+    : undefined;
   const professionalOutputs = students.flatMap(({ learning }) => (
     learning.nodes.flatMap(({ evidence }) => evidence ? [evidence] : [])
   ));
@@ -471,22 +542,14 @@ function projectSubmissionMetrics(
       submittedCount: classroomSubmitted,
       submissionPercent: percent(classroomSubmitted, classSize),
     },
-    activeAssessment: {
-      status: assessmentStatus,
+    activeAssessment: relationalAssessment ?? {
+      status: 'idle',
       eligibleCount: classSize,
-      submittedCount,
-      playingCount,
-      passedCount,
-      submissionPercent: percent(submittedCount, classSize),
-      ...(submittedCount === 0 ? {} : { passRatePercent: percent(passedCount, submittedCount) }),
-      ...(assessmentStatus !== 'review' || submittedCount === 0 ? {} : {
-        errorDistribution: assessmentDimensionKeys.map((dimension) => {
-          const incorrectCount = validatedAttemptsInWindow.filter(
-            (attempt) => attempt.dimensions[dimension].score < 20,
-          ).length;
-          return { dimension, incorrectCount, percent: percent(incorrectCount, submittedCount) };
-        }),
-      }),
+      submittedCount: 0,
+      playingCount: 0,
+      passedCount: 0,
+      submissionPercent: 0,
+      canBeginReview: false,
     },
     professionalOutputs: {
       submittedAwaitingReviewCount: professionalOutputs.filter(({ status }) => status === 'submitted').length,
