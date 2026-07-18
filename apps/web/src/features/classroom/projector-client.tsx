@@ -17,6 +17,7 @@ import { useAuthoritativeSnapshot } from '@/features/snapshot/authoritative-snap
 import { useClassSession } from './use-class-session';
 import { authoritativeDomFacts } from '@/features/snapshot/snapshot-dom-facts';
 import { classroomLessonPageCountFromCatalog } from '@/platform/classroom-lesson-page-catalog';
+import { useClassroomPresence } from './classroom-presence-client';
 
 export function ProjectorClient({ slides, initialSession, initialSnapshot, task, playback, profiles }: { slides: TeacherSlide[]; initialSession: ProjectorClassSession; initialSnapshot: ProjectorAuthoritativeSnapshot; task: Task; playback: PlaybackScene; profiles: DemoTaskProfiles }) {
   const [session, , connection, submitIntent] = useClassSession(initialSession as ClassSession, {
@@ -24,6 +25,13 @@ export function ProjectorClient({ slides, initialSession, initialSnapshot, task,
     allowProjectorControls: true,
   });
   const snapshot = useAuthoritativeSnapshot(initialSnapshot, 'projector', initialSession.sessionId);
+  useClassroomPresence({
+    sessionId: initialSession.sessionId,
+    surface: 'projector',
+    audience: 'projector',
+    pageState: session.sessionStatus === 'closed' ? 'closed' : 'ready',
+    lastSeenClassroomRevision: session.lessonState?.revision ?? 0,
+  });
   const rootRef = useRef<HTMLElement>(null);
   const [controlBusy, setControlBusy] = useState(false);
   const [controlError, setControlError] = useState<string>();
@@ -46,14 +54,14 @@ export function ProjectorClient({ slides, initialSession, initialSnapshot, task,
   const formalTestActive = session.sceneMode === 'challenge' && formalAssessment.status === 'running';
   const reviewActive = session.sceneMode === 'review' && Boolean(formalAssessment.errorDistribution?.length);
   const facts = authoritativeDomFacts(snapshot);
-  const helperReady = snapshot.helper.canPush && connection.state !== 'offline';
+  const controlsAvailable = connection.state !== 'offline';
 
   async function changePage(nextPageIndex: number) {
-    if (!helperReady || controlBusy || nextPageIndex < 0 || nextPageIndex >= pageCount) return;
+    if (!controlsAvailable || controlBusy || nextPageIndex < 0 || nextPageIndex >= pageCount) return;
     setControlBusy(true);
     setControlError(undefined);
     const accepted = await submitIntent({ type: 'page_changed', pageIndex: nextPageIndex });
-    if (!accepted) setControlError('课堂页未同步，请检查课堂助手连接后重试。');
+    if (!accepted) setControlError('课堂页未同步，请检查课堂网络连接后重试。');
     setControlBusy(false);
   }
 
@@ -73,9 +81,9 @@ export function ProjectorClient({ slides, initialSession, initialSnapshot, task,
           <strong>{profile.title}</strong>
           <div className="projector-page-controls">
             <Link data-session-action="back-to-teacher" href={`/teacher/sessions/${initialSession.sessionId}`}>返回教师端</Link>
-            <button aria-label="上一页" data-session-action="previous-page" disabled={!helperReady || controlBusy || currentPageIndex === 0} onClick={() => void changePage(currentPageIndex - 1)} type="button">上一页</button>
+            <button aria-label="上一页" data-session-action="previous-page" disabled={!controlsAvailable || controlBusy || currentPageIndex === 0} onClick={() => void changePage(currentPageIndex - 1)} type="button">上一页</button>
             <em>{pageIndex} / {pageCount}</em>
-            <button aria-label="下一页" data-session-action="next-page" disabled={!helperReady || controlBusy || currentPageIndex === pageCount - 1} onClick={() => void changePage(currentPageIndex + 1)} type="button">下一页</button>
+            <button aria-label="下一页" data-session-action="next-page" disabled={!controlsAvailable || controlBusy || currentPageIndex === pageCount - 1} onClick={() => void changePage(currentPageIndex + 1)} type="button">下一页</button>
             <FullscreenToggle targetRef={rootRef} />
           </div>
         </header>
@@ -92,7 +100,7 @@ export function ProjectorClient({ slides, initialSession, initialSnapshot, task,
           <strong>{narrationFrame?.caption ?? (session.reviewState === 'reviewing' ? '课堂讲评中' : `当前活动：${unit.action}`)}</strong>
           <span className="projector-control-note"><Icon name="play" size={15} /> 播放 {Math.min(playbackIndex, playbackCount)} / {playbackCount}</span>
           <small>{formalAssessment.eligibleCount && formalPassScore !== undefined ? `正式测试 ${formalAssessment.submittedCount}/${formalAssessment.eligibleCount} 已提交 · ≥${formalPassScore}分 ${formalAssessment.passedCount}人` : task.output[0]}</small>
-          {!helperReady ? <small className="projector-control-error">课堂助手离线，翻页同步已停用</small> : controlError ? <small className="projector-control-error" role="alert">{controlError}</small> : null}
+          {!controlsAvailable ? <small className="projector-control-error">课堂网络离线，翻页同步已停用</small> : controlError ? <small className="projector-control-error" role="alert">{controlError}</small> : null}
         </footer>
       </RoleGate>
     </main>

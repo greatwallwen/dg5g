@@ -13,10 +13,18 @@ import { useAuthoritativeSnapshot } from '@/features/snapshot/authoritative-snap
 import { projectTeacherConsoleSnapshot, projectTeacherSkillPulse } from './teacher-console-snapshot-model';
 import { authoritativeDomFacts } from '@/features/snapshot/snapshot-dom-facts';
 import { teachingPageAt } from '@/features/textbook-scene/classroom-lesson-model';
+import { useClassroomPresence } from './classroom-presence-client';
 type TeacherInspectorTab = 'script' | 'learning' | 'review';
 export function TeacherConsoleClient({ displayName, slides, initialSession, initialSnapshot, task, playback, profiles }: { displayName: string; slides: TeacherSlide[]; initialSession: ClassSession; initialSnapshot: TeacherAuthoritativeSnapshot; task: Task; playback: PlaybackScene; profiles: DemoTaskProfiles }) {
   const [session, update, connection, submitIntent] = useClassSession(initialSession, { role: 'teacher' });
   const snapshot = useAuthoritativeSnapshot(initialSnapshot, 'teacher', initialSession.sessionId);
+  useClassroomPresence({
+    sessionId: initialSession.sessionId,
+    surface: 'teacher-console',
+    audience: 'teacher',
+    pageState: session.sessionStatus === 'closed' ? 'closed' : 'ready',
+    lastSeenClassroomRevision: session.lessonState?.revision ?? 0,
+  });
   const inspectorButtonRef = useRef<HTMLButtonElement>(null);
   const restoreInspectorFocusRef = useRef(false);
   const [inspectorOpen, setInspectorOpen] = useState(true);
@@ -34,7 +42,7 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
   const snapshotModel = projectTeacherConsoleSnapshot(snapshot, session.studentSyncState);
   const rosterStats = snapshotModel.rosterStats;
   const controlMode = snapshotModel.controlMode;
-  const helperReady = snapshotModel.helper.canPush;
+  const controlsAvailable = connection.state !== 'offline';
   const selectedNodeProgress = projectTeacherSkillPulse(snapshot, activeNodeId);
   const submittedAnswers = session.submissionAnswers ?? [];
   useLayoutEffect(() => {
@@ -90,12 +98,12 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
   ], [unit]);
   const activePlayback = useMemo(() => ({ ...playbackSceneForLearningUnit(unit, profile.taskId), presenterId: playback.presenterId }), [playback.presenterId, profile.taskId, unit]);
   async function go(index: number) {
-    if (!helperReady) return;
+    if (!controlsAvailable) return;
     const nextIndex = Math.max(0, Math.min(profile.units.length - 1, index));
     await submitIntent({ type: 'page_changed', pageIndex: nextIndex });
   }
   async function pushPage() {
-    if (!helperReady) return;
+    if (!controlsAvailable) return;
     update({
       activityState: 'pushed',
       studentSyncState: 'requested',
@@ -104,7 +112,7 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
     await submitIntent({ type: 'playback_seeked', positionMs: session.lessonState?.playback.positionMs ?? 0 });
   }
   async function forceFollow() {
-    if (!helperReady) return;
+    if (!controlsAvailable) return;
     const syncRequestId = `${unit.id}-force-${Date.now()}`;
     update({
       activityState: 'pushed',
@@ -118,7 +126,7 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
     update({ studentMode: 'follow', studentSyncState: 'idle', syncRequestId: `${unit.id}-release-${Date.now()}` });
   }
   async function startFormalTest() {
-    if (!helperReady || !activePolicy?.requiresFormalTest) return;
+    if (!controlsAvailable || !activePolicy?.requiresFormalTest) return;
     const formalTest = session.formalTest;
     if (!formalTest || formalTest.status === 'running') return;
     const phase = session.lessonState?.phase ?? 'prepare';
@@ -142,7 +150,7 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
     });
   }
   async function beginReview() {
-    if (!helperReady || snapshotModel.formalAssessment.submittedCount === 0) return;
+    if (!controlsAvailable || snapshotModel.formalAssessment.submittedCount === 0) return;
     const phase = session.lessonState?.phase ?? 'prepare';
     if (phase === 'prepare' && !await submitIntent({ type: 'phase_changed', phase: 'lecture' })) return;
     if (phase !== 'review' && phase !== 'close') {
@@ -160,7 +168,7 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
     profile={profile}
     unit={unit}
     rosterStats={rosterStats}
-    helperReady={helperReady}
+    helperReady={controlsAvailable}
     helperStatus={snapshotModel.helper.status}
     deliveryStats={snapshotModel.helper.commandDelivery}
     onlineStudentDeviceCount={snapshotModel.helper.onlineStudentDeviceCount}

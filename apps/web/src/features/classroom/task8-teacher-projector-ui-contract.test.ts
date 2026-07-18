@@ -62,7 +62,8 @@ test('teacher and projector roots declare their primary-action and motion contra
   assert.match(projector, /data-session-action="next-page"/);
   assert.match(projector, /data-session-action="back-to-teacher"/);
   assert.match(projector, /allowProjectorControls: true/);
-  assert.match(projector, /snapshot\.helper\.canPush/);
+  assert.match(projector, /connection\.state !== 'offline'/);
+  assert.doesNotMatch(projector, /snapshot\.helper\.canPush/);
   assert.match(projector, /errorDistribution/);
   assert.doesNotMatch(projector, /studentName|studentIdentifier|participant\.studentId|answers\.map/u);
 });

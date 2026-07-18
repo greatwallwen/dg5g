@@ -19,6 +19,7 @@ import {
   leaveStudentClassroom,
 } from './student-follow-runtime.ts';
 import { useClassSession } from './use-class-session.ts';
+import { useClassroomPresence } from './classroom-presence-client.ts';
 import { AccountMenu } from '../auth/account-menu.tsx';
 
 type ClassroomLifecycle = 'preparing' | 'active' | 'paused' | 'closed';
@@ -57,6 +58,13 @@ export function StudentFollowClient({
   });
   const revision = session.lessonState?.revision ?? 0;
   const liveSessionStatus = session.sessionStatus ?? sessionStatus;
+  useClassroomPresence({
+    sessionId: session.sessionId,
+    surface: 'student-follow',
+    audience: 'student',
+    pageState: liveSessionStatus === 'closed' ? 'closed' : 'ready',
+    lastSeenClassroomRevision: revision,
+  });
   const [lastFollowedRevision, setLastFollowedRevision] = useState(revision);
   useEffect(() => {
     if (mode === 'follow') setLastFollowedRevision(revision);
