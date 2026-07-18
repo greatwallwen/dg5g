@@ -34,7 +34,10 @@ import type {
   StudentProgress,
 } from './models.ts';
 import { getFormalAssessmentDefinition } from './formal-assessment-catalog.server.ts';
-import { classroomLessonPageCount } from './classroom-lesson-page-count.ts';
+import {
+  classroomLessonPageFor,
+  type ClassroomLessonPageMetadata,
+} from './classroom-lesson-page-catalog.ts';
 import {
   ClassroomLessonLifecycleService,
   type LessonLifecycleCommand,
@@ -206,10 +209,16 @@ export class ClassroomSessionService {
         aggregate.session.revision,
       );
     }
-    if (intent.type === 'page_changed') {
-      if (intent.pageIndex >= classroomLessonPageCount(aggregate.session.state.lesson.activeNodeId)) {
-        throw new ClassroomIntentError('Classroom page index is outside the authoritative lesson package.');
-      }
+    const cursor = aggregate.session.teachingCursor;
+    const lessonRunId = aggregate.session.activeLessonRunId;
+    if (!cursor || !lessonRunId) {
+      throw new ClassroomIntentError('Start an authoritative lesson run before changing its teaching cursor.');
+    }
+    const targetPage = intent.type === 'page_changed'
+      ? classroomLessonPageFor(cursor.lessonId, intent.pageIndex)
+      : undefined;
+    if (intent.type === 'page_changed' && !targetPage) {
+      throw new ClassroomIntentError('Classroom page index is outside the authoritative lesson package.');
     }
     const lesson = applyClassroomLessonIntent(aggregate.session.state.lesson, intent, now);
     if (lesson === aggregate.session.state.lesson) {
@@ -218,16 +227,11 @@ export class ClassroomSessionService {
     if (intent.type === 'phase_changed' && intent.phase === 'review') {
       this.requireReviewSubmission(aggregate.session, now);
     }
-    const cursor = aggregate.session.teachingCursor;
-    const lessonRunId = aggregate.session.activeLessonRunId;
-    if (!cursor || !lessonRunId) {
-      throw new ClassroomIntentError('Start an authoritative lesson run before changing its teaching cursor.');
-    }
     const mutation = this.lessonRuns.updateTeachingCursor({
       sessionId,
       lessonRunId,
       expectedRevision,
-      next: cursorMutationFromLesson(cursor, lesson, intent),
+      next: cursorMutationFromLesson(cursor, lesson, intent, targetPage),
     }, now);
     const stored = this.repository.readSession(sessionId);
     if (!stored) throw new ClassroomSessionNotFoundError(sessionId);
@@ -456,18 +460,17 @@ function cursorMutationFromLesson(
   cursor: TeachingCursor,
   lesson: NonNullable<ClassSession['lessonState']>,
   intent: ClassroomLessonIntent,
+  targetPage: ClassroomLessonPageMetadata | undefined,
 ): TeachingCursorMutation {
   const pageIndex = intent.type === 'page_changed' ? intent.pageIndex : cursor.pageIndex;
   return {
-    nodeId: lesson.activeNodeId,
-    unitId: lesson.activeUnitId,
-    pageId: intent.type === 'page_changed'
-      ? `${cursor.lessonId}-P${String(pageIndex + 1).padStart(2, '0')}`
-      : cursor.pageId,
+    nodeId: targetPage?.nodeId ?? lesson.activeNodeId,
+    unitId: targetPage?.unitId ?? lesson.activeUnitId,
+    pageId: targetPage?.pageId ?? cursor.pageId,
     pageIndex,
     phase: teachingPhaseFor(lesson.phase),
-    actionId: lesson.playback.actionId,
-    actionIndex: lesson.playback.actionIndex,
+    actionId: targetPage?.actionId ?? lesson.playback.actionId,
+    actionIndex: targetPage?.actionIndex ?? lesson.playback.actionIndex,
     playbackStatus: lesson.playback.status,
     positionMs: lesson.playback.positionMs,
     rate: lesson.playback.rate,

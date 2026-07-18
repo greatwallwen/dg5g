@@ -9,7 +9,10 @@ import { ClassroomSessionRepository } from './classroom-session-repository.ts';
 import { ClassroomRosterRepository } from './classroom-roster-repository.ts';
 import { getNodeLearningPolicy } from './learning-policy.ts';
 import { FormalAssessmentService, type AssessmentAnswers } from './formal-assessment-service.ts';
-import { createInitialTeachingCursor } from './teaching-cursor.ts';
+import {
+  createInitialTeachingCursor,
+  type ClassroomLessonId,
+} from './teaching-cursor.ts';
 
 const teacher: AuthenticatedActor = {
   userId: 'teacher-01',
@@ -174,6 +177,86 @@ test('allows bounded teacher cursor changes when zero student browsers are onlin
   }
 });
 
+test('page changes atomically follow P01, P02, and P03 page node metadata', () => {
+  const cases = [
+    {
+      lessonId: 'P01-L2',
+      pages: [
+        [2, 'P1T1-N03', 'P01-ku-03', 'P01-L2-P03', 'P1T1-N03-S03'],
+      ],
+    },
+    {
+      lessonId: 'P02-L1',
+      pages: [
+        [1, 'P1T2-N02', 'P02-ku-02', 'P02-L1-P02', 'P1T2-N02-S02'],
+        [3, 'P1T2-N03', 'P02-ku-03', 'P02-L1-P04', 'P1T2-N03-S04'],
+      ],
+    },
+    {
+      lessonId: 'P03-L1',
+      pages: [
+        [1, 'P1T3-N02', 'P03-ku-02', 'P03-L1-P02', 'P1T3-N02-S02'],
+        [4, 'P1T3-N04', 'P03-ku-04', 'P03-L1-P05', 'P1T3-N04-S05'],
+      ],
+    },
+  ] as const;
+
+  for (const lessonCase of cases) {
+    const fixture = createTestDatabase();
+    try {
+      migrateDatabase(fixture.database);
+      seedDemo(fixture.database);
+      const lessonRunId = seedExactActiveLessonRun(fixture.database, lessonCase.lessonId);
+      const repository = new ClassroomSessionRepository(fixture.database);
+      const service = new ClassroomSessionService(
+        repository,
+        new ClassroomRosterRepository(fixture.database),
+      );
+      let revision = 0;
+      for (const [pageIndex, nodeId, unitId, pageId, actionId] of lessonCase.pages) {
+        service.applyTeacherIntent(
+          teacher,
+          'demo-class',
+          { type: 'page_changed', pageIndex },
+          revision,
+          new Date(`2026-07-16T06:00:0${revision}.000Z`),
+        );
+        revision += 1;
+        const stored = repository.readSession('demo-class');
+        assert.deepEqual(stored?.teachingCursor && {
+          nodeId: stored.teachingCursor.nodeId,
+          unitId: stored.teachingCursor.unitId,
+          pageId: stored.teachingCursor.pageId,
+          pageIndex: stored.teachingCursor.pageIndex,
+          actionId: stored.teachingCursor.actionId,
+          actionIndex: stored.teachingCursor.actionIndex,
+          revision: stored.teachingCursor.revision,
+        }, {
+          nodeId,
+          unitId,
+          pageId,
+          pageIndex,
+          actionId,
+          actionIndex: pageIndex,
+          revision,
+        }, `${lessonCase.lessonId} page ${pageIndex + 1}`);
+        assert.deepEqual(fixture.database.prepare(`
+          SELECT active_node_id AS activeNodeId, active_unit_id AS activeUnitId,
+            active_lesson_run_id AS activeLessonRunId, revision
+          FROM classroom_sessions WHERE session_id = 'demo-class'
+        `).get(), {
+          activeNodeId: nodeId,
+          activeUnitId: unitId,
+          activeLessonRunId: lessonRunId,
+          revision,
+        });
+      }
+    } finally {
+      fixture.cleanup();
+    }
+  }
+});
+
 test('blocks review at zero real submissions and opens it after one valid submission in the active run', () => {
   const fixture = createTestDatabase();
   try {
@@ -246,7 +329,7 @@ test('blocks review at zero real submissions and opens it after one valid submis
   }
 });
 
-test('applies projector page changes without online recipients while preserving page bounds', () => {
+test('applies projector page changes without online recipients while preserving six-page lesson bounds', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
@@ -268,20 +351,20 @@ test('applies projector page changes without online recipients while preserving 
     const lastPage = service.applyTeacherIntent(
       teacher,
       'demo-class',
-      { type: 'page_changed', pageIndex: 11 },
+      { type: 'page_changed', pageIndex: 5 },
       0,
       now,
     );
-    assert.equal(lastPage.session.lessonState?.playback.actionIndex, 11);
-    assert.equal(lastPage.session.teacherSlideIndex, 12);
-    assert.equal(lastPage.session.teacherSlideId, 'P1T1-N02-S12');
+    assert.equal(lastPage.session.lessonState?.playback.actionIndex, 5);
+    assert.equal(lastPage.session.teacherSlideIndex, 6);
+    assert.equal(lastPage.session.teacherSlideId, 'P1T1-N02-S06');
     assert.equal(lastPage.command.revision, 1);
 
     assert.throws(
       () => service.applyTeacherIntent(
         teacher,
         'demo-class',
-        { type: 'page_changed', pageIndex: 12 },
+        { type: 'page_changed', pageIndex: 6 },
         1,
         now,
       ),
@@ -291,11 +374,11 @@ test('applies projector page changes without online recipients while preserving 
     const offlineWarningOnly = service.applyTeacherIntent(
       teacher,
       'demo-class',
-      { type: 'page_changed', pageIndex: 10 },
+      { type: 'page_changed', pageIndex: 4 },
       1,
       new Date('2026-07-16T05:00:17.000Z'),
     );
-    assert.equal(offlineWarningOnly.session.lessonState?.playback.actionIndex, 10);
+    assert.equal(offlineWarningOnly.session.lessonState?.playback.actionIndex, 4);
     assert.equal(repository.readSession('demo-class')?.revision, 2);
   } finally {
     fixture.cleanup();
@@ -582,6 +665,33 @@ function seedActiveLessonRun(database: ReturnType<typeof createTestDatabase>['da
     SET status = 'active', active_lesson_run_id = ?
     WHERE session_id = 'demo-class'
   `).run(lessonRunId);
+  return lessonRunId;
+}
+
+function seedExactActiveLessonRun(
+  database: ReturnType<typeof createTestDatabase>['database'],
+  lessonId: ClassroomLessonId,
+): string {
+  const lessonRunId = `service-test-${lessonId}`;
+  const cursor = createInitialTeachingCursor({
+    lessonRunId,
+    lessonId,
+    revision: 0,
+    now: new Date('2026-07-16T01:00:00.000Z'),
+  });
+  database.prepare(`
+    INSERT INTO classroom_lesson_runs (
+      lesson_run_id, session_id, lesson_id, task_id, node_id, status,
+      teaching_cursor_json, revision, started_at, created_at
+    ) VALUES (?, 'demo-class', ?, ?, ?, 'active', ?, 0,
+      '2026-07-16T01:00:00.000Z', '2026-07-16T01:00:00.000Z')
+  `).run(lessonRunId, cursor.lessonId, cursor.taskId, cursor.nodeId, JSON.stringify(cursor));
+  database.prepare(`
+    UPDATE classroom_sessions
+    SET status = 'active', active_node_id = ?, active_unit_id = ?,
+      active_lesson_run_id = ?, revision = 0
+    WHERE session_id = 'demo-class'
+  `).run(cursor.nodeId, cursor.unitId, lessonRunId);
   return lessonRunId;
 }
 

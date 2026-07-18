@@ -2,10 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   lessonSegmentAt,
+  p1TeachingPackage,
   p01n02LessonSegments,
   p01TeachingPackage,
   phaseLabel,
   teachingPageAt,
+  teachingPageCountFor,
+  teachingPageFor,
 } from './classroom-lesson-model.ts';
 
 test('P01-N02 lesson binds the six textbook segments to playback targets', () => {
@@ -56,6 +59,18 @@ test('P01 teaching package is two complete 45-minute lessons with twelve ordered
   );
 });
 
+test('P01 compatibility package carries explicit scaffold and canonical activity metadata', () => {
+  assert.ok(p01TeachingPackage[0]!.pages.every(({ scaffoldLevel }) => scaffoldLevel === 'full'));
+  assert.ok(p01TeachingPackage[1]!.pages.every(({ scaffoldLevel }) => scaffoldLevel === 'guided'));
+  assert.equal(p01TeachingPackage[0]!.pages[4]!.canonicalActivityId, 'P1T1-N02-foundation-01');
+  assert.equal(p01TeachingPackage[1]!.pages[4]!.canonicalActivityId, 'P1T1-N04-micro-01');
+  assert.equal(p01TeachingPackage[1]!.pages[5]!.canonicalActivityId, 'P1T1-N02-transfer-01');
+  const canonicalActivityIds = p01TeachingPackage.flatMap(({ pages }) => pages)
+    .flatMap(({ canonicalActivityId }) => canonicalActivityId ? [canonicalActivityId] : []);
+  assert.equal(new Set(canonicalActivityIds).size, canonicalActivityIds.length);
+  assert.ok(canonicalActivityIds.includes('P1T1-N03-micro-01'));
+});
+
 test('every P01 teaching page is directly teachable without a separate slide deck', () => {
   const pages = p01TeachingPackage.flatMap(({ pages }) => pages);
   for (const page of pages) {
@@ -95,4 +110,16 @@ test('teaching page selection is deterministic and bounded', () => {
   assert.equal(teachingPageAt(5.9).id, 'P01-L1-P06');
   assert.equal(teachingPageAt(6).id, 'P01-L2-P01');
   assert.equal(teachingPageAt(99).id, 'P01-L2-P06');
+});
+
+test('four-period page catalog resolves each lesson independently without overloading actionId', () => {
+  assert.deepEqual(p1TeachingPackage.map(({ id }) => id), ['P01-L1', 'P01-L2', 'P02-L1', 'P03-L1']);
+  for (const lesson of p1TeachingPackage) {
+    assert.equal(teachingPageCountFor(lesson.id), 6);
+    assert.equal(teachingPageFor(lesson.id, -1).id, `${lesson.id}-P01`);
+    assert.equal(teachingPageFor(lesson.id, 99).id, `${lesson.id}-P06`);
+    for (const page of lesson.pages) {
+      if (page.canonicalActivityId) assert.notEqual(page.canonicalActivityId, page.id, page.id);
+    }
+  }
 });

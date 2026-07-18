@@ -1,5 +1,7 @@
 import type { AuthenticatedActor } from '@/platform/auth/actor';
+import { resolveClassroomLessonPage } from '@/platform/classroom-lesson-page-catalog';
 import type { AppDatabase } from '@/platform/db/database';
+import { parseTeachingCursorJson } from '@/platform/teaching-cursor';
 import type { ActivityDeliveryContext } from './activity-delivery-context';
 
 interface ClassroomAuthorityRow {
@@ -11,6 +13,8 @@ interface ClassroomAuthorityRow {
   participationState: 'joined' | 'left' | null;
   lessonRunStatus: 'preparing' | 'active' | 'paused' | 'closed' | null;
   lessonRunNodeId: string | null;
+  lessonRunRevision: number | null;
+  sessionRevision: number;
   teachingCursorJson: string | null;
 }
 
@@ -44,6 +48,8 @@ export function requireJoinedClassroomActivity(
       participation.state AS participationState,
       lesson_run.status AS lessonRunStatus,
       lesson_run.node_id AS lessonRunNodeId,
+      lesson_run.revision AS lessonRunRevision,
+      classroom.revision AS sessionRevision,
       lesson_run.teaching_cursor_json AS teachingCursorJson
     FROM classroom_sessions AS classroom
     LEFT JOIN classroom_participation AS participation
@@ -73,22 +79,21 @@ export function requireJoinedClassroomActivity(
     || row.lessonRunNodeId !== nodeId) {
     throw new ActivityClassroomContextError('Classroom activity is outside the active lesson run.');
   }
-  const cursor = parseJsonRecord(row.teachingCursorJson);
-  if (cursor?.canonicalActivityId !== canonicalActivityId) {
+  const cursor = row.teachingCursorJson
+    ? parseTeachingCursorJson(row.teachingCursorJson)
+    : undefined;
+  const page = cursor ? resolveClassroomLessonPage(cursor) : undefined;
+  if (!cursor
+    || !page
+    || cursor.lessonRunId !== delivery.classroomRunId
+    || cursor.nodeId !== nodeId
+    || cursor.nodeId !== row.activeNodeId
+    || cursor.nodeId !== row.lessonRunNodeId
+    || cursor.revision !== row.sessionRevision
+    || cursor.revision !== row.lessonRunRevision
+    || !page.canonicalActivityIds.includes(canonicalActivityId)) {
     throw new ActivityClassroomContextError(
       'Classroom activity does not match the authoritative teaching cursor.',
     );
-  }
-}
-
-function parseJsonRecord(source: string | null): Record<string, unknown> | undefined {
-  if (!source) return undefined;
-  try {
-    const value = JSON.parse(source) as unknown;
-    return value && typeof value === 'object' && !Array.isArray(value)
-      ? value as Record<string, unknown>
-      : undefined;
-  } catch {
-    return undefined;
   }
 }

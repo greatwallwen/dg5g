@@ -106,3 +106,21 @@ export {
   type P01TeachingLesson,
   type P01TeachingPage,
 } from './p01-teaching-package.ts';
+
+export {
+  p1TeachingPackage,
+  pageWithFormalAssessment,
+  pageWithProfessionalOutput,
+  teachingLessonFor,
+  teachingPageCountFor,
+  teachingPageFor,
+  type P1TeachingLesson,
+  type P1TeachingLessonId,
+  type P1TeachingNodeId,
+  type P1TeachingPage,
+  type P1TeachingTaskId,
+  type P1FormalAssessmentNodeId,
+  type P1FormalAssessmentTarget,
+  type P1ProfessionalOutputTarget,
+  type TeachingScaffoldLevel,
+} from './p1-teaching-package.ts';

@@ -170,68 +170,142 @@ export const p01ActivityRules: Record<string, ActivityEvaluationRule> = {
   },
 };
 
-function structuredResponseRule(groups: string[][]): ActivityEvaluationRule {
-  return {
+export const p23ActivityRules: Record<string, ActivityEvaluationRule> = {
+  'P1T2-N01-micro-01': {
+    type: 'exact-map',
+    responseKey: 'assignments',
+    expected: {
+      'sector-0': 'in-scope',
+      'hotspot-h2': 'in-scope',
+      'other-operator': 'out-of-scope',
+      'west-road': 'out-of-scope',
+      'unclear-sector': 'pending',
+    },
+  },
+  'P1T2-N02-foundation-01': {
+    type: 'exact-map',
+    responseKey: 'assignments',
+    expected: {
+      'sector-label': 'sector-identity',
+      'compass-north': 'azimuth',
+      'bracket-scale': 'mechanical-tilt',
+      'ret-current': 'electrical-tilt',
+      'height-reference': 'mounting-height',
+    },
+  },
+  'P1T2-N02-application-01': {
+    type: 'exact-sequence',
+    responseKey: 'order',
+    expected: ['sector-s2', 'azimuth-120', 'tilt-2-4', 'height-32', 'hotspot-125'],
+  },
+  'P1T2-N02-transfer-01': {
     type: 'text-criteria-map',
     responseKey: 'fields',
     constraints: {
-      response: {
-        groups,
-        minimumCharacters: 20,
-      },
+      objectIdentity: criteria([['HY-02'], ['S2', '扇区2'], ['工单'], ['标签']]),
+      externalDirection: criteria([['罗盘', '测向'], ['真北', '北向'], ['120'], ['照片', '挂接', '材料']]),
+      retAndHeight: criteria([['RET'], ['4度', '4°'], ['32米', '32M'], ['塔基', '地面', '起算']]),
+      permissionBoundary: criteria([['美化罩'], ['禁止', '无权'], ['拆'], ['不可见', '不能看']]),
+      reviewAction: criteria([['授权'], ['复核'], ['外部测向', '工参', '对照采样', '替代']]),
     },
-  };
+  },
+  'P1T2-N03-micro-01': {
+    type: 'exact-map',
+    responseKey: 'states',
+    expected: {
+      obstruction: 'pending',
+      'parameter-conflict': 'anomaly',
+      'stale-ret': 'pending',
+      'locked-ladder': 'unauthorized',
+    },
+  },
+  'P1T2-N04-micro-01': {
+    type: 'revision-constraints',
+    responseKey: 'revisions',
+    constraints: {
+      routeRevision: terms([['路线B', 'B路线'], ['风险'], ['边界'], ['H2']]),
+      comparisonPoints: terms([['楼前'], ['边界'], ['楼后'], ['H2', '热点'], ['CQT', '对照']]),
+      samplingWindow: terms([['18:00', '18时'], ['终端'], ['业务'], ['小区', 'S2']]),
+      acceptanceMetrics: terms([['RSRP'], ['SINR'], ['卡顿', '业务现象'], ['验收', '指标', '接通率']]),
+      versionDifference: terms([['V1'], ['V2'], ['路线A'], ['路线B'], ['依据', '原因']]),
+    },
+  },
+  'P1T3-N01-micro-01': {
+    type: 'text-criteria-map',
+    responseKey: 'fields',
+    constraints: {
+      occurrenceWindow: criteria([['工作日'], ['18:00', '18时'], ['19:00', '19时']]),
+      location: criteria([['A座'], ['18层'], ['会议室']]),
+      business: criteria([['视频会议'], ['入会', '共享屏幕', '重进']]),
+      symptomFrequency: criteria([['卡顿'], ['5次'], ['4次'], ['重进', '恢复']]),
+      terminalNetwork: criteria([['终端'], ['5G'], ['缺', '追问', '未知']]),
+      excludedGuess: criteria([['删除', '排除'], ['猜测', '原因'], ['未支持', '尚未支持', '无证据']]),
+    },
+  },
+  'P1T3-N02-foundation-01': {
+    type: 'text-criteria-map',
+    responseKey: 'fields',
+    constraints: {
+      recordAComparison: criteria([['会议室', '地点'], ['视频会议', '业务'], ['原终端', '同终端'], ['未卡顿', '未复现']]),
+      recordBComparison: criteria([['一层大厅', '大厅'], ['地点'], ['不等价']]),
+      recordCComparison: criteria([['网页测速', '测速'], ['业务'], ['不等价']]),
+      recordDComparison: criteria([['工程测试机', '工程机'], ['终端'], ['不等价']]),
+      comparableConclusion: criteria([['记录A', 'A'], ['可比'], ['未复现'], ['不能否定', '不否定']]),
+    },
+  },
+  'P1T3-N02-application-01': {
+    type: 'exact-sequence',
+    responseKey: 'order',
+    expected: [
+      'enter-meeting', 'share-screen', 'freeze', 'retransmission',
+      'radio-sample', 'recovery', 'clock-check',
+    ],
+  },
+  'P1T3-N02-transfer-01': {
+    type: 'text-criteria-map',
+    responseKey: 'fields',
+    constraints: {
+      trainDirection: criteria([['G218'], ['方向']]),
+      routeSection: criteria([['区段'], ['起止', '至'], ['里程', '定位']]),
+      timeWindow: criteria([['18:40'], ['晚点'], ['校正']]),
+      deviceBusiness: criteria([['同一终端', '终端'], ['通话'], ['一致', '保持']]),
+      cellTrajectory: criteria([['服务小区'], ['切换'], ['掉线时刻', '掉线'], ['连续']]),
+      repeatPlan: criteria([['同车次', '车次'], ['同方向', '方向'], ['重复'], ['路线'], ['回访']]),
+    },
+  },
+  'P1T3-N03-micro-01': {
+    type: 'exact-map',
+    responseKey: 'states',
+    expected: {
+      'business-freeze': 'supports',
+      'low-sinr': 'cannot-conclude',
+      'high-load': 'supports',
+      'no-alarm': 'conflicts',
+      'late-recovery': 'needs-correlation',
+    },
+  },
+  'P1T3-N04-micro-01': {
+    type: 'revision-constraints',
+    responseKey: 'revisions',
+    constraints: {
+      evidenceLinks: terms([['18:07'], ['业务日志'], ['无线采样'], ['KPI'], ['索引', '挂接']]),
+      boundedConclusion: terms([['无线质量', '容量'], ['线索'], ['根因'], ['未确定', '尚未确定']]),
+      responsibleOwner: terms([['无线优化'], ['负责人'], ['测试', '复测']]),
+      deadline: terms([['24小时'], ['完成', '核查', '反馈']]),
+      retestPlan: terms([['同地点'], ['同业务'], ['同终端'], ['复测'], ['两次', '2次']]),
+      callback: terms([['回访'], ['用户'], ['复测后', '复测完成'], ['卡顿', '恢复']]),
+      acceptance: terms([['无卡顿', '不卡顿'], ['无重传', '日志'], ['指标'], ['达标', '验收']]),
+    },
+  },
+};
+
+function criteria(groups: string[][], minimumCharacters = 8): TextFieldConstraint {
+  return { groups, minimumCharacters };
 }
 
-export const p23ActivityRules: Record<string, ActivityEvaluationRule> = {
-  'P1T2-N01-micro-01': structuredResponseRule([
-    ['坐标', '经纬度'], ['扇区'], ['方向'], ['热点', 'H1', 'H2'], ['边界', '范围'],
-  ]),
-  'P1T2-N02-foundation-01': structuredResponseRule([
-    ['扇区2', '扇区'], ['方位角', '正北'], ['机械下倾', '支架'],
-    ['电下倾', 'RET'], ['挂高', '地面'], ['照片', '证据'],
-  ]),
-  'P1T2-N02-application-01': structuredResponseRule([
-    ['扇区2'], ['方位角'], ['投诉路段'], ['机械下倾', '电下倾'],
-    ['挂高'], ['罗盘', 'RET'], ['缺', '补', '待复核'],
-  ]),
-  'P1T2-N02-transfer-01': structuredResponseRule([
-    ['不拆'], ['美化罩'], ['扇区', '身份'], ['罗盘', '测向'],
-    ['RET', '网管'], ['挂高', '遮挡'], ['不确定', '待复核'],
-  ]),
-  'P1T2-N03-micro-01': structuredResponseRule([
-    ['扇区', '主瓣'], ['遮挡', '楼体'], ['热点', 'H2'],
-    ['风险点'], ['对照点'], ['验证', '假设'],
-  ]),
-  'P1T2-N04-micro-01': structuredResponseRule([
-    ['路线B', 'B路线'], ['风险', '边界'], ['CQT', '热点'],
-    ['对照点'], ['时间', '18:00'], ['RSRP'], ['SINR', '指标'],
-  ]),
-  'P1T3-N01-micro-01': structuredResponseRule([
-    ['18', '时间'], ['A座', '会议室'], ['视频会议'], ['卡顿'],
-    ['终端', '5G'], ['追问', '缺'], ['复测'],
-  ]),
-  'P1T3-N02-foundation-01': structuredResponseRule([
-    ['同地点'], ['同业务'], ['同终端'], ['记录B', '地点不同'],
-    ['记录C', '业务不同'], ['记录D', '终端不同'], ['不等价'], ['未复现'],
-  ]),
-  'P1T3-N02-application-01': structuredResponseRule([
-    ['分钟'], ['地点', '终端'], ['视频会议', '业务'], ['服务小区'],
-    ['RSRP'], ['SINR'], ['日志', '时间轴'],
-  ]),
-  'P1T3-N02-transfer-01': structuredResponseRule([
-    ['车次'], ['区段', '路线'], ['通话'], ['终端'],
-    ['服务小区'], ['掉线', '时刻'], ['重复'],
-  ]),
-  'P1T3-N03-micro-01': structuredResponseRule([
-    ['18:07', '时窗'], ['SINR'], ['服务小区'], ['KPI', '告警'],
-    ['业务侧'], ['网络侧'], ['冲突', '无告警'],
-  ]),
-  'P1T3-N04-micro-01': structuredResponseRule([
-    ['业务日志', '证据'], ['网络KPI', 'KPI'], ['负责人'], ['24小时', '时限'],
-    ['复测'], ['回访'], ['验收', '闭环'],
-  ]),
-};
+function terms(groups: string[][]): RevisionConstraint {
+  return { type: 'required-term-groups', groups };
+}
 
 export const p1ActivityRules: Record<string, ActivityEvaluationRule> = {
   ...p01ActivityRules,

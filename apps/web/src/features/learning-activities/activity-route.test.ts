@@ -7,6 +7,10 @@ import { seedDemo } from '../../platform/db/demo-seed.ts';
 import { migrateDatabase } from '../../platform/db/migrations.ts';
 import { createTestDatabase } from '../../platform/db/test-database.ts';
 import { seedUserTaskAdvancementFacts } from '../../platform/professional-output-policy-test-support.ts';
+import {
+  createInitialTeachingCursor,
+  type TeachingCursor,
+} from '../../platform/teaching-cursor.ts';
 
 const activityRoute = await import('../../app/api/learning/activities/[activityId]/attempts/route.ts');
 
@@ -142,7 +146,7 @@ test('classroom activity submission requires joined membership and the active le
       response: scopeResponse,
       delivery: { channel: 'classroom', sessionId: 'demo-class', classroomRunId: 'lesson-run-001' },
     };
-    activateClassroomActivity(database, scopeActivityId);
+    const currentCursor = activateClassroomActivity(database);
     const notJoined = await activityRoute.POST(jsonRequest(scopeActivityId, studentCookie, body), context(scopeActivityId));
     assert.equal(notJoined.status, 403);
 
@@ -152,17 +156,38 @@ test('classroom activity submission requires joined membership and the active le
     `).run();
     database.prepare(`
       UPDATE classroom_lesson_runs
-      SET teaching_cursor_json = json_object('canonicalActivityId', 'wrong-activity')
-      WHERE lesson_run_id = 'lesson-run-001'
-    `).run();
-    const wrongCursor = await activityRoute.POST(jsonRequest(scopeActivityId, studentCookie, body), context(scopeActivityId));
-    assert.equal(wrongCursor.status, 409);
-
-    database.prepare(`
-      UPDATE classroom_lesson_runs
       SET teaching_cursor_json = json_object('canonicalActivityId', ?)
       WHERE lesson_run_id = 'lesson-run-001'
     `).run(scopeActivityId);
+    const partialCursor = await activityRoute.POST(jsonRequest(scopeActivityId, studentCookie, body), context(scopeActivityId));
+    assert.equal(partialCursor.status, 409);
+
+    database.prepare(`
+      UPDATE classroom_lesson_runs
+      SET teaching_cursor_json = ?
+      WHERE lesson_run_id = 'lesson-run-001'
+    `).run(JSON.stringify({ ...currentCursor, pageId: 'P01-L1-P02' }));
+    const stalePage = await activityRoute.POST(jsonRequest(scopeActivityId, studentCookie, body), context(scopeActivityId));
+    assert.equal(stalePage.status, 409);
+
+    for (const staleCursor of [
+      { ...currentCursor, actionId: 'P1T1-N01-S02' },
+      { ...currentCursor, nodeId: 'P1T1-N02', unitId: 'P01-ku-02' },
+      { ...currentCursor, lessonRunId: 'lesson-run-stale' },
+    ]) {
+      database.prepare(`
+        UPDATE classroom_lesson_runs SET teaching_cursor_json = ?
+        WHERE lesson_run_id = 'lesson-run-001'
+      `).run(JSON.stringify(staleCursor));
+      const rejected = await activityRoute.POST(jsonRequest(scopeActivityId, studentCookie, body), context(scopeActivityId));
+      assert.equal(rejected.status, 409);
+    }
+
+    database.prepare(`
+      UPDATE classroom_lesson_runs
+      SET teaching_cursor_json = ?
+      WHERE lesson_run_id = 'lesson-run-001'
+    `).run(JSON.stringify(currentCursor));
     const accepted = await activityRoute.POST(jsonRequest(scopeActivityId, studentCookie, body), context(scopeActivityId));
     assert.equal(accepted.status, 200);
     assert.deepEqual((await accepted.json()).delivery, body.delivery);
@@ -176,12 +201,34 @@ test('P02 and P03 activity APIs return targeted failure then persist a corrected
       {
         activityId: 'P1T2-N01-micro-01',
         attemptId: 'api-p02-retry',
-        valid: '采用站点坐标统一底图，标出三个扇区方向、道路热点 H1/H2、邻区边界和本次采样范围。',
+        invalid: { assignments: {
+          'sector-0': 'in-scope', 'hotspot-h2': 'in-scope', 'other-operator': 'out-of-scope',
+          'west-road': 'in-scope', 'unclear-sector': 'pending',
+        } },
+        valid: { assignments: {
+          'sector-0': 'in-scope', 'hotspot-h2': 'in-scope', 'other-operator': 'out-of-scope',
+          'west-road': 'out-of-scope', 'unclear-sector': 'pending',
+        } },
       },
       {
         activityId: 'P1T3-N01-micro-01',
         attemptId: 'api-p03-retry',
-        valid: '事实：18:00-19:00在A座18层会议室使用视频会议时5次中4次卡顿；仍缺终端型号和5G模式，需要追问并按同地点同业务条件复测。',
+        invalid: { fields: {
+          occurrenceWindow: '工作日18:00—19:00，重点复测18:07前后。',
+          location: 'A座18层会议室，记录具体座位和朝向。',
+          business: '使用视频会议执行入会、共享屏幕和退出重进。',
+          symptomFrequency: '5次中4次卡顿，退出重进后暂时恢复。',
+          terminalNetwork: '终端型号和5G网络模式尚缺，需要向用户追问。',
+          excludedGuess: '确定是网络差。',
+        } },
+        valid: { fields: {
+          occurrenceWindow: '工作日18:00—19:00，重点复测18:07前后。',
+          location: 'A座18层会议室，记录具体座位和朝向。',
+          business: '使用视频会议执行入会、共享屏幕和退出重进。',
+          symptomFrequency: '5次中4次卡顿，退出重进后暂时恢复。',
+          terminalNetwork: '终端型号和5G网络模式尚缺，需要向用户追问。',
+          excludedGuess: '删除网络差导致的原因猜测，因为当前事实尚未支持根因。',
+        } },
       },
     ] as const;
 
@@ -189,7 +236,7 @@ test('P02 and P03 activity APIs return targeted failure then persist a corrected
       if (index === 1) seedUserTaskAdvancementFacts(database, 'stu-03', 'P02');
       const failedResponse = await activityRoute.POST(jsonRequest(activity.activityId, completeStudentCookie, {
         attemptId: `${activity.attemptId}-failed`,
-        response: { fields: { response: '凭感觉判断' } },
+        response: activity.invalid,
         delivery: { channel: 'self-study' },
       }), context(activity.activityId));
       assert.equal(failedResponse.status, 200);
@@ -201,7 +248,7 @@ test('P02 and P03 activity APIs return targeted failure then persist a corrected
 
       const passedResponse = await activityRoute.POST(jsonRequest(activity.activityId, completeStudentCookie, {
         attemptId: `${activity.attemptId}-passed`,
-        response: { fields: { response: activity.valid } },
+        response: activity.valid,
         delivery: { channel: 'self-study' },
       }), context(activity.activityId));
       assert.equal(passedResponse.status, 200);
@@ -271,17 +318,25 @@ function context(activityId: string) {
   return { params: { activityId } };
 }
 
-function activateClassroomActivity(database: AppDatabase, canonicalActivityId: string): void {
+function activateClassroomActivity(database: AppDatabase): TeachingCursor {
+  const cursor = createInitialTeachingCursor({
+    lessonRunId: 'lesson-run-001',
+    lessonId: 'P01-L1',
+    revision: 0,
+    now: new Date('2026-07-16T01:00:00.000Z'),
+  });
   database.prepare(`
     INSERT INTO classroom_lesson_runs (
       lesson_run_id, session_id, lesson_id, task_id, node_id, status,
       teaching_cursor_json, started_at
-    ) VALUES ('lesson-run-001', 'demo-class', 'lesson-p01', 'P01', 'P1T1-N01',
-      'active', json_object('canonicalActivityId', ?), CURRENT_TIMESTAMP)
-  `).run(canonicalActivityId);
+    ) VALUES ('lesson-run-001', 'demo-class', 'P01-L1', 'P01', 'P1T1-N01',
+      'active', ?, CURRENT_TIMESTAMP)
+  `).run(JSON.stringify(cursor));
   database.prepare(`
     UPDATE classroom_sessions
-    SET status = 'active', active_node_id = 'P1T1-N01', active_lesson_run_id = 'lesson-run-001'
+    SET status = 'active', active_node_id = 'P1T1-N01', active_unit_id = 'P01-ku-01',
+      active_lesson_run_id = 'lesson-run-001'
     WHERE session_id = 'demo-class'
   `).run();
+  return cursor;
 }

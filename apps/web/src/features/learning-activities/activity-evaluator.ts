@@ -6,6 +6,7 @@ import type {
   ActivityEvaluationRule,
   RevisionConstraint,
   ServerActivityDefinition,
+  TextFieldConstraint,
 } from './activity-rules.ts';
 
 export function evaluateActivity(
@@ -18,7 +19,7 @@ export function evaluateActivity(
   const { activity, rule } = definition;
   const normalizedResponse = isRecord(response) ? response : {};
   const passed = matchesRule(rule, normalizedResponse);
-  const incorrectFields = passed ? [] : diagnosticFields(rule);
+  const incorrectFields = passed ? [] : diagnosticFields(rule, normalizedResponse);
   const artifact: ActivityArtifact = {
     type: 'learning-activity-artifact',
     activityId: activity.id,
@@ -39,10 +40,31 @@ export function evaluateActivity(
   };
 }
 
-function diagnosticFields(rule: ActivityEvaluationRule): string[] {
-  if (rule.type === 'exact-map') return Object.keys(rule.expected);
+function diagnosticFields(
+  rule: ActivityEvaluationRule,
+  response: Record<string, unknown>,
+): string[] {
+  const actual = response[rule.responseKey];
   if (rule.type === 'exact-sequence') return [rule.responseKey];
-  return Object.keys(rule.constraints);
+  if (!isRecord(actual)) {
+    return rule.type === 'exact-map'
+      ? Object.keys(rule.expected)
+      : Object.keys(rule.constraints);
+  }
+  const incorrect = rule.type === 'exact-map'
+    ? Object.entries(rule.expected)
+      .filter(([field, expected]) => actual[field] !== expected)
+      .map(([field]) => field)
+    : Object.entries(rule.constraints)
+      .filter(([field, constraint]) => rule.type === 'revision-constraints'
+        ? !matchesRevisionConstraint(actual[field], constraint)
+        : !matchesTextConstraint(actual[field], constraint))
+      .map(([field]) => field);
+  const expectedFields = new Set(rule.type === 'exact-map'
+    ? Object.keys(rule.expected)
+    : Object.keys(rule.constraints));
+  const unexpected = Object.keys(actual).filter((field) => !expectedFields.has(field));
+  return [...incorrect, ...unexpected];
 }
 
 function matchesRule(rule: ActivityEvaluationRule, response: Record<string, unknown>): boolean {
@@ -63,37 +85,43 @@ function matchesTextCriteriaMap(
   constraints: Extract<ActivityEvaluationRule, { type: 'text-criteria-map' }>['constraints'],
 ): boolean {
   if (!isRecord(actual) || Object.keys(actual).length !== Object.keys(constraints).length) return false;
-  return Object.entries(constraints).every(([field, constraint]) => {
-    const value = actual[field];
-    if (typeof value !== 'string') return false;
-    const normalized = normalizeSearchText(value);
-    return normalized.length >= constraint.minimumCharacters
-      && constraint.groups.every((group) => group.some((term) => (
-        normalized.includes(normalizeSearchText(term))
-      )));
-  });
+  return Object.entries(constraints).every(([field, constraint]) => (
+    matchesTextConstraint(actual[field], constraint)
+  ));
 }
 
 function matchesRevisionConstraints(actual: unknown, constraints: Record<string, RevisionConstraint>): boolean {
   if (!isRecord(actual) || Object.keys(actual).length !== Object.keys(constraints).length) return false;
-  return Object.entries(constraints).every(([field, constraint]) => {
-    const value = actual[field];
-    if (typeof value !== 'string') return false;
-    if (constraint.type === 'new-photo-id') {
-      const normalized = normalizeIdentifier(value);
-      return /^IMG-\d{3}[A-Z]?$/.test(normalized)
-        && constraint.accepted.map(normalizeIdentifier).includes(normalized)
-        && !constraint.forbidden.map(normalizeIdentifier).includes(normalized);
-    }
-    if (constraint.type === 'evidence-source') {
-      const normalized = normalizeIdentifier(value);
-      return constraint.accepted.map(normalizeIdentifier).includes(normalized);
-    }
-    const normalized = normalizeSearchText(value);
-    return constraint.groups.every((group) => group.some((term) => (
+  return Object.entries(constraints).every(([field, constraint]) => (
+    matchesRevisionConstraint(actual[field], constraint)
+  ));
+}
+
+function matchesTextConstraint(value: unknown, constraint: TextFieldConstraint): boolean {
+  if (typeof value !== 'string') return false;
+  const normalized = normalizeSearchText(value);
+  return normalized.length >= constraint.minimumCharacters
+    && constraint.groups.every((group) => group.some((term) => (
       normalized.includes(normalizeSearchText(term))
     )));
-  });
+}
+
+function matchesRevisionConstraint(value: unknown, constraint: RevisionConstraint): boolean {
+  if (typeof value !== 'string') return false;
+  if (constraint.type === 'new-photo-id') {
+    const normalized = normalizeIdentifier(value);
+    return /^IMG-\d{3}[A-Z]?$/.test(normalized)
+      && constraint.accepted.map(normalizeIdentifier).includes(normalized)
+      && !constraint.forbidden.map(normalizeIdentifier).includes(normalized);
+  }
+  if (constraint.type === 'evidence-source') {
+    const normalized = normalizeIdentifier(value);
+    return constraint.accepted.map(normalizeIdentifier).includes(normalized);
+  }
+  const normalized = normalizeSearchText(value);
+  return constraint.groups.every((group) => group.some((term) => (
+    normalized.includes(normalizeSearchText(term))
+  )));
 }
 
 function normalizeIdentifier(value: string): string {

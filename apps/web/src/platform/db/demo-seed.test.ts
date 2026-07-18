@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readActivityDefinition } from '../../features/learning-activities/activity-catalog.ts';
+import { evaluateActivity } from '../../features/learning-activities/activity-evaluator.ts';
 import {
   evidenceLibraryForTask,
   readEvidenceDefinition,
@@ -26,6 +28,32 @@ test('three demo personas are rebuilt from complete truthful demo facts', () => 
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
     assertTruthfulPersonas(fixture.database);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('P02/P03 demo practices use authentic UI response schemas and remain demo-origin facts', () => {
+  const p23Attempts = readDemoSeed().demo.practiceAttempts.filter(({ activityId }) => (
+    activityId.startsWith('P1T2-') || activityId.startsWith('P1T3-')
+  ));
+  assert.equal(p23Attempts.length, 12);
+  for (const attempt of p23Attempts) {
+    const definition = readActivityDefinition(attempt.activityId);
+    assert.ok(definition, attempt.activityId);
+    assert.deepEqual(Object.keys(attempt.response), [definition.rule.responseKey], attempt.activityId);
+    assert.equal(evaluateActivity(definition, attempt.response).passed, true, attempt.activityId);
+  }
+
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    assert.equal(fixture.database.prepare(`
+      SELECT COUNT(*) FROM practice_attempts
+      WHERE (activity_id LIKE 'P1T2-%' OR activity_id LIKE 'P1T3-%')
+        AND origin = 'demo'
+    `).pluck().get(), 12);
   } finally {
     fixture.cleanup();
   }

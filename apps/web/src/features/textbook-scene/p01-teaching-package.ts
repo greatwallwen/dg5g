@@ -21,6 +21,8 @@ export interface P01TeachingPage {
   followUpPrompts: string[];
   studentAction: string;
   transition: string;
+  canonicalActivityId?: string;
+  scaffoldLevel?: 'full' | 'guided' | 'reduced' | 'independent';
 }
 
 export interface P01TeachingLesson {
@@ -242,6 +244,16 @@ const lessonTwoPages: P01TeachingPage[] = [
   },
 ];
 
+const p01CanonicalActivityByPage: Partial<Record<string, string>> = {
+  'P01-L1-P01': 'P1T1-N01-micro-01',
+  'P01-L1-P05': 'P1T1-N02-foundation-01',
+  'P01-L1-P06': 'P1T1-N02-application-01',
+  'P01-L2-P03': 'P1T1-N03-micro-01',
+  'P01-L2-P04': 'P1T1-N02-remediation-conclusion-01',
+  'P01-L2-P05': 'P1T1-N04-micro-01',
+  'P01-L2-P06': 'P1T1-N02-transfer-01',
+};
+
 export const p01TeachingPackage: P01TeachingLesson[] = [
   {
     id: 'P01-L1',
@@ -249,7 +261,11 @@ export const p01TeachingPackage: P01TeachingLesson[] = [
     title: '第一课时：建立室内设备与链路证据判断框架',
     objective: '能够区分位置证据、设备身份和连接方向，并完成一条闭合证据链。',
     suggestedMinutes: 45,
-    pages: lessonOnePages,
+    pages: lessonOnePages.map((page) => ({
+      ...page,
+      canonicalActivityId: p01CanonicalActivityByPage[page.id],
+      scaffoldLevel: 'full',
+    })),
   },
   {
     id: 'P01-L2',
@@ -257,7 +273,11 @@ export const p01TeachingPackage: P01TeachingLesson[] = [
     title: '第二课时：诊断缺陷并形成可复核专业记录',
     objective: '能够诊断错误挂接与证据缺口，修订成果表并迁移到新站点材料。',
     suggestedMinutes: 45,
-    pages: lessonTwoPages,
+    pages: lessonTwoPages.map((page) => ({
+      ...page,
+      canonicalActivityId: p01CanonicalActivityByPage[page.id],
+      scaffoldLevel: 'guided',
+    })),
   },
 ];
 

@@ -71,6 +71,7 @@ test('antenna figure exposes azimuth, down-tilt, and mounting-height evidence', 
   for (const marker of ['azimuth-evidence', 'downtilt-evidence', 'height-evidence']) {
     assert.match(markup, new RegExp(`data-figure-label="${marker}"`));
   }
+  assert.match(markup, /src="\/media\/5g\/image65\.png"/);
 });
 
 test('complaint figure is a same-condition reproduction scene and never falls back to a coverage route', async () => {
@@ -79,7 +80,24 @@ test('complaint figure is a same-condition reproduction scene and never falls ba
   for (const marker of ['complaint-record', 'same-location', 'same-business', 'same-device', 'reproduction-record']) {
     assert.match(markup, new RegExp(`data-figure-object="${marker}"`));
   }
+  assert.match(markup, /src="\/media\/manim\/p03\/p03-complaint-evidence-loop\/poster\.png"/);
   assert.doesNotMatch(markup, /coverage-route|覆盖路线/);
+});
+
+test('every engineering figure visibly identifies verified simulated-case media', async () => {
+  const figures = await loadFigureModule();
+  const mediaPaths = {
+    topology: '/media/5g/p01-n02-topology-stage-v1.png',
+    antenna: '/media/5g/image65.png',
+    complaint: '/media/manim/p03/p03-complaint-evidence-loop/poster.png',
+  } as const;
+  for (const kind of ['topology', 'antenna', 'complaint'] as const) {
+    const markup = renderToStaticMarkup(createElement(figures.AnnotatedEngineeringFigure, { kind }));
+    assert.match(markup, /data-media-provenance="simulated-case"/);
+    assert.match(markup, /模拟案例/);
+    assert.match(markup, new RegExp(`src="${mediaPaths[kind].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`));
+    assert.equal(existsSync(new URL(`../../../public${mediaPaths[kind]}`, import.meta.url)), true, kind);
+  }
 });
 
 test('engineering figure stylesheet preserves readable dark-engineering labels at responsive widths', () => {

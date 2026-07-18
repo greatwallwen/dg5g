@@ -4,6 +4,16 @@ import { stableChallengeOrder } from './challenge-order';
 
 type Target = { id: string; label: string };
 
+export function topologyRendererMode({
+  pixiAvailable,
+  reducedMotion,
+}: {
+  pixiAvailable: boolean;
+  reducedMotion: boolean;
+}): 'dom' | 'pixi' {
+  return pixiAvailable && !reducedMotion ? 'pixi' : 'dom';
+}
+
 export function TopologyRepairArcade({ items, targets, selected, doneIds, combo, result, active, levelStep, onSelect, onDrop }: {
   items: GameItem[]; targets: Target[]; selected: GameItem | null; doneIds: string[]; combo: number;
   result: 'idle' | 'correct' | 'wrong' | 'complete'; active: boolean; levelStep: number;
@@ -17,7 +27,7 @@ export function TopologyRepairArcade({ items, targets, selected, doneIds, combo,
     target: Math.max(0, orderedTargets.findIndex((entry) => entry.id === item.target_id)),
   }));
   return (
-    <section className={`eg-topology-repair${result === 'wrong' ? ' is-shake' : ''}`} data-topology-repair-arcade data-stage={levelStep + 1}>
+    <section className={`eg-topology-repair${result === 'wrong' ? ' is-shake' : ''}`} data-topology-dom-fallback="true" data-topology-repair-arcade data-stage={levelStep + 1}>
       <header><ol>{['识别设备', '修复链路', '运行验收'].map((label, index) => <li className={index <= levelStep ? 'is-active' : ''} key={label}><i>{index + 1}</i><span>{label}</span></li>)}</ol>{combo > 1 ? <strong>连续修复 x{combo}</strong> : <small>选择左侧现场对象，再接入右侧正确端口</small>}</header>
       <div className="eg-topology-stage">
         <TopologyRepairCanvas />
@@ -35,12 +45,17 @@ function TopologyRepairCanvas() {
   const hostRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     let app: any; let destroyed = false;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (topologyRendererMode({ pixiAvailable: true, reducedMotion }) === 'dom') {
+      if (hostRef.current) hostRef.current.dataset.fallback = 'reduced-motion';
+      return undefined;
+    }
     import('pixi.js').then(async (PIXI) => {
       if (!hostRef.current || destroyed) return;
       app = new PIXI.Application();
       await app.init({ width: 960, height: 540, background: '#041321', antialias: true, resolution: Math.min(window.devicePixelRatio || 1, 1.5) });
       if (!hostRef.current || destroyed) { app.destroy(true); return; }
-      hostRef.current.innerHTML = ''; hostRef.current.appendChild(app.canvas);
+      hostRef.current.dataset.renderer = 'pixi'; hostRef.current.innerHTML = ''; hostRef.current.appendChild(app.canvas);
       const grid = new PIXI.Graphics(); grid.rect(0, 0, 960, 540).fill(0x041321);
       for (let x = 0; x <= 960; x += 48) grid.moveTo(x, 0).lineTo(x, 540).stroke({ width: 1, color: 0x163a50, alpha: .5 });
       for (let y = 0; y <= 540; y += 48) grid.moveTo(0, y).lineTo(960, y).stroke({ width: 1, color: 0x163a50, alpha: .5 });
@@ -48,11 +63,15 @@ function TopologyRepairCanvas() {
       app.stage.addChild(grid);
       const packets = new PIXI.Graphics(); app.stage.addChild(packets); let tick = 0;
       const animate = (ticker: any) => { tick += (ticker?.deltaTime ?? 1) * .012; packets.clear(); for (let i = 0; i < 9; i += 1) { const p = (tick + i / 9) % 1; packets.circle(260 + p * 440, 270 + Math.sin(p * Math.PI * 2) * 34, 4).fill({ color: i % 2 ? 0x22d3ee : 0x34d399, alpha: .9 }); } };
-      animate({ deltaTime: 0 }); if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) app.ticker.add(animate);
-    }).catch(() => { if (hostRef.current) hostRef.current.dataset.fallback = 'true'; });
+      animate({ deltaTime: 0 }); app.ticker.add(animate);
+    }).catch(() => {
+      if (hostRef.current && topologyRendererMode({ pixiAvailable: false, reducedMotion }) === 'dom') {
+        hostRef.current.dataset.fallback = 'pixi-unavailable';
+      }
+    });
     return () => { destroyed = true; app?.destroy(true, { children: true }); };
   }, []);
-  return <div aria-hidden="true" className="eg-pixi-canvas eg-topology-canvas" ref={hostRef} />;
+  return <div aria-hidden="true" className="eg-pixi-canvas eg-topology-canvas" data-renderer="dom" ref={hostRef} />;
 }
 
 const styles = `

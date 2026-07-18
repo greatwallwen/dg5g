@@ -210,6 +210,26 @@ export interface P1DemoContent {
 
 const generatedContentPath = 'textbook/5g/generated/p1-demo-content.json';
 
+const p23WorkplaceActivityContracts: Record<string, {
+  activityKind: P1ActivityPractice['activityKind'];
+  minimumMaterials: number;
+  minimumFields?: number;
+  minimumCategories?: number;
+}> = {
+  'P1T2-N01-micro-01': { activityKind: 'scope-classification', minimumMaterials: 4, minimumCategories: 3 },
+  'P1T2-N02-foundation-01': { activityKind: 'evidence-classification', minimumMaterials: 4, minimumCategories: 4 },
+  'P1T2-N02-application-01': { activityKind: 'link-reconstruction', minimumMaterials: 5 },
+  'P1T2-N02-transfer-01': { activityKind: 'structured-record', minimumMaterials: 2, minimumFields: 5 },
+  'P1T2-N03-micro-01': { activityKind: 'four-state-judgement', minimumMaterials: 4, minimumCategories: 4 },
+  'P1T2-N04-micro-01': { activityKind: 'defective-sheet-revision', minimumMaterials: 3, minimumFields: 4 },
+  'P1T3-N01-micro-01': { activityKind: 'structured-record', minimumMaterials: 2, minimumFields: 5 },
+  'P1T3-N02-foundation-01': { activityKind: 'structured-record', minimumMaterials: 4, minimumFields: 4 },
+  'P1T3-N02-application-01': { activityKind: 'link-reconstruction', minimumMaterials: 5 },
+  'P1T3-N02-transfer-01': { activityKind: 'structured-record', minimumMaterials: 2, minimumFields: 5 },
+  'P1T3-N03-micro-01': { activityKind: 'four-state-judgement', minimumMaterials: 5, minimumCategories: 4 },
+  'P1T3-N04-micro-01': { activityKind: 'defective-sheet-revision', minimumMaterials: 3, minimumFields: 5 },
+};
+
 const taskSpecs = [
   {
     taskId: 'P01',
@@ -586,6 +606,31 @@ function validateActivityPractice(practice: Record<string, unknown>, path: strin
   nonEmptyString(feedback.passed, `${path}.targetedFeedback.passed`);
   nonEmptyString(feedback.failed, `${path}.targetedFeedback.failed`);
   nonEmptyString(practice.transferTarget, `${path}.transferTarget`);
+  validateP23WorkplaceActivity(practice, activityKind, materials, interaction, path);
+}
+
+function validateP23WorkplaceActivity(
+  practice: Record<string, unknown>,
+  activityKind: string,
+  materials: unknown[],
+  interaction: Record<string, unknown>,
+  path: string,
+): void {
+  const activityId = nonEmptyString(practice.id, `${path}.id`);
+  const contract = p23WorkplaceActivityContracts[activityId];
+  if (!contract) return;
+  exactValue(activityKind, contract.activityKind, `${path}.activityKind`);
+  minimumItems(materials, contract.minimumMaterials, `${path}.materials`);
+  if (contract.minimumFields !== undefined) {
+    minimumItems(arrayValue(interaction.fields, `${path}.interaction.fields`), contract.minimumFields, `${path}.interaction.fields`);
+  }
+  if (contract.minimumCategories !== undefined) {
+    minimumItems(
+      arrayValue(interaction.categories, `${path}.interaction.categories`),
+      contract.minimumCategories,
+      `${path}.interaction.categories`,
+    );
+  }
 }
 
 function validateActivityCategories(value: unknown, path: string): void {

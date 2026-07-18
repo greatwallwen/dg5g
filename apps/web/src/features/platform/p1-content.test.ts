@@ -175,6 +175,8 @@ test('the generated contract traces every task and node to current importer arti
   const animationManifest = await readJson(new URL('animations/published.json', textbookRootUrl)) as {
     projects: Record<string, string[]>;
   };
+  const allMediaRefs = content.tasks.flatMap((task) => task.source.mediaRefs);
+  assert.equal(new Set(allMediaRefs).size, allMediaRefs.length, 'task media identities must be globally unique');
 
   for (const task of content.tasks) {
     const astPath = `generated/lesson-ast/${task.taskId}.json`;
@@ -211,6 +213,13 @@ test('the generated contract traces every task and node to current importer arti
     assert.equal(task.source.mediaRefs.length > 0, true);
     assert.equal(new Set(task.source.mediaRefs).size, task.source.mediaRefs.length);
     assert.equal(task.source.mediaRefs.every((ref) => ref.startsWith('/media/')), true);
+    for (const mediaUrl of task.source.mediaRefs) {
+      assert.equal(
+        existsSync(join(repositoryRoot, 'apps', 'web', 'public', mediaUrl.replace(/^\//, ''))),
+        true,
+        `${task.taskId}: ${mediaUrl}`,
+      );
+    }
     for (const mediaUrl of widgetMediaUrls) assert.equal(task.source.mediaRefs.includes(mediaUrl), true);
   }
 });
@@ -264,6 +273,20 @@ test('the server loader rejects exact contract drift cases', async () => {
     },
     { name: 'source refs missing', mutate: (content) => { content.tasks[0]!.source.mediaRefs = []; } },
     { name: 'wrong P03 prerequisite', mutate: (content) => { content.tasks[2]!.prerequisiteTaskId = 'P01'; } },
+    {
+      name: 'P02 workplace action regressed to one generic record field',
+      mutate(content) {
+        const selfStudy = content.tasks[1]!.nodes[0]!.selfStudy as {
+          microPractice: Array<Record<string, unknown>>;
+        };
+        const practice = selfStudy.microPractice[0]!;
+        practice.activityKind = 'structured-record';
+        practice.interaction = {
+          type: 'record-form',
+          fields: [{ id: 'response', label: '岗位记录', placeholder: '填写答案' }],
+        };
+      },
+    },
   ];
 
   const directory = mkdtempSync(join(tmpdir(), 'dgbook-p1-drift-'));

@@ -12,6 +12,21 @@ import {
 
 export type { AnnotatedEngineeringFigureKind } from './annotated-engineering-figure-model';
 
+const engineeringFigureMedia: Record<AnnotatedEngineeringFigureKind, { src: string; alt: string }> = {
+  topology: {
+    src: '/media/5g/p01-n02-topology-stage-v1.png',
+    alt: '机柜02、BBU槽位3、AAU/RRU与端口链组成的5G室内设备拓扑',
+  },
+  antenna: {
+    src: '/media/5g/image65.png',
+    alt: '带罗盘测向、城市道路和室外数据采集表的模拟站点勘察界面',
+  },
+  complaint: {
+    src: '/media/manim/p03/p03-complaint-evidence-loop/poster.png',
+    alt: '投诉主诉、位置、日志、复测与结论组成的证据闭环底图',
+  },
+};
+
 export const engineeringFigureSpecs: Record<AnnotatedEngineeringFigureKind, EngineeringFigureSpec> = {
   topology: {
     title: '设备位置、身份与连接方向证据图',
@@ -91,23 +106,28 @@ export function AnnotatedEngineeringFigure({
   const id = useId().replace(/:/g, '');
   const titleId = `engineering-figure-${kind}-${id}`;
   const markerId = `engineering-arrow-${kind}-${id}`;
+  const media = engineeringFigureMedia[kind];
+  const mediaStyle = kind === 'complaint'
+    ? { filter: 'brightness(.3) saturate(.55)', opacity: .58 }
+    : kind === 'antenna'
+      ? { filter: 'brightness(.72) saturate(.82)', opacity: .82 }
+      : undefined;
 
   return (
     <figure className={`annotated-engineering-figure is-${kind}`} data-annotated-engineering-figure={kind}>
       <header>
-        <span>工程证据图 · {kindLabel[kind]}</span>
+        <span data-media-provenance="simulated-case">工程证据图 · {kindLabel[kind]} · 模拟案例</span>
         <h3 id={titleId}>{spec.title}</h3>
         <p>{spec.description}</p>
       </header>
       <div className="engineering-figure-canvas">
-        {kind === 'topology' ? (
-          <img
-            alt="机柜02、BBU槽位3、AAU/RRU与端口链组成的5G室内设备拓扑"
-            className="engineering-figure-stage-image"
-            src="/media/5g/p01-n02-topology-stage-v1.png"
-          />
-        ) : null}
-        <svg aria-labelledby={titleId} role="img" viewBox={kind === 'topology' ? '0 0 960 540' : '0 0 960 430'}>
+        <img alt={media.alt} className="engineering-figure-stage-image" src={media.src} style={mediaStyle} />
+        <svg
+          aria-labelledby={titleId}
+          role="img"
+          style={{ height: '100%', inset: 0, minWidth: 0, position: 'absolute' }}
+          viewBox="0 0 960 540"
+        >
           <desc>{spec.reasoning}</desc>
           <defs>
             <pattern height="24" id={`engineering-grid-${id}`} patternUnits="userSpaceOnUse" width="24">
@@ -117,7 +137,13 @@ export function AnnotatedEngineeringFigure({
               <path d="M0 0 8 4 0 8Z" />
             </marker>
           </defs>
-          <rect className="engineering-grid" fill={`url(#engineering-grid-${id})`} height="430" width="960" />
+          <rect
+            className="engineering-grid"
+            fill={`url(#engineering-grid-${id})`}
+            height="540"
+            style={{ fill: 'transparent' }}
+            width="960"
+          />
 
           <g className="engineering-leader-layer" aria-hidden="true">
             {spec.labels.map((item) => (

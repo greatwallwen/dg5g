@@ -1039,29 +1039,56 @@
                   "把道路热点和邻区叠加到底图"
                 ],
                 "retryable": true,
-                "activityKind": "structured-record",
+                "activityKind": "scope-classification",
                 "materials": [
                   {
-                    "id": "outdoor-base-map",
-                    "label": "HY-02 室外采集底图",
-                    "detail": "底图给出站点坐标、0/120/240度三个扇区、道路热点H1与H2、邻区边界；任务要求圈定本次采样范围。"
+                    "id": "sector-0",
+                    "label": "目标扇区0度",
+                    "detail": "HY-02工单明确列入，位于本次站点坐标内。"
+                  },
+                  {
+                    "id": "hotspot-h2",
+                    "label": "道路热点H2",
+                    "detail": "位于工单采样边界内，需布设CQT点。"
+                  },
+                  {
+                    "id": "other-operator",
+                    "label": "同塔他网天线",
+                    "detail": "非目标运营商设备，只能记录共址环境。"
+                  },
+                  {
+                    "id": "west-road",
+                    "label": "河西支路",
+                    "detail": "靠近站点但超出HY-02工单边界。"
+                  },
+                  {
+                    "id": "unclear-sector",
+                    "label": "标签遮挡的天线",
+                    "detail": "物理位置在塔上，扇区和运营商身份无法确认。"
                   }
                 ],
                 "interaction": {
-                  "type": "record-form",
-                  "fields": [
+                  "type": "classification-board",
+                  "categories": [
                     {
-                      "id": "response",
-                      "label": "岗位记录",
-                      "placeholder": "根据材料写出证据、判断依据和下一步动作"
+                      "id": "in-scope",
+                      "label": "纳入采集"
+                    },
+                    {
+                      "id": "out-of-scope",
+                      "label": "排除并说明"
+                    },
+                    {
+                      "id": "pending",
+                      "label": "待工单复核"
                     }
                   ]
                 },
                 "targetedFeedback": {
-                  "passed": "站点、扇区、热点和采样边界已落在同一坐标口径中。",
-                  "failed": "记录尚不能指导到哪里、采哪个扇区；请补齐坐标、扇区方向、热点与边界。"
+                  "passed": "对象已按工单坐标、扇区和采样边界分类，排除与待复核项均有依据。",
+                  "failed": "仍有对象只凭“离站点近”进入范围；请回到工单边界和设备归属重新分类。"
                 },
-                "transferTarget": "把空间边界记录汇入 P02 室外站点与覆盖采集表。"
+                "transferTarget": "把采集范围、排除对象和待复核项写入P02室外站点与覆盖采集表。"
               }
             ],
             "nodeRecordTemplate": {
@@ -1241,29 +1268,64 @@
                     "修正混用项后重试"
                   ],
                   "retryable": true,
-                  "activityKind": "structured-record",
+                  "activityKind": "evidence-classification",
                   "materials": [
                     {
-                      "id": "sector-parameter-pack",
-                      "label": "扇区2姿态证据包",
-                      "detail": "工参为方位角120度、机械下倾2度、电下倾4度、挂高32米；现场提供罗盘北向、支架刻度、RET网管截面和地面起算照片。"
+                      "id": "sector-label",
+                      "label": "扇区标签S2",
+                      "detail": "把后续参数材料回指到唯一目标扇区。"
+                    },
+                    {
+                      "id": "compass-north",
+                      "label": "罗盘北向照片",
+                      "detail": "显示相对真北的水平指向和校准信息。"
+                    },
+                    {
+                      "id": "bracket-scale",
+                      "label": "支架刻度近景",
+                      "detail": "显示机械下倾2度并与S2同框回指。"
+                    },
+                    {
+                      "id": "ret-current",
+                      "label": "当前RET截面",
+                      "detail": "显示扇区2电下倾4度和采集时间。"
+                    },
+                    {
+                      "id": "height-reference",
+                      "label": "挂高起算全景",
+                      "detail": "显示塔基起算面、天线中心和32米测量记录。"
                     }
                   ],
                   "interaction": {
-                    "type": "record-form",
-                    "fields": [
+                    "type": "classification-board",
+                    "categories": [
                       {
-                        "id": "response",
-                        "label": "岗位记录",
-                        "placeholder": "根据材料写出证据、判断依据和下一步动作"
+                        "id": "sector-identity",
+                        "label": "扇区身份"
+                      },
+                      {
+                        "id": "azimuth",
+                        "label": "方位角"
+                      },
+                      {
+                        "id": "mechanical-tilt",
+                        "label": "机械下倾"
+                      },
+                      {
+                        "id": "electrical-tilt",
+                        "label": "电下倾"
+                      },
+                      {
+                        "id": "mounting-height",
+                        "label": "挂高"
                       }
                     ]
                   },
                   "targetedFeedback": {
-                    "passed": "四项参数均绑定了扇区身份、测量基准和对应证据。",
-                    "failed": "仍有参数只写数值没有基准或来源；请分别核对方位角、两类下倾和挂高。"
+                    "passed": "每项姿态参数都已绑定扇区身份、测量基准和独立材料。",
+                    "failed": "仍有参数只写数值未写对象或基准；请核对标签、真北、刻度、时间和起算面。"
                   },
-                  "transferTarget": "形成可写入 P02 成果表的扇区姿态记录。"
+                  "transferTarget": "形成P02成果表中的扇区姿态证据记录。"
                 }
               ],
               "application": [
@@ -1283,29 +1345,42 @@
                     "最后叠加遮挡并重试"
                   ],
                   "retryable": true,
-                  "activityKind": "structured-record",
+                  "activityKind": "link-reconstruction",
                   "materials": [
                     {
-                      "id": "coverage-direction-case",
-                      "label": "主瓣与投诉路段比对材料",
-                      "detail": "扇区2方位角120度，投诉道路中心线125度，机械/电下倾为2/4度，挂高32米；现场罗盘基准和RET采集时间缺失。"
+                      "id": "sector-s2",
+                      "label": "锁定扇区2",
+                      "detail": "标签S2与工单对象一致。"
+                    },
+                    {
+                      "id": "azimuth-120",
+                      "label": "主瓣方位120度",
+                      "detail": "罗盘相对真北测得，校准记录缺失。"
+                    },
+                    {
+                      "id": "tilt-2-4",
+                      "label": "下倾2度/4度",
+                      "detail": "支架机械刻度2度，当前RET电下倾4度。"
+                    },
+                    {
+                      "id": "height-32",
+                      "label": "挂高32米",
+                      "detail": "以塔基为起算面。"
+                    },
+                    {
+                      "id": "hotspot-125",
+                      "label": "H2道路方向125度",
+                      "detail": "热点距站620米，楼体位于中间。"
                     }
                   ],
                   "interaction": {
-                    "type": "record-form",
-                    "fields": [
-                      {
-                        "id": "response",
-                        "label": "岗位记录",
-                        "placeholder": "根据材料写出证据、判断依据和下一步动作"
-                      }
-                    ]
+                    "type": "sequence-builder"
                   },
                   "targetedFeedback": {
-                    "passed": "判断已同时解释水平指向、垂直姿态、挂高关系和待补证项。",
-                    "failed": "请不要只凭一个角度下结论；补齐扇区、道路、下倾、挂高和证据缺口。"
+                    "passed": "已按身份、水平指向、垂直姿态、挂高距离和风险缺口重建关系。",
+                    "failed": "顺序仍从单一角度跳到覆盖结论；请先锁定对象，再依次处理水平、垂直和缺口。"
                   },
-                  "transferTarget": "把方向判断和缺口登记到 P02 判断字段。"
+                  "transferTarget": "把方向关系与待校准缺口写入P02判断字段。"
                 }
               ],
               "transfer": [
@@ -1329,25 +1404,50 @@
                   "materials": [
                     {
                       "id": "concealed-antenna-pack",
-                      "label": "美化罩天线复核材料",
-                      "detail": "美化罩不可拆，现场可用站点工单、扇区标签、外部罗盘测向、RET网管参数、挂高与周边遮挡记录。"
+                      "label": "美化罩替代证据包",
+                      "detail": "包含工单、S2标签、外部测向、当前RET、挂高和遮挡记录。"
+                    },
+                    {
+                      "id": "no-removal-order",
+                      "label": "禁止拆罩要求",
+                      "detail": "工单明确现场人员无权拆卸美化罩。"
                     }
                   ],
                   "interaction": {
                     "type": "record-form",
                     "fields": [
                       {
-                        "id": "response",
-                        "label": "岗位记录",
-                        "placeholder": "根据材料写出证据、判断依据和下一步动作"
+                        "id": "objectIdentity",
+                        "label": "对象身份",
+                        "placeholder": "写扇区标签与工单回指"
+                      },
+                      {
+                        "id": "externalDirection",
+                        "label": "外部测向",
+                        "placeholder": "写测向值、基准和材料"
+                      },
+                      {
+                        "id": "retAndHeight",
+                        "label": "RET与挂高",
+                        "placeholder": "写参数、时间与起算面"
+                      },
+                      {
+                        "id": "permissionBoundary",
+                        "label": "权限边界",
+                        "placeholder": "写不可见项与禁止动作"
+                      },
+                      {
+                        "id": "reviewAction",
+                        "label": "复核动作",
+                        "placeholder": "写授权复核或替代采样"
                       }
                     ]
                   },
                   "targetedFeedback": {
-                    "passed": "方案遵守不拆罩约束，并用独立证据交叉确认身份、方向和不确定性。",
-                    "failed": "方案仍依赖不可见读数或单一工参；请增加测向、RET、挂高、遮挡与待复核说明。"
+                    "passed": "替代记录同时说明了可确认事实、不可见边界和合法复核动作。",
+                    "failed": "仍把不可见刻度写成现场事实，或缺少权限边界与替代复核动作。"
                   },
-                  "transferTarget": "形成美化罩场景的替代证据复核方案。"
+                  "transferTarget": "形成美化罩场景的P02替代证据记录。"
                 }
               ]
             },
@@ -1476,29 +1576,55 @@
                   "设置风险点和对照点"
                 ],
                 "retryable": true,
-                "activityKind": "structured-record",
+                "activityKind": "four-state-judgement",
                 "materials": [
                   {
-                    "id": "obstruction-risk-pack",
-                    "label": "遮挡风险照片组",
-                    "detail": "扇区主瓣120度指向东南，楼体位于热点H2与站点之间；材料给出楼体两侧可布设的风险点和对照点。"
+                    "id": "obstruction",
+                    "label": "楼体遮挡",
+                    "detail": "楼体位于主瓣与H2之间，可见但影响尚待采样。"
+                  },
+                  {
+                    "id": "parameter-conflict",
+                    "label": "工参冲突",
+                    "detail": "当前RET为8度，授权工参为4度。"
+                  },
+                  {
+                    "id": "stale-ret",
+                    "label": "过期RET",
+                    "detail": "截面早于现场采集七天，当前值未知。"
+                  },
+                  {
+                    "id": "locked-ladder",
+                    "label": "未授权塔梯",
+                    "detail": "安全锁未授权开启，禁止登塔。"
                   }
                 ],
                 "interaction": {
-                  "type": "record-form",
-                  "fields": [
+                  "type": "state-matrix",
+                  "categories": [
                     {
-                      "id": "response",
-                      "label": "岗位记录",
-                      "placeholder": "根据材料写出证据、判断依据和下一步动作"
+                      "id": "satisfied",
+                      "label": "满足"
+                    },
+                    {
+                      "id": "anomaly",
+                      "label": "异常"
+                    },
+                    {
+                      "id": "pending",
+                      "label": "待复核"
+                    },
+                    {
+                      "id": "unauthorized",
+                      "label": "无权操作"
                     }
                   ]
                 },
                 "targetedFeedback": {
-                  "passed": "遮挡、主瓣、热点与验证点已组成可验证风险假设。",
-                  "failed": "仍是目测结论；请补写方向关系、热点位置、风险点、对照点和验证动作。"
+                  "passed": "事实冲突、证据缺口和权限边界已使用不同状态表达。",
+                  "failed": "请勿把缺材料、参数冲突和禁止操作都写成异常；逐项核对触发条件。"
                 },
-                "transferTarget": "把遮挡假设转成 P02 路线设计的验证条件。"
+                "transferTarget": "把风险状态与替代动作写入P02路线设计条件。"
               }
             ],
             "nodeRecordTemplate": {
@@ -1588,29 +1714,68 @@
                   "写明时间窗与判断指标"
                 ],
                 "retryable": true,
-                "activityKind": "structured-record",
+                "activityKind": "defective-sheet-revision",
                 "materials": [
                   {
-                    "id": "route-candidates",
-                    "label": "DT/CQT 候选路线",
-                    "detail": "路线A绕开风险区；路线B穿越遮挡边界并经过热点H2，楼体两侧可设对照点；路线C只有热点、没有对照点。"
+                    "id": "route",
+                    "label": "V1路线",
+                    "detail": "路线A绕开遮挡边界，不能验证风险假设。",
+                    "sourceValue": "路线A"
+                  },
+                  {
+                    "id": "points",
+                    "label": "V1点位",
+                    "detail": "只有H2热点点位，没有楼前楼后对照点。",
+                    "sourceValue": "H2-01"
+                  },
+                  {
+                    "id": "window",
+                    "label": "V1时间窗",
+                    "detail": "未填写采样时间和业务条件。",
+                    "sourceValue": "待填写"
+                  },
+                  {
+                    "id": "metrics",
+                    "label": "V1指标",
+                    "detail": "只写“信号”，没有RSRP、SINR和业务现象。",
+                    "sourceValue": "信号"
                   }
                 ],
                 "interaction": {
-                  "type": "record-form",
+                  "type": "revision-form",
                   "fields": [
                     {
-                      "id": "response",
-                      "label": "岗位记录",
-                      "placeholder": "根据材料写出证据、判断依据和下一步动作"
+                      "id": "routeRevision",
+                      "label": "修订路线",
+                      "placeholder": "选择穿过风险边界的路线"
+                    },
+                    {
+                      "id": "comparisonPoints",
+                      "label": "对照点",
+                      "placeholder": "填写楼前、边界、楼后与热点点位"
+                    },
+                    {
+                      "id": "samplingWindow",
+                      "label": "时间与条件",
+                      "placeholder": "填写时间窗、终端、业务和小区"
+                    },
+                    {
+                      "id": "acceptanceMetrics",
+                      "label": "验收指标",
+                      "placeholder": "填写RSRP、SINR和业务现象"
+                    },
+                    {
+                      "id": "versionDifference",
+                      "label": "V1/V2差异",
+                      "placeholder": "逐项说明修订依据"
                     }
                   ]
                 },
                 "targetedFeedback": {
-                  "passed": "所选路线能够穿越风险边界，并包含CQT热点、对照点、时间窗和指标。",
-                  "failed": "路线尚不能验证风险假设；请明确路线、风险边界、CQT点、对照点和验收指标。"
+                  "passed": "V2路线能够穿越风险边界，并含对照点、时间条件、指标和版本差异。",
+                  "failed": "修订仍不能验证遮挡假设；请补齐路线、对照点、条件、指标和差异。"
                 },
-                "transferTarget": "把路线和CQT点写入 P02 专业成果。"
+                "transferTarget": "生成可执行的P02室外站点与覆盖采集表修订记录。"
               }
             ],
             "nodeRecordTemplate": {
@@ -1744,24 +1909,54 @@
                   {
                     "id": "complaint-narrative",
                     "label": "原始投诉口述",
-                    "detail": "用户称工作日18:00-19:00在A座18层会议室使用视频会议，5次中4次卡顿；终端型号和5G模式尚未确认。"
+                    "detail": "最近下班前在公司高层开会老卡，有时重进就好。"
+                  },
+                  {
+                    "id": "work-order-facts",
+                    "label": "工单补充事实",
+                    "detail": "工作日18:00—19:00，A座18层会议室，视频会议5次中4次卡顿。"
                   }
                 ],
                 "interaction": {
                   "type": "record-form",
                   "fields": [
                     {
-                      "id": "response",
-                      "label": "岗位记录",
-                      "placeholder": "根据材料写出证据、判断依据和下一步动作"
+                      "id": "occurrenceWindow",
+                      "label": "发生时间",
+                      "placeholder": "填写可执行时段"
+                    },
+                    {
+                      "id": "location",
+                      "label": "发生地点",
+                      "placeholder": "填写楼栋、楼层和房间"
+                    },
+                    {
+                      "id": "business",
+                      "label": "业务",
+                      "placeholder": "填写可重复业务动作"
+                    },
+                    {
+                      "id": "symptomFrequency",
+                      "label": "现象与频次",
+                      "placeholder": "填写现象、次数和恢复动作"
+                    },
+                    {
+                      "id": "terminalNetwork",
+                      "label": "终端与网络模式",
+                      "placeholder": "填写已知值或待追问项"
+                    },
+                    {
+                      "id": "excludedGuess",
+                      "label": "删除的原因猜测",
+                      "placeholder": "标明未被事实支持的猜测"
                     }
                   ]
                 },
                 "targetedFeedback": {
-                  "passed": "口述已拆成可复测事实，并明确列出必须追问的终端缺项。",
-                  "failed": "记录仍混入原因猜测或缺少时间、地点、业务、现象、频次和追问项。"
+                  "passed": "口述已转成可复测事实，模糊项和终端缺项均保留追问动作。",
+                  "failed": "记录仍混入原因猜测或缺少时间、地点、业务、现象、频次和终端条件。"
                 },
-                "transferTarget": "形成 P03 投诉基线与复测边界。"
+                "transferTarget": "形成P03投诉事实基线与追问清单。"
               }
             ],
             "nodeRecordTemplate": {
@@ -1950,26 +2145,61 @@
                   "activityKind": "structured-record",
                   "materials": [
                     {
-                      "id": "retest-comparison-set",
-                      "label": "四份复测记录",
-                      "detail": "记录A满足同地点、同业务、同终端；B更换地点，C更换业务，D更换终端。需区分条件不等价与真正未复现。"
+                      "id": "record-a",
+                      "label": "复测A",
+                      "detail": "原会议室、原终端、同一视频会议，未出现卡顿。"
+                    },
+                    {
+                      "id": "record-b",
+                      "label": "复测B",
+                      "detail": "改到一层大厅，其他条件相同，流畅。"
+                    },
+                    {
+                      "id": "record-c",
+                      "label": "复测C",
+                      "detail": "原会议室改做网页测速，流畅。"
+                    },
+                    {
+                      "id": "record-d",
+                      "label": "复测D",
+                      "detail": "原会议室改用工程测试机，流畅。"
                     }
                   ],
                   "interaction": {
                     "type": "record-form",
                     "fields": [
                       {
-                        "id": "response",
-                        "label": "岗位记录",
-                        "placeholder": "根据材料写出证据、判断依据和下一步动作"
+                        "id": "recordAComparison",
+                        "label": "A条件比对",
+                        "placeholder": "自行列出保持与变化条件"
+                      },
+                      {
+                        "id": "recordBComparison",
+                        "label": "B条件比对",
+                        "placeholder": "自行列出保持与变化条件"
+                      },
+                      {
+                        "id": "recordCComparison",
+                        "label": "C条件比对",
+                        "placeholder": "自行列出保持与变化条件"
+                      },
+                      {
+                        "id": "recordDComparison",
+                        "label": "D条件比对",
+                        "placeholder": "自行列出保持与变化条件"
+                      },
+                      {
+                        "id": "comparableConclusion",
+                        "label": "可比结论",
+                        "placeholder": "写可比记录与结论边界"
                       }
                     ]
                   },
                   "targetedFeedback": {
-                    "passed": "四份记录已逐项核对三同条件，并正确区分不等价与未复现。",
-                    "failed": "请逐份写出地点、业务、终端是否一致，不能把条件变化误写成未复现。"
+                    "passed": "四份记录已独立比对条件，并正确区分同条件未复现与条件不等价。",
+                    "failed": "仍用“流畅”否定投诉；请逐份找出地点、业务、终端或时段变化。"
                   },
-                  "transferTarget": "形成 P03 复现条件比对记录。"
+                  "transferTarget": "形成P03同条件复测比对记录。"
                 }
               ],
               "application": [
@@ -1989,29 +2219,52 @@
                     "检查是否能重复执行后重试"
                   ],
                   "retryable": true,
-                  "activityKind": "structured-record",
+                  "activityKind": "link-reconstruction",
                   "materials": [
                     {
-                      "id": "fifteen-minute-retest",
-                      "label": "15分钟投诉复测任务单",
-                      "detail": "任务要求固定投诉地点、终端和视频会议业务，把用户操作、业务日志、服务小区、RSRP、SINR和现象时刻对齐。"
+                      "id": "enter-meeting",
+                      "label": "18:00进入会议",
+                      "detail": "确认原地点、原终端和5G模式。"
+                    },
+                    {
+                      "id": "share-screen",
+                      "label": "18:04共享屏幕",
+                      "detail": "开始投诉对应业务动作。"
+                    },
+                    {
+                      "id": "freeze",
+                      "label": "18:07画面卡顿",
+                      "detail": "用户侧观察到画面冻结。"
+                    },
+                    {
+                      "id": "retransmission",
+                      "label": "18:07:12业务重传",
+                      "detail": "业务日志记录重传事件。"
+                    },
+                    {
+                      "id": "radio-sample",
+                      "label": "18:07无线采样",
+                      "detail": "服务小区S2，RSRP -93dBm，SINR -3dB。"
+                    },
+                    {
+                      "id": "recovery",
+                      "label": "18:09业务恢复",
+                      "detail": "画面恢复但需保留前后窗口。"
+                    },
+                    {
+                      "id": "clock-check",
+                      "label": "结束校时复核",
+                      "detail": "记录终端、日志和采样设备的时钟偏差。"
                     }
                   ],
                   "interaction": {
-                    "type": "record-form",
-                    "fields": [
-                      {
-                        "id": "response",
-                        "label": "岗位记录",
-                        "placeholder": "根据材料写出证据、判断依据和下一步动作"
-                      }
-                    ]
+                    "type": "sequence-builder"
                   },
                   "targetedFeedback": {
-                    "passed": "脚本具有分钟级步骤，并能把业务现象与网络采样放到同一时间轴。",
-                    "failed": "脚本仍不可重复执行；请补齐时间、操作、服务小区、无线指标、业务日志和复核步骤。"
+                    "passed": "用户动作、业务事件、服务小区、无线指标和校时已进入同一15分钟时间轴。",
+                    "failed": "时间轴仍缺操作起点、同窗采样或校时；请按事件发生顺序重建。"
                   },
-                  "transferTarget": "生成可直接执行的15分钟复测脚本。"
+                  "transferTarget": "生成可重复执行的P03十五分钟复测脚本。"
                 }
               ],
               "transfer": [
@@ -2035,25 +2288,55 @@
                   "materials": [
                     {
                       "id": "rail-call-drop-case",
-                      "label": "高速列车掉线迁移案例",
-                      "detail": "投诉发生在固定车次与运行区段，需保持通话业务和终端一致，记录沿途服务小区、切换轨迹、掉线时刻并重复路线。"
+                      "label": "高速列车掉线材料",
+                      "detail": "G218次固定区段18:40左右，同一终端通话，附服务小区和掉线时刻。"
+                    },
+                    {
+                      "id": "trajectory-log",
+                      "label": "切换轨迹",
+                      "detail": "记录沿途小区，但尚未重复同一路线。"
                     }
                   ],
                   "interaction": {
                     "type": "record-form",
                     "fields": [
                       {
-                        "id": "response",
-                        "label": "岗位记录",
-                        "placeholder": "根据材料写出证据、判断依据和下一步动作"
+                        "id": "trainDirection",
+                        "label": "车次与方向",
+                        "placeholder": "填写车次、运行方向"
+                      },
+                      {
+                        "id": "routeSection",
+                        "label": "运行区段",
+                        "placeholder": "填写起止区段和定位口径"
+                      },
+                      {
+                        "id": "timeWindow",
+                        "label": "时间窗",
+                        "placeholder": "填写时刻和晚点校正方式"
+                      },
+                      {
+                        "id": "deviceBusiness",
+                        "label": "终端与业务",
+                        "placeholder": "填写需保持一致的条件"
+                      },
+                      {
+                        "id": "cellTrajectory",
+                        "label": "小区与切换轨迹",
+                        "placeholder": "填写连续记录字段"
+                      },
+                      {
+                        "id": "repeatPlan",
+                        "label": "重复复测",
+                        "placeholder": "填写同路线重复和回访计划"
                       }
                     ]
                   },
                   "targetedFeedback": {
-                    "passed": "复现条件已从固定地点迁移为车次、区段、时间段和可重复轨迹。",
-                    "failed": "方案仍把移动场景当成固定点；请补齐车次、区段、业务终端、服务小区和掉线时刻。"
+                    "passed": "固定点方法已正确迁移为车次、区段、时间窗和连续轨迹复测。",
+                    "failed": "方案仍把移动投诉当成一个坐标点，或缺少连续轨迹与重复路线。"
                   },
-                  "transferTarget": "形成高速移动场景的可重复复测方案。"
+                  "transferTarget": "形成高速移动场景的P03可重复复测方案。"
                 }
               ]
             },
@@ -2182,29 +2465,60 @@
                   "记录不支持当前假设的线索"
                 ],
                 "retryable": true,
-                "activityKind": "structured-record",
+                "activityKind": "four-state-judgement",
                 "materials": [
                   {
-                    "id": "evidence-timeline",
-                    "label": "18:07 同窗证据组",
-                    "detail": "18:07业务日志记录卡顿，同窗SINR为-3dB、服务小区拥塞KPI升高，但告警系统无当前告警；需保留支持与冲突线索。"
+                    "id": "business-freeze",
+                    "label": "18:07卡顿与重传",
+                    "detail": "用户现象和业务日志同窗。"
+                  },
+                  {
+                    "id": "low-sinr",
+                    "label": "SINR -3dB",
+                    "detail": "同窗、同服务小区S2的无线采样。"
+                  },
+                  {
+                    "id": "high-load",
+                    "label": "拥塞KPI升高",
+                    "detail": "S2同窗容量指标异常升高。"
+                  },
+                  {
+                    "id": "no-alarm",
+                    "label": "无当前告警",
+                    "detail": "告警系统没有同窗设备告警。"
+                  },
+                  {
+                    "id": "late-recovery",
+                    "label": "18:09恢复",
+                    "detail": "业务恢复时拥塞KPI仍高。"
                   }
                 ],
                 "interaction": {
-                  "type": "record-form",
-                  "fields": [
+                  "type": "state-matrix",
+                  "categories": [
                     {
-                      "id": "response",
-                      "label": "岗位记录",
-                      "placeholder": "根据材料写出证据、判断依据和下一步动作"
+                      "id": "supports",
+                      "label": "支持当前线索"
+                    },
+                    {
+                      "id": "conflicts",
+                      "label": "形成冲突"
+                    },
+                    {
+                      "id": "needs-correlation",
+                      "label": "需要同窗关联"
+                    },
+                    {
+                      "id": "cannot-conclude",
+                      "label": "不能单独定因"
                     }
                   ]
                 },
                 "targetedFeedback": {
-                  "passed": "业务侧和网络侧证据已按同一时间窗与服务小区交叉，并保留冲突。",
-                  "failed": "仍是单条证据定因；请补齐时窗、服务小区、独立来源和无告警冲突。"
+                  "passed": "多源材料已按同窗和服务小区交叉，支持与冲突均保留在结论边界内。",
+                  "failed": "仍由单条KPI或无告警直接定因；请核对来源独立性、时窗和冲突。"
                 },
-                "transferTarget": "形成 P03 可审计的证据交叉时间轴。"
+                "transferTarget": "形成P03可审计的交叉证据判断。"
               }
             ],
             "nodeRecordTemplate": {
@@ -2295,29 +2609,78 @@
                   "写出同条件复测和回访标准"
                 ],
                 "retryable": true,
-                "activityKind": "structured-record",
+                "activityKind": "defective-sheet-revision",
                 "materials": [
                   {
-                    "id": "vague-closure-order",
-                    "label": "待修订的投诉处理建议",
-                    "detail": "原建议只有“建议优化”。现有材料包括业务日志、网络KPI、无线优化负责人、24小时时限、同条件复测和用户回访要求。"
+                    "id": "conclusion",
+                    "label": "V1结论",
+                    "detail": "只有“晚高峰卡顿，建议优化”，未标结论边界。",
+                    "sourceValue": "建议优化"
+                  },
+                  {
+                    "id": "evidence",
+                    "label": "V1材料索引",
+                    "detail": "业务日志、采样和KPI未挂接到调查单字段。",
+                    "sourceValue": "附件见后"
+                  },
+                  {
+                    "id": "owner",
+                    "label": "V1责任人",
+                    "detail": "没有责任角色和完成时限。",
+                    "sourceValue": "相关人员"
+                  },
+                  {
+                    "id": "closure",
+                    "label": "V1闭环",
+                    "detail": "没有同条件复测、用户回访和验收条件。",
+                    "sourceValue": "处理完成"
                   }
                 ],
                 "interaction": {
-                  "type": "record-form",
+                  "type": "revision-form",
                   "fields": [
                     {
-                      "id": "response",
-                      "label": "岗位记录",
-                      "placeholder": "根据材料写出证据、判断依据和下一步动作"
+                      "id": "evidenceLinks",
+                      "label": "材料挂接",
+                      "placeholder": "填写日志、采样和KPI索引"
+                    },
+                    {
+                      "id": "boundedConclusion",
+                      "label": "结论边界",
+                      "placeholder": "写当前线索和未确定项"
+                    },
+                    {
+                      "id": "responsibleOwner",
+                      "label": "责任人",
+                      "placeholder": "填写可接单责任角色"
+                    },
+                    {
+                      "id": "deadline",
+                      "label": "完成时限",
+                      "placeholder": "填写明确时限"
+                    },
+                    {
+                      "id": "retestPlan",
+                      "label": "同条件复测",
+                      "placeholder": "填写条件、次数和记录要求"
+                    },
+                    {
+                      "id": "callback",
+                      "label": "用户回访",
+                      "placeholder": "填写回访对象、时间和问题"
+                    },
+                    {
+                      "id": "acceptance",
+                      "label": "验收标准",
+                      "placeholder": "填写可判定的业务与网络条件"
                     }
                   ]
                 },
                 "targetedFeedback": {
-                  "passed": "建议已改写为有证据、有责任人、有时限、有复测回访和验收条件的闭环记录。",
-                  "failed": "记录仍不可派单或验收；请补齐证据、责任人、时限、复测、回访和闭环标准。"
+                  "passed": "V2调查单已有材料、边界、责任人、时限、复测、回访和验收闭环。",
+                  "failed": "修订仍不可派单或验收；请补齐责任动作和可判定闭环条件。"
                 },
-                "transferTarget": "生成可进入 P03 成果表的投诉闭环记录。"
+                "transferTarget": "生成可进入P03成果表的投诉信息调查单修订记录。"
               }
             ],
             "nodeRecordTemplate": {
