@@ -4,7 +4,7 @@ export type RevisionDisposition = 'stale' | 'equal' | 'newer';
 
 const POLL_INTERVALS: Record<PollTier, number> = {
   active: 1000,
-  passive: 15000,
+  passive: 10000,
 };
 
 export interface PollClock {
