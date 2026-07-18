@@ -17,6 +17,11 @@ export function presenceIntervalFor(visibility: ClassroomPresenceVisibility): nu
   return visibility === 'visible' ? 3_000 : 10_000;
 }
 
+export function classroomPresenceUrl(sessionId: string, surface: ClassroomPresenceSurface): string {
+  const base = `/api/class-sessions/${encodeURIComponent(sessionId)}/presence`;
+  return surface === 'projector' ? `${base}?view=projector` : base;
+}
+
 export function useClassroomPresence(input: {
   sessionId: string;
   surface: ClassroomPresenceSurface;
@@ -42,14 +47,14 @@ export function useClassroomPresence(input: {
         });
         if (disposed || signal.aborted) return;
         const visibility = document.visibilityState === 'visible' ? 'visible' : 'hidden';
-        await fetch(`/api/class-sessions/${encodeURIComponent(sessionId)}/presence`, {
+        await fetch(classroomPresenceUrl(sessionId, surface), {
           method: 'POST',
           cache: 'no-store',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             deviceId,
-            visibility,
+            visibilityState: visibility,
             pageState: visibility === 'hidden' ? 'hidden' : pageState,
             lastSeenClassroomRevision,
           }),
