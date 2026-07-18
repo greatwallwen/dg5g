@@ -6,22 +6,22 @@ import { Icon } from '@/ui/foundation/icons';
 import { TeacherConsoleInspector } from './teacher-console-inspector';
 import type { TeacherConsoleViewProps } from './teacher-console-view-props';
 
-export type TeacherPrimaryAction = 'reconnect-helper' | 'start-formal-test' | 'push-page' | 'begin-review' | 'next-node';
+export type TeacherPrimaryAction = 'reconnect-session' | 'start-formal-test' | 'push-page' | 'begin-review' | 'next-node';
 
 export function teacherPrimaryActionForPhase({
   phase,
   formalTestAvailable,
   formalTestRunning,
   hasNextNode,
-  helperReady,
+  controlsAvailable,
 }: {
   phase: NonNullable<TeacherConsoleViewProps['session']['lessonState']>['phase'];
   formalTestAvailable: boolean;
   formalTestRunning: boolean;
   hasNextNode: boolean;
-  helperReady: boolean;
+  controlsAvailable: boolean;
 }): TeacherPrimaryAction {
-  if (!helperReady) return 'reconnect-helper';
+  if (!controlsAvailable) return 'reconnect-session';
   if (phase === 'challenge' && formalTestAvailable && !formalTestRunning) return 'start-formal-test';
   if (phase === 'challenge' && formalTestRunning) return 'begin-review';
   if (phase === 'review' && hasNextNode) return 'next-node';
@@ -35,7 +35,7 @@ export function TeacherConsoleView(p: TeacherConsoleViewProps) {
     formalTestAvailable: Boolean(p.session.formalTest),
     formalTestRunning: p.session.formalTest?.status === 'running',
     hasNextNode,
-    helperReady: p.helperReady,
+    controlsAvailable: p.controlsAvailable,
   });
   return (
     <main
@@ -65,11 +65,13 @@ export function TeacherConsoleView(p: TeacherConsoleViewProps) {
             <small>课堂 / {p.rosterStats.follow}人跟随 / {p.rosterStats.self}人自学</small>
           </div>
           <nav>
-            <span className={`teacher-helper-pill is-${p.helperStatus}`}
-              data-helper-state={p.helperStatus}>
-              <i />{p.helperStatus === 'offline'
-                ? '课堂进行中 · 助手离线'
-                : `课堂助手 ${p.onlineStudentDeviceCount}人在线`}
+            <span className={`teacher-helper-pill is-${p.connectionStatus}`}
+              data-classroom-connection-state={p.connectionStatus}>
+              <i />{p.connectionStatus === 'offline'
+                ? '课堂连接暂时离线'
+                : p.onlineStudentDeviceCount === 0
+                  ? '课堂连接正常 · 当前无学生设备在线，不影响备课'
+                  : `课堂连接正常 · ${p.onlineStudentDeviceCount}人在线`}
             </span>
             <a href={`/present/${p.session.sessionId}`} target="_blank">投屏预览</a>
             <button aria-label={p.inspectorOpen ? '收起教师检查器' : '打开教师检查器'}
@@ -88,7 +90,7 @@ export function TeacherConsoleView(p: TeacherConsoleViewProps) {
             <header><span>{p.profile.taskId}</span><strong>课时结构</strong></header>
             {p.profile.units.map((item: any, index: number) => (
               <button className={index === p.unitIndex ? 'is-active' : ''} key={item.id}
-                disabled={!p.helperReady} onClick={() => p.go(index)} type="button">
+                disabled={!p.controlsAvailable} onClick={() => p.go(index)} type="button">
                 <span>{index + 1}</span>
                 <p><strong>{item.title}</strong><small>{item.output}</small></p>
               </button>
@@ -139,7 +141,7 @@ export function TeacherConsoleView(p: TeacherConsoleViewProps) {
           <details className="teacher-more-actions">
             <summary><Icon name="layers" size={17} />更多操作</summary>
             <div>
-              <button disabled={!p.helperReady || p.unitIndex === 0} onClick={() => p.go(p.unitIndex - 1)} type="button">
+              <button disabled={!p.controlsAvailable || p.unitIndex === 0} onClick={() => p.go(p.unitIndex - 1)} type="button">
                 <Icon name="arrow" size={17} />上一节点
               </button>
               <button onClick={() => p.setPlaybackOpen((value) => !value)} type="button">
@@ -147,11 +149,11 @@ export function TeacherConsoleView(p: TeacherConsoleViewProps) {
                 {p.playbackOpen ? '收起播报' : '打开播报'}
               </button>
               {primaryAction !== 'start-formal-test' ? <button data-session-action="start-formal-test"
-                disabled={!p.helperReady || !p.session.formalTest || p.session.formalTest.status === 'running'}
+                disabled={!p.controlsAvailable || !p.session.formalTest || p.session.formalTest.status === 'running'}
                 onClick={p.startFormalTest} type="button">
                 <Icon name="target" size={17} />启动正式测试
               </button> : null}
-              {primaryAction !== 'push-page' ? <button data-session-action="push-page" disabled={!p.helperReady}
+              {primaryAction !== 'push-page' ? <button data-session-action="push-page" disabled={!p.controlsAvailable}
                 onClick={p.pushPage} type="button">
                 <Icon name="message" size={17} />推送当前页
               </button> : null}
@@ -160,17 +162,17 @@ export function TeacherConsoleView(p: TeacherConsoleViewProps) {
                   <Icon name="screen" size={17} />解除跟随
                 </button>
               ) : (
-                <button data-session-action="force-follow" disabled={!p.helperReady}
+                <button data-session-action="force-follow" disabled={!p.controlsAvailable}
                   onClick={p.forceFollow} type="button">
                   <Icon name="screen" size={17} />全班跟随
                 </button>
               )}
               {primaryAction !== 'begin-review' ? <button data-session-action="begin-review"
-                disabled={!p.helperReady || p.formalAssessment.submittedCount === 0}
+                disabled={!p.controlsAvailable || p.formalAssessment.submittedCount === 0}
                 onClick={p.beginReview} title={p.formalAssessment.submittedCount === 0 ? '至少收到 1 份当前正式测试提交后才能讲评' : undefined} type="button">
                 <Icon name="target" size={17} />进入讲评
               </button> : null}
-              {primaryAction !== 'next-node' ? <button disabled={!p.helperReady || !hasNextNode}
+              {primaryAction !== 'next-node' ? <button disabled={!p.controlsAvailable || !hasNextNode}
                 onClick={() => p.go(p.unitIndex + 1)} type="button">
                 下一节点<Icon name="arrow" size={17} />
               </button> : null}
@@ -185,9 +187,9 @@ export function TeacherConsoleView(p: TeacherConsoleViewProps) {
 }
 
 function TeacherPrimaryActionButton({ action, p }: { action: TeacherPrimaryAction; p: TeacherConsoleViewProps }) {
-  if (action === 'reconnect-helper') return <a className="is-primary" data-helper-reconnect-entry data-primary-action data-session-action="reconnect-helper" href={`/teacher/classroom-helper?sessionId=${encodeURIComponent(p.session.sessionId)}`}><Icon name="screen" size={17} />重连课堂助手</a>;
-  if (action === 'start-formal-test') return <button className="is-primary" data-primary-action data-session-action="start-formal-test" disabled={!p.helperReady} onClick={p.startFormalTest} type="button"><Icon name="target" size={17} />启动正式测试</button>;
-  if (action === 'next-node') return <button className="is-primary" data-primary-action data-session-action="next-node" disabled={!p.helperReady} onClick={() => p.go(p.unitIndex + 1)} type="button">下一节点<Icon name="arrow" size={17} /></button>;
+  if (action === 'reconnect-session') return <button className="is-primary" data-primary-action data-session-action="reconnect-session" onClick={() => window.location.reload()} type="button"><Icon name="screen" size={17} />重新连接课堂</button>;
+  if (action === 'start-formal-test') return <button className="is-primary" data-primary-action data-session-action="start-formal-test" disabled={!p.controlsAvailable} onClick={p.startFormalTest} type="button"><Icon name="target" size={17} />启动正式测试</button>;
+  if (action === 'next-node') return <button className="is-primary" data-primary-action data-session-action="next-node" disabled={!p.controlsAvailable} onClick={() => p.go(p.unitIndex + 1)} type="button">下一节点<Icon name="arrow" size={17} /></button>;
   if (action === 'push-page') return <button className="is-primary" data-primary-action data-session-action="push-page" onClick={p.pushPage} type="button"><Icon name="message" size={17} />推送 {p.unit.capabilityNodeId} 当前页</button>;
   return <button className="is-primary" data-primary-action data-session-action="begin-review"
     disabled={p.formalAssessment.submittedCount === 0} onClick={p.beginReview}

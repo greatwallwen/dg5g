@@ -104,14 +104,16 @@ export function TeacherConsoleInspector({ p }: { p: TeacherConsoleViewProps }) {
           <span>课堂提交</span><p>{p.submittedAnswers[0] ?? '等待学生提交'}</p>
         </div>
         <TeacherSkillPulse nodeId={p.unit.capabilityNodeId} />
-        <section className={`teacher-delivery-status is-${p.helperReady ? 'online' : 'offline'}`}
+        <section className={`teacher-delivery-status is-${p.controlsAvailable ? 'online' : 'offline'}`}
           data-command-delivery-state={deliveryState(p)}>
-          <span>指令回执</span>
-          <strong>{p.helperReady
+          <span>课堂连接</span>
+          <strong>{p.controlsAvailable
             ? `已应用 ${p.deliveryStats.applied} · 等待 ${p.deliveryStats.pending} · 失败 ${p.deliveryStats.failed}`
-            : '启动课堂助手后才能控制学生屏幕'}</strong>
+            : '课堂连接不可用，请检查网络后重试'}</strong>
           <small>{p.connection.state === 'online'
-            ? `会话在线 · ${p.onlineStudentDeviceCount}名学生设备在线`
+            ? p.onlineStudentDeviceCount === 0
+              ? '当前无学生设备在线，不影响备课'
+              : `会话在线 · ${p.onlineStudentDeviceCount}名学生设备在线`
             : `会话状态：${p.connection.state}`}</small>
         </section>
       </div>
@@ -124,7 +126,7 @@ export function TeacherConsoleInspector({ p }: { p: TeacherConsoleViewProps }) {
 }
 
 function deliveryState(p: TeacherConsoleViewProps): 'offline' | 'failed' | 'waiting' | 'applied' {
-  if (!p.helperReady) return 'offline';
+  if (!p.controlsAvailable) return 'offline';
   if (p.deliveryStats.failed) return 'failed';
   return p.deliveryStats.pending ? 'waiting' : 'applied';
 }

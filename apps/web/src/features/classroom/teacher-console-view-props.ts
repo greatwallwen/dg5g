@@ -25,8 +25,8 @@ export interface TeacherConsoleViewProps {
     needsHelp: number;
     submitted: number;
   };
-  helperReady: boolean;
-  helperStatus: 'offline' | 'online' | 'degraded';
+  controlsAvailable: boolean;
+  connectionStatus: 'offline' | 'online' | 'degraded';
   onlineStudentDeviceCount: number;
   session: ClassSession;
   inspectorOpen: boolean;

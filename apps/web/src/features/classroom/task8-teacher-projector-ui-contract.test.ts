@@ -9,35 +9,35 @@ test('teacherPrimaryActionForPhase exposes one contextual action for every class
     formalTestAvailable: true,
     formalTestRunning: false,
     hasNextNode: true,
-    helperReady: true,
+    controlsAvailable: true,
   }), 'start-formal-test');
   assert.equal(teacherPrimaryActionForPhase({
     phase: 'review',
     formalTestAvailable: true,
     formalTestRunning: false,
     hasNextNode: true,
-    helperReady: true,
+    controlsAvailable: true,
   }), 'next-node');
   assert.equal(teacherPrimaryActionForPhase({
     phase: 'lecture',
     formalTestAvailable: true,
     formalTestRunning: false,
     hasNextNode: true,
-    helperReady: true,
+    controlsAvailable: true,
   }), 'push-page');
   assert.equal(teacherPrimaryActionForPhase({
     phase: 'lecture',
     formalTestAvailable: true,
     formalTestRunning: false,
     hasNextNode: true,
-    helperReady: false,
-  }), 'reconnect-helper');
+    controlsAvailable: false,
+  }), 'reconnect-session');
   assert.notEqual(teacherPrimaryActionForPhase({
     phase: 'challenge',
     formalTestAvailable: true,
     formalTestRunning: true,
     hasNextNode: true,
-    helperReady: true,
+    controlsAvailable: true,
   }), 'start-formal-test');
 });
 
@@ -53,7 +53,9 @@ test('teacher and projector roots declare their primary-action and motion contra
   assert.match(teacher, /data-motion=/);
   assert.match(teacher, /data-inspector-open=/);
   assert.match(teacher, /data-primary-action/);
-  assert.match(teacher, /data-helper-reconnect-entry/);
+  assert.match(teacher, /data-session-action="reconnect-session"/);
+  assert.match(teacher, /课堂连接/);
+  assert.doesNotMatch(teacher, /重连课堂助手|启动课堂助手/);
   assert.match(teacher, /formalAssessment\.submittedCount === 0/);
   assert.match(teacher, /data-session-action="begin-review"/);
   assert.match(projector, /data-primary-action-policy="none"/);
@@ -78,10 +80,8 @@ test('teacher console supports Escape close, focus return and a modal inspector 
   assert.match(inspector, /aria-modal="true"/);
 });
 
-test('offline helper entry is a real teacher-only reconnect and recheck page', () => {
-  const page = source('../../app/teacher/classroom-helper/page.tsx');
-  assert.match(page, /requireClassRole\('teacher'\)/);
-  assert.match(page, /data-helper-reconnect-page/);
-  assert.match(page, /data-helper-recheck/);
-  assert.match(page, /classroom-helper:start/);
+test('zero student devices is a non-blocking preparation warning', () => {
+  const inspector = source('./teacher-console-inspector.tsx');
+  assert.match(inspector, /当前无学生设备在线，不影响备课/);
+  assert.doesNotMatch(inspector, /启动课堂助手后才能控制学生屏幕/);
 });

@@ -168,8 +168,8 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
     profile={profile}
     unit={unit}
     rosterStats={rosterStats}
-    helperReady={controlsAvailable}
-    helperStatus={snapshotModel.helper.status}
+    controlsAvailable={controlsAvailable}
+    connectionStatus={connection.state === 'online' ? 'online' : connection.state === 'offline' ? 'offline' : 'degraded'}
     deliveryStats={snapshotModel.helper.commandDelivery}
     onlineStudentDeviceCount={snapshotModel.helper.onlineStudentDeviceCount}
     session={session}
