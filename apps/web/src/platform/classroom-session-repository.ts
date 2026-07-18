@@ -223,7 +223,16 @@ export class ClassroomSessionRepository {
     const lessonRun = row.active_lesson_run_id
       ? this.lessonRuns.readLessonRun(row.active_lesson_run_id)
       : undefined;
-    if (!lessonRun) return sessionFromRow(row);
+    if (!lessonRun) {
+      const closedRun = this.lessonRuns.readLatestLessonRun(row.session_id);
+      const closedCursor = closedRun?.status === 'closed'
+        && closedRun.revision === row.revision
+        && closedRun.teachingCursor.nodeId === row.active_node_id
+        && closedRun.teachingCursor.unitId === row.active_unit_id
+        ? closedRun.teachingCursor
+        : undefined;
+      return sessionFromRow(row, closedCursor);
+    }
     if (!lessonRun
       || lessonRun.sessionId !== row.session_id
       || lessonRun.teachingCursor.nodeId !== row.active_node_id

@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { AuthenticatedActor } from './auth/actor.ts';
 import { ClassroomParticipationRepository } from './classroom-participation-repository.ts';
+import { startActiveLessonRun } from './classroom-lesson-run-test-fixture.ts';
+import { ClassroomLessonRunRepository } from './classroom-lesson-run-repository.ts';
 import { ClassroomSessionRepository } from './classroom-session-repository.ts';
 import { seedDemo } from './db/demo-seed.ts';
 import { migrateDatabase } from './db/migrations.ts';
@@ -142,24 +144,24 @@ test('classroom activity metrics count only the exact active lesson run', () => 
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
-    fixture.database.exec(`
-      INSERT INTO classroom_lesson_runs (
-        lesson_run_id, session_id, lesson_id, task_id, node_id, status, teaching_cursor_json
-      ) VALUES
-        ('snapshot-lesson-old', 'demo-class', 'P01-L1', 'P01', 'P1T1-N02', 'closed', '{}'),
-        ('snapshot-lesson-active', 'demo-class', 'P01-L2', 'P01', 'P1T1-N02', 'active', '{}');
-      UPDATE classroom_sessions
-      SET status = 'active', active_node_id = 'P1T1-N02',
-          active_lesson_run_id = 'snapshot-lesson-active'
-      WHERE session_id = 'demo-class';
+    const lessonRuns = new ClassroomLessonRunRepository(fixture.database);
+    const oldRun = startActiveLessonRun(fixture.database, 'demo-class');
+    lessonRuns.transitionLessonRun({
+      sessionId: 'demo-class',
+      lessonRunId: oldRun.lessonRunId,
+      expectedRevision: oldRun.revision,
+      nextStatus: 'closed',
+    });
+    const activeRun = startActiveLessonRun(fixture.database, 'demo-class');
+    fixture.database.prepare(`
       INSERT INTO practice_attempts (
         attempt_id, student_id, activity_id, node_id, passed, origin,
         delivery_channel, classroom_session_id, classroom_run_id, attempt_number
       ) VALUES (
         'snapshot-practice-old', 'stu-01', 'P1T1-N02-foundation-01', 'P1T1-N02',
-        1, 'user', 'classroom', 'demo-class', 'snapshot-lesson-old', 1
-      );
-    `);
+        1, 'user', 'classroom', 'demo-class', ?, 1
+      )
+    `).run(oldRun.lessonRunId);
 
     const reader = new AuthoritativeSnapshotReader(fixture.database);
     assert.equal(reader.read(teacherActor(), 'teacher', { now })
@@ -171,9 +173,9 @@ test('classroom activity metrics count only the exact active lesson run', () => 
         delivery_channel, classroom_session_id, classroom_run_id, attempt_number
       ) VALUES (
         'snapshot-practice-active', 'stu-01', 'P1T1-N02-foundation-01', 'P1T1-N02',
-        1, 'user', 'classroom', 'demo-class', 'snapshot-lesson-active', 2
+        1, 'user', 'classroom', 'demo-class', ?, 2
       )
-    `).run();
+    `).run(activeRun.lessonRunId);
     assert.equal(reader.read(teacherActor(), 'teacher', { now })
       .submissions.classroomActivity.submittedCount, 1);
   } finally {
@@ -603,23 +605,14 @@ function openRelationalAssessmentRun(
   startedAt: string,
   expiresAt: string,
 ): void {
-  const lessonRunId = `${runId}-lesson`;
-  database.prepare(`
-    INSERT INTO classroom_lesson_runs (
-      lesson_run_id, session_id, lesson_id, task_id, node_id, status,
-      teaching_cursor_json, started_at
-    ) VALUES (?, 'demo-class', 'P01-L02', 'P01', 'P1T1-N02', 'active', '{}', ?)
-  `).run(lessonRunId, startedAt);
-  database.prepare(`
-    UPDATE classroom_sessions
-    SET status = 'active', active_lesson_run_id = ?
-    WHERE session_id = 'demo-class'
-  `).run(lessonRunId);
+  const lessonRun = startActiveLessonRun(database, 'demo-class', {
+    now: new Date(startedAt),
+  });
   database.prepare(`
     INSERT INTO classroom_assessment_runs (
       run_id, lesson_run_id, session_id, node_id, game_id,
       status, started_at, expires_at
     ) VALUES (?, ?, 'demo-class', 'P1T1-N02', 'P1T1-N02-server-assessment',
       'running', ?, ?)
-  `).run(runId, lessonRunId, startedAt, expiresAt);
+  `).run(runId, lessonRun.lessonRunId, startedAt, expiresAt);
 }

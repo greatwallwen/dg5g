@@ -32,6 +32,8 @@ const { closeDatabase } = await import('./db/database.ts');
 const { AuthService } = await import('./auth/auth-service.ts');
 const { AUTH_COOKIE_NAME } = await import('./auth/cookie.ts');
 const { ClassroomParticipationRepository } = await import('./classroom-participation-repository.ts');
+const { startActiveLessonRun } = await import('./classroom-lesson-run-test-fixture.ts');
+const lessonRoute = await import('../app/api/class-sessions/[sessionId]/lesson/route.ts');
 
 const authFixture = createTestDatabase();
 migrateDatabase(authFixture.database);
@@ -42,6 +44,10 @@ seedClassroomSessions(authFixture.database, [
   'P1T1-N02-private-student-work',
   'P1T1-N02-spoofed-student',
 ]);
+const helperLessonRun = startActiveLessonRun(
+  authFixture.database,
+  'P1T1-N02-helper-integration',
+);
 process.env.DGBOOK_SQLITE_PATH = authFixture.databasePath;
 const authService = new AuthService(authFixture.database);
 const teacherCookie = actorCookie('teacher01');
@@ -82,24 +88,28 @@ test('teacher intent produces a server revision and three helpers acknowledge in
     assert.equal(heartbeatResponse.status, 200);
   }
 
-  const intentResponse = await classRoute.PATCH(
-    authenticatedRequest(`http://localhost/api/class-sessions/${sessionId}`, teacherCookie, {
+  const intentResponse = await lessonRoute.PATCH(
+    authenticatedRequest(`http://localhost/api/class-sessions/${sessionId}/lesson`, teacherCookie, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ intent: { type: 'phase_changed', phase: 'lecture' }, expectedRevision: 0 }),
+      body: JSON.stringify({
+        lessonRunId: helperLessonRun.lessonRunId,
+        intent: { type: 'phase_changed', phase: 'question' },
+        expectedRevision: helperLessonRun.revision,
+      }),
     }),
     { params: { sessionId } },
   );
   const intentBody = await intentResponse.json();
   assert.equal(intentResponse.status, 200);
-  assert.equal(intentBody.session.lessonState.revision, 1);
+  assert.equal(intentBody.session.lessonState.revision, helperLessonRun.revision + 1);
 
   const helperStateResponse = await helperRoute.GET(
     helperRequest(sessionId),
     { params: { sessionId } },
   );
   const helperState = await helperStateResponse.json();
-  assert.equal(helperState.command.revision, 1);
+  assert.equal(helperState.command.revision, helperLessonRun.revision + 1);
 
   for (const state of ['delivered', 'applied'] as const) {
     const ackResponse = await helperRoute.PATCH(

@@ -29,7 +29,9 @@ const { closeDatabase } = await import('./db/database.ts');
 const { AuthService } = await import('./auth/auth-service.ts');
 const { AUTH_COOKIE_NAME } = await import('./auth/cookie.ts');
 const { ClassroomParticipationRepository } = await import('./classroom-participation-repository.ts');
+const { startActiveLessonRun } = await import('./classroom-lesson-run-test-fixture.ts');
 const classRoute = await import('../app/api/class-sessions/[sessionId]/route.ts');
+const lessonRoute = await import('../app/api/class-sessions/[sessionId]/lesson/route.ts');
 
 const fixture = createTestDatabase();
 migrateDatabase(fixture.database);
@@ -43,6 +45,10 @@ seedClassroomSessions(fixture.database, [
   'P1T1-N02-auth-forged-action',
   'P1T1-N02-auth-projector-control',
 ]);
+const activeLessonRuns = new Map([
+  'P1T1-N02-auth-student',
+  'P1T1-N02-auth-projector-control',
+].map((sessionId) => [sessionId, startActiveLessonRun(fixture.database, sessionId)]));
 process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
 const auth = new AuthService(fixture.database);
 const teacherCookie = loginCookie('teacher01');
@@ -66,6 +72,8 @@ test('spoofed query and role headers cannot authenticate an anonymous request', 
 
 test('student cookie remains self-scoped despite teacher and other-student spoofing', async () => {
   const sessionId = 'P1T1-N02-auth-student';
+  const lessonRun = activeLessonRuns.get(sessionId);
+  assert.ok(lessonRun);
   const response = await classRoute.GET(
     request(`${sessionId}?role=teacher&student=stu-02`, undefined, {
       cookie: studentCookie,
@@ -78,10 +86,11 @@ test('student cookie remains self-scoped despite teacher and other-student spoof
   assert.deepEqual(body.session.studentRoster, []);
   assert.equal(body.session.studentProgress.studentId, 'stu-01');
 
-  const intentResponse = await classRoute.PATCH(
-    request(`${sessionId}?role=teacher`, {
+  const intentResponse = await lessonRoute.PATCH(
+    request(`${sessionId}/lesson?role=teacher`, {
+      lessonRunId: lessonRun.lessonRunId,
       intent: { type: 'phase_changed', phase: 'lecture' },
-      expectedRevision: 0,
+      expectedRevision: lessonRun.revision,
     }, {
       cookie: studentCookie,
       'x-dgbook-class-role': 'teacher',
@@ -118,7 +127,8 @@ test('teacher cookie receives the teacher projection and may request a sanitized
 
 test('projector page intent keeps its authenticated teacher authority but returns only a projector projection', async () => {
   const sessionId = 'P1T1-N02-auth-projector-control';
-  activateSession(sessionId);
+  const lessonRun = activeLessonRuns.get(sessionId);
+  assert.ok(lessonRun);
   const now = new Date();
   const repository = new (await import('./classroom-session-repository.ts')).ClassroomSessionRepository(fixture.database);
   repository.recordHeartbeat(sessionId, {
@@ -126,13 +136,14 @@ test('projector page intent keeps its authenticated teacher authority but return
     actorRole: 'student',
     studentId: 'stu-01',
     pageState: 'ready',
-    lastAppliedRevision: 0,
+    lastAppliedRevision: lessonRun.revision,
   }, now);
 
-  const response = await classRoute.PATCH(
-    request(`${sessionId}?view=projector`, {
+  const response = await lessonRoute.PATCH(
+    request(`${sessionId}/lesson?view=projector`, {
+      lessonRunId: lessonRun.lessonRunId,
       intent: { type: 'page_changed', pageIndex: 1 },
-      expectedRevision: 0,
+      expectedRevision: lessonRun.revision,
     }, { cookie: teacherCookie }),
     { params: { sessionId } },
   );
@@ -140,7 +151,7 @@ test('projector page intent keeps its authenticated teacher authority but return
 
   assert.equal(response.status, 200);
   assert.equal(body.session.teacherSlideIndex, 2);
-  assert.equal(body.session.lessonState.revision, 1);
+  assert.equal(body.session.lessonState.revision, lessonRun.revision + 1);
   const serialized = JSON.stringify(body.session);
   for (const forbidden of ['studentRoster', 'studentProgress', 'participants', 'formalTest', 'stu-01']) {
     assert.equal(serialized.includes(forbidden), false, `projector mutation leaked ${forbidden}`);

@@ -31,6 +31,11 @@ seedClassroomSessions(fixture.database, [
   'P1T1-N02-intent-conflict',
   'P1T1-N02-intent-illegal',
 ]);
+const { startActiveLessonRun } = await import('./classroom-lesson-run-test-fixture.ts');
+const activeLessonRuns = new Map([
+  'P1T1-N02-intent-server-revision',
+  'P1T1-N02-intent-conflict',
+].map((sessionId) => [sessionId, startActiveLessonRun(fixture.database, sessionId)]));
 process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
 
 const { classroomDeviceSnapshot, recordDeviceHeartbeat } = await import('./class-session-device-store.ts');
@@ -46,36 +51,40 @@ const now = new Date('2026-07-13T02:00:00.000Z');
 
 test('server owns the next classroom revision and publishes one device command', () => {
   const sessionId = 'P1T1-N02-intent-server-revision';
+  const lessonRun = activeLessonRuns.get(sessionId);
+  assert.ok(lessonRun);
   recordDeviceHeartbeat(sessionId, {
     actorRole: 'student',
     deviceId: `device-${sessionId}-stu-01`,
     studentId: 'stu-01',
     pageState: 'ready',
-    lastAppliedRevision: 0,
+    lastAppliedRevision: lessonRun.revision,
   }, now);
 
   const initial = getClassSession(sessionId);
   const result = applyClassroomIntent(sessionId, {
     type: 'phase_changed',
-    phase: 'lecture',
+    phase: 'question',
   }, initial.lessonState?.revision ?? 0, now);
 
-  assert.equal(result.session.lessonState?.phase, 'lecture');
-  assert.equal(result.session.lessonState?.revision, 1);
-  assert.equal(result.command.revision, 1);
+  assert.equal(result.session.lessonState?.phase, 'question');
+  assert.equal(result.session.lessonState?.revision, lessonRun.revision + 1);
+  assert.equal(result.command.revision, lessonRun.revision + 1);
   assert.equal(classroomDeviceSnapshot(sessionId, now).acks[0]?.state, 'queued');
 });
 
 test('rejects a stale expected revision instead of overwriting a newer class state', () => {
   const sessionId = 'P1T1-N02-intent-conflict';
+  const lessonRun = activeLessonRuns.get(sessionId);
+  assert.ok(lessonRun);
   const initial = getClassSession(sessionId);
-  applyClassroomIntent(sessionId, { type: 'phase_changed', phase: 'lecture' }, initial.lessonState?.revision ?? 0, now);
+  applyClassroomIntent(sessionId, { type: 'phase_changed', phase: 'question' }, initial.lessonState?.revision ?? 0, now);
 
   assert.throws(
-    () => applyClassroomIntent(sessionId, { type: 'phase_changed', phase: 'question' }, 0, now),
+    () => applyClassroomIntent(sessionId, { type: 'phase_changed', phase: 'practice' }, lessonRun.revision, now),
     /revision conflict/i,
   );
-  assert.equal(getClassSession(sessionId).lessonState?.phase, 'lecture');
+  assert.equal(getClassSession(sessionId).lessonState?.phase, 'question');
 });
 
 test('rejects an illegal phase transition without publishing another revision', () => {

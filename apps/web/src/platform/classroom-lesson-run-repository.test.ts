@@ -101,6 +101,29 @@ test('reads a non-empty V1 session through the relational cursor without rewriti
     assert.equal(fixture.database.prepare(`
       SELECT state_json FROM classroom_sessions WHERE session_id = 'demo-class'
     `).pluck().get(), legacyJson);
+
+    const active = lessonRuns.transitionLessonRun({
+      sessionId: 'demo-class',
+      lessonRunId: started.run.lessonRunId,
+      expectedRevision: started.run.revision,
+      nextStatus: 'active',
+    }, new Date('2026-07-17T01:00:01.000Z')).run;
+    const closed = lessonRuns.transitionLessonRun({
+      sessionId: 'demo-class',
+      lessonRunId: active.lessonRunId,
+      expectedRevision: active.revision,
+      nextStatus: 'closed',
+    }, new Date('2026-07-17T01:00:02.000Z')).run;
+    const afterClose = sessions.readSession('demo-class');
+
+    assert.equal(afterClose?.revision, closed.revision);
+    assert.equal(afterClose?.activeLessonRunId, undefined);
+    assert.equal(afterClose?.state.lesson.revision, closed.revision);
+    assert.equal(afterClose?.state.lesson.playback.revision, closed.revision);
+    assert.equal(afterClose?.state.lesson.phase, 'close');
+    assert.equal(fixture.database.prepare(`
+      SELECT state_json FROM classroom_sessions WHERE session_id = 'demo-class'
+    `).pluck().get(), legacyJson);
   } finally {
     fixture.cleanup();
   }
