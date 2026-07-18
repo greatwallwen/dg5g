@@ -7,7 +7,7 @@ export type SessionRole = 'teacher' | 'student' | 'projector';
 export type SessionMessage = { sourceRole: SessionRole; sourceId: string; patch: SessionPatch; revision: number };
 
 const allowedByRole: Record<SessionRole, Array<keyof SessionPatch>> = {
-  teacher: ['currentPageId', 'currentSlideId', 'teacherSlideId', 'teacherSlideIndex', 'sceneMode', 'activeTaskId', 'activeNodeId', 'activeUnitId', 'studentMode', 'studentSyncState', 'syncRequestId', 'playbackCursor', 'activityState', 'reviewState', 'studentProgress', 'formalTest'],
+  teacher: ['studentMode', 'studentSyncState', 'syncRequestId', 'activityState', 'reviewState', 'studentProgress', 'formalTest'],
   student: [],
   projector: [],
 };
@@ -18,7 +18,6 @@ export function normalizeSessionPatch(role: SessionRole, patch: SessionPatch): S
     const { handledSyncRequestId: _helperOwnedAcknowledgement, ...reviewProgress } = permitted.studentProgress;
     permitted.studentProgress = reviewProgress;
   }
-  if (role === 'teacher' && permitted.teacherSlideId) permitted.currentSlideId = permitted.teacherSlideId;
   if (hasSessionPatch(permitted) && patch.lastUpdatedAt) permitted.lastUpdatedAt = patch.lastUpdatedAt;
   return permitted;
 }

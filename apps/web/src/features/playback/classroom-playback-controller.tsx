@@ -12,13 +12,11 @@ import {
   WebPlaybackDock,
   type WebPlaybackStateChange,
 } from './web-playback-dock';
-import type { WebPlaybackCursor } from './web-playback-actions';
 
 type SubmitIntent = (intent: ClassroomLessonIntent) => Promise<boolean>;
 
 export function ClassroomPlaybackController({
   lesson,
-  onCursorChange,
   pauseAfterActionIds,
   scene,
   submitIntent,
@@ -26,7 +24,6 @@ export function ClassroomPlaybackController({
   variant = 'track',
 }: {
   lesson: ClassroomLessonState;
-  onCursorChange?: (cursor: WebPlaybackCursor | null) => void;
   pauseAfterActionIds?: string[];
   scene: PlaybackScene;
   submitIntent: SubmitIntent;
@@ -66,7 +63,6 @@ export function ClassroomPlaybackController({
       audioEnabled={frame.audioEnabled}
       authoritativePlayback={lesson.playback}
       controlMode={frame.audioEnabled ? 'interactive' : 'display'}
-      onCursorChange={onCursorChange}
       onPlaybackStateChange={handlePlaybackState}
       pauseAfterActionIds={pauseAfterActionIds}
       scene={scene}

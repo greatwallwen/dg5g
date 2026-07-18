@@ -1,6 +1,7 @@
 import type { NodeLearningState } from './learning-status';
 import type { LearningOrigin } from './learning-origin';
 import type { NodeStateAxes } from './learning-projection';
+import type { ClassroomLessonRunStatus, TeachingCursor } from './teaching-cursor';
 
 export type { NodeLearningState } from './learning-status';
 
@@ -404,6 +405,9 @@ export interface StudentProgress {
 export interface ClassSession {
   sessionId: string;
   sessionStatus?: 'preparing' | 'active' | 'paused' | 'closed';
+  activeLessonRunId?: string;
+  lessonRunStatus?: ClassroomLessonRunStatus;
+  teachingCursor?: TeachingCursor;
   currentPageId?: PageId;
   currentSlideId?: string;
   teacherSlideId: string;

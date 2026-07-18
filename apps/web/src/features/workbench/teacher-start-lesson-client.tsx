@@ -31,7 +31,7 @@ export async function startTeacherLesson({
       method: 'POST',
       credentials: 'same-origin',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ nodeId, expectedRevision }),
+      body: JSON.stringify({ nodeId, command: 'prepare', expectedRevision }),
     },
   );
   const body = await response.json().catch(() => ({})) as {
@@ -41,6 +41,8 @@ export async function startTeacherLesson({
       sessionStatus?: string;
       activeNodeId?: string;
       activeUnitId?: string;
+      activeLessonRunId?: string;
+      lessonState?: { revision?: number };
     };
   };
   if (response.status === 409
@@ -51,8 +53,40 @@ export async function startTeacherLesson({
   if (!response.ok) {
     throw new Error(body.error ?? `开始新课失败（${response.status}）`);
   }
-  if (body.session?.sessionStatus !== 'active' || body.session.activeNodeId !== nodeId) {
-    throw new Error('Start lesson did not activate the selected node.');
+  if (body.session?.sessionStatus !== 'preparing'
+    || !body.session.activeLessonRunId
+    || !Number.isSafeInteger(body.session.lessonState?.revision)) {
+    throw new Error('Lesson preparation did not create an authoritative lesson run.');
+  }
+  const activeResponse = await request(
+    `/api/class-sessions/${encodeURIComponent(sessionId)}/lesson`,
+    {
+      method: 'PATCH',
+      credentials: 'same-origin',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        lessonRunId: body.session.activeLessonRunId,
+        command: { type: 'start' },
+        expectedRevision: body.session.lessonState?.revision,
+      }),
+    },
+  );
+  const activeBody = await activeResponse.json().catch(() => ({})) as {
+    error?: string;
+    currentRevision?: number;
+    session?: { sessionStatus?: string; activeLessonRunId?: string };
+  };
+  if (activeResponse.status === 409
+    && Number.isInteger(activeBody.currentRevision)
+    && Number(activeBody.currentRevision) >= 0) {
+    return { status: 'conflict', currentRevision: Number(activeBody.currentRevision) };
+  }
+  if (!activeResponse.ok) {
+    throw new Error(activeBody.error ?? `Start lesson failed (${activeResponse.status})`);
+  }
+  if (activeBody.session?.sessionStatus !== 'active'
+    || activeBody.session.activeLessonRunId !== body.session.activeLessonRunId) {
+    throw new Error('Lesson start did not activate the prepared lesson run.');
   }
   navigate(`/teacher/sessions/${sessionId}`);
   return { status: 'started' };

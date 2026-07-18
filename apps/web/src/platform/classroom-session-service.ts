@@ -2,8 +2,6 @@ import { randomUUID } from 'node:crypto';
 import type { AuthenticatedActor } from './auth/actor.ts';
 import {
   applyClassroomLessonIntent,
-  classroomPageActionId,
-  initialLessonState,
   type ClassroomLessonIntent,
 } from './classroom-state.ts';
 import {
@@ -31,6 +29,21 @@ import {
 import type { ClassSession, ClassroomCommand, StudentProgress } from './models.ts';
 import { getFormalAssessmentDefinition } from './formal-assessment-catalog.server.ts';
 import { classroomLessonPageCount } from './classroom-lesson-page-count.ts';
+import {
+  ClassroomLessonLifecycleService,
+  type LessonLifecycleCommand,
+} from './classroom-lesson-lifecycle-service.ts';
+import {
+  ClassroomLessonRunRepository,
+  type TeachingCursorMutation,
+} from './classroom-lesson-run-repository.ts';
+import {
+  isClassroomLessonId,
+  lessonAnchorFor,
+  type ClassroomLessonId,
+  type TeachingCursor,
+  type TeachingCursorPhase,
+} from './teaching-cursor.ts';
 
 export class ClassroomAuthorizationError extends Error {
   override readonly name = 'ClassroomAuthorizationError';
@@ -61,6 +74,8 @@ export class ClassroomSessionService {
     private readonly repository: ClassroomSessionRepository,
     private readonly rosterRepository: ClassroomRosterRepository,
     private readonly readNodePolicy: (nodeId: string) => NodeLearningPolicy | undefined = getNodeLearningPolicy,
+    private readonly lessonRuns: ClassroomLessonRunRepository = repository.lessonRunRepository(),
+    private readonly lessonLifecycle: ClassroomLessonLifecycleService = new ClassroomLessonLifecycleService(lessonRuns),
   ) {}
 
   read(
@@ -96,72 +111,51 @@ export class ClassroomSessionService {
   startLesson(
     actor: AuthenticatedActor,
     sessionId: string,
-    input: { nodeId: string; expectedRevision: number },
+    input: { lessonId?: ClassroomLessonId; nodeId?: string; expectedRevision: number },
     now = new Date(),
   ): { session: ClassSession; command: ClassroomCommand } {
     const aggregate = this.readAuthorizedAggregate(actor, sessionId);
     if (!aggregate) throw new ClassroomSessionNotFoundError(sessionId);
     this.requireOwningTeacher(actor, aggregate.session);
-    const policy = this.readNodePolicy(input.nodeId);
-    if (!policy
-      || policy.nodeId !== input.nodeId
-      || policy.publicationStatus !== 'published') {
-      throw new ClassroomIntentError(`Classroom node is not published: ${input.nodeId}.`);
+    const lessonId = input.lessonId
+      ?? (input.nodeId ? legacyLessonIdForNode(input.nodeId) : undefined);
+    if (!lessonId || !isClassroomLessonId(lessonId)) {
+      throw new ClassroomIntentError('A published four-period lessonId is required.');
     }
-    const activeNodeId = policy.nodeId;
-    const activeUnitId = `${policy.taskId}-ku-${policy.nodeId.slice(-2)}`;
-    const nextRevision = input.expectedRevision + 1;
-    const lesson = initialLessonState(activeNodeId, activeUnitId);
-    const formalDefinition = getFormalAssessmentDefinition(activeNodeId);
-    lesson.revision = nextRevision;
-    lesson.playback.revision = nextRevision;
-    const state: ClassroomSessionStateV1 = {
-      schemaVersion: 1,
-      lesson,
-      currentPageId: 'P1-TEACH-CONSOLE-N01',
-      currentSlideId: `${activeNodeId}-S01`,
-      teacherSlideId: `${activeNodeId}-S01`,
-      teacherSlideIndex: 1,
-      sceneMode: 'learning',
-      studentSyncState: 'idle',
-      playbackCursor: {
-        sceneId: lesson.playback.sceneId,
-        actionId: lesson.playback.actionId,
-        actionIndex: 0,
-        updatedAt: now.toISOString(),
-      },
-      activityState: 'not_pushed',
-      reviewState: 'not_started',
-      ...(formalDefinition ? {
-        formalTest: {
-          assessmentId: `AS-${activeNodeId}`,
-          gameId: formalDefinition.gameId,
-          nodeId: activeNodeId,
-          status: 'idle' as const,
-          durationSeconds: formalDefinition.paper.durationMinutes * 60,
-        },
-      } : {}),
-    };
-    const mutation = this.repository.commitTeacherMutation({
+    const anchor = lessonAnchorFor(lessonId);
+    const policy = this.readNodePolicy(anchor.nodeId);
+    if (!policy
+      || policy.nodeId !== anchor.nodeId
+      || policy.publicationStatus !== 'published') {
+      throw new ClassroomIntentError(`Classroom node is not published: ${anchor.nodeId}.`);
+    }
+    const mutation = this.lessonRuns.startLessonRun({
       sessionId,
+      lessonId,
       expectedRevision: input.expectedRevision,
-      next: {
-        status: 'active',
-        activeNodeId,
-        activeUnitId,
-        state,
-      },
-      command: {
-        phase: 'prepare',
-        route: `/classroom/${sessionId}`,
-        nodeId: activeNodeId,
-        unitId: activeUnitId,
-      },
     }, now);
+    const stored = this.repository.readSession(sessionId);
+    if (!stored) throw new ClassroomSessionNotFoundError(sessionId);
     return {
       command: mutation.command,
-      session: this.materialize(mutation.session, undefined, now),
+      session: this.materialize(stored, undefined, now),
     };
+  }
+
+  executeLessonLifecycle(
+    actor: AuthenticatedActor,
+    sessionId: string,
+    lessonRunId: string,
+    command: LessonLifecycleCommand,
+    now = new Date(),
+  ): { session: ClassSession; command: ClassroomCommand } {
+    const aggregate = this.readAuthorizedAggregate(actor, sessionId);
+    if (!aggregate) throw new ClassroomSessionNotFoundError(sessionId);
+    this.requireOwningTeacher(actor, aggregate.session);
+    const mutation = this.lessonLifecycle.execute({ sessionId, lessonRunId, command }, now);
+    const stored = this.repository.readSession(sessionId);
+    if (!stored) throw new ClassroomSessionNotFoundError(sessionId);
+    return { command: mutation.command, session: this.materialize(stored, undefined, now) };
   }
 
   applyTeacherIntent(
@@ -202,47 +196,22 @@ export class ClassroomSessionService {
     if (intent.type === 'phase_changed' && intent.phase === 'review') {
       this.requireReviewSubmission(aggregate.session, now);
     }
-    const mutation = this.repository.commitTeacherMutation({
+    const cursor = aggregate.session.teachingCursor;
+    const lessonRunId = aggregate.session.activeLessonRunId;
+    if (!cursor || !lessonRunId) {
+      throw new ClassroomIntentError('Start an authoritative lesson run before changing its teaching cursor.');
+    }
+    const mutation = this.lessonRuns.updateTeachingCursor({
       sessionId,
+      lessonRunId,
       expectedRevision,
-      next: {
-        status: aggregate.session.status === 'closed' ? 'closed' : 'active',
-        activeNodeId: lesson.activeNodeId,
-        activeUnitId: lesson.activeUnitId,
-        state: {
-          ...aggregate.session.state,
-          lesson,
-          sceneMode: sceneModeForPhase(lesson.phase),
-          ...(intent.type === 'phase_changed' && intent.phase === 'review' ? {
-            reviewState: 'reviewing' as const,
-            formalTest: {
-              ...aggregate.session.state.formalTest!,
-              status: 'review' as const,
-            },
-          } : {}),
-          ...(intent.type === 'page_changed' ? {
-            teacherSlideIndex: intent.pageIndex + 1,
-            teacherSlideId: classroomPageActionId(lesson.activeNodeId, intent.pageIndex),
-            currentSlideId: classroomPageActionId(lesson.activeNodeId, intent.pageIndex),
-          } : {}),
-          playbackCursor: {
-            sceneId: lesson.playback.sceneId,
-            actionId: lesson.playback.actionId,
-            actionIndex: lesson.playback.actionIndex,
-            updatedAt: now.toISOString(),
-          },
-        },
-      },
-      command: {
-        phase: lesson.phase,
-        route: `/classroom/${sessionId}`,
-        nodeId: lesson.activeNodeId,
-        unitId: lesson.activeUnitId,
-      },
+      next: cursorMutationFromLesson(cursor, lesson, intent),
     }, now);
+    const stored = this.repository.readSession(sessionId);
+    if (!stored) throw new ClassroomSessionNotFoundError(sessionId);
     return {
       command: mutation.command,
-      session: this.materialize(mutation.session, aggregate.roster, now),
+      session: this.materialize(stored, aggregate.roster, now),
     };
   }
 
@@ -359,6 +328,9 @@ export class ClassroomSessionService {
       ...fixture,
       sessionId: stored.sessionId,
       sessionStatus: stored.status,
+      activeLessonRunId: stored.activeLessonRunId,
+      lessonRunStatus: stored.lessonRunStatus,
+      teachingCursor: stored.teachingCursor,
       currentPageId: stored.state.currentPageId ?? fixture.currentPageId,
       currentSlideId: stored.state.currentSlideId ?? fixture.currentSlideId,
       teacherSlideId: stored.state.teacherSlideId,
@@ -424,6 +396,73 @@ export class ClassroomSessionService {
       throw new ClassroomAuthorizationError('Only the owning teacher can change classroom state.');
     }
   }
+
+  applyTeachingCursorIntent(
+    actor: AuthenticatedActor,
+    sessionId: string,
+    lessonRunId: string,
+    intent: ClassroomLessonIntent,
+    expectedRevision: number,
+    now = new Date(),
+  ): { session: ClassSession; command: ClassroomCommand } {
+    const aggregate = this.readAuthorizedAggregate(actor, sessionId);
+    if (!aggregate) throw new ClassroomSessionNotFoundError(sessionId);
+    this.requireOwningTeacher(actor, aggregate.session);
+    if (aggregate.session.activeLessonRunId !== lessonRunId) {
+      throw new ClassroomIntentError('Teaching cursor lessonRunId is not the active lesson run.');
+    }
+    return this.applyTeacherIntent(actor, sessionId, intent, expectedRevision, now);
+  }
+
+}
+
+function legacyLessonIdForNode(nodeId: string): ClassroomLessonId | undefined {
+  const mapping: Readonly<Record<string, ClassroomLessonId>> = {
+    'P1T1-N01': 'P01-L1',
+    'P1T1-N02': 'P01-L1',
+    'P1T1-N03': 'P01-L2',
+    'P1T1-N04': 'P01-L2',
+    'P1T2-N01': 'P02-L1',
+    'P1T2-N02': 'P02-L1',
+    'P1T2-N03': 'P02-L1',
+    'P1T2-N04': 'P02-L1',
+    'P1T3-N01': 'P03-L1',
+    'P1T3-N02': 'P03-L1',
+    'P1T3-N03': 'P03-L1',
+    'P1T3-N04': 'P03-L1',
+  };
+  return mapping[nodeId];
+}
+
+function cursorMutationFromLesson(
+  cursor: TeachingCursor,
+  lesson: NonNullable<ClassSession['lessonState']>,
+  intent: ClassroomLessonIntent,
+): TeachingCursorMutation {
+  const pageIndex = intent.type === 'page_changed' ? intent.pageIndex : cursor.pageIndex;
+  return {
+    nodeId: lesson.activeNodeId,
+    unitId: lesson.activeUnitId,
+    pageId: intent.type === 'page_changed'
+      ? `${cursor.lessonId}-P${String(pageIndex + 1).padStart(2, '0')}`
+      : cursor.pageId,
+    pageIndex,
+    phase: teachingPhaseFor(lesson.phase),
+    actionId: lesson.playback.actionId,
+    actionIndex: lesson.playback.actionIndex,
+    playbackStatus: lesson.playback.status,
+    positionMs: lesson.playback.positionMs,
+    rate: lesson.playback.rate,
+    audioOwner: lesson.playback.audioOwner,
+  };
+}
+
+function teachingPhaseFor(
+  phase: NonNullable<ClassSession['lessonState']>['phase'],
+): TeachingCursorPhase {
+  if (phase === 'prepare') return 'lecture';
+  if (phase === 'challenge') return 'assessment';
+  return phase;
 }
 
 function normalizeFormalTestMutation(

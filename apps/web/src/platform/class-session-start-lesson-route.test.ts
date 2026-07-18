@@ -22,31 +22,41 @@ after(() => {
   fixture.cleanup();
 });
 
-test('POST lesson commits P1T1-N02 before returning the active teacher session', async () => {
+test('POST prepares one relational lesson and PATCH explicitly starts it', async () => {
   const sessionId = seedSession('start-lesson-success');
   const route = await lessonRoute();
 
   const response = await route.POST(
-    postRequest(sessionId, { nodeId: 'P1T1-N02', expectedRevision: 0 }, teacherCookie),
+    postRequest(sessionId, { nodeId: 'P1T1-N02', command: 'prepare', expectedRevision: 0 }, teacherCookie),
     { params: { sessionId } },
   );
   const body = await response.json();
 
   assert.equal(response.status, 200);
   assert.equal(response.headers.get('cache-control'), 'no-store');
-  assert.equal(body.session.sessionStatus, 'active');
-  assert.equal(body.session.activeNodeId, 'P1T1-N02');
-  assert.equal(body.session.activeUnitId, 'P01-ku-02');
-  assert.equal(body.session.studentSyncState, 'idle');
+  assert.equal(body.session.sessionStatus, 'preparing');
+  assert.ok(body.session.activeLessonRunId);
   assert.equal(body.command.revision, 1);
+  const started = await route.PATCH(
+    patchRequest(sessionId, {
+      lessonRunId: body.session.activeLessonRunId,
+      command: { type: 'start' },
+      expectedRevision: 1,
+    }, teacherCookie),
+    { params: { sessionId } },
+  );
+  const startedBody = await started.json();
+  assert.equal(started.status, 200);
+  assert.equal(startedBody.session.sessionStatus, 'active');
+  assert.equal(startedBody.session.activeLessonRunId, body.session.activeLessonRunId);
   assert.deepEqual(fixture.database.prepare(`
     SELECT status, active_node_id AS activeNodeId, active_unit_id AS activeUnitId, revision
     FROM classroom_sessions WHERE session_id = ?
   `).get(sessionId), {
     status: 'active',
-    activeNodeId: 'P1T1-N02',
-    activeUnitId: 'P01-ku-02',
-    revision: 1,
+    activeNodeId: 'P1T1-N01',
+    activeUnitId: 'P01-ku-01',
+    revision: 2,
   });
 });
 
@@ -131,8 +141,8 @@ test('POST lesson returns 409 with currentRevision for a stale teacher command',
     SELECT active_node_id AS activeNodeId, active_unit_id AS activeUnitId, revision
     FROM classroom_sessions WHERE session_id = ?
   `).get(sessionId), {
-    activeNodeId: 'P1T1-N03',
-    activeUnitId: 'P01-ku-03',
+    activeNodeId: 'P1T1-N02',
+    activeUnitId: 'P01-ku-02',
     revision: 1,
   });
   assert.equal(commandCount(sessionId), 1);
@@ -155,6 +165,14 @@ function loginCookie(username: string): string {
 function postRequest(sessionId: string, body: unknown, cookie: string): Request {
   return new Request(`http://localhost/api/class-sessions/${sessionId}/lesson`, {
     method: 'POST',
+    headers: { 'content-type': 'application/json', cookie },
+    body: JSON.stringify(body),
+  });
+}
+
+function patchRequest(sessionId: string, body: unknown, cookie: string): Request {
+  return new Request(`http://localhost/api/class-sessions/${sessionId}/lesson`, {
+    method: 'PATCH',
     headers: { 'content-type': 'application/json', cookie },
     body: JSON.stringify(body),
   });

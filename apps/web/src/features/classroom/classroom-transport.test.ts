@@ -76,12 +76,12 @@ test('submits teacher intent with an expected server revision', async () => {
     return Response.json({ session, command: { commandId: 'cmd-1' } });
   });
 
-  await transport.submitIntent('P1T1-N02', { type: 'phase_changed', phase: 'lecture' }, 4);
+  await transport.submitIntent('P1T1-N02', 'lesson-run-4', { type: 'phase_changed', phase: 'lecture' }, 4);
 
-  assert.equal(calls[0]?.input, '/api/class-sessions/P1T1-N02');
+  assert.equal(calls[0]?.input, '/api/class-sessions/P1T1-N02/lesson');
   assert.equal(new Headers(calls[0]?.init?.headers).has('x-dgbook-class-role'), false);
   assert.deepEqual(JSON.parse(String(calls[0]?.init?.body)), {
-    intent: { type: 'phase_changed', phase: 'lecture' },
+    lessonRunId: 'lesson-run-4', intent: { type: 'phase_changed', phase: 'lecture' },
     expectedRevision: 4,
   });
 });
@@ -95,14 +95,15 @@ test('requests a projector-safe response when an authenticated projector submits
 
   await transport.submitIntent(
     'P1T1-N02',
+    'lesson-run-4',
     { type: 'page_changed', pageIndex: 3 },
     4,
     'projector',
   );
 
-  assert.equal(calls[0]?.input, '/api/class-sessions/P1T1-N02?view=projector');
+  assert.equal(calls[0]?.input, '/api/class-sessions/P1T1-N02/lesson?view=projector');
   assert.deepEqual(JSON.parse(String(calls[0]?.init?.body)), {
-    intent: { type: 'page_changed', pageIndex: 3 },
+    lessonRunId: 'lesson-run-4', intent: { type: 'page_changed', pageIndex: 3 },
     expectedRevision: 4,
   });
 });

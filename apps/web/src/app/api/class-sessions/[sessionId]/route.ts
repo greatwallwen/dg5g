@@ -13,6 +13,7 @@ import {
   ClassroomSessionRepository,
 } from '@/platform/classroom-session-repository';
 import { ClassroomRosterRepository } from '@/platform/classroom-roster-repository';
+import { ClassroomLessonRunRepository } from '@/platform/classroom-lesson-run-repository';
 import { parseClassroomLessonIntent } from '@/platform/classroom-state';
 import { getDatabase } from '@/platform/db/database';
 import { ClassSessionAccessError } from '@/platform/fixtures';
@@ -61,23 +62,7 @@ export async function PATCH(
     if (!authorized) return sessionNotFound();
 
     if (body.intent !== undefined) {
-      if (actor.role !== 'teacher') {
-        return NextResponse.json({ error: 'Only teachers can change classroom intent' }, { status: 403 });
-      }
-      const intent = parseClassroomLessonIntent(body.intent);
-      const expectedRevision = Number(body.expectedRevision);
-      if (!intent || !Number.isInteger(expectedRevision) || expectedRevision < 0) {
-        return NextResponse.json({ error: 'Invalid classroom intent' }, { status: 400 });
-      }
-      const result = classroom.applyTeacherIntent(
-        actor,
-        params.sessionId,
-        intent,
-        expectedRevision,
-      );
-      return noStore(new URL(request.url).searchParams.get('view') === 'projector'
-        ? { ...result, session: projectClassSession(result.session, 'projector') }
-        : result);
+      return NextResponse.json({ error: 'Teaching cursor intents require the narrow lesson endpoint' }, { status: 400 });
     }
 
     if (actor.role === 'student') {
@@ -118,9 +103,12 @@ export async function PATCH(
 
 function service(): ClassroomSessionService {
   const database = getDatabase();
+  const lessonRuns = new ClassroomLessonRunRepository(database);
   return new ClassroomSessionService(
     new ClassroomSessionRepository(database),
     new ClassroomRosterRepository(database),
+    undefined,
+    lessonRuns,
   );
 }
 

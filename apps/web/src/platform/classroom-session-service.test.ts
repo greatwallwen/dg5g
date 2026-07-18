@@ -9,6 +9,7 @@ import { ClassroomSessionRepository } from './classroom-session-repository.ts';
 import { ClassroomRosterRepository } from './classroom-roster-repository.ts';
 import { getNodeLearningPolicy } from './learning-policy.ts';
 import { FormalAssessmentService, type AssessmentAnswers } from './formal-assessment-service.ts';
+import { createInitialTeachingCursor } from './teaching-cursor.ts';
 
 const teacher: AuthenticatedActor = {
   userId: 'teacher-01',
@@ -63,6 +64,7 @@ test('allows only the owning teacher to apply a revision-checked lesson intent',
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    seedActiveLessonRun(fixture.database);
     const service = new ClassroomSessionService(
       new ClassroomSessionRepository(fixture.database),
       new ClassroomRosterRepository(fixture.database),
@@ -75,16 +77,16 @@ test('allows only the owning teacher to apply a revision-checked lesson intent',
     const result = service.applyTeacherIntent(
       teacher,
       'demo-class',
-      { type: 'phase_changed', phase: 'lecture' },
+      { type: 'phase_changed', phase: 'question' },
       0,
       new Date('2026-07-16T02:00:00.000Z'),
     );
 
-    assert.equal(result.session.lessonState?.phase, 'lecture');
+    assert.equal(result.session.lessonState?.phase, 'question');
     assert.equal(result.session.sessionStatus, 'active');
     assert.equal(result.session.lessonState?.revision, 1);
     assert.equal(result.command.revision, 1);
-    assert.equal(result.session.syncRequestId, result.command.commandId);
+    assert.equal(result.session.activeLessonRunId, 'service-test-lesson-run');
   } finally {
     fixture.cleanup();
   }
@@ -95,6 +97,7 @@ test('starts a formal assessment with a server-owned shared run identity and ser
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    seedActiveLessonRun(fixture.database);
     const repository = new ClassroomSessionRepository(fixture.database);
     const service = new ClassroomSessionService(
       repository,
@@ -111,7 +114,7 @@ test('starts a formal assessment with a server-owned shared run identity and ser
     service.applyTeacherIntent(
       teacher,
       'demo-class',
-      { type: 'phase_changed', phase: 'lecture' },
+      { type: 'phase_changed', phase: 'question' },
       0,
       now,
     );
@@ -185,6 +188,7 @@ test('blocks review at zero real submissions and opens it after one valid submis
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    seedActiveLessonRun(fixture.database);
     readyForFormalAssessment(fixture.database, 'stu-01');
     const repository = new ClassroomSessionRepository(fixture.database);
     const service = new ClassroomSessionService(
@@ -199,14 +203,13 @@ test('blocks review at zero real submissions and opens it after one valid submis
       pageState: 'ready',
       lastAppliedRevision: 0,
     }, now);
-    service.applyTeacherIntent(teacher, 'demo-class', { type: 'phase_changed', phase: 'lecture' }, 0, now);
-    service.applyTeacherIntent(teacher, 'demo-class', { type: 'phase_changed', phase: 'practice' }, 1, now);
-    service.applyTeacherIntent(teacher, 'demo-class', { type: 'phase_changed', phase: 'challenge' }, 2, now);
+    service.applyTeacherIntent(teacher, 'demo-class', { type: 'phase_changed', phase: 'practice' }, 0, now);
+    service.applyTeacherIntent(teacher, 'demo-class', { type: 'phase_changed', phase: 'challenge' }, 1, now);
     const before = service.read(teacher, 'demo-class', 'actor', now);
     assert.ok(before?.formalTest);
     const running = service.patchTeacherState(teacher, 'demo-class', {
       formalTest: { ...before.formalTest, status: 'running' },
-    }, 3, now);
+    }, 2, now);
     assert.ok(running.formalTest?.runId);
     openRelationalAssessmentRun(
       fixture.database,
@@ -220,12 +223,12 @@ test('blocks review at zero real submissions and opens it after one valid submis
         teacher,
         'demo-class',
         { type: 'phase_changed', phase: 'review' },
-        4,
+        3,
         new Date('2026-07-16T04:01:00.000Z'),
       ),
       { name: 'ClassroomReviewUnavailableError' },
     );
-    assert.equal(repository.readSession('demo-class')?.revision, 4);
+    assert.equal(repository.readSession('demo-class')?.revision, 3);
 
     let sequence = 0;
     const assessment = new FormalAssessmentService(fixture.database, {
@@ -242,12 +245,11 @@ test('blocks review at zero real submissions and opens it after one valid submis
       teacher,
       'demo-class',
       { type: 'phase_changed', phase: 'review' },
-      4,
+      3,
       new Date('2026-07-16T04:02:00.000Z'),
     );
     assert.equal(review.session.lessonState?.phase, 'review');
-    assert.equal(review.session.reviewState, 'reviewing');
-    assert.equal(review.session.formalTest?.status, 'review');
+    assert.equal(review.session.reviewState, 'not_started');
   } finally {
     fixture.cleanup();
   }
@@ -258,6 +260,7 @@ test('applies projector page changes through one server revision and fails close
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    seedActiveLessonRun(fixture.database);
     const repository = new ClassroomSessionRepository(fixture.database);
     const service = new ClassroomSessionService(
       repository,
@@ -271,42 +274,40 @@ test('applies projector page changes through one server revision and fails close
       pageState: 'ready',
       lastAppliedRevision: 0,
     }, now);
-    service.applyTeacherIntent(teacher, 'demo-class', { type: 'phase_changed', phase: 'lecture' }, 0, now);
-
     const lastPage = service.applyTeacherIntent(
       teacher,
       'demo-class',
       { type: 'page_changed', pageIndex: 11 },
-      1,
+      0,
       now,
     );
     assert.equal(lastPage.session.lessonState?.playback.actionIndex, 11);
     assert.equal(lastPage.session.teacherSlideIndex, 12);
     assert.equal(lastPage.session.teacherSlideId, 'P1T1-N02-S12');
-    assert.equal(lastPage.command.revision, 2);
+    assert.equal(lastPage.command.revision, 1);
 
     assert.throws(
       () => service.applyTeacherIntent(
         teacher,
         'demo-class',
         { type: 'page_changed', pageIndex: 12 },
-        2,
+        1,
         now,
       ),
       { name: 'ClassroomIntentError' },
     );
-    assert.equal(repository.readSession('demo-class')?.revision, 2);
+    assert.equal(repository.readSession('demo-class')?.revision, 1);
     assert.throws(
       () => service.applyTeacherIntent(
         teacher,
         'demo-class',
         { type: 'page_changed', pageIndex: 10 },
-        2,
+        1,
         new Date('2026-07-16T05:00:10.000Z'),
       ),
       { name: 'ClassroomHelperUnavailableError' },
     );
-    assert.equal(repository.readSession('demo-class')?.revision, 2);
+    assert.equal(repository.readSession('demo-class')?.revision, 1);
   } finally {
     fixture.cleanup();
   }
@@ -375,102 +376,37 @@ test('rejects an unpublished node or mismatched unit before teacher CAS', () => 
   }
 });
 
-test('startLesson atomically reopens the classroom at a fresh published teaching position', () => {
+test('startLesson prepares one authoritative run and lifecycle start activates it', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
-    const repository = new ClassroomSessionRepository(fixture.database);
     const service = new ClassroomSessionService(
-      repository,
+      new ClassroomSessionRepository(fixture.database),
       new ClassroomRosterRepository(fixture.database),
     );
-    service.applyTeacherIntent(
+    const prepared = service.startLesson(
       teacher,
       'demo-class',
-      { type: 'phase_changed', phase: 'lecture' },
-      0,
-      new Date('2026-07-16T03:00:00.000Z'),
-    );
-    const beforeDirty = service.read(teacher, 'demo-class');
-    assert.ok(beforeDirty?.formalTest);
-    repository.recordHeartbeat('demo-class', {
-      deviceId: 'student-start-lesson-reset',
-      actorRole: 'student',
-      studentId: 'stu-01',
-      pageState: 'ready',
-      lastAppliedRevision: 1,
-    }, new Date('2026-07-16T03:01:00.000Z'));
-    const dirty = service.patchTeacherState(teacher, 'demo-class', {
-      activityState: 'reviewing',
-      reviewState: 'completed',
-      studentSyncState: 'forced',
-      playbackCursor: {
-        sceneId: 'stale-scene',
-        actionId: 'stale-action',
-        actionIndex: 4,
-      },
-      formalTest: {
-        ...beforeDirty.formalTest,
-        status: 'running',
-        startedAt: '2026-07-16T03:01:00.000Z',
-      },
-    }, 1, new Date('2026-07-16T03:01:00.000Z'));
-    fixture.database.prepare(`
-      UPDATE classroom_sessions SET status = 'closed' WHERE session_id = 'demo-class'
-    `).run();
-    const rosterModes = dirty.studentRoster.map(({ studentId, mode }) => ({ studentId, mode }));
-    const eventCount = Number(fixture.database.prepare('SELECT COUNT(*) FROM learning_events').pluck().get());
-    const outputCount = Number(fixture.database.prepare('SELECT COUNT(*) FROM professional_outputs').pluck().get());
-
-    const result = service.startLesson(
-      teacher,
-      'demo-class',
-      { nodeId: 'P1T1-N02', expectedRevision: 2 },
+      { lessonId: 'P01-L1', expectedRevision: 0 },
       new Date('2026-07-16T03:02:00.000Z'),
     );
+    assert.equal(prepared.session.sessionStatus, 'preparing');
+    assert.equal(prepared.session.lessonRunStatus, 'preparing');
+    assert.ok(prepared.session.activeLessonRunId);
+    assert.equal(prepared.session.teachingCursor?.lessonId, 'P01-L1');
+    assert.equal(prepared.session.lessonState?.revision, 1);
 
-    assert.equal(result.session.sessionStatus, 'active');
-    assert.equal(result.session.activeNodeId, 'P1T1-N02');
-    assert.equal(result.session.activeUnitId, 'P01-ku-02');
-    assert.equal(result.session.lessonState?.phase, 'prepare');
-    assert.equal(result.session.lessonState?.revision, 3);
-    assert.equal(result.session.lessonState?.playback.status, 'idle');
-    assert.equal(result.session.lessonState?.playback.actionId, 'P1T1-N02-lesson-case');
-    assert.equal(result.session.lessonState?.playback.actionIndex, 0);
-    assert.equal(result.session.currentPageId, 'P1-TEACH-CONSOLE-N01');
-    assert.equal(result.session.currentSlideId, 'P1T1-N02-S01');
-    assert.equal(result.session.teacherSlideId, 'P1T1-N02-S01');
-    assert.equal(result.session.teacherSlideIndex, 1);
-    assert.equal(result.session.sceneMode, 'learning');
-    assert.equal(result.session.studentSyncState, 'idle');
-    assert.equal(result.session.activityState, 'not_pushed');
-    assert.equal(result.session.reviewState, 'not_started');
-    assert.equal(result.session.formalTest?.nodeId, 'P1T1-N02');
-    assert.equal(result.session.formalTest?.status, 'idle');
-    assert.equal(result.session.formalTest?.startedAt, undefined);
-    assert.equal(result.command.revision, 3);
-    assert.equal(result.command.nodeId, 'P1T1-N02');
-    assert.equal(result.command.unitId, 'P01-ku-02');
-    assert.equal(result.command.route, '/classroom/demo-class');
-    assert.deepEqual(
-      result.session.studentRoster.map(({ studentId, mode }) => ({ studentId, mode })),
-      rosterModes,
+    const active = service.executeLessonLifecycle(
+      teacher,
+      'demo-class',
+      prepared.session.activeLessonRunId!,
+      { type: 'start', expectedRevision: 1 },
+      new Date('2026-07-16T03:03:00.000Z'),
     );
-    assert.equal(Number(fixture.database.prepare('SELECT COUNT(*) FROM learning_events').pluck().get()), eventCount);
-    assert.equal(Number(fixture.database.prepare('SELECT COUNT(*) FROM professional_outputs').pluck().get()), outputCount);
-    assert.deepEqual(fixture.database.prepare(`
-      SELECT status, active_node_id AS activeNodeId, active_unit_id AS activeUnitId, revision
-      FROM classroom_sessions WHERE session_id = 'demo-class'
-    `).get(), {
-      status: 'active',
-      activeNodeId: 'P1T1-N02',
-      activeUnitId: 'P01-ku-02',
-      revision: 3,
-    });
-    assert.equal(fixture.database.prepare(`
-      SELECT COUNT(*) FROM classroom_commands WHERE session_id = 'demo-class' AND revision = 3
-    `).pluck().get(), 1);
+    assert.equal(active.session.sessionStatus, 'active');
+    assert.equal(active.session.lessonRunStatus, 'active');
+    assert.equal(active.session.lessonState?.revision, 2);
   } finally {
     fixture.cleanup();
   }
@@ -506,7 +442,7 @@ test('startLesson rejects unknown and unpublished nodes without mutating SQLite'
       () => unpublishedService.startLesson(
         teacher,
         'demo-class',
-        { nodeId: 'P1T1-N02', expectedRevision: 0 },
+        { lessonId: 'P01-L2', expectedRevision: 0 },
       ),
       { name: 'ClassroomIntentError' },
     );
@@ -553,7 +489,7 @@ test('startLesson rejects a student and a stale teacher revision without overwri
       ),
       (error: unknown) => (
         error instanceof Error
-        && error.name === 'ClassroomRevisionConflictError'
+        && error.name === 'ClassroomLessonRunRevisionConflictError'
         && 'currentRevision' in error
         && error.currentRevision === 1
       ),
@@ -562,8 +498,8 @@ test('startLesson rejects a student and a stale teacher revision without overwri
       SELECT active_node_id AS activeNodeId, active_unit_id AS activeUnitId, revision
       FROM classroom_sessions WHERE session_id = 'demo-class'
     `).get(), {
-      activeNodeId: 'P1T1-N03',
-      activeUnitId: 'P01-ku-03',
+      activeNodeId: 'P1T1-N02',
+      activeUnitId: 'P01-ku-02',
       revision: 1,
     });
     assert.equal(fixture.database.prepare(`
@@ -600,7 +536,7 @@ test('startLesson returns the new-node roster projection while preserving each p
       result.session.studentRoster.map(({ studentId, mode }) => ({ studentId, mode })),
       modes,
     );
-    assert.equal(result.session.studentRoster.every(({ activeNodeId }) => activeNodeId === 'P1T1-N03'), true);
+    assert.equal(result.session.studentRoster.every(({ activeNodeId }) => activeNodeId === 'P1T1-N02'), true);
   } finally {
     fixture.cleanup();
   }
@@ -631,24 +567,45 @@ function wrongAssessmentAnswers(): AssessmentAnswers {
   };
 }
 
+function seedActiveLessonRun(database: ReturnType<typeof createTestDatabase>['database']): string {
+  const lessonRunId = 'service-test-lesson-run';
+  const base = createInitialTeachingCursor({
+    lessonRunId,
+    lessonId: 'P01-L1',
+    revision: 0,
+    now: new Date('2026-07-16T01:00:00.000Z'),
+  });
+  const cursor = {
+    ...base,
+    nodeId: 'P1T1-N02',
+    unitId: 'P01-ku-02',
+    actionId: 'P1T1-N02-S01',
+  };
+  database.prepare(`
+    INSERT INTO classroom_lesson_runs (
+      lesson_run_id, session_id, lesson_id, task_id, node_id, status,
+      teaching_cursor_json, revision, started_at, created_at
+    ) VALUES (?, 'demo-class', 'P01-L1', 'P01', 'P1T1-N02', 'active', ?, 0,
+      '2026-07-16T01:00:00.000Z', '2026-07-16T01:00:00.000Z')
+  `).run(lessonRunId, JSON.stringify(cursor));
+  database.prepare(`
+    UPDATE classroom_sessions
+    SET status = 'active', active_lesson_run_id = ?
+    WHERE session_id = 'demo-class'
+  `).run(lessonRunId);
+  return lessonRunId;
+}
+
 function openRelationalAssessmentRun(
   database: ReturnType<typeof createTestDatabase>['database'],
   runId: string,
   startedAt: string,
   expiresAt: string,
 ): void {
-  const lessonRunId = `${runId}-lesson`;
-  database.prepare(`
-    INSERT INTO classroom_lesson_runs (
-      lesson_run_id, session_id, lesson_id, task_id, node_id, status,
-      teaching_cursor_json, started_at
-    ) VALUES (?, 'demo-class', 'P01-L02', 'P01', 'P1T1-N02', 'active', '{}', ?)
-  `).run(lessonRunId, startedAt);
-  database.prepare(`
-    UPDATE classroom_sessions
-    SET status = 'active', active_lesson_run_id = ?
-    WHERE session_id = 'demo-class'
-  `).run(lessonRunId);
+  const lessonRunId = database.prepare(`
+    SELECT active_lesson_run_id FROM classroom_sessions WHERE session_id = 'demo-class'
+  `).pluck().get() as string;
+  assert.ok(lessonRunId);
   database.prepare(`
     INSERT INTO classroom_assessment_runs (
       run_id, lesson_run_id, session_id, node_id, game_id,

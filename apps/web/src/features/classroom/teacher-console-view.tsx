@@ -122,7 +122,6 @@ export function TeacherConsoleView(p: TeacherConsoleViewProps) {
             <ClassroomPlaybackController
               key={p.unit.capabilityNodeId}
               lesson={p.session.lessonState}
-              onCursorChange={(playbackCursor) => p.update({ playbackCursor })}
               scene={p.activePlayback}
               submitIntent={p.submitIntent}
               surface="teacher"

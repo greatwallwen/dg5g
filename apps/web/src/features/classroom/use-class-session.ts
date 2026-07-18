@@ -221,8 +221,15 @@ export function useClassSession(
         return;
       }
       const expectedRevision = sessionRef.current.lessonState?.revision ?? 0;
+      const lessonRunId = sessionRef.current.activeLessonRunId;
+      if (!lessonRunId) {
+        updateConnection({ state: 'degraded', lastError: '请先开始当前课次。' }, mutationKey);
+        resolveResult(false);
+        return;
+      }
       const result = await transport.submitIntent(
         initial.sessionId,
+        lessonRunId,
         intent,
         expectedRevision,
         options.role === 'projector' ? 'projector' : undefined,

@@ -89,30 +89,14 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
     `纠正常见错误：${unit.counterexample}`,
   ], [unit]);
   const activePlayback = useMemo(() => ({ ...playbackSceneForLearningUnit(unit, profile.taskId), presenterId: playback.presenterId }), [playback.presenterId, profile.taskId, unit]);
-  function go(index: number) {
+  async function go(index: number) {
     if (!helperReady) return;
     const nextIndex = Math.max(0, Math.min(profile.units.length - 1, index));
-    const next = profile.units[nextIndex];
-    const slideId = `${session.sessionId}-S0${nextIndex + 1}`;
-    update({
-      currentPageId: 'P1-TEACH-CONSOLE-N01',
-      teacherSlideIndex: nextIndex + 1,
-      teacherSlideId: slideId,
-      currentSlideId: slideId,
-      sceneMode: 'learning',
-      activeTaskId: profile.taskId,
-      activeNodeId: next.capabilityNodeId,
-      activeUnitId: next.id,
-    });
+    await submitIntent({ type: 'page_changed', pageIndex: nextIndex });
   }
   async function pushPage() {
     if (!helperReady) return;
     update({
-      currentPageId: 'P1-STUDENT-FOLLOW-N01',
-      sceneMode: 'learning',
-      activeTaskId: profile.taskId,
-      activeNodeId: unit.capabilityNodeId,
-      activeUnitId: unit.id,
       activityState: 'pushed',
       studentSyncState: 'requested',
       syncRequestId: `${unit.id}-${Date.now()}`,
@@ -123,11 +107,6 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
     if (!helperReady) return;
     const syncRequestId = `${unit.id}-force-${Date.now()}`;
     update({
-      currentPageId: 'P1-STUDENT-FOLLOW-N01',
-      sceneMode: 'learning',
-      activeTaskId: profile.taskId,
-      activeNodeId: unit.capabilityNodeId,
-      activeUnitId: unit.id,
       activityState: 'pushed',
       studentMode: 'follow',
       studentSyncState: 'forced',

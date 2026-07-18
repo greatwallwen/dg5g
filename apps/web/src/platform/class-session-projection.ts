@@ -5,6 +5,9 @@ export type ProjectorClassSession = Pick<
   ClassSession,
   | 'sessionId'
   | 'sessionStatus'
+  | 'activeLessonRunId'
+  | 'lessonRunStatus'
+  | 'teachingCursor'
   | 'currentPageId'
   | 'currentSlideId'
   | 'teacherSlideId'
@@ -68,6 +71,9 @@ function projectProjectorClassSession(session: ClassSession): ProjectorClassSess
   return {
     sessionId: session.sessionId,
     sessionStatus: session.sessionStatus,
+    activeLessonRunId: session.activeLessonRunId,
+    lessonRunStatus: session.lessonRunStatus,
+    teachingCursor: session.teachingCursor,
     currentPageId: session.currentPageId,
     currentSlideId: session.currentSlideId,
     teacherSlideId: session.teacherSlideId,

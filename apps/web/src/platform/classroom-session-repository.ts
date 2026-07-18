@@ -1,6 +1,5 @@
 import { randomUUID } from 'node:crypto';
 import type { AppDatabase } from './db/database.ts';
-import { initialLessonState } from './classroom-state.ts';
 import { SnapshotClock } from './snapshot-clock.ts';
 import type {
   ActivityState,
@@ -40,6 +39,15 @@ import {
   readValidatedClassroomRunAttempts,
   type ClassroomAssessmentRunWindow,
 } from './classroom-assessment-run-reader.ts';
+import { ClassroomLessonRunRepository } from './classroom-lesson-run-repository.ts';
+import type { TeachingCursor } from './teaching-cursor.ts';
+import type { ClassroomLessonRunStatus } from './teaching-cursor.ts';
+import { withTeachingCursorCompatibility } from './classroom-teaching-cursor-compatibility.ts';
+import {
+  encodeClassroomSessionState,
+  initialClassroomSessionState,
+} from './classroom-session-state-codec.ts';
+import { parseClassroomCommandRow } from './classroom-command-codec.ts';
 
 export type ClassroomSessionStatus = 'preparing' | 'active' | 'paused' | 'closed';
 
@@ -75,6 +83,9 @@ export interface StoredClassroomSession {
   status: ClassroomSessionStatus;
   activeNodeId?: string;
   activeUnitId?: string;
+  activeLessonRunId?: string;
+  lessonRunStatus?: ClassroomLessonRunStatus;
+  teachingCursor?: TeachingCursor;
   revision: number;
   state: ClassroomSessionStateV1;
   updatedAt: string;
@@ -147,6 +158,7 @@ type SessionRow = {
   status: ClassroomSessionStatus;
   active_node_id: string | null;
   active_unit_id: string | null;
+  active_lesson_run_id: string | null;
   revision: number;
   state_json: string;
   updated_at: string;
@@ -184,9 +196,15 @@ type AckRow = {
 
 export class ClassroomSessionRepository {
   private readonly clock: SnapshotClock;
+  private readonly lessonRuns: ClassroomLessonRunRepository;
 
   constructor(private readonly database: AppDatabase) {
     this.clock = new SnapshotClock(database);
+    this.lessonRuns = new ClassroomLessonRunRepository(database);
+  }
+
+  lessonRunRepository(): ClassroomLessonRunRepository {
+    return this.lessonRuns;
   }
 
   readValidatedAssessmentRun(window: ClassroomAssessmentRunWindow) {
@@ -197,12 +215,29 @@ export class ClassroomSessionRepository {
     const row = this.database.prepare(`
       SELECT
         session_id, class_id, teacher_id, name, status, active_node_id,
-        active_unit_id, revision, state_json, updated_at
+        active_unit_id, active_lesson_run_id, revision, state_json, updated_at
       FROM classroom_sessions
       WHERE session_id = ?
     `).get(sessionId) as SessionRow | undefined;
     if (!row) return undefined;
-    return sessionFromRow(row);
+    const lessonRun = row.active_lesson_run_id
+      ? this.lessonRuns.readLessonRun(row.active_lesson_run_id)
+      : undefined;
+    if (!lessonRun) return sessionFromRow(row);
+    if (!lessonRun
+      || lessonRun.sessionId !== row.session_id
+      || lessonRun.teachingCursor.nodeId !== row.active_node_id
+      || lessonRun.teachingCursor.unitId !== row.active_unit_id
+      || lessonRun.revision !== row.revision) {
+      throw new ClassroomStateCorruptError(`Invalid active lesson run for classroom session: ${row.session_id}`);
+    }
+    const session = sessionFromRow(row, lessonRun.teachingCursor);
+    return {
+      ...session,
+      teachingCursor: lessonRun.teachingCursor,
+      lessonRunStatus: lessonRun.status,
+      ...(row.active_lesson_run_id ? { activeLessonRunId: lessonRun.lessonRunId } : {}),
+    };
   }
 
   commitTeacherMutation(
@@ -235,6 +270,40 @@ export class ClassroomSessionRepository {
     );
 
     const transaction = this.database.transaction(() => {
+      const openLesson = this.lessonRuns.readOpenLessonRun(input.sessionId);
+      if (openLesson) {
+        if (openLesson.revision !== input.expectedRevision) {
+          throw new ClassroomRevisionConflictError(
+            input.sessionId,
+            input.expectedRevision,
+            openLesson.revision,
+          );
+        }
+        if (input.next.activeNodeId !== openLesson.teachingCursor.nodeId
+          || input.next.activeUnitId !== openLesson.teachingCursor.unitId
+          || input.next.status !== openLesson.status) {
+          throw new ClassroomStateCorruptError('Generic teacher mutation cannot change lesson-run authority.');
+        }
+        const nextCursor: TeachingCursor = {
+          ...openLesson.teachingCursor,
+          revision: nextRevision,
+          updatedAt: at,
+        };
+        const cursorMutation = this.database.prepare(`
+          UPDATE classroom_lesson_runs
+          SET teaching_cursor_json = ?, revision = revision + 1
+          WHERE lesson_run_id = ? AND session_id = ? AND revision = ?
+            AND status IN ('preparing', 'active', 'paused')
+        `).run(
+          JSON.stringify(nextCursor),
+          openLesson.lessonRunId,
+          input.sessionId,
+          input.expectedRevision,
+        );
+        if (cursorMutation.changes !== 1) {
+          this.throwMutationMiss(input.sessionId, input.expectedRevision);
+        }
+      }
       if (command.studentId && !this.isActiveStudentMember(input.sessionId, command.studentId)) {
         throw new Error('Targeted classroom command requires an active member of this session.');
       }
@@ -562,7 +631,7 @@ export class ClassroomSessionRepository {
   }
 }
 
-function sessionFromRow(row: SessionRow): StoredClassroomSession {
+function sessionFromRow(row: SessionRow, teachingCursor?: TeachingCursor): StoredClassroomSession {
   return {
     sessionId: row.session_id,
     classId: row.class_id,
@@ -572,12 +641,12 @@ function sessionFromRow(row: SessionRow): StoredClassroomSession {
     ...(row.active_node_id ? { activeNodeId: row.active_node_id } : {}),
     ...(row.active_unit_id ? { activeUnitId: row.active_unit_id } : {}),
     revision: row.revision,
-    state: decodeState(row),
+    state: decodeState(row, teachingCursor),
     updatedAt: row.updated_at,
   };
 }
 
-function decodeState(row: SessionRow): ClassroomSessionStateV1 {
+function decodeState(row: SessionRow, teachingCursor?: TeachingCursor): ClassroomSessionStateV1 {
   let value: unknown;
   try {
     value = JSON.parse(row.state_json);
@@ -587,16 +656,19 @@ function decodeState(row: SessionRow): ClassroomSessionStateV1 {
   if (!isRecord(value)) {
     throw new ClassroomStateCorruptError(`Classroom state must be an object: ${row.session_id}`);
   }
-  if (Object.keys(value).length === 0) return initialState(row);
+  if (Object.keys(value).length === 0) {
+    return withTeachingCursorCompatibility(initialState(row), teachingCursor);
+  }
   if (value.schemaVersion !== 1) {
     throw new ClassroomStateCorruptError(`Unsupported classroom state schema: ${row.session_id}`);
   }
-  return decodeVersionOneState(row, value);
+  return decodeVersionOneState(row, value, teachingCursor);
 }
 
 function decodeVersionOneState(
   row: SessionRow,
   value: Record<string, unknown>,
+  teachingCursor?: TeachingCursor,
 ): ClassroomSessionStateV1 {
   const storedLesson = requireRecord(value.lesson, row.session_id, 'lesson');
   const playback = requireRecord(storedLesson.playback, row.session_id, 'lesson.playback');
@@ -607,7 +679,7 @@ function decodeVersionOneState(
     || !isPlaybackStatus(playback.status)
     || typeof playback.positionMs !== 'number'
     || typeof playback.rate !== 'number'
-    || playback.revision !== row.revision
+    || (!teachingCursor && playback.revision !== row.revision)
     || !isAudioOwner(playback.audioOwner)
     || typeof value.teacherSlideId !== 'string'
     || !Number.isInteger(value.teacherSlideIndex)
@@ -616,10 +688,14 @@ function decodeVersionOneState(
     || !isReviewState(value.reviewState)) {
     throw new ClassroomStateCorruptError(`Invalid classroom state schema: ${row.session_id}`);
   }
-  if (storedLesson.activeNodeId !== undefined && storedLesson.activeNodeId !== row.active_node_id) {
+  if (!teachingCursor
+    && storedLesson.activeNodeId !== undefined
+    && storedLesson.activeNodeId !== row.active_node_id) {
     throw new ClassroomStateCorruptError(`Classroom active node conflicts with columns: ${row.session_id}`);
   }
-  if (storedLesson.activeUnitId !== undefined && storedLesson.activeUnitId !== row.active_unit_id) {
+  if (!teachingCursor
+    && storedLesson.activeUnitId !== undefined
+    && storedLesson.activeUnitId !== row.active_unit_id) {
     throw new ClassroomStateCorruptError(`Classroom active unit conflicts with columns: ${row.session_id}`);
   }
   const activeNodeId = row.active_node_id ?? `${row.session_id}-unassigned`;
@@ -641,7 +717,7 @@ function decodeVersionOneState(
       audioOwner: playback.audioOwner,
     },
   };
-  return {
+  return withTeachingCursorCompatibility({
     schemaVersion: 1,
     lesson,
     ...(isPageId(value.currentPageId) ? { currentPageId: value.currentPageId } : {}),
@@ -655,7 +731,7 @@ function decodeVersionOneState(
     activityState: value.activityState,
     reviewState: value.reviewState,
     ...(isFormalTest(value.formalTest) ? { formalTest: value.formalTest } : {}),
-  };
+  }, teachingCursor);
 }
 
 function encodeState(
@@ -664,37 +740,13 @@ function encodeState(
   activeUnitId: string,
   revision: number,
 ): string {
-  if (state.schemaVersion !== 1
-    || state.lesson.activeNodeId !== activeNodeId
-    || state.lesson.activeUnitId !== activeUnitId
-    || state.lesson.revision !== revision
-    || state.lesson.playback.revision !== revision) {
-    throw new ClassroomStateCorruptError('Teacher mutation state does not match authoritative classroom columns.');
-  }
-  const {
-    activeNodeId: _activeNodeId,
-    activeUnitId: _activeUnitId,
-    revision: _revision,
-    ...lesson
-  } = state.lesson;
-  return JSON.stringify({ ...state, lesson });
+  const encoded = encodeClassroomSessionState(state, activeNodeId, activeUnitId, revision);
+  if (!encoded) throw new ClassroomStateCorruptError('Teacher mutation state does not match authoritative classroom columns.');
+  return encoded;
 }
 
 function initialState(row: SessionRow): ClassroomSessionStateV1 {
-  const activeNodeId = row.active_node_id ?? `${row.session_id}-unassigned`;
-  const activeUnitId = row.active_unit_id ?? activeNodeId;
-  const lesson = initialLessonState(activeNodeId, activeUnitId);
-  lesson.revision = row.revision;
-  lesson.playback.revision = row.revision;
-  return {
-    schemaVersion: 1,
-    lesson,
-    teacherSlideId: `${activeNodeId}-S01`,
-    teacherSlideIndex: 1,
-    sceneMode: 'learning',
-    activityState: 'not_pushed',
-    reviewState: 'not_started',
-  };
+  return initialClassroomSessionState(row);
 }
 
 function requireRecord(value: unknown, sessionId: string, field: string): Record<string, unknown> {
@@ -703,32 +755,9 @@ function requireRecord(value: unknown, sessionId: string, field: string): Record
 }
 
 function commandFromRow(row: CommandRow): ClassroomCommand {
-  let payload: unknown;
-  try {
-    payload = JSON.parse(row.payload_json);
-  } catch {
-    throw new ClassroomStateCorruptError(`Invalid classroom command payload: ${row.command_id}`);
-  }
-  if (!isRecord(payload)
-    || !isLessonPhase(payload.phase)
-    || typeof payload.route !== 'string'
-    || typeof payload.nodeId !== 'string'
-    || typeof payload.unitId !== 'string'
-    || !row.expires_at) {
-    throw new ClassroomStateCorruptError(`Invalid classroom command payload: ${row.command_id}`);
-  }
-  return {
-    commandId: row.command_id,
-    sessionId: row.session_id,
-    ...(row.target_student_id ? { studentId: row.target_student_id } : {}),
-    phase: payload.phase,
-    route: payload.route,
-    nodeId: payload.nodeId,
-    unitId: payload.unitId,
-    revision: row.revision,
-    createdAt: row.created_at,
-    expiresAt: row.expires_at,
-  };
+  const command = parseClassroomCommandRow(row);
+  if (!command) throw new ClassroomStateCorruptError(`Invalid classroom command payload: ${row.command_id}`);
+  return command;
 }
 
 function deviceFromRow(row: DeviceRow, now: Date): DevicePresence {

@@ -113,6 +113,21 @@ test('teacher cannot replace the roster or write authoritative lesson state thro
   assert.deepEqual(normalizeSessionPatch('teacher', { studentRoster: [studentOne], lessonState }), {});
 });
 
+test('generic teacher patch rejects every teaching-position and playback authority field', () => {
+  assert.deepEqual(normalizeSessionPatch('teacher', {
+    currentPageId: 'P1-STUDENT-FOLLOW-N01',
+    currentSlideId: 'forged-current',
+    teacherSlideId: 'forged-teacher',
+    teacherSlideIndex: 99,
+    sceneMode: 'challenge',
+    activeTaskId: 'P03',
+    activeNodeId: 'P1T3-N04',
+    activeUnitId: 'P03-ku-04',
+    lessonState: { phase: 'close' } as never,
+    playbackCursor: { sceneId: 'forged', actionId: 'forged', actionIndex: 9 },
+  }), {});
+});
+
 test('student progress merge updates only its matching row and preserves concurrent fields', () => {
   const merged = mergeSessionPatch(session, {
     studentProgress: {

@@ -8,6 +8,7 @@ test('startTeacherLesson waits for a matching active SQLite response before navi
   const destinations: string[] = [];
   let releaseResponse: (response: Response) => void = () => undefined;
   const responsePromise = new Promise<Response>((resolve) => { releaseResponse = resolve; });
+  let requestCount = 0;
 
   const pending = startTeacherLesson({
     sessionId: 'demo-class',
@@ -15,7 +16,10 @@ test('startTeacherLesson waits for a matching active SQLite response before navi
     expectedRevision: 7,
     request: async (input: RequestInfo | URL, init?: RequestInit) => {
       calls.push({ input: String(input), init });
-      return responsePromise;
+      requestCount += 1;
+      return requestCount === 1 ? responsePromise : Response.json({
+        session: { sessionStatus: 'active', activeLessonRunId: 'lesson-run-8' },
+      });
     },
     navigate: (href: string) => destinations.push(href),
   });
@@ -26,18 +30,27 @@ test('startTeacherLesson waits for a matching active SQLite response before navi
   assert.equal(calls[0]?.init?.method, 'POST');
   assert.deepEqual(JSON.parse(String(calls[0]?.init?.body)), {
     nodeId: 'P1T1-N02',
+    command: 'prepare',
     expectedRevision: 7,
   });
 
   releaseResponse(Response.json({
     session: {
-      sessionStatus: 'active',
+      sessionStatus: 'preparing',
+      activeLessonRunId: 'lesson-run-8',
+      lessonState: { revision: 8 },
       activeNodeId: 'P1T1-N02',
       activeUnitId: 'P01-ku-02',
     },
   }));
   await pending;
 
+  assert.equal(calls[1]?.init?.method, 'PATCH');
+  assert.deepEqual(JSON.parse(String(calls[1]?.init?.body)), {
+    lessonRunId: 'lesson-run-8',
+    command: { type: 'start' },
+    expectedRevision: 8,
+  });
   assert.deepEqual(destinations, ['/teacher/sessions/demo-class']);
 });
 
@@ -58,7 +71,7 @@ test('startTeacherLesson stays on the workbench for errors or a mismatched activ
         request: async () => response,
         navigate: (href: string) => destinations.push(href),
       }),
-      /not published|did not activate the selected node/i,
+      /not published|did not create an authoritative lesson run/i,
     );
     assert.deepEqual(destinations, []);
   }

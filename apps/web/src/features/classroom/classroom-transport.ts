@@ -10,7 +10,7 @@ export type ClassroomTransportResult<T> =
 export interface ClassroomTransport {
   fetchSession(sessionId: string, role: SessionRole, studentId?: string): Promise<ClassroomTransportResult<ClassSession>>;
   patchSession(sessionId: string, role: Exclude<SessionRole, 'projector'>, studentId: string | undefined, patch: SessionPatch, expectedRevision?: number): Promise<ClassroomTransportResult<ClassSession>>;
-  submitIntent(sessionId: string, intent: ClassroomLessonIntent, expectedRevision: number, responseView?: 'projector'): Promise<ClassroomTransportResult<{ session: ClassSession; command: ClassroomCommand }>>;
+  submitIntent(sessionId: string, lessonRunId: string, intent: ClassroomLessonIntent, expectedRevision: number, responseView?: 'projector'): Promise<ClassroomTransportResult<{ session: ClassSession; command: ClassroomCommand }>>;
 }
 
 type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
@@ -38,11 +38,11 @@ export function createHttpClassroomTransport(fetchImpl: FetchLike = fetch): Clas
       }
       return requestSession(fetchImpl, sessionUrl(sessionId), patchInit({ patch, expectedRevision }));
     },
-    async submitIntent(sessionId, intent, expectedRevision, responseView) {
+    async submitIntent(sessionId, lessonRunId, intent, expectedRevision, responseView) {
       const result = await requestJson<{ session?: ClassSession; command?: ClassroomCommand }>(
         fetchImpl,
-        sessionUrl(sessionId, responseView),
-        patchInit({ intent, expectedRevision }),
+        lessonUrl(sessionId, responseView),
+        patchInit({ lessonRunId, intent, expectedRevision }),
       );
       if (!result.ok) return result;
       if (!result.data.session || !result.data.command) {
@@ -130,6 +130,11 @@ async function requestJson<T>(
 
 function sessionUrl(sessionId: string, role?: SessionRole): string {
   const base = `/api/class-sessions/${encodeURIComponent(sessionId)}`;
+  return role === 'projector' ? `${base}?view=projector` : base;
+}
+
+function lessonUrl(sessionId: string, role?: SessionRole): string {
+  const base = `/api/class-sessions/${encodeURIComponent(sessionId)}/lesson`;
   return role === 'projector' ? `${base}?view=projector` : base;
 }
 
