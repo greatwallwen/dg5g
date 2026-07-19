@@ -1,14 +1,11 @@
 import { existsSync, readFileSync, type PathLike } from 'node:fs';
 import { join, relative, resolve, sep } from 'node:path';
 import { getNodeLearningPolicy, type AssessmentRole } from '../../platform/learning-policy.ts';
-
 export type P1TaskId = 'P01' | 'P02' | 'P03';
 export type P1RuntimeTaskId = 'P1T1' | 'P1T2' | 'P1T3';
 export type P1AssessmentRole = AssessmentRole;
 export type P1NodeId = `P1T${1 | 2 | 3}-N0${1 | 2 | 3 | 4}`;
-
 type P1NonEmptyArray<Value> = [Value, ...Value[]];
-
 interface P1PracticeBase {
   id: string;
   prompt: string;
@@ -17,34 +14,29 @@ interface P1PracticeBase {
   correctionPath: string[];
   retryable: true;
 }
-
 interface P1ActivityMaterial {
   id: string;
   label: string;
   detail: string;
   sourceValue?: string;
 }
-
 interface P1RevisionActivityMaterial extends P1ActivityMaterial {
   sourceValue: string;
 }
-
 interface P1ActivityCategory {
   id: string;
   label: string;
 }
-
 interface P1ActivityField {
   id: string;
   label: string;
   placeholder: string;
 }
-
+interface P1LinkCandidate { id: string; label: string; materialIds: P1NonEmptyArray<string> }
 interface P1ActivityPracticeBase extends P1PracticeBase {
   targetedFeedback: { passed: string; failed: string };
   transferTarget: string;
 }
-
 type P1ActivityPractice =
   | (P1ActivityPracticeBase & {
       activityKind: 'scope-classification' | 'evidence-classification';
@@ -58,7 +50,11 @@ type P1ActivityPractice =
   | (P1ActivityPracticeBase & {
       activityKind: 'link-reconstruction';
       materials: P1NonEmptyArray<P1ActivityMaterial>;
-      interaction: { type: 'sequence-builder'; categories?: never; fields?: never };
+      interaction:
+        | { type: 'sequence-builder'; categories?: never; fields?: never; candidates?: never; exclusionReasons?: never }
+        | { type: 'candidate-link-review'; categories?: never; fields?: never;
+            candidates: P1NonEmptyArray<P1LinkCandidate>;
+            exclusionReasons: P1NonEmptyArray<P1ActivityCategory> };
     })
   | (P1ActivityPracticeBase & {
       activityKind: 'structured-record';
@@ -87,7 +83,6 @@ type P1ActivityPractice =
         fields: P1NonEmptyArray<P1ActivityField>;
       };
     });
-
 type P1WrittenPractice = P1PracticeBase & {
   activityKind?: never;
   materials?: never;
@@ -95,9 +90,7 @@ type P1WrittenPractice = P1PracticeBase & {
   targetedFeedback?: never;
   transferTarget?: never;
 };
-
 export type P1SelfStudyPractice = P1WrittenPractice | P1ActivityPractice;
-
 export interface P1DeepNodeContent {
   kind: 'deep';
   nodeId: 'P1T1-N02' | 'P1T2-N02' | 'P1T3-N02';
@@ -123,7 +116,6 @@ export interface P1DeepNodeContent {
   outputTemplate: Record<string, unknown>;
   rubric: Array<{ criterion: string; maxScore: number }>;
 }
-
 export interface P1StandardNodeContent {
   kind: 'standard';
   nodeId: Exclude<P1NodeId, P1DeepNodeContent['nodeId']>;
@@ -136,9 +128,7 @@ export interface P1StandardNodeContent {
   microPractice: P1SelfStudyPractice[];
   nodeRecordTemplate: Record<string, unknown>;
 }
-
 export type P1SelfStudyContent = P1DeepNodeContent | P1StandardNodeContent;
-
 export interface P1DemoNode {
   id: P1NodeId;
   title: string;
@@ -152,14 +142,11 @@ export interface P1DemoNode {
   professionalOutputTitle?: string;
   selfStudy: P1SelfStudyContent;
 }
-
 export type P1DemoNodeTuple = [P1DemoNode, P1DemoNode, P1DemoNode, P1DemoNode];
-
 export interface P1WidgetSourceRef {
   id: string;
   path: `textbook/5g/widgets/${string}.json`;
 }
-
 export interface P1TaskSource {
   lessonAstId: P1TaskId;
   lessonAstPath: `textbook/5g/generated/lesson-ast/${P1TaskId}.json`;
@@ -169,7 +156,6 @@ export interface P1TaskSource {
   widgetRefs: P1WidgetSourceRef[];
   mediaRefs: string[];
 }
-
 interface P1TaskContentBase {
   title: string;
   why: string;
@@ -177,13 +163,11 @@ interface P1TaskContentBase {
   source: P1TaskSource;
   nodes: P1DemoNodeTuple;
 }
-
 export interface P01TaskContent extends P1TaskContentBase {
   taskId: 'P01';
   runtimeTaskId: 'P1T1';
   prerequisiteTaskId?: never;
 }
-
 export interface P02TaskContent extends P1TaskContentBase {
   taskId: 'P02';
   runtimeTaskId: 'P1T2';
@@ -582,8 +566,19 @@ function validateActivityPractice(practice: Record<string, unknown>, path: strin
       validateActivityCategories(interaction.categories, `${path}.interaction.categories`);
       break;
     case 'link-reconstruction':
-      exactKeys(interaction, ['type'], `${path}.interaction`);
-      exactValue(interaction.type, 'sequence-builder', `${path}.interaction.type`);
+      if (interaction.type === 'candidate-link-review') {
+        const candidatesPath = `${path}.interaction.candidates`;
+        const reasonsPath = `${path}.interaction.exclusionReasons`;
+        exactKeys(interaction, ['type', 'candidates', 'exclusionReasons'], `${path}.interaction`);
+        validateLinkCandidates(interaction.candidates, new Set(materials.map((material) => (
+          objectValue(material, `${path}.materials`).id as string
+        ))), candidatesPath);
+        minimumItems(arrayValue(interaction.exclusionReasons, reasonsPath), 2, reasonsPath);
+        validateActivityCategories(interaction.exclusionReasons, reasonsPath);
+      } else {
+        exactKeys(interaction, ['type'], `${path}.interaction`);
+        exactValue(interaction.type, 'sequence-builder', `${path}.interaction.type`);
+      }
       break;
     case 'structured-record':
       exactKeys(interaction, ['type', 'fields'], `${path}.interaction`);
@@ -655,6 +650,22 @@ function validateActivityFields(value: unknown, path: string): void {
     nonEmptyString(item.id, `${itemPath}.id`);
     nonEmptyString(item.label, `${itemPath}.label`);
     nonEmptyString(item.placeholder, `${itemPath}.placeholder`);
+  });
+}
+
+function validateLinkCandidates(value: unknown, materialIds: Set<string>, path: string): void {
+  const candidates = arrayValue(value, path);
+  minimumItems(candidates, 2, path);
+  candidates.forEach((value, index) => {
+    const itemPath = `${path}[${index}]`;
+    const item = objectValue(value, itemPath);
+    exactKeys(item, ['id', 'label', 'materialIds'], itemPath);
+    nonEmptyString(item.id, `${itemPath}.id`);
+    nonEmptyString(item.label, `${itemPath}.label`);
+    const idsPath = `${itemPath}.materialIds`;
+    for (const materialId of stringArray(item.materialIds, idsPath, 2)) {
+      if (!materialIds.has(materialId)) invalid(idsPath, `unknown material ${materialId}`);
+    }
   });
 }
 

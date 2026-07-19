@@ -27,7 +27,9 @@ test('six activity kinds render purpose-built control contracts', () => {
 
   assert.match(markup[0]!, /data-classification-board="scope-classification"/);
   assert.match(markup[1]!, /data-classification-board="evidence-classification"/);
-  assert.match(markup[2]!, /data-link-sequence-builder="true"/);
+  assert.match(markup[2]!, /data-candidate-link-review="true"/);
+  assert.equal((markup[2]!.match(/data-link-candidate=/g) ?? []).length, 2);
+  assert.equal((markup[2]!.match(/data-link-exclusion-reason=/g) ?? []).length, 3);
   assert.match(markup[3]!, /data-structured-record-form="true"/);
   assert.match(markup[4]!, /<table[^>]*data-four-state-matrix="true"/);
   assert.equal((markup[4]!.match(/type="radio"/g) ?? []).length, 16);

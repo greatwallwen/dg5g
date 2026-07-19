@@ -459,16 +459,16 @@ export function formalAssessmentOpenFixturePlan() {
         },
       }),
       attempt('P1T1-N02-application-01', {
-        order: ['bbu-port', 'odf-in', 'odf-out', 'aau-port'],
+        review: { selectedCandidate: 'candidate-a', exclusionReason: 'far-end-label-mismatch' },
       }),
       attempt('P1T1-N02-transfer-01', {
         fields: {
-          siteId: 'HY-01',
-          roomId: '01',
-          cabinetId: 'K02',
-          deviceId: 'BBU-01',
-          nearPort: 'BBU-1/0',
-          farPort: 'AAU-1',
+          aauIdentity: 'AAU-01',
+          aauPowerPort: 'PWR-1',
+          powerCableLabel: 'PWR-DC-17',
+          distributionDevice: 'DCDU-01',
+          distributionTerminal: '-48V/12',
+          powerDirection: 'DCDU-01 -48V/12 → AAU-01 PWR-1',
         },
       }),
     ],

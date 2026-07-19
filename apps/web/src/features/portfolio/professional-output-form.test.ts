@@ -5,6 +5,7 @@ import test from 'node:test';
 import type { ProfessionalOutputEnvelope } from '../../platform/learning-command-service.ts';
 import type {
   ProfessionalOutputAggregate,
+  ProfessionalOutputEvidenceGap,
   ProfessionalOutputStatus,
 } from '../../platform/professional-output-repository.ts';
 import { p01EvidenceLibrary } from './evidence-library.ts';
@@ -129,6 +130,55 @@ test('the exact ten P01 fields show source chips and whitelisted built-in eviden
   assert.doesNotMatch(html, /P01-EV-BBU-NAMEPLATE[^]*data-evidence-picker="siteRoom"/);
 });
 
+test('each N04 field restores an evidence gap and requires either evidence or a complete gap before submit', () => {
+  const schema = professionalOutputSchemaForTask(loadSelfStudyCatalog(), 'P01');
+  const evidenceGaps = completeEvidenceGaps();
+  const output = aggregate('draft', 0, [], completeFields(), {}, [], 'user', evidenceGaps);
+  const state = projectProfessionalOutputFormState(schema, envelope(output));
+  const html = renderToStaticMarkup(createElement(ProfessionalOutputForm, {
+    schema,
+    upstreamRefs: [],
+    initialEnvelope: envelope(output),
+  }));
+
+  assert.deepEqual(state.evidenceGaps, evidenceGaps);
+  assert.equal((html.match(/data-evidence-gap=/g) ?? []).length, 10);
+  assert.match(html, /aria-label="站点与机房位置证据：证据缺口"/);
+  assert.match(html, /未拍到站点门牌/);
+  assert.match(html, /返回现场补拍门牌全景/);
+  assert.doesNotMatch(html, /data-primary-action="true"[^>]*disabled/);
+
+  const mixedGaps = completeEvidenceGaps();
+  delete mixedGaps.siteRoom;
+  const mixed = renderToStaticMarkup(createElement(ProfessionalOutputForm, {
+    schema,
+    upstreamRefs: [],
+    initialEnvelope: envelope(aggregate('draft', 0, [], completeFields(), {
+      siteRoom: ['P01-EV-ROOM-OVERVIEW'],
+    }, [], 'user', mixedGaps)),
+  }));
+  assert.doesNotMatch(mixed, /data-primary-action="true"[^>]*disabled/);
+
+  const partialGaps = completeEvidenceGaps();
+  partialGaps.siteRoom = { gapText: '未拍到站点门牌', nextActionText: '' };
+  const partial = renderToStaticMarkup(createElement(ProfessionalOutputForm, {
+    schema,
+    upstreamRefs: [],
+    initialEnvelope: envelope(aggregate(
+      'draft', 0, [], completeFields(), {}, [], 'user', partialGaps,
+    )),
+  }));
+  assert.match(partial, /data-primary-action="true"[^>]*disabled/);
+
+  const incomplete = renderToStaticMarkup(createElement(ProfessionalOutputForm, {
+    schema,
+    upstreamRefs: [],
+    initialEnvelope: envelope(aggregate('draft', 0, [], completeFields())),
+  }));
+  assert.match(incomplete, /请为每个字段挂接证据，或完整登记证据缺口与下一步补证动作/);
+  assert.match(incomplete, /data-primary-action="true"[^>]*disabled/);
+});
+
 test('returned edits project revising immediately and evidence edits are included as semantic revision', () => {
   const schema = professionalOutputSchemaForTask(loadSelfStudyCatalog(), 'P01');
   const returned = projectProfessionalOutputFormState(
@@ -147,8 +197,18 @@ test('returned edits project revising immediately and evidence edits are include
       reviseProfessionalOutputEvidence: (state: typeof returned, key: string, ids: string[]) => typeof returned;
     }
   ).reviseProfessionalOutputEvidence;
+  const reviseProfessionalOutputGap = (
+    outputFormModule as typeof outputFormModule & {
+      reviseProfessionalOutputGap: (
+        state: typeof returned,
+        key: string,
+        gap: ProfessionalOutputEvidenceGap,
+      ) => typeof returned;
+    }
+  ).reviseProfessionalOutputGap;
   assert.equal(typeof reviseProfessionalOutputField, 'function');
   assert.equal(typeof reviseProfessionalOutputEvidence, 'function');
+  assert.equal(typeof reviseProfessionalOutputGap, 'function');
 
   const fieldRevision = reviseProfessionalOutputField(returned, 'connectionDirection', 'BBU → ODF → AAU');
   assert.equal(fieldRevision.workflow.state, 'revising');
@@ -161,6 +221,16 @@ test('returned edits project revising immediately and evidence edits are include
   );
   assert.equal(evidenceRevision.workflow.state, 'revising');
   assert.deepEqual(evidenceRevision.evidenceLinks.connectionDirection, ['P01-EV-ODF-PATH']);
+
+  const gapRevision = reviseProfessionalOutputGap(returned, 'connectionDirection', {
+    gapText: 'ODF 端标签被遮挡',
+    nextActionText: '清洁标签后补拍近景并复核端口号',
+  });
+  assert.equal(gapRevision.workflow.state, 'revising');
+  assert.deepEqual(gapRevision.evidenceGaps.connectionDirection, {
+    gapText: 'ODF 端标签被遮挡',
+    nextActionText: '清洁标签后补拍近景并复核端口号',
+  });
 });
 
 test('an empty unsubmitted envelope remains editing and never renders achieved or teacher-confirmed copy', () => {
@@ -197,7 +267,7 @@ test('each task renders its own N04 editing title and description', () => {
   }
 });
 
-test('the client uses one envelope read and sends evidence links on draft and submit commands', async () => {
+test('the client uses one envelope read and sends evidence links and gaps on draft and submit commands', async () => {
   const calls: Array<{ url: string; init?: RequestInit }> = [];
   const draftEnvelope = envelope(aggregate('draft', 0));
   const draft = draftEnvelope.output!;
@@ -209,13 +279,17 @@ test('the client uses one envelope read and sends evidence links on draft and su
   });
   const fields = completeFields();
   const evidenceLinks = { siteRoom: ['P01-EV-ROOM-OVERVIEW'] };
+  const evidenceGaps = { connectionDirection: {
+    gapText: 'ODF 端标签被遮挡',
+    nextActionText: '清洁标签后补拍近景并复核端口号',
+  } };
 
   assert.equal((await client.read()).output?.head.taskId, 'P01');
   assert.equal((await client.saveDraft({
-    expectedStateRevision: 0, fields, upstreamRefs: [], evidenceLinks,
+    expectedStateRevision: 0, fields, upstreamRefs: [], evidenceLinks, evidenceGaps,
   })).head.status, 'draft');
   assert.equal((await client.submit({
-    outputId: 'output-p01', expectedStateRevision: 1, fields, upstreamRefs: [], evidenceLinks,
+    outputId: 'output-p01', expectedStateRevision: 1, fields, upstreamRefs: [], evidenceLinks, evidenceGaps,
   })).head.status, 'submitted');
   assert.deepEqual(calls.map(({ url, init }) => ({
     url,
@@ -225,11 +299,11 @@ test('the client uses one envelope read and sends evidence links on draft and su
     { url: '/api/outputs/P01', method: undefined, body: undefined },
     {
       url: '/api/outputs/P01/draft', method: 'POST',
-      body: { expectedStateRevision: 0, fields, upstreamRefs: [], evidenceLinks },
+      body: { expectedStateRevision: 0, fields, upstreamRefs: [], evidenceLinks, evidenceGaps },
     },
     {
       url: '/api/outputs/P01/submit', method: 'POST',
-      body: { outputId: 'output-p01', expectedStateRevision: 1, fields, upstreamRefs: [], evidenceLinks },
+      body: { outputId: 'output-p01', expectedStateRevision: 1, fields, upstreamRefs: [], evidenceLinks, evidenceGaps },
     },
   ]);
 });
@@ -249,6 +323,7 @@ function aggregate(
   evidenceLinks: Record<string, string[]> = {},
   fieldSources: ProfessionalOutputAggregate['versions'][number]['fieldSources'] = [],
   origin: 'demo' | 'user' = 'user',
+  evidenceGaps: Record<string, ProfessionalOutputEvidenceGap> = {},
 ): ProfessionalOutputAggregate {
   return {
     head: {
@@ -257,7 +332,7 @@ function aggregate(
     },
     versions: [{
       outputId: 'output-p01', taskId: 'P01', version: 1, schemaVersion: 1,
-      fields, upstreamRefs: [], evidenceLinks, evidenceGaps: {}, fieldSources,
+      fields, upstreamRefs: [], evidenceLinks, evidenceGaps, fieldSources,
     }],
     submissionCount,
     reviewHistory,
@@ -266,6 +341,13 @@ function aggregate(
 
 function completeFields(): Record<string, string> {
   return Object.fromEntries(p01OutputFieldKeys.map((key) => [key, `已填写：${key}`]));
+}
+
+function completeEvidenceGaps(): Record<string, ProfessionalOutputEvidenceGap> {
+  return Object.fromEntries(p01OutputFieldKeys.map((key) => [key, {
+    gapText: key === 'siteRoom' ? '未拍到站点门牌' : `待补充证据：${key}`,
+    nextActionText: key === 'siteRoom' ? '返回现场补拍门牌全景' : `按作业规范补采：${key}`,
+  }]));
 }
 
 function returnedReview(): ProfessionalOutputAggregate['reviewHistory'][number] {

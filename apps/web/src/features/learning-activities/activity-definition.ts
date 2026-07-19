@@ -36,6 +36,12 @@ export interface ActivityField {
   placeholder: string;
 }
 
+export interface ActivityLinkCandidate {
+  id: string;
+  label: string;
+  materialIds: NonEmptyArray<string>;
+}
+
 export type ActivityInteraction =
   | {
       type: 'classification-board';
@@ -46,6 +52,15 @@ export type ActivityInteraction =
       type: 'sequence-builder';
       categories?: never;
       fields?: never;
+      candidates?: never;
+      exclusionReasons?: never;
+    }
+  | {
+      type: 'candidate-link-review';
+      categories?: never;
+      fields?: never;
+      candidates: NonEmptyArray<ActivityLinkCandidate>;
+      exclusionReasons: NonEmptyArray<ActivityCategory>;
     }
   | {
       type: 'record-form';
@@ -91,7 +106,10 @@ type ActivityPublicVariant<
 export type ActivityPublicDto =
   | ActivityPublicVariant<'scope-classification', Extract<ActivityInteraction, { type: 'classification-board' }>>
   | ActivityPublicVariant<'evidence-classification', Extract<ActivityInteraction, { type: 'classification-board' }>>
-  | ActivityPublicVariant<'link-reconstruction', Extract<ActivityInteraction, { type: 'sequence-builder' }>>
+  | ActivityPublicVariant<
+      'link-reconstruction',
+      Extract<ActivityInteraction, { type: 'sequence-builder' | 'candidate-link-review' }>
+    >
   | ActivityPublicVariant<'structured-record', Extract<ActivityInteraction, { type: 'record-form' }>>
   | ActivityPublicVariant<'four-state-judgement', Extract<ActivityInteraction, { type: 'state-matrix' }>>
   | ActivityPublicVariant<

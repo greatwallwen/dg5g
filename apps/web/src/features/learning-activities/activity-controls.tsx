@@ -7,6 +7,49 @@ export function ActivityControl({ activity, values, order, onValueChange, onOrde
   onValueChange: (key: string, value: string) => void;
   onOrderChange: (value: string[]) => void;
 }) {
+  if (activity.kind === 'link-reconstruction' && activity.interaction.type === 'candidate-link-review') {
+    const { candidates, exclusionReasons } = activity.interaction;
+    return (
+      <div className="activity-candidate-link-review" data-candidate-link-review="true">
+        <fieldset>
+          <legend>选择能够闭合的候选链路</legend>
+          {candidates.map((candidate) => (
+            <label data-link-candidate={candidate.id} key={candidate.id}>
+              <input
+                checked={values.selectedCandidate === candidate.id}
+                name={`${activity.id}-selectedCandidate`}
+                onChange={() => onValueChange('selectedCandidate', candidate.id)}
+                type="radio"
+                value={candidate.id}
+              />
+              <strong>{candidate.label}</strong>
+              <ol>
+                {candidate.materialIds.map((materialId) => (
+                  <li key={materialId}>{activity.materials.find(({ id }) => id === materialId)?.label}</li>
+                ))}
+              </ol>
+            </label>
+          ))}
+        </fieldset>
+        <fieldset>
+          <legend>选择排除另一条候选链路的证据</legend>
+          {exclusionReasons.map((reason) => (
+            <label data-link-exclusion-reason={reason.id} key={reason.id}>
+              <input
+                checked={values.exclusionReason === reason.id}
+                name={`${activity.id}-exclusionReason`}
+                onChange={() => onValueChange('exclusionReason', reason.id)}
+                type="radio"
+                value={reason.id}
+              />
+              <span>{reason.label}</span>
+            </label>
+          ))}
+        </fieldset>
+      </div>
+    );
+  }
+
   if (activity.kind === 'link-reconstruction') {
     return (
       <div className="activity-sequence-builder" data-link-sequence-builder="true">

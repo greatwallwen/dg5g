@@ -25,12 +25,13 @@ const responses: Record<string, Record<string, unknown>> = {
     },
   },
   'P1T1-N02-application-01': {
-    order: ['bbu-port', 'odf-in', 'odf-out', 'aau-port'],
+    review: { selectedCandidate: 'candidate-a', exclusionReason: 'far-end-label-mismatch' },
   },
   'P1T1-N02-transfer-01': {
     fields: {
-      siteId: 'HY-01', roomId: '01', cabinetId: 'K02',
-      deviceId: 'BBU-01', nearPort: 'BBU-1/0', farPort: 'AAU-1',
+      aauIdentity: 'AAU-01', aauPowerPort: 'PWR-1', powerCableLabel: 'PWR-DC-17',
+      distributionDevice: 'DCDU-01', distributionTerminal: '-48V/12',
+      powerDirection: 'DCDU-01 -48V/12 → AAU-01 PWR-1',
     },
   },
   'P1T1-N03-micro-01': {
@@ -53,7 +54,8 @@ test('passed N01-N03 artifacts project every P01 field with server-derived attem
     assert.ok(prefill[field]!.value.trim().length > 0, field);
     assert.ok(prefill[field]!.sources.length > 0, field);
   }
-  assert.match(prefill.siteRoom!.value, /HY-01.*01.*K02/);
+  assert.match(prefill.siteRoom!.value, /HY-01/);
+  assert.match(prefill.siteRoom!.value, /01.*K01-K04/);
   assert.match(prefill.collectionScope!.value, /01.*K01-K04/);
   assert.match(prefill.connectionDirection!.value, /BBU CPRI-1.*ODF-A\/12.*ODF-B\/04.*AAU-01 OPT-1/);
   assert.match(prefill.evidenceGap!.value, /保护接地.*缺证|缺证.*保护接地/);

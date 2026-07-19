@@ -47,6 +47,27 @@ EXPECTED_VERIFIED_MANIM = {
 
 
 class P1DemoContentMediaTest(unittest.TestCase):
+    def test_p01_n02_uses_three_distinct_job_actions(self) -> None:
+        foundation = P1_ACTIVITY_SPECS["P1T1-N02-foundation-01"]
+        application = P1_ACTIVITY_SPECS["P1T1-N02-application-01"]
+        transfer = P1_ACTIVITY_SPECS["P1T1-N02-transfer-01"]
+
+        self.assertEqual(foundation["activityKind"], "evidence-classification")
+        self.assertEqual(application["activityKind"], "link-reconstruction")
+        self.assertEqual(application["interaction"]["type"], "candidate-link-review")
+        self.assertEqual(len(application["interaction"]["candidates"]), 2)
+        self.assertGreaterEqual(len(application["interaction"]["exclusionReasons"]), 2)
+
+        self.assertEqual(transfer["activityKind"], "structured-record")
+        transfer_fields = {field["id"] for field in transfer["interaction"]["fields"]}
+        self.assertEqual(transfer_fields, {
+            "aauIdentity", "aauPowerPort", "powerCableLabel",
+            "distributionDevice", "distributionTerminal", "powerDirection",
+        })
+        serialized_transfer = json.dumps(transfer, ensure_ascii=False)
+        for evidence_value in ["PWR-1", "PWR-DC-17", "DCDU-01", "-48V/12"]:
+            self.assertIn(evidence_value, serialized_transfer)
+
     def test_p02_activities_are_distinct_workplace_actions_not_one_generic_record(self) -> None:
         expected_kinds = {
             "P1T2-N01-micro-01": "scope-classification",

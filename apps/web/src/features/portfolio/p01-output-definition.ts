@@ -114,6 +114,27 @@ export function projectP01OutputPrefill(
         break;
       }
       case 'link-reconstruction': {
+        if (definition.activity.interaction.type === 'candidate-link-review') {
+          const review = stringMap(response.review);
+          if (!review) break;
+          const candidate = definition.activity.interaction.candidates.find(({ id }) => (
+            id === review.selectedCandidate
+          ));
+          const reason = definition.activity.interaction.exclusionReasons.find(({ id }) => (
+            id === review.exclusionReason
+          ));
+          if (!candidate || !reason) break;
+          const labels = candidate.materialIds.map((id) => materialById.get(id)?.label).filter(isString);
+          if (labels.length === candidate.materialIds.length) {
+            appendProjected(
+              result,
+              'connectionDirection',
+              `${candidate.label}: ${labels.join(' → ')}；${reason.label}`,
+              source,
+            );
+          }
+          break;
+        }
         const order = stringArray(response.order);
         if (!order) break;
         const labels = order.map((id) => materialById.get(id)?.label).filter(isString);
@@ -140,6 +161,14 @@ export function projectP01OutputPrefill(
         if (fields.deviceId) appendProjected(result, 'deviceIdentity', fields.deviceId, source);
         if (fields.nearPort) appendProjected(result, 'endpointA', fields.nearPort, source);
         if (fields.farPort) appendProjected(result, 'endpointB', fields.farPort, source);
+        if (fields.aauIdentity) appendProjected(result, 'deviceIdentity', fields.aauIdentity, source);
+        if (fields.distributionDevice && fields.distributionTerminal) {
+          appendProjected(result, 'endpointA', `${fields.distributionDevice} ${fields.distributionTerminal}`, source);
+        }
+        if (fields.aauIdentity && fields.aauPowerPort) {
+          appendProjected(result, 'endpointB', `${fields.aauIdentity} ${fields.aauPowerPort}`, source);
+        }
+        if (fields.powerDirection) appendProjected(result, 'connectionDirection', fields.powerDirection, source);
         break;
       }
       case 'four-state-judgement': {

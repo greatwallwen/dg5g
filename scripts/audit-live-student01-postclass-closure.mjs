@@ -176,13 +176,12 @@ async function solveN02CorePractices(page) {
   await submitPassed(foundation, 1);
 
   const application = page.locator('[data-activity-id="P1T1-N02-application-01"]');
-  for (const label of ['BBU CPRI-1', 'ODF-A/12 入端', 'ODF-B/04 出端', 'AAU-01 OPT-1']) {
-    await application.locator('[data-link-sequence-builder] button').filter({ hasText: label }).click();
-  }
+  await application.locator('input[name="P1T1-N02-application-01-selectedCandidate"][value="candidate-a"]').check();
+  await application.locator('input[name="P1T1-N02-application-01-exclusionReason"][value="far-end-label-mismatch"]').check();
   await submitPassed(application, 1);
 
   const transfer = page.locator('[data-activity-id="P1T1-N02-transfer-01"]');
-  const values = ['HY-01', '01', 'K02', 'BBU-01', 'BBU-1/0', 'AAU-1'];
+  const values = ['AAU-01', 'PWR-1', 'PWR-DC-17', 'DCDU-01', '-48V/12', 'DCDU-01 -48V/12 → AAU-01 PWR-1'];
   for (let index = 0; index < values.length; index += 1) {
     await transfer.locator('[data-structured-record-form] input').nth(index).fill(values[index]);
   }

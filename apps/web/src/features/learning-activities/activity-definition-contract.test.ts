@@ -29,9 +29,9 @@ type _EvidenceUsesClassificationBoard = Expect<Equal<
   InteractionTypeFor<'evidence-classification'>,
   'classification-board'
 >>;
-type _LinkUsesSequenceBuilder = Expect<Equal<
+type _LinkUsesPurposeBuiltInteraction = Expect<Equal<
   InteractionTypeFor<'link-reconstruction'>,
-  'sequence-builder'
+  'sequence-builder' | 'candidate-link-review'
 >>;
 type _RecordUsesRecordForm = Expect<Equal<
   InteractionTypeFor<'structured-record'>,

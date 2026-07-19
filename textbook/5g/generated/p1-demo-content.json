@@ -372,17 +372,17 @@
               "application": [
                 {
                   "id": "P1T1-N02-application-01",
-                  "prompt": "给定BBU端口、ODF成端和两个AAU端口记录，选择唯一能够闭合的链路并写出排除另外两条的依据。",
+                  "prompt": "对比两条候选链路，选择唯一能够闭合的链路，并用明确的标签断点排除另一条。",
                   "expectedEvidence": [
-                    "本端与对端标签一致",
-                    "中间线缆编号连续",
-                    "排除证据明确"
+                    "候选 A 与候选 B 均完整呈现",
+                    "本端、中间跳接和对端编号连续",
+                    "排除理由引用具体标签断点"
                   ],
-                  "feedback": "结论必须同时引用起点、中间路径和终点，不能只选看起来最近的设备。",
+                  "feedback": "结论必须同时引用起点、中间路径、终点和被排除候选的断点，不能用距离或指示灯猜测。",
                   "correctionPath": [
-                    "标出所有端点编号",
-                    "按线缆编号连接中间路径",
-                    "发现断点就标记待补证后重试"
+                    "逐段标出 FO-17、JP-08、FO-22 和 FO-29",
+                    "先找出编号连续的候选链路",
+                    "再用 FO-22 与 FO-29 的断点排除另一条后重试"
                   ],
                   "retryable": true,
                   "activityKind": "link-reconstruction",
@@ -403,17 +403,58 @@
                       "detail": "JP-08 对接 FO-22。"
                     },
                     {
-                      "id": "aau-port",
+                      "id": "aau01-port",
                       "label": "AAU-01 OPT-1",
                       "detail": "线缆标签 FO-22。"
+                    },
+                    {
+                      "id": "aau02-port",
+                      "label": "AAU-02 OPT-1",
+                      "detail": "线缆标签 FO-29，与 ODF-B/04 出端的 FO-22 不一致。"
                     }
                   ],
                   "interaction": {
-                    "type": "sequence-builder"
+                    "type": "candidate-link-review",
+                    "candidates": [
+                      {
+                        "id": "candidate-a",
+                        "label": "候选链路 A",
+                        "materialIds": [
+                          "bbu-port",
+                          "odf-in",
+                          "odf-out",
+                          "aau01-port"
+                        ]
+                      },
+                      {
+                        "id": "candidate-b",
+                        "label": "候选链路 B",
+                        "materialIds": [
+                          "bbu-port",
+                          "odf-in",
+                          "odf-out",
+                          "aau02-port"
+                        ]
+                      }
+                    ],
+                    "exclusionReasons": [
+                      {
+                        "id": "far-end-label-mismatch",
+                        "label": "排除 B：ODF 出端 FO-22 与 AAU-02 端 FO-29 不一致"
+                      },
+                      {
+                        "id": "physical-distance",
+                        "label": "排除 B：AAU-02 与机柜距离更远"
+                      },
+                      {
+                        "id": "indicator-state",
+                        "label": "排除 B：AAU-02 指示灯状态不同"
+                      }
+                    ]
                   },
                   "targetedFeedback": {
-                    "passed": "起点、中间跳接和终点编号连续，链路已经闭合。",
-                    "failed": "当前顺序存在标签断点；从 BBU 端口开始逐段核对线缆和 ODF 跳接。"
+                    "passed": "候选 A 的 FO-17—JP-08—FO-22 编号连续，并已用 FO-29 断点排除候选 B。",
+                    "failed": "候选链路或排除依据不成立；必须逐段核对本端、ODF 跳接和对端线缆编号，不能用距离或指示灯猜测。"
                   },
                   "transferTarget": "将闭合链路写入成果表的本端、经过节点、对端和照片索引。"
                 }
@@ -421,67 +462,77 @@
               "transfer": [
                 {
                   "id": "P1T1-N02-transfer-01",
-                  "prompt": "将同样的证据方法迁移到电源链：证明某AAU由哪一路直流配电端子供电。",
+                  "prompt": "将证据方法迁移到直流供电链：依据三组现场材料，形成 AAU-01 由哪一个 DCDU 端子供电的结构化记录。",
                   "expectedEvidence": [
-                    "AAU位置与身份",
-                    "电源线两端标签",
-                    "配电端子和方向"
+                    "AAU 身份与 PWR-1 设备侧端口",
+                    "PWR-DC-17 两端同号",
+                    "DCDU-01 -48V/12 配电端子与供电方向"
                   ],
-                  "feedback": "设备类型改变后，位置—身份—双端方向的证明逻辑仍保持不变。",
+                  "feedback": "设备类型改变后，仍须用唯一身份、双端同号和明确方向闭合证据链。",
                   "correctionPath": [
-                    "先确定AAU唯一身份",
-                    "记录设备侧电源端",
-                    "追踪到配电侧端子并核对线号"
+                    "先确定 AAU-01 与 PWR-1",
+                    "沿 PWR-DC-17 连续追踪",
+                    "在 DCDU-01 -48V/12 端子闭合并写明供电方向"
                   ],
                   "retryable": true,
                   "activityKind": "structured-record",
                   "materials": [
                     {
-                      "id": "field-pack",
-                      "label": "HY-01 现场证据包",
-                      "detail": "包含机房全景、K02 柜号、BBU-01 铭牌及 BBU-1/0 至 AAU-1 双端照片。"
+                      "id": "aau-power-port",
+                      "label": "AAU 设备侧证据",
+                      "detail": "HY-01 A 座楼顶 S1 扇区，AAU-01 铭牌与电源端口 PWR-1 同框；线缆标签为 PWR-DC-17。"
+                    },
+                    {
+                      "id": "power-cable-trace",
+                      "label": "直流电源线连续走线",
+                      "detail": "PWR-DC-17 从 AAU-01 PWR-1 连续追踪至 01 号机房 K03 机柜。"
+                    },
+                    {
+                      "id": "dcdu-terminal",
+                      "label": "配电侧证据",
+                      "detail": "K03 内 DCDU-01 的 -48V/12 端子挂接 PWR-DC-17，端子标签和线缆标签清晰同框。"
                     }
                   ],
                   "interaction": {
                     "type": "record-form",
                     "fields": [
                       {
-                        "id": "siteId",
-                        "label": "站点编号",
-                        "placeholder": "例如 HY-01"
+                        "id": "aauIdentity",
+                        "label": "AAU 身份",
+                        "placeholder": "例如 AAU-01"
                       },
                       {
-                        "id": "roomId",
-                        "label": "机房编号",
-                        "placeholder": "例如 01"
+                        "id": "aauPowerPort",
+                        "label": "AAU 电源端口",
+                        "placeholder": "例如 PWR-1"
                       },
                       {
-                        "id": "cabinetId",
-                        "label": "机柜编号",
-                        "placeholder": "例如 K02"
+                        "id": "powerCableLabel",
+                        "label": "直流电源线标签",
+                        "placeholder": "例如 PWR-DC-17"
                       },
                       {
-                        "id": "deviceId",
-                        "label": "设备标识",
-                        "placeholder": "例如 BBU-01"
+                        "id": "distributionDevice",
+                        "label": "配电设备",
+                        "placeholder": "例如 DCDU-01"
                       },
                       {
-                        "id": "nearPort",
-                        "label": "本端端口",
-                        "placeholder": "例如 BBU-1/0"
+                        "id": "distributionTerminal",
+                        "label": "配电端子",
+                        "placeholder": "例如 -48V/12"
                       },
                       {
-                        "id": "farPort",
-                        "label": "对端端口",
-                        "placeholder": "例如 AAU-1"
+                        "id": "powerDirection",
+                        "label": "供电方向",
+                        "placeholder": "例如 DCDU-01 -48V/12 → AAU-01 PWR-1"
                       }
                     ]
                   },
                   "targetedFeedback": {
-                    "passed": "结构化记录已把设备、位置和双端端口汇成可回查条目。",
-                    "failed": "记录仍有字段与证据包不一致；请逐项核对站点、机柜、设备和双端端口。"
+                    "passed": "AAU 身份、设备侧端口、同号电源线和配电端子已闭合为可回查的直流供电证据链。",
+                    "failed": "直流供电记录仍与证据包不一致；请逐项核对 AAU 身份、PWR-1、PWR-DC-17 和 DCDU-01 -48V/12。"
                   },
-                  "transferTarget": "形成可直接汇入 P01 专业成果的设备链路记录。"
+                  "transferTarget": "形成可直接汇入 P01 专业成果的 AAU 直流供电证据记录。"
                 },
                 {
                   "id": "P1T1-N02-remediation-revision-01",

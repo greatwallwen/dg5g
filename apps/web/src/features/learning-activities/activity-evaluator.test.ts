@@ -60,8 +60,12 @@ test('each activity kind uses its own answer model', () => {
   const correctResponses = [
     { assignments: { 'room-01-cabinets': 'in-scope', 'shared-operator-cabinet': 'out-of-scope', 'room-02-cabinets': 'out-of-scope' } },
     { assignments: { 'room-overview': 'location', 'device-nameplate': 'identity', 'two-ended-port-trace': 'link' } },
-    { order: ['bbu-port', 'odf-in', 'odf-out', 'aau-port'] },
-    { fields: { siteId: 'HY-01', roomId: '01', cabinetId: 'K02', deviceId: 'BBU-01', nearPort: 'BBU-1/0', farPort: 'AAU-1' } },
+    { review: { selectedCandidate: 'candidate-a', exclusionReason: 'far-end-label-mismatch' } },
+    { fields: {
+      aauIdentity: 'AAU-01', aauPowerPort: 'PWR-1', powerCableLabel: 'PWR-DC-17',
+      distributionDevice: 'DCDU-01', distributionTerminal: '-48V/12',
+      powerDirection: 'DCDU-01 -48V/12 → AAU-01 PWR-1',
+    } },
     { states: { power: 'confirmed', grounding: 'missing', transport: 'confirmed', environment: 'conflicting' } },
     { revisions: { duplicatePhotoId: 'IMG-024B', missingSource: 'IMG-021', openGap: 'GAP-03: reshoot grounding label' } },
   ];
@@ -129,6 +133,26 @@ test('repository appends immutable self-study and classroom attempts with one sh
   } finally {
     fixture.cleanup();
   }
+});
+
+test('P01 N02 application rejects a guessed candidate and transfer requires a real DC power chain', () => {
+  const application = readActivityDefinition('P1T1-N02-application-01');
+  const transfer = readActivityDefinition('P1T1-N02-transfer-01');
+  assert.ok(application);
+  assert.ok(transfer);
+
+  const guessed = evaluateActivity(application, {
+    review: { selectedCandidate: 'candidate-b', exclusionReason: 'physical-distance' },
+  });
+  assert.equal(guessed.passed, false);
+  assert.deepEqual(Object.keys(guessed.fieldFeedback).sort(), ['exclusionReason', 'selectedCandidate']);
+
+  assert.equal(evaluateActivity(transfer, {
+    fields: {
+      siteId: 'HY-01', roomId: '01', cabinetId: 'K02',
+      deviceId: 'BBU-01', nearPort: 'BBU-1/0', farPort: 'AAU-1',
+    },
+  }).passed, false);
 });
 
 test('the self-study public activity payload contains no private answer model', () => {

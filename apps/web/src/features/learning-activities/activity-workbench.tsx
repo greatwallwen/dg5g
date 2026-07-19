@@ -170,7 +170,9 @@ function responseFor(
     case 'evidence-classification':
       return { assignments: values };
     case 'link-reconstruction':
-      return { order };
+      return activity.interaction.type === 'candidate-link-review'
+        ? { review: values }
+        : { order };
     case 'structured-record':
       return { fields: values };
     case 'four-state-judgement':

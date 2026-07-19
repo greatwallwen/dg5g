@@ -28,6 +28,15 @@ test('runtime validation rejects a structured record without non-empty fields be
   });
 });
 
+test('runtime validation rejects a candidate link that references evidence outside its materials', () => {
+  expectRejectedActivityMutation('P1T1-N02-application-01', (practice) => {
+    const interaction = practice.interaction as {
+      candidates: Array<{ materialIds: string[] }>;
+    };
+    interaction.candidates[0]!.materialIds.push('invented-port');
+  });
+});
+
 test('runtime validation rejects defective-sheet material without a source value before rendering', () => {
   expectRejectedActivityMutation('P1T1-N04-micro-01', (practice) => {
     const materials = practice.materials as Array<Record<string, unknown>>;

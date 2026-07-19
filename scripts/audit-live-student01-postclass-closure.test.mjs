@@ -28,6 +28,7 @@ test('only student01 forms real state while student02 and student03 remain previ
 test('closure proves formal assessment, output revision, teacher verification, and projections', () => {
   for (const evidence of [
     'data-assessment-result="passed"',
+    'candidate-a', 'far-end-label-mismatch', 'PWR-DC-17',
     'data-output-workflow', 'returned', 'resubmitted', 'verified',
     'data-portfolio-delivery', 'verified-deliverable',
     'data-graph-node-id="P1T1-N04"',

@@ -213,6 +213,36 @@
 .professional-output-evidence > label span { color: #789cab; font-size: 12px; }
 .professional-output-evidence select { min-width: 0; height: 34px; border: 1px solid #315b71; border-radius: 5px; padding: 0 8px; color: #cfe2e8; background: #092234; font-size: 12px; }
 
+.professional-output-evidence-gap {
+  display: grid;
+  gap: 7px;
+  border: 1px solid #385163;
+  border-radius: 6px;
+  padding: 9px;
+  background: #0a1d2d;
+}
+
+.professional-output-evidence-gap[data-gap-complete="true"] {
+  border-color: #2b675e;
+  background: #0a2629;
+}
+
+.professional-output-evidence-gap > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.professional-output-evidence-gap > header strong { color: #a8c4d2; font-size: 12px; }
+.professional-output-evidence-gap > header small { color: #d2a967; font-family: inherit; font-size: 12px; }
+.professional-output-evidence-gap[data-gap-complete="true"] > header small { color: #78d0b8; }
+.professional-output-evidence-gap > p { margin: 0; color: #718da1; font-size: 12px; line-height: 1.45; }
+.professional-output-evidence-gap > div { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.professional-output-evidence-gap label { min-width: 0; display: grid; gap: 4px; }
+.professional-output-evidence-gap label span { color: #87a5b7; font-size: 12px; font-weight: 750; }
+.professional-output-evidence-gap textarea { min-height: 70px; padding: 8px 9px; }
+
 .professional-output-rubric {
   position: sticky;
   top: 0;
@@ -283,6 +313,8 @@
   .professional-output-fields { padding: 10px; }
   .professional-output-fields > div { grid-template-columns: 1fr; }
   .professional-output-fields textarea { min-height: 94px; }
+  .professional-output-evidence-gap > div { grid-template-columns: 1fr; }
+  .professional-output-evidence-gap textarea { min-height: 64px; }
   .professional-output-form > footer { grid-template-columns: 1fr; gap: 9px; }
   .professional-output-form > footer div { display: grid; grid-template-columns: 1fr 1fr; }
   .professional-output-form > footer button { width: 100%; padding: 0 8px; }

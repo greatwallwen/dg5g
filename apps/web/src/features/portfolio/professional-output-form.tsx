@@ -13,12 +13,14 @@ import {
 import { OutputFieldsets } from './output-fieldsets';
 import {
   createProfessionalOutputClient,
+  isProfessionalOutputEvidenceCoverageComplete,
   loadUpstreamReference,
   professionalOutputErrorMessage,
   professionalOutputStatusCopy,
   projectProfessionalOutputFormState,
   reviseProfessionalOutputEvidence,
   reviseProfessionalOutputField,
+  reviseProfessionalOutputGap,
   type ProfessionalOutputClientCommand,
 } from './professional-output-form-model';
 
@@ -28,6 +30,7 @@ export {
   projectProfessionalOutputFormState,
   reviseProfessionalOutputEvidence,
   reviseProfessionalOutputField,
+  reviseProfessionalOutputGap,
 } from './professional-output-form-model';
 export type {
   ProfessionalOutputClientCommand,
@@ -81,6 +84,13 @@ export function ProfessionalOutputForm({
         ? validateProfessionalOutputDraft(schema, state.fields)
         : validateProfessionalOutputSubmission(schema, state.fields);
       if (Object.keys(fields).length === 0) throw new Error('请至少填写一项证据后再保存草稿。');
+      if (action === 'submit' && !isProfessionalOutputEvidenceCoverageComplete(
+        schema,
+        state.evidenceLinks,
+        state.evidenceGaps,
+      )) {
+        throw new Error('请为每个字段挂接证据，或完整登记证据缺口与下一步补证动作。');
+      }
       if (schema.taskId !== 'P01' && upstreamRefs.length !== 1) {
         throw new Error('上游任务产出尚未形成，暂不能保存本任务表单。');
       }
@@ -90,6 +100,7 @@ export function ProfessionalOutputForm({
         fields,
         upstreamRefs,
         evidenceLinks: state.evidenceLinks,
+        evidenceGaps: state.evidenceGaps,
       };
       const output = action === 'draft' ? await client.saveDraft(command) : await client.submit(command);
       setState(projectProfessionalOutputFormState(schema, {
@@ -110,7 +121,13 @@ export function ProfessionalOutputForm({
   if (loading) {
     return <section className="professional-output-loading" data-professional-output={schema.taskId}><span /><strong>正在恢复专业产出草稿</strong><small>读取当前版本、预填来源与证据挂接…</small></section>;
   }
-  const complete = isProfessionalOutputComplete(schema, state.fields);
+  const fieldsComplete = isProfessionalOutputComplete(schema, state.fields);
+  const evidenceCoverageComplete = isProfessionalOutputEvidenceCoverageComplete(
+    schema,
+    state.evidenceLinks,
+    state.evidenceGaps,
+  );
+  const complete = fieldsComplete && evidenceCoverageComplete;
   const statusCopy = professionalOutputStatusCopy(state.workflow.state, schema.taskId);
   const submitBlockedByReturn = state.workflow.state === 'returned';
   const visibleTeacherFeedback = teacherFeedback ?? state.teacherFeedback;
@@ -122,7 +139,7 @@ export function ProfessionalOutputForm({
       </header>
       {(state.workflow.state === 'returned' || state.workflow.state === 'revising') ? <p className="professional-output-feedback"><Icon name="arrow" size={17} /><span><strong>教师退回修订{state.workflow.origin === 'demo' ? ' · 演示数据' : ''}</strong>{visibleTeacherFeedback ?? '请按复核意见补齐证据链后重新提交。'}</span></p> : null}
       <div className="professional-output-workspace">
-        <OutputFieldsets evidenceLibrary={state.evidenceLibrary} evidenceLinks={state.evidenceLinks} fieldSources={state.fieldSources} onEvidenceChange={(fieldKey, ids) => { setState((current) => reviseProfessionalOutputEvidence(current, fieldKey, ids)); clearMessages(); }} onFieldChange={(key, value) => { setState((current) => reviseProfessionalOutputField(current, key, value)); clearMessages(); }} readOnly={state.readOnly} schema={schema} values={state.fields} />
+        <OutputFieldsets evidenceGaps={state.evidenceGaps} evidenceLibrary={state.evidenceLibrary} evidenceLinks={state.evidenceLinks} fieldSources={state.fieldSources} onEvidenceChange={(fieldKey, ids) => { setState((current) => reviseProfessionalOutputEvidence(current, fieldKey, ids)); clearMessages(); }} onEvidenceGapChange={(fieldKey, gap) => { setState((current) => reviseProfessionalOutputGap(current, fieldKey, gap)); clearMessages(); }} onFieldChange={(key, value) => { setState((current) => reviseProfessionalOutputField(current, key, value)); clearMessages(); }} readOnly={state.readOnly} schema={schema} values={state.fields} />
         <aside className="professional-output-rubric">
           <span>评价标准 · 总分 {schema.totalScore}</span>
           <ol>{schema.rubric.map(({ criterion, maxScore }) => <li key={criterion}><strong>{criterion}</strong><em>{maxScore}分</em></li>)}</ol>
@@ -132,7 +149,13 @@ export function ProfessionalOutputForm({
       {error ? <p className="professional-output-message is-error" role="alert">{error}</p> : null}
       {notice ? <p className="professional-output-message is-success" role="status">{notice}</p> : null}
       <footer className={state.readOnly ? 'professional-output-status' : 'professional-output-actions'}>
-        <p><strong>{state.readOnly ? statusCopy.title : complete ? '字段完整，可提交复核' : '可先保存草稿'}</strong><small>{state.readOnly ? statusCopy.description : submitBlockedByReturn ? '请先修改字段或证据，再次提交才会形成新版本。' : '保存草稿不会提交；提交前服务端将再次完整校验。'}</small></p>
+        <p><strong>{state.readOnly
+          ? statusCopy.title
+          : !fieldsComplete
+            ? '可先保存草稿'
+            : !evidenceCoverageComplete
+              ? '请为每个字段挂接证据，或完整登记证据缺口与下一步补证动作'
+              : '字段与证据完整，可提交复核'}</strong><small>{state.readOnly ? statusCopy.description : submitBlockedByReturn ? '请先修改字段、证据或缺口登记，再次提交才会形成新版本。' : '保存草稿不会提交；提交前服务端将再次完整校验。'}</small></p>
         {!state.readOnly ? <div>
           <button disabled={Boolean(saving)} onClick={() => void persist('draft')} type="button"><Icon name="file" size={17} />{saving === 'draft' ? '正在保存' : state.workflow.state === 'revising' ? '保存修订' : '保存草稿'}</button>
           <button className="is-primary" data-primary-action="true" disabled={!complete || submitBlockedByReturn || Boolean(saving)} type="submit"><Icon name="check" size={17} />{saving === 'submit' ? '正在提交' : state.workflow.state === 'revising' ? '再次提交教师复核' : '提交教师复核'}</button>

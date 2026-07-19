@@ -136,7 +136,7 @@
           "additionalProperties": false,
           "required": ["type"],
           "properties": {
-            "type": { "enum": ["classification-board", "sequence-builder", "record-form", "state-matrix", "revision-form"] },
+            "type": { "enum": ["classification-board", "sequence-builder", "candidate-link-review", "record-form", "state-matrix", "revision-form"] },
             "categories": {
               "type": "array",
               "minItems": 1,
@@ -161,6 +161,37 @@
                   "id": { "type": "string", "minLength": 1 },
                   "label": { "type": "string", "minLength": 1 },
                   "placeholder": { "type": "string", "minLength": 1 }
+                }
+              }
+            },
+            "candidates": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "label", "materialIds"],
+                "properties": {
+                  "id": { "type": "string", "minLength": 1 },
+                  "label": { "type": "string", "minLength": 1 },
+                  "materialIds": {
+                    "type": "array",
+                    "minItems": 2,
+                    "items": { "type": "string", "minLength": 1 }
+                  }
+                }
+              }
+            },
+            "exclusionReasons": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "label"],
+                "properties": {
+                  "id": { "type": "string", "minLength": 1 },
+                  "label": { "type": "string", "minLength": 1 }
                 }
               }
             }
@@ -206,13 +237,29 @@
           "then": {
             "properties": {
               "interaction": {
-                "properties": { "type": { "const": "sequence-builder" } },
-                "not": {
-                  "anyOf": [
-                    { "required": ["categories"] },
-                    { "required": ["fields"] }
-                  ]
-                }
+                "oneOf": [
+                  {
+                    "properties": { "type": { "const": "sequence-builder" } },
+                    "not": {
+                      "anyOf": [
+                        { "required": ["categories"] },
+                        { "required": ["fields"] },
+                        { "required": ["candidates"] },
+                        { "required": ["exclusionReasons"] }
+                      ]
+                    }
+                  },
+                  {
+                    "required": ["type", "candidates", "exclusionReasons"],
+                    "properties": { "type": { "const": "candidate-link-review" } },
+                    "not": {
+                      "anyOf": [
+                        { "required": ["categories"] },
+                        { "required": ["fields"] }
+                      ]
+                    }
+                  }
+                ]
               }
             }
           }

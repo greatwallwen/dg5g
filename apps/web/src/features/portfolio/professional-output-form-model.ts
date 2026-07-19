@@ -1,6 +1,7 @@
 import type { ProfessionalOutputEnvelope } from '@/platform/learning-command-service';
 import type {
   ProfessionalOutputAggregate,
+  ProfessionalOutputEvidenceGap,
   ProfessionalOutputFieldSource,
   ProfessionalOutputStatus,
   ProfessionalOutputUpstreamRef,
@@ -16,6 +17,7 @@ import {
 export interface ProfessionalOutputFormState {
   fields: ProfessionalOutputFields;
   evidenceLinks: Record<string, string[]>;
+  evidenceGaps: Record<string, ProfessionalOutputEvidenceGap>;
   fieldSources: ProfessionalOutputFieldSource[];
   evidenceLibrary: EvidenceDefinition[];
   outputId?: string;
@@ -33,6 +35,7 @@ export interface ProfessionalOutputClientCommand {
   fields: ProfessionalOutputFields;
   upstreamRefs: ProfessionalOutputUpstreamRef[];
   evidenceLinks: Record<string, string[]>;
+  evidenceGaps: Record<string, ProfessionalOutputEvidenceGap>;
 }
 
 export type ProfessionalOutputFetch = (input: string, init?: RequestInit) => Promise<Response>;
@@ -86,6 +89,7 @@ export function projectProfessionalOutputFormState(
   return {
     fields,
     evidenceLinks: filterEvidenceLinks(current?.evidenceLinks ?? {}, allowedKeys),
+    evidenceGaps: filterEvidenceGaps(current?.evidenceGaps ?? {}, allowedKeys),
     fieldSources: normalizeFieldSources([
       ...projectedSources,
       ...(current?.fieldSources ?? []).filter(({ fieldKey }) => allowedKeys.has(fieldKey)),
@@ -124,6 +128,32 @@ export function reviseProfessionalOutputEvidence(
   return markLocallyRevising({
     ...state,
     evidenceLinks: { ...state.evidenceLinks, [fieldKey]: normalized },
+  });
+}
+
+export function reviseProfessionalOutputGap(
+  state: ProfessionalOutputFormState,
+  fieldKey: string,
+  gap: ProfessionalOutputEvidenceGap,
+): ProfessionalOutputFormState {
+  if (state.readOnly) return state;
+  const current = state.evidenceGaps[fieldKey];
+  if (current?.gapText === gap.gapText && current.nextActionText === gap.nextActionText) return state;
+  return markLocallyRevising({
+    ...state,
+    evidenceGaps: { ...state.evidenceGaps, [fieldKey]: gap },
+  });
+}
+
+export function isProfessionalOutputEvidenceCoverageComplete(
+  schema: ProfessionalOutputSchema,
+  evidenceLinks: Record<string, string[]>,
+  evidenceGaps: Record<string, ProfessionalOutputEvidenceGap>,
+): boolean {
+  return schema.fields.every(({ key }) => {
+    const hasEvidence = (evidenceLinks[key]?.length ?? 0) > 0;
+    const gap = evidenceGaps[key];
+    return hasEvidence || Boolean(gap?.gapText.trim() && gap.nextActionText.trim());
   });
 }
 
@@ -193,6 +223,18 @@ function filterEvidenceLinks(links: Record<string, string[]>, allowedKeys: Reado
   return Object.fromEntries(Object.entries(links)
     .filter(([fieldKey]) => allowedKeys.has(fieldKey))
     .map(([fieldKey, ids]) => [fieldKey, [...new Set(ids)].sort()]));
+}
+
+function filterEvidenceGaps(
+  gaps: Record<string, ProfessionalOutputEvidenceGap>,
+  allowedKeys: ReadonlySet<string>,
+) {
+  return Object.fromEntries(Object.entries(gaps)
+    .filter(([fieldKey]) => allowedKeys.has(fieldKey))
+    .map(([fieldKey, gap]) => [fieldKey, {
+      gapText: gap.gapText,
+      nextActionText: gap.nextActionText,
+    }]));
 }
 
 function normalizeFieldSources(sources: ProfessionalOutputFieldSource[]) {

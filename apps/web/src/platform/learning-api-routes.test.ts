@@ -165,7 +165,6 @@ test('P01 GET projects passed activity facts and draft persistence derives field
     assert.match(envelope.prefill.siteRoom.value, /01号机房/);
     assert.deepEqual(envelope.prefill.siteRoom.sources, [
       { sourceNodeId: 'P1T1-N01', sourceAttemptId: 'route-prefill-scope' },
-      { sourceNodeId: 'P1T1-N02', sourceAttemptId: 'demo-stu2-n02-transfer' },
     ]);
 
     const draftResponse = await outputDraftRoute.POST(jsonRequest(
@@ -182,7 +181,6 @@ test('P01 GET projects passed activity facts and draft persistence derives field
     const draft = await draftResponse.json();
     assert.deepEqual(draft.versions[0].fieldSources, [
       { fieldKey: 'siteRoom', sourceNodeId: 'P1T1-N01', sourceAttemptId: 'route-prefill-scope' },
-      { fieldKey: 'siteRoom', sourceNodeId: 'P1T1-N02', sourceAttemptId: 'demo-stu2-n02-transfer' },
     ]);
   });
 });
