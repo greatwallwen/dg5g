@@ -117,6 +117,7 @@ test('the clean workbench renders P01 lesson 1 as the primary two-click path', (
 
   assert.match(client, /data-start-lesson-primary/);
   assert.match(client, /data-primary-action=\{primary \? 'true' : undefined\}/);
+  assert.match(client, /useEffect\(\(\) => \{\s*setRevision\(expectedRevision\);\s*\}, \[expectedRevision\]\);/);
   assert.match(client, /recommendedNodeId/);
   assert.match(workbench, /primary=\{model\.newLesson\.trigger\.primary\}/);
   assert.match(workbench, /recommendedNodeId=\{model\.newLesson\.recommendedNodeId\}/);

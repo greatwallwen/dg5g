@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Icon } from '../../ui/foundation/icons.tsx';
 
 type RequestLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
@@ -116,6 +116,10 @@ export function TeacherStartLessonClient({
         Number(right.nodeId === recommendedNodeId) - Number(left.nodeId === recommendedNodeId)
       ))
     : options;
+
+  useEffect(() => {
+    setRevision(expectedRevision);
+  }, [expectedRevision]);
 
   async function chooseLesson(nodeId: string) {
     setPendingNodeId(nodeId);
