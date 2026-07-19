@@ -151,8 +151,11 @@ async function positionCapture(page, capture) {
 
 async function openState(page, job, baseUrl) {
   const target = new URL(`${job.state.route}${job.state.query ?? ''}`, baseUrl).toString();
-  const response = await page.goto(target, { waitUntil: 'networkidle', timeout: 60_000 });
+  // Live classroom surfaces keep authoritative snapshot and presence requests open.
+  // DOM readiness plus the state-specific stability checks below is the bounded signal.
+  const response = await page.goto(target, { waitUntil: 'domcontentloaded', timeout: 60_000 });
   if (!response?.ok()) throw new Error(`${job.key} returned ${response?.status() ?? 'no response'}`);
+  await page.waitForLoadState('load');
   if (job.surfaceId === 'login') {
     await page.locator('main[data-login-role="gateway"]').waitFor({ state: 'visible' });
     const username = job.state.setup.account;
@@ -161,7 +164,8 @@ async function openState(page, job, baseUrl) {
   }
   if (job.surfaceId.startsWith('n02-')) {
     const nav = page.locator('.self-study-head nav button');
-    if (await nav.count() >= 2) await nav.nth(1).click();
+    await nav.nth(1).waitFor({ state: 'visible' });
+    await nav.nth(1).click();
   }
   if (job.state.setup.editorState === 'revising') {
     const field = page.locator('[data-output-field] textarea').first();
@@ -170,7 +174,7 @@ async function openState(page, job, baseUrl) {
     await page.locator('[data-output-workflow="revising"][data-output-status="returned"] [data-primary-action]:not([disabled])')
       .waitFor({ state: 'visible' });
   }
-  await waitForImage2Stability(page, job.state).catch(() => undefined);
+  await waitForImage2Stability(page, job.state);
 }
 
 async function keyboardFailures(page, state, observation) {
@@ -257,6 +261,7 @@ export class Image2FixtureManager {
 
   async ensure(key) {
     if (this.completed.has(key)) return;
+    if (key === 'formal-test/open') await this.ensureFormalAssessmentOpen();
     if (key === 'n04-p01/returned') await this.ensureOutputState('stu-02', 'P01', 'returned');
     if (key === 'n04-p02/verified') await this.ensureOutputState('stu-03', 'P02', 'verified');
     if (key === 'n04-p03/verified') await this.ensureOutputState('stu-03', 'P03', 'verified');
@@ -264,7 +269,43 @@ export class Image2FixtureManager {
     if (key.startsWith('teacher-session/') || key.startsWith('student-follow/') || key.startsWith('projector/')) {
       await this.ensureClassroomFixture();
     }
+    if (key.startsWith('student-follow/') || key.startsWith('projector/')) {
+      await this.ensureClassroomActivityFixture();
+    }
     this.completed.add(key);
+  }
+
+  async ensureFormalAssessmentOpen() {
+    if (this.completed.has('fixture/formal-test-open')) return;
+    const plan = formalAssessmentOpenFixturePlan();
+    const student = await this.context(plan.actor);
+    const scope = await this.api(student, 'POST', plan.scope.route, plan.scope.data);
+    if (scope?.passed !== true) throw new Error('Image2 formal-test fixture did not pass the N01 scope activity.');
+
+    let snapshot = await this.api(student, 'GET', '/api/learning/me');
+    for (const section of plan.sections) {
+      snapshot = await this.api(student, 'POST', section.route, {
+        ...section.data,
+        expectedVersion: snapshot.version,
+      });
+    }
+    for (const practice of plan.practices) {
+      const result = await this.api(student, 'POST', practice.route, practice.data);
+      if (result?.passed !== true) {
+        throw new Error(`Image2 formal-test fixture did not pass ${practice.activityId}.`);
+      }
+    }
+
+    snapshot = await this.api(student, 'GET', '/api/learning/me');
+    const node = snapshot.nodes?.find(({ nodeId }) => nodeId === plan.nodeId);
+    if (node?.axes?.learning !== 'practice-passed') {
+      throw new Error(`Image2 formal-test fixture expected practice-passed, received ${node?.axes?.learning ?? 'none'}.`);
+    }
+    const issued = await this.api(student, 'GET', plan.assessmentRoute);
+    if (issued?.state !== 'in-progress' || typeof issued.attemptToken !== 'string') {
+      throw new Error(`Image2 formal-test fixture expected an active server-issued paper, received ${issued?.state ?? 'none'}.`);
+    }
+    this.completed.add('fixture/formal-test-open');
   }
 
   async ensureOutputState(actor, taskId, desired) {
@@ -290,6 +331,26 @@ export class Image2FixtureManager {
     if (this.completed.has('fixture/classroom')) return;
     const teacher = await this.context('teacher01');
     let payload = await this.api(teacher, 'GET', '/api/class-sessions/demo-class');
+    if (!payload.session.activeLessonRunId) {
+      payload = await this.api(teacher, 'POST', '/api/class-sessions/demo-class/lesson', {
+        lessonId: 'P01-L2',
+        expectedRevision: payload.session.lessonState.revision,
+      });
+    }
+    if (payload.session.lessonRunStatus === 'preparing') {
+      payload = await this.api(teacher, 'PATCH', '/api/class-sessions/demo-class/lesson', {
+        lessonRunId: payload.session.activeLessonRunId,
+        expectedRevision: payload.session.lessonState.revision,
+        command: { type: 'start' },
+      });
+    }
+    if (payload.session.lessonRunStatus === 'paused') {
+      payload = await this.api(teacher, 'PATCH', '/api/class-sessions/demo-class/lesson', {
+        lessonRunId: payload.session.activeLessonRunId,
+        expectedRevision: payload.session.lessonState.revision,
+        command: { type: 'resume' },
+      });
+    }
     if (payload.session.activeNodeId !== 'P1T1-N02') {
       throw new Error(`Image2 classroom fixture expected P1T1-N02, received ${payload.session.activeNodeId ?? 'none'}`);
     }
@@ -298,10 +359,8 @@ export class Image2FixtureManager {
       payload.session.lessonState.phase,
     );
     for (const phase of phases) {
-      payload = await this.api(teacher, 'PATCH', '/api/class-sessions/demo-class', {
-        intent: { type: 'phase_changed', phase },
-        expectedRevision: payload.session.lessonState.revision,
-      });
+      const request = classroomLessonIntentRequest('demo-class', payload.session, phase);
+      payload = await this.api(teacher, 'PATCH', request.route, request.data);
     }
     if (payload.session.sessionStatus !== 'active' || payload.session.lessonState.phase !== 'lecture') {
       throw new Error(`Image2 classroom fixture failed to reach active lecture: ${payload.session.sessionStatus}/${payload.session.lessonState.phase}`);
@@ -315,6 +374,21 @@ export class Image2FixtureManager {
     await this.api(left, 'PUT', '/api/class-sessions/demo-class/participation');
     await this.api(left, 'DELETE', '/api/class-sessions/demo-class/participation');
     this.completed.add('fixture/classroom');
+  }
+
+  async ensureClassroomActivityFixture() {
+    if (this.completed.has('fixture/classroom-activity')) return;
+    await this.ensureClassroomFixture();
+    const teacher = await this.context('teacher01');
+    let payload = await this.api(teacher, 'GET', '/api/class-sessions/demo-class');
+    if (payload.session.teachingCursor?.pageIndex !== 3) {
+      const request = classroomPageIntentRequest('demo-class', payload.session, 3);
+      payload = await this.api(teacher, 'PATCH', request.route, request.data);
+    }
+    if (payload.session.teachingCursor?.pageId !== 'P01-L2-P04') {
+      throw new Error(`Image2 classroom activity fixture expected P01-L2-P04, received ${payload.session.teachingCursor?.pageId ?? 'none'}`);
+    }
+    this.completed.add('fixture/classroom-activity');
   }
 
   async api(context, method, route, data, { allowLocked = false, allowNull = false } = {}) {
@@ -343,6 +417,64 @@ export function outputStateSatisfies(actual, desired) {
   return actual === desired;
 }
 
+export function formalAssessmentOpenFixturePlan() {
+  const actor = 'stu-03';
+  const nodeId = 'P1T1-N02';
+  const attempt = (activityId, response) => ({
+    activityId,
+    route: `/api/learning/activities/${activityId}/attempts`,
+    data: {
+      attemptId: `image2-${actor}-${activityId}`,
+      delivery: { channel: 'self-study' },
+      response,
+    },
+  });
+  return {
+    actor,
+    nodeId,
+    assessmentRoute: `/api/learning/nodes/${nodeId}/assessment`,
+    scope: attempt('P1T1-N01-micro-01', {
+      assignments: {
+        'room-01-cabinets': 'in-scope',
+        'shared-operator-cabinet': 'out-of-scope',
+        'room-02-cabinets': 'out-of-scope',
+      },
+    }),
+    sections: ['problem', 'figure', 'steps', 'correction'].map((sectionId) => ({
+      sectionId,
+      route: `/api/learning/nodes/${nodeId}/events`,
+      data: {
+        eventId: `image2-${actor}-${nodeId}-section-${sectionId}`,
+        channel: 'self-study',
+        eventType: 'section_completed',
+        payload: { sectionId, completed: true },
+      },
+    })),
+    practices: [
+      attempt('P1T1-N02-foundation-01', {
+        assignments: {
+          'room-overview': 'location',
+          'device-nameplate': 'identity',
+          'two-ended-port-trace': 'link',
+        },
+      }),
+      attempt('P1T1-N02-application-01', {
+        order: ['bbu-port', 'odf-in', 'odf-out', 'aau-port'],
+      }),
+      attempt('P1T1-N02-transfer-01', {
+        fields: {
+          siteId: 'HY-01',
+          roomId: '01',
+          cabinetId: 'K02',
+          deviceId: 'BBU-01',
+          nearPort: 'BBU-1/0',
+          farPort: 'AAU-1',
+        },
+      }),
+    ],
+  };
+}
+
 export function apiResponseCanBeEmpty(status, body, { allowLocked = false, allowNull = false } = {}) {
   if (allowNull && status === 404) return true;
   return Boolean(allowLocked && status === 403 && body?.routeState === 'locked');
@@ -356,6 +488,47 @@ export function planClassroomActivationPhases(status, phase) {
   if (phase === 'challenge') return ['review', 'lecture'];
   if (phase === 'lecture') return ['question', 'lecture'];
   throw new Error(`Unknown classroom phase: ${phase}`);
+}
+
+export function classroomLessonIntentRequest(sessionId, session, phase) {
+  const lessonRunId = session?.activeLessonRunId;
+  const expectedRevision = session?.lessonState?.revision;
+  if (typeof lessonRunId !== 'string' || lessonRunId.length === 0) {
+    throw new Error('Image2 classroom fixture requires an active lesson run.');
+  }
+  if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
+    throw new Error('Image2 classroom fixture requires an authoritative lesson revision.');
+  }
+  return {
+    route: `/api/class-sessions/${encodeURIComponent(sessionId)}/lesson`,
+    data: {
+      lessonRunId,
+      expectedRevision,
+      intent: { type: 'phase_changed', phase },
+    },
+  };
+}
+
+export function classroomPageIntentRequest(sessionId, session, pageIndex) {
+  const lessonRunId = session?.activeLessonRunId;
+  const expectedRevision = session?.lessonState?.revision;
+  if (typeof lessonRunId !== 'string' || lessonRunId.length === 0) {
+    throw new Error('Image2 classroom page fixture requires an active lesson run.');
+  }
+  if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
+    throw new Error('Image2 classroom page fixture requires an authoritative lesson revision.');
+  }
+  if (!Number.isSafeInteger(pageIndex) || pageIndex < 0) {
+    throw new Error('Image2 classroom page fixture requires a valid page index.');
+  }
+  return {
+    route: `/api/class-sessions/${encodeURIComponent(sessionId)}/lesson`,
+    data: {
+      lessonRunId,
+      expectedRevision,
+      intent: { type: 'page_changed', pageIndex },
+    },
+  };
 }
 
 function bindConsole(context, label, errors) {

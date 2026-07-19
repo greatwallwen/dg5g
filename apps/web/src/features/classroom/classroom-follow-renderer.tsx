@@ -1,65 +1,113 @@
 import Link from 'next/link';
-import { SceneVisual } from '../textbook-scene/learning-scene';
-import type { ClassroomFollowViewModel, ClassroomStudentScreen } from './classroom-follow-model';
-import { getNodeLearningPolicy } from '@/platform/learning-policy';
-
-const activityStateCopy: Record<ClassroomFollowViewModel['classroomActivity']['state'], string> = {
-  waiting: '等待教师推送',
-  open: '课堂活动进行中',
-  submitted: '课堂活动已提交',
-};
+import { ActivityWorkbench } from '../learning-activities/activity-workbench.tsx';
+import { SceneVisual } from '../textbook-scene/learning-scene.tsx';
+import type {
+  ClassroomFollowViewModel,
+  ClassroomStudentScreen,
+} from './classroom-follow-model.ts';
 
 export function ClassroomFollowRenderer({ model, onReturn, busy = false }: {
   model: ClassroomFollowViewModel;
   onReturn?: () => void;
   busy?: boolean;
 }) {
-  const policy = getNodeLearningPolicy(model.currentUnit.nodeId);
-  const formalTestAvailable = model.phase === 'challenge'
-    && policy?.requiresFormalTest === true
-    && policy.assessmentRole === 'node-test';
   return (
-    <section className="classroom-follow-renderer" data-classroom-follow-renderer data-motion="paused" data-primary-action-policy="exactly-one" data-revision={model.revision}>
-      <article className="classroom-follow-current" data-classroom-current-unit={model.currentUnit.nodeId}>
+    <section
+      className="classroom-follow-renderer"
+      data-classroom-follow-renderer
+      data-motion="paused"
+      data-read-only={model.readOnly || undefined}
+      data-revision={model.cursor.revision}
+    >
+      <article
+        className="classroom-follow-current"
+        data-classroom-current-page={model.cursor.pageId}
+        data-classroom-current-unit={model.cursor.nodeId}
+      >
         <header>
-          <span>{model.currentUnit.taskId} · {model.currentUnit.nodeId}</span>
-          <h1>{model.currentUnit.title}</h1>
-          <p>{model.currentUnit.question}</p>
+          <span>{model.cursor.taskId} · {model.cursor.nodeId} · {model.cursor.pageIndex + 1}/{model.cursor.pageCount}</span>
+          <h1>{model.currentPage.title}</h1>
+          <p>{model.currentPage.caseQuestion}</p>
         </header>
-        <div className="classroom-follow-visual" data-classroom-visual={model.currentUnit.visualId}>
-          <SceneVisual activeStep={Math.min(3, Math.max(0, model.revision % 4))} visualId={model.currentUnit.visualId} />
+        <div className="classroom-follow-visual" data-classroom-visual={model.currentPage.visualId} data-classroom-visual-renderer={model.currentPage.visualRenderer}>
+          {model.currentPage.visualRenderer === 'scene-visual' ? (
+            <SceneVisual
+              activeStep={Math.min(3, Math.max(0, model.cursor.actionIndex))}
+              visualId={model.currentPage.visualId}
+            />
+          ) : null}
         </div>
-        <p>{model.currentUnit.summary}</p>
+        <h2>{model.currentPage.projectorTitle}</h2>
+        <p>{model.currentPage.material}</p>
+        <ul>{model.currentPage.visualCallouts.map((point) => <li key={point}>{point}</li>)}</ul>
       </article>
 
       <article className="classroom-follow-task" data-teacher-task>
         <span>{model.teacherTask.label} · {model.teacherTask.phaseLabel}</span>
         <h2>{model.teacherTask.instruction}</h2>
-        <ul>{model.currentUnit.points.map((point) => <li key={point}>{point}</li>)}</ul>
+        <p>{model.currentPage.studentAction}</p>
       </article>
 
-      <article className="classroom-follow-activity" data-classroom-activity={model.classroomActivity.id} data-state={model.classroomActivity.state}>
-        <span>{activityStateCopy[model.classroomActivity.state]}</span>
-        <h2>{model.classroomActivity.prompt}</h2>
-        <ul>{model.classroomActivity.expectedEvidence.map((evidence) => <li key={evidence}>{evidence}</li>)}</ul>
-      </article>
-
-      {formalTestAvailable ? (
-        <Link
-          className="classroom-follow-formal-test"
-          data-classroom-formal-test="true"
-          data-primary-action="true"
-          href={`/learn/${model.currentUnit.nodeId}/test?classroomSessionId=${encodeURIComponent(model.sessionId)}`}
-        >
-          进入独立正式测试
-        </Link>
+      {model.classroomActivity ? (
+        model.readOnly ? (
+          <article
+            className="classroom-follow-activity classroom-follow-activity-read-only"
+            data-classroom-activity={model.classroomActivity.activity.id}
+            data-classroom-activity-read-only
+          >
+            <span>{model.classroomActivity.levelLabel} · 课堂已暂停</span>
+            <h2>{model.classroomActivity.activity.prompt}</h2>
+            <div className="activity-materials">
+              {model.classroomActivity.activity.materials.map((material) => (
+                <section data-activity-material={material.id} key={material.id}>
+                  <strong>{material.label}</strong><p>{material.detail}</p>
+                </section>
+              ))}
+            </div>
+          </article>
+        ) : (
+          <div data-classroom-activity={model.classroomActivity.activity.id}>
+            <ActivityWorkbench
+              activity={model.classroomActivity.activity}
+              delivery={{
+                channel: 'classroom',
+                sessionId: model.sessionId,
+                classroomRunId: model.cursor.lessonRunId,
+              }}
+              level={model.classroomActivity.level}
+              levelLabel={model.classroomActivity.levelLabel}
+              onPass={() => undefined}
+              passed={false}
+              primaryAction
+            />
+          </div>
+        )
       ) : null}
+
+      <div className="classroom-follow-destinations">
+        {model.formalAssessment ? (
+          <Link
+            data-classroom-formal-assessment={model.formalAssessment.gameId}
+            href={`${model.formalAssessment.href}?classroomSessionId=${encodeURIComponent(model.sessionId)}`}
+          >
+            进入独立正式测试
+          </Link>
+        ) : null}
+        {model.professionalOutput ? (
+          <Link
+            data-classroom-professional-output={model.professionalOutput.taskId}
+            href={model.professionalOutput.href}
+          >
+            进入专业成果提交
+          </Link>
+        ) : null}
+      </div>
 
       <button
         className="classroom-follow-return"
-        data-primary-action={formalTestAvailable ? undefined : 'true'}
         data-return-href={model.returnToSelfStudy.href}
         data-return-self-study
+        data-primary-action={!model.classroomActivity || model.readOnly || undefined}
         disabled={busy}
         onClick={onReturn}
         type="button"
@@ -104,13 +152,13 @@ export function ClassroomStudentModeRenderer({
   }
   if (screen.kind === 'self') {
     return (
-      <section className="classroom-self-status" data-classroom-self-status data-motion="paused" data-primary-action-policy="exactly-one" data-teacher-revision={screen.teacherRevision}>
+      <section className="classroom-self-status" data-classroom-self-status data-motion="paused" data-teacher-revision={screen.teacherRevision}>
         <span>自主学习中</span>
         <h1>{screen.hasTeacherUpdate ? '教师课堂已更新' : '个人阅读位置保持不变'}</h1>
         <p>教师切页不会覆盖你的教材位置。你可以回到完整自学，也可以主动回到教师当前页。</p>
         <div>
           <button data-return-href={screen.returnTarget.href} disabled={busy} onClick={onReturn} type="button">返回完整自学</button>
-          <button data-primary-action="true" data-return-to-teacher disabled={busy || sessionStatus !== 'active'} onClick={() => onModeChange?.('follow')} type="button">回到教师当前页</button>
+          <button data-primary-action data-return-to-teacher disabled={busy || sessionStatus !== 'active'} onClick={() => onModeChange?.('follow')} type="button">回到教师当前页</button>
         </div>
         {error ? <p className="classroom-action-error" data-classroom-action-error>{error}</p> : null}
       </section>
@@ -118,13 +166,13 @@ export function ClassroomStudentModeRenderer({
   }
   const canJoin = sessionStatus === 'active';
   return (
-    <section className="classroom-entry-status" data-classroom-entry-status data-motion="paused" data-primary-action-policy="exactly-one">
+    <section className="classroom-entry-status" data-classroom-entry-status data-motion="paused">
       <span>{entryLabel(sessionStatus)}</span>
       <h1>{canJoin ? '加入后才会接收教师当前讲授页' : '当前不会载入或跳转教师页面'}</h1>
       <p>课堂参与状态由你本人控制，不会覆盖完整自学游标。</p>
       <div>
-        <button data-classroom-join data-primary-action="true" disabled={busy || !canJoin} onClick={onJoin} type="button">{busy ? '正在加入' : '进入课堂'}</button>
-        <button data-return-href={screen.returnTarget.href} disabled={busy} onClick={onReturn} type="button">返回完整自学</button>
+        <button data-classroom-join data-primary-action={canJoin || undefined} disabled={busy || !canJoin} onClick={onJoin} type="button">{busy ? '正在加入' : '进入课堂'}</button>
+        <button data-primary-action={!canJoin || undefined} data-return-href={screen.returnTarget.href} disabled={busy} onClick={onReturn} type="button">返回完整自学</button>
       </div>
       {error ? <p className="classroom-action-error" data-classroom-action-error>{error}</p> : null}
     </section>

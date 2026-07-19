@@ -83,6 +83,17 @@ test('snapshot client rejects a different session and an incoherent classroom cu
     })),
     /Snapshot classroom cut is incoherent/,
   );
+
+  await assert.rejects(
+    fetchAuthoritativeSnapshot('student', 'demo-class', async () => Response.json({
+      ...studentSnapshotCut(8, 'follow'),
+      participation: {
+        ...studentSnapshotCut(8, 'follow').participation,
+        studentId: 'stu-02',
+      },
+    })),
+    /student participation cut is incoherent/i,
+  );
 });
 
 test('snapshot controller accepts a same-version cut to refresh serverNow', async () => {
@@ -162,6 +173,52 @@ test('snapshot controller keeps its last complete cut while exposing degraded an
   controller.stop();
 });
 
+test('student mutation transitions wait for a newer authoritative cut and concurrent tabs converge', async () => {
+  const leftClock = new ManualClock();
+  const rightClock = new ManualClock();
+  const initial = studentSnapshotCut(8, null);
+  let current = initial;
+  const left = createAuthoritativeSnapshotController({
+    audience: 'student',
+    sessionId: 'demo-class',
+    initialSnapshot: initial,
+    clock: leftClock,
+    getPollContext: () => ({ visible: true, online: true }),
+    fetchSnapshot: async () => current,
+  });
+  const right = createAuthoritativeSnapshotController({
+    audience: 'student',
+    sessionId: 'demo-class',
+    initialSnapshot: initial,
+    clock: rightClock,
+    getPollContext: () => ({ visible: true, online: true }),
+    fetchSnapshot: async () => current,
+  });
+  left.start();
+  right.start();
+  await settleAsyncWork();
+
+  let transitionReleased = false;
+  const transition = left.refreshAfterSnapshotVersion(8).then((snapshot) => {
+    transitionReleased = true;
+    return snapshot;
+  });
+  await settleAsyncWork();
+  assert.equal(transitionReleased, false, 'an equal-version confirmation cannot release the transition');
+
+  current = studentSnapshotCut(9, 'self');
+  left.refreshNow();
+  right.refreshNow();
+  await settleAsyncWork();
+  const confirmed = await transition;
+
+  assert.equal(confirmed.participation?.mode, 'self');
+  assert.equal(left.getState().snapshot.participation?.mode, 'self');
+  assert.equal(right.getState().snapshot.participation?.mode, 'self');
+  left.stop();
+  right.stop();
+});
+
 test('exports a hook state API for snapshot, connection, and refreshNow consumers', () => {
   assert.equal(typeof useAuthoritativeSnapshotState, 'function');
 });
@@ -185,6 +242,26 @@ function snapshotCut(overrides: {
       revision: classroomRevision,
       status: 'active',
     },
+  };
+}
+
+function studentSnapshotCut(
+  snapshotVersion: number,
+  mode: 'follow' | 'self' | null,
+): any {
+  return {
+    audience: 'student',
+    snapshotVersion,
+    generatedAt: '2026-07-18T07:59:59.000Z',
+    serverNow: '2026-07-18T08:00:00.000Z',
+    classroom: {
+      sessionId: 'demo-class', classId: 'demo-class', revision: 4, status: 'active',
+    },
+    participation: mode === null ? null : {
+      sessionId: 'demo-class', studentId: 'stu-01', state: 'joined', mode,
+      joinedAt: '2026-07-18T07:59:59.000Z', updatedAt: '2026-07-18T07:59:59.000Z',
+    },
+    me: { studentId: 'stu-01' },
   };
 }
 

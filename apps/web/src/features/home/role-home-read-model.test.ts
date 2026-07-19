@@ -138,7 +138,7 @@ test('authoritative membership/session failures remain an explicit blocked home 
   }
 });
 
-test('seeded personal entries preserve truthful user-only access', async () => {
+test('seeded demo prerequisites open sample routes without inventing user completion', async () => {
   const { RoleHomeReadRepository } = await readModel();
   const fixture = createTestDatabase();
   try {
@@ -158,9 +158,22 @@ test('seeded personal entries preserve truthful user-only access', async () => {
     ]);
     assert.deepEqual(entries.map((entry) => entry.selfStudy?.access.kind), [
       'open',
-      'locked',
-      'locked',
+      'open',
+      'open',
     ]);
+    assert.deepEqual(
+      entries.map((entry) => entry.selfStudy?.progress.nodeTestHighestScore),
+      [undefined, undefined, undefined],
+    );
+    for (const entry of entries) {
+      const progress = entry.selfStudy?.progress;
+      if (progress?.taskCompositeScore !== undefined) {
+        assert.equal(progress.taskScoreOrigin, 'demo');
+      }
+      if (progress?.projectCompositeScore !== undefined) {
+        assert.equal(progress.projectScoreOrigin, 'demo');
+      }
+    }
     assert.equal(entries.some((entry: { dataIssue?: string }) => Boolean(entry.dataIssue)), false);
   } finally {
     fixture.cleanup();

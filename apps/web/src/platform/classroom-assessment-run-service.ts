@@ -192,17 +192,32 @@ export class ClassroomAssessmentRunService {
     const at = now.toISOString();
     for (const studentId of [...new Set(input.studentIds)].sort()) {
       const running = this.database.prepare(`
-        SELECT EXISTS(
-          SELECT 1 FROM formal_assessment_instances AS instance
-          INNER JOIN formal_assessment_tokens AS token
-            ON token.assessment_id = instance.assessment_id AND token.student_id = ?
-          WHERE instance.node_id = ? AND instance.status = 'running'
-        )
-      `).pluck().get(studentId, input.nodeId) === 1;
-      if (running) {
+        SELECT DISTINCT instance.assessment_id AS assessmentId,
+          instance.classroom_run_id AS classroomRunId
+        FROM formal_assessment_instances AS instance
+        INNER JOIN formal_assessment_tokens AS token
+          ON token.assessment_id = instance.assessment_id AND token.student_id = ?
+        WHERE instance.node_id = ? AND instance.status = 'running'
+      `).all(studentId, input.nodeId) as Array<{
+        assessmentId: string;
+        classroomRunId: string | null;
+      }>;
+      if (running.some(({ classroomRunId }) => classroomRunId !== null)) {
         throw new AssessmentClassroomWindowError(
           `Student ${studentId} already has a running formal assessment.`,
         );
+      }
+      const standaloneAssessmentIds = running.map(({ assessmentId }) => assessmentId);
+      for (const assessmentId of standaloneAssessmentIds) {
+        this.database.prepare(`
+          UPDATE formal_assessment_instances
+          SET status = 'closed', closed_at = ?, closure_reason = 'cancelled'
+          WHERE assessment_id = ? AND status = 'running' AND classroom_run_id IS NULL
+        `).run(at, assessmentId);
+        this.database.prepare(`
+          UPDATE formal_assessment_tokens SET used_at = ?
+          WHERE assessment_id = ? AND used_at IS NULL
+        `).run(at, assessmentId);
       }
       const definitions = getFormalAssessmentDefinitions(input.nodeId);
       const priorAttempts = Number(this.database.prepare(`

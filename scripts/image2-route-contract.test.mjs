@@ -45,7 +45,7 @@ const expectedReferences = new Map(Object.entries({
   'student-follow/follow': 'docs/design/image2/dgbook-image2-student-follow-dark-v4.png',
   'formal-test/open': 'docs/design/image2/dgbook-image2-pixi-dark-v4.png',
 }));
-const noPrimaryAction = new Set(['p1-project/demo-complete', 'n04-p02/verified', 'n04-p03/verified', 'portfolio/incomplete', 'portfolio/demo-complete', 'projector/active']);
+const noPrimaryAction = new Set(['n04-p02/verified', 'n04-p03/verified', 'portfolio/incomplete', 'portfolio/demo-complete', 'projector/active']);
 const atMostOnePrimaryAction = new Set();
 const longPageStates = new Set([
   'p1-project/P01-current', 'p1-project/P01-returned', 'p1-project/demo-complete',
@@ -167,7 +167,8 @@ test('uses persisted demo prerequisites and truthful N04/portfolio terminal stat
   assert.ok(returnedProject?.requiredSelectors.includes('[data-p1-current-task="P01"]'));
   const demoProject = states.get('p1-project/demo-complete');
   assert.equal(demoProject?.setup.packageStatus, 'demo-complete');
-  assert.equal(demoProject?.primaryActionPolicy, 'none');
+  assert.equal(demoProject?.primaryActionPolicy, 'exactly-one');
+  assert.ok(demoProject?.requiredSelectors.includes('[data-primary-action]'));
   assert.ok(demoProject?.requiredSelectors.includes('[data-p1-portfolio-status="demo-complete"]'));
 
   for (const key of ['n02-p01/figure', 'n02-p02/figure', 'n02-p03/figure', 'formal-test/open']) {

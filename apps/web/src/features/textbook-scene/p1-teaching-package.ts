@@ -2,10 +2,12 @@ import {
   p01TeachingPackage,
   type P01TeachingPage,
 } from './p01-teaching-package.ts';
+import type { SceneVisualId } from './scene-visual-contract.ts';
 
 export type P1TeachingLessonId = 'P01-L1' | 'P01-L2' | 'P02-L1' | 'P03-L1';
 export type P1TeachingTaskId = 'P01' | 'P02' | 'P03';
 export type TeachingScaffoldLevel = 'full' | 'guided' | 'reduced' | 'independent';
+export type ClassroomPageVisualRenderer = 'scene-visual';
 export type P1TeachingNodeId =
   | 'P1T1-N01' | 'P1T1-N02' | 'P1T1-N03' | 'P1T1-N04'
   | 'P1T2-N01' | 'P1T2-N02' | 'P1T2-N03' | 'P1T2-N04'
@@ -37,6 +39,10 @@ export interface P1TeachingPage extends P01TeachingPage {
   professionalOutputTaskId?: P1TeachingTaskId;
   professionalOutput?: P1ProfessionalOutputTarget;
   interactiveRenderer?: 'pixi-topology';
+  classroomVisual: {
+    renderer: ClassroomPageVisualRenderer;
+    visualId: SceneVisualId;
+  };
   scaffoldLevel: TeachingScaffoldLevel;
 }
 
@@ -75,6 +81,21 @@ const p01NodeIdByPageId: Record<string, P1TeachingNodeId> = {
   'P01-L2-P04': 'P1T1-N02',
   'P01-L2-P05': 'P1T1-N04',
   'P01-L2-P06': 'P1T1-N02',
+};
+
+const p01VisualByPageId: Record<string, P1TeachingPage['classroomVisual']> = {
+  'P01-L1-P01': { renderer: 'scene-visual', visualId: 'indoor-boundary' },
+  'P01-L1-P02': { renderer: 'scene-visual', visualId: 'indoor-topology' },
+  'P01-L1-P03': { renderer: 'scene-visual', visualId: 'indoor-topology' },
+  'P01-L1-P04': { renderer: 'scene-visual', visualId: 'indoor-topology' },
+  'P01-L1-P05': { renderer: 'scene-visual', visualId: 'indoor-topology' },
+  'P01-L1-P06': { renderer: 'scene-visual', visualId: 'indoor-topology' },
+  'P01-L2-P01': { renderer: 'scene-visual', visualId: 'indoor-topology' },
+  'P01-L2-P02': { renderer: 'scene-visual', visualId: 'indoor-topology' },
+  'P01-L2-P03': { renderer: 'scene-visual', visualId: 'indoor-condition' },
+  'P01-L2-P04': { renderer: 'scene-visual', visualId: 'indoor-topology' },
+  'P01-L2-P05': { renderer: 'scene-visual', visualId: 'indoor-evidence' },
+  'P01-L2-P06': { renderer: 'scene-visual', visualId: 'indoor-topology' },
 };
 
 function formalAssessmentTarget(nodeId: P1FormalAssessmentNodeId): P1FormalAssessmentTarget {
@@ -122,6 +143,7 @@ function adaptP01Page(
     interactiveRenderer: canonicalActivityIds.includes('P1T1-N02-application-01')
       ? 'pixi-topology'
       : undefined,
+    classroomVisual: p01VisualByPageId[page.id]!,
     scaffoldLevel: lessonId === 'P01-L1' ? 'full' : 'guided',
   };
 }
@@ -146,6 +168,7 @@ function workplacePage(
   suggestedMinutes: number,
   segmentId: P01TeachingPage['segmentId'],
   canonicalActivityId: string,
+  classroomVisual: P1TeachingPage['classroomVisual'],
   content: WorkplacePageContent,
 ): P1TeachingPage {
   const id = `${lessonId}-P${String(pageNumber).padStart(2, '0')}`;
@@ -168,6 +191,7 @@ function workplacePage(
     formalAssessment,
     professionalOutputTaskId: professionalOutput?.taskId,
     professionalOutput,
+    classroomVisual,
     scaffoldLevel: taskId === 'P02' ? 'reduced' : 'independent',
   };
 }
@@ -180,7 +204,7 @@ const p01Lessons: P1TeachingLesson[] = p01TeachingPackage.map((lesson) => ({
 }));
 
 const p02Pages: P1TeachingPage[] = [
-  workplacePage('P02-L1', 'P02', 'P1T2-N01', 1, 5, 'learning-case', 'P1T2-N01-micro-01', {
+  workplacePage('P02-L1', 'P02', 'P1T2-N01', 1, 5, 'learning-case', 'P1T2-N01-micro-01', { renderer: 'scene-visual', visualId: 'outdoor-boundary' }, {
     title: '接单定界：把室外采集对象落到底图',
     projectorContent: {
       title: 'HY-02室外采集底图与工单',
@@ -196,7 +220,7 @@ const p02Pages: P1TeachingPage[] = [
     studentAction: '在底图分类六个候选对象，逐项填写纳入、排除或待复核依据。',
     transition: '范围确定后，下一页核对每个目标扇区的身份和姿态证据。',
   }),
-  workplacePage('P02-L1', 'P02', 'P1T2-N02', 2, 8, 'learning-visual', 'P1T2-N02-foundation-01', {
+  workplacePage('P02-L1', 'P02', 'P1T2-N02', 2, 8, 'learning-visual', 'P1T2-N02-foundation-01', { renderer: 'scene-visual', visualId: 'antenna-posture' }, {
     title: '扇区核验：把姿态参数挂到唯一对象',
     projectorContent: {
       title: '扇区2姿态证据包',
@@ -212,7 +236,7 @@ const p02Pages: P1TeachingPage[] = [
     studentAction: '把五份材料挂接到方位角、机械下倾、电下倾和挂高字段，并登记基准缺口。',
     transition: '单项参数已核验；下一页把水平指向、垂直姿态与道路热点重建成关系。',
   }),
-  workplacePage('P02-L1', 'P02', 'P1T2-N02', 3, 8, 'learning-procedure', 'P1T2-N02-application-01', {
+  workplacePage('P02-L1', 'P02', 'P1T2-N02', 3, 8, 'learning-procedure', 'P1T2-N02-application-01', { renderer: 'scene-visual', visualId: 'antenna-posture' }, {
     title: '关系重建：判断主瓣是否覆盖目标道路',
     projectorContent: {
       title: '扇区2与投诉道路方向关系',
@@ -228,7 +252,7 @@ const p02Pages: P1TeachingPage[] = [
     studentAction: '排序五个关系要素，写出每一步依据、结论边界和最小补证动作。',
     transition: '关系链形成后，下一页把现场风险转换为满足、异常、待复核或无权操作。',
   }),
-  workplacePage('P02-L1', 'P02', 'P1T2-N03', 4, 7, 'learning-correction', 'P1T2-N03-micro-01', {
+  workplacePage('P02-L1', 'P02', 'P1T2-N03', 4, 7, 'learning-correction', 'P1T2-N03-micro-01', { renderer: 'scene-visual', visualId: 'outdoor-obstacle' }, {
     title: '风险判断：区分事实异常与无权操作',
     projectorContent: {
       title: '遮挡、美化罩与登塔限制',
@@ -244,7 +268,7 @@ const p02Pages: P1TeachingPage[] = [
     studentAction: '为四项现场材料选择状态，填写触发事实、禁止动作和替代复核路径。',
     transition: '风险与权限已明确；下一页修订一份无法验证风险假设的路线表。',
   }),
-  workplacePage('P02-L1', 'P02', 'P1T2-N04', 5, 10, 'learning-practice', 'P1T2-N04-micro-01', {
+  workplacePage('P02-L1', 'P02', 'P1T2-N04', 5, 10, 'learning-practice', 'P1T2-N04-micro-01', { renderer: 'scene-visual', visualId: 'route' }, {
     title: '成果修订：让路线真正穿过风险边界',
     projectorContent: {
       title: 'V1路线与覆盖采集表缺陷',
@@ -260,7 +284,7 @@ const p02Pages: P1TeachingPage[] = [
     studentAction: '修订路线、点位、时间窗、对照条件和指标字段，提交V1/V2差异说明。',
     transition: '路线表可执行后，最后把美化罩场景的替代证据并入任务成果。',
   }),
-  workplacePage('P02-L1', 'P02', 'P1T2-N02', 6, 7, 'learning-output', 'P1T2-N02-transfer-01', {
+  workplacePage('P02-L1', 'P02', 'P1T2-N02', 6, 7, 'learning-output', 'P1T2-N02-transfer-01', { renderer: 'scene-visual', visualId: 'antenna-posture' }, {
     title: '任务收束：形成室外站点与覆盖采集表',
     projectorContent: {
       title: '美化罩站点迁移材料包',
@@ -279,7 +303,7 @@ const p02Pages: P1TeachingPage[] = [
 ];
 
 const p03Pages: P1TeachingPage[] = [
-  workplacePage('P03-L1', 'P03', 'P1T3-N01', 1, 5, 'learning-case', 'P1T3-N01-micro-01', {
+  workplacePage('P03-L1', 'P03', 'P1T3-N01', 1, 5, 'learning-case', 'P1T3-N01-micro-01', { renderer: 'scene-visual', visualId: 'route' }, {
     title: '受理投诉：从口述中提取可复测事实',
     projectorContent: {
       title: '用户原始口述（未整理）',
@@ -295,7 +319,7 @@ const p03Pages: P1TeachingPage[] = [
     studentAction: '独立填写投诉事实、模糊项和追问清单，保留原话与结构化记录对应。',
     transition: '事实边界明确后，下一页判断四份复测记录是否真正保持同条件。',
   }),
-  workplacePage('P03-L1', 'P03', 'P1T3-N02', 2, 8, 'learning-visual', 'P1T3-N02-foundation-01', {
+  workplacePage('P03-L1', 'P03', 'P1T3-N02', 2, 8, 'learning-visual', 'P1T3-N02-foundation-01', { renderer: 'scene-visual', visualId: 'route' }, {
     title: '复测比对：判断条件等价而非只看结果',
     projectorContent: {
       title: 'A、B、C、D四份复测记录',
@@ -311,7 +335,7 @@ const p03Pages: P1TeachingPage[] = [
     studentAction: '逐份标出变化条件，选择可比记录并写出结论边界和补测要求。',
     transition: '可比条件确定后，下一页把用户操作、业务现象和网络采样重建到同一时间轴。',
   }),
-  workplacePage('P03-L1', 'P03', 'P1T3-N02', 3, 8, 'learning-procedure', 'P1T3-N02-application-01', {
+  workplacePage('P03-L1', 'P03', 'P1T3-N02', 3, 8, 'learning-procedure', 'P1T3-N02-application-01', { renderer: 'scene-visual', visualId: 'route' }, {
     title: '复现脚本：重建15分钟事件时间轴',
     projectorContent: {
       title: '18:00—18:15现场复测原始记录',
@@ -327,7 +351,7 @@ const p03Pages: P1TeachingPage[] = [
     studentAction: '排序原始事件，补齐15分钟操作、采样、校时和重复步骤并提交时间轴。',
     transition: '时间轴建立后，下一页用同窗材料进行交叉判断，并保留支持与冲突。',
   }),
-  workplacePage('P03-L1', 'P03', 'P1T3-N03', 4, 8, 'learning-correction', 'P1T3-N03-micro-01', {
+  workplacePage('P03-L1', 'P03', 'P1T3-N03', 4, 8, 'learning-correction', 'P1T3-N03-micro-01', { renderer: 'scene-visual', visualId: 'route' }, {
     title: '交叉判断：保留支持线索与冲突证据',
     projectorContent: {
       title: '18:07同窗材料组',
@@ -343,7 +367,7 @@ const p03Pages: P1TeachingPage[] = [
     studentAction: '组织五条材料，写出支持、冲突、当前结论边界和下一步验证动作。',
     transition: '判断边界明确后，下一页修订一份只有“建议优化”的不可派单调查单。',
   }),
-  workplacePage('P03-L1', 'P03', 'P1T3-N04', 5, 9, 'learning-practice', 'P1T3-N04-micro-01', {
+  workplacePage('P03-L1', 'P03', 'P1T3-N04', 5, 9, 'learning-practice', 'P1T3-N04-micro-01', { renderer: 'scene-visual', visualId: 'route' }, {
     title: '调查单修订：把“建议优化”改成可派单闭环',
     projectorContent: {
       title: 'V1投诉信息调查单',
@@ -359,7 +383,7 @@ const p03Pages: P1TeachingPage[] = [
     studentAction: '修订材料索引、判断、责任人、时限、复测、回访和验收字段，保留版本差异。',
     transition: '调查单已经可派单；最后把方法迁移到高速移动投诉并形成P03成果。',
   }),
-  workplacePage('P03-L1', 'P03', 'P1T3-N02', 6, 7, 'learning-output', 'P1T3-N02-transfer-01', {
+  workplacePage('P03-L1', 'P03', 'P1T3-N02', 6, 7, 'learning-output', 'P1T3-N02-transfer-01', { renderer: 'scene-visual', visualId: 'route' }, {
     title: '迁移交付：完成投诉信息调查单',
     projectorContent: {
       title: '高速列车掉线迁移案例',

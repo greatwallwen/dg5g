@@ -41,12 +41,14 @@ export interface AuthoritativeSnapshotController<Audience extends SnapshotAudien
   getState(): AuthoritativeSnapshotState<Audience>;
   start(): void;
   refreshNow(): void;
+  refreshAfterSnapshotVersion(snapshotVersion: number): Promise<AudienceSnapshot<Audience>>;
   stop(): void;
 }
 
 export interface AuthoritativeSnapshotHookState<Audience extends SnapshotAudience>
   extends AuthoritativeSnapshotState<Audience> {
   refreshNow(): void;
+  refreshAfterSnapshotVersion(snapshotVersion: number): Promise<AudienceSnapshot<Audience>>;
 }
 
 export interface AuthoritativeSnapshotHookOptions {
@@ -63,6 +65,11 @@ export function createAuthoritativeSnapshotController<Audience extends SnapshotA
   onChange?: (state: AuthoritativeSnapshotState<Audience>) => void;
 }): AuthoritativeSnapshotController<Audience> {
   let running = false;
+  let refreshWaiters: Array<{
+    afterVersion: number;
+    resolve: (snapshot: AudienceSnapshot<Audience>) => void;
+    reject: (error: Error) => void;
+  }> = [];
   let state: AuthoritativeSnapshotState<Audience> = {
     snapshot: input.initialSnapshot,
     connection: { state: 'connecting' },
@@ -71,6 +78,19 @@ export function createAuthoritativeSnapshotController<Audience extends SnapshotA
   const publish = (next: AuthoritativeSnapshotState<Audience>) => {
     state = next;
     input.onChange?.(state);
+    const settled = refreshWaiters.filter(
+      ({ afterVersion }) => state.snapshot.snapshotVersion > afterVersion,
+    );
+    refreshWaiters = refreshWaiters.filter(
+      ({ afterVersion }) => state.snapshot.snapshotVersion <= afterVersion,
+    );
+    for (const waiter of settled) waiter.resolve(state.snapshot);
+  };
+
+  const rejectRefreshWaiters = (error: Error) => {
+    const pending = refreshWaiters;
+    refreshWaiters = [];
+    for (const waiter of pending) waiter.reject(error);
   };
 
   const publishFailure = (
@@ -97,7 +117,9 @@ export function createAuthoritativeSnapshotController<Audience extends SnapshotA
           : input.audience === 'projector' ? 'projector' : 'teacher',
         visible: context.visible,
         online: context.online,
-        participationMode: context.participationMode,
+        participationMode: input.audience === 'student'
+          ? participationModeFromSnapshot(state.snapshot)
+          : context.participationMode,
         sessionStatus: state.snapshot.classroom.status,
       });
     },
@@ -122,7 +144,9 @@ export function createAuthoritativeSnapshotController<Audience extends SnapshotA
         });
       } catch (error) {
         if (!running) return;
-        publishFailure(input.getPollContext().online ? 'degraded' : 'offline', errorMessage(error));
+        const message = errorMessage(error);
+        publishFailure(input.getPollContext().online ? 'degraded' : 'offline', message);
+        rejectRefreshWaiters(new Error(message));
       }
     },
   });
@@ -144,9 +168,22 @@ export function createAuthoritativeSnapshotController<Audience extends SnapshotA
       }
       poller.refreshNow();
     },
+    refreshAfterSnapshotVersion(snapshotVersion) {
+      if (!isSafeRevision(snapshotVersion)) {
+        return Promise.reject(new TypeError('Snapshot version must be a safe non-negative integer.'));
+      }
+      if (state.snapshot.snapshotVersion > snapshotVersion) return Promise.resolve(state.snapshot);
+      if (!running) return Promise.reject(new Error('Authoritative snapshot controller is not running.'));
+      const pending = new Promise<AudienceSnapshot<Audience>>((resolve, reject) => {
+        refreshWaiters.push({ afterVersion: snapshotVersion, resolve, reject });
+      });
+      poller.refreshNow();
+      return pending;
+    },
     stop() {
       running = false;
       poller.stop();
+      rejectRefreshWaiters(new Error('Authoritative snapshot controller stopped before refresh completed.'));
     },
   };
 }
@@ -188,6 +225,12 @@ export function useAuthoritativeSnapshotState<Audience extends SnapshotAudience>
   const refreshNow = useCallback(() => {
     controllerRef.current?.refreshNow();
   }, []);
+  const refreshAfterSnapshotVersion = useCallback((snapshotVersion: number) => {
+    const controller = controllerRef.current;
+    return controller
+      ? controller.refreshAfterSnapshotVersion(snapshotVersion)
+      : Promise.reject(new Error('Authoritative snapshot controller is not ready.'));
+  }, []);
 
   useEffect(() => {
     setState({ snapshot: initialSnapshot, connection: { state: 'connecting' } });
@@ -227,7 +270,7 @@ export function useAuthoritativeSnapshotState<Audience extends SnapshotAudience>
     if (previous !== options.participationMode) refreshNow();
   }, [options.participationMode, refreshNow]);
 
-  return { ...state, refreshNow };
+  return { ...state, refreshNow, refreshAfterSnapshotVersion };
 }
 
 function assertMatchingSnapshotCut(
@@ -247,6 +290,7 @@ function assertMatchingSnapshotCut(
     || !Number.isFinite(Date.parse(body.serverNow))) {
     throw new Error('Snapshot classroom cut is incomplete.');
   }
+  if (audience === 'student') assertStudentParticipationCut(body, sessionId);
   const activeLesson = body.classroom.activeLesson;
   if (activeLesson === undefined) return;
   if (!isRecord(activeLesson)
@@ -256,6 +300,31 @@ function assertMatchingSnapshotCut(
     || body.classroom.revision !== activeLesson.revision
     || activeLesson.revision !== activeLesson.cursor.revision) {
     throw new Error('Snapshot classroom cut is incoherent.');
+  }
+}
+
+function participationModeFromSnapshot(
+  snapshot: AuthoritativeSnapshot,
+): 'follow' | 'self' | undefined {
+  return snapshot.audience === 'student' && snapshot.participation?.state === 'joined'
+    ? snapshot.participation.mode
+    : undefined;
+}
+
+function assertStudentParticipationCut(body: Record<string, unknown>, sessionId: string): void {
+  if (!('participation' in body) || !isRecord(body.me) || typeof body.me.studentId !== 'string') {
+    throw new Error('Snapshot student participation cut is incomplete.');
+  }
+  const participation = body.participation;
+  if (participation === null) return;
+  if (!isRecord(participation)
+    || participation.sessionId !== sessionId
+    || participation.studentId !== body.me.studentId
+    || (participation.state !== 'joined' && participation.state !== 'left')
+    || (participation.mode !== 'follow' && participation.mode !== 'self')
+    || typeof participation.updatedAt !== 'string'
+    || !Number.isFinite(Date.parse(participation.updatedAt))) {
+    throw new Error('Snapshot student participation cut is incoherent.');
   }
 }
 

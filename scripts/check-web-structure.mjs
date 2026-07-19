@@ -282,8 +282,7 @@ function checkClassroomStateContract() {
     for (const snippet of [
       "const actor = await requireClassRole('student')",
       'loadStudentFollowPage(getDatabase(), actor, params.sessionId)',
-      'initialParticipation={data.participation}',
-      'studentId={actor.studentId}',
+      'initialSnapshot={data.initialSnapshot}',
     ]) {
       if (!followPageText.includes(snippet)) {
         fail('classroom/[sessionId]/page.tsx must derive student scope from the server actor via ' + snippet);
@@ -335,7 +334,7 @@ function checkStudentFollowRuntimeContract() {
   const clientFile = join(classroomRoot, 'student-follow-client.tsx');
   const runtimeFile = join(classroomRoot, 'student-follow-runtime.ts');
   const rendererFile = join(classroomRoot, 'classroom-follow-renderer.tsx');
-  const pollerFile = join(classroomRoot, 'use-class-session.ts');
+  const pollerFile = join(sourceRoot, 'features', 'snapshot', 'authoritative-snapshot-client.ts');
   const stylesFile = join(appRoot, 'student-classroom-runtime.css');
   const participationClientFile = join(classroomRoot, 'classroom-participation-client.ts');
   const participationRouteFile = join(appRoot, 'api', 'class-sessions', '[sessionId]', 'participation', 'route.ts');
@@ -355,43 +354,50 @@ function checkStudentFollowRuntimeContract() {
   const participationClientText = readFileSync(participationClientFile, 'utf8');
   const participationRouteText = readFileSync(participationRouteFile, 'utf8');
 
-  for (const snippet of ['loadStudentFollowPage(getDatabase(), actor, params.sessionId)', 'ClassSessionUnavailable', 'initialParticipation={data.participation}']) {
+  for (const snippet of ['loadStudentFollowPage(getDatabase(), actor, params.sessionId)', 'ClassSessionUnavailable', 'initialSnapshot={data.initialSnapshot}']) {
     if (!pageText.includes(snippet)) fail(`student classroom page must load one exact SQLite session through ${snippet}`);
   }
   for (const forbidden of ['isActiveDemoSession', 'getStudentFollowState', 'mock-api', 'P1T1-N01']) {
     if (pageText.includes(forbidden)) fail(`student classroom page must not restore the legacy node-session fallback through ${forbidden}`);
   }
 
-  for (const snippet of ['sessionRepository.readSession(sessionId)', 'participationRepository.read(sessionId, studentId)', 'SelfStudyCursorRepository', "href: '/student/home'"]) {
+  for (const snippet of ['new ClassroomSessionRepository(database).readSession(sessionId)', 'new AuthoritativeSnapshotReader(database).read(', 'SelfStudyCursorRepository', 'p1Activities', "href: '/student/home'"]) {
     if (!loaderText.includes(snippet)) fail(`student-follow-loader.ts must derive an exact read-only actor projection through ${snippet}`);
   }
-  for (const forbidden of ['.join(', 'joinClassroomParticipation', 'P1T1-N01']) {
+  for (const forbidden of ['.join(', 'joinClassroomParticipation', 'ClassroomParticipationRepository', 'initialParticipation', 'loadSelfStudyCatalog', 'P1T1-N01']) {
     if (loaderText.includes(forbidden)) fail(`student-follow-loader.ts must never join or invent a fallback through ${forbidden}`);
   }
 
-  for (const snippet of ['createClassroomParticipationClient', 'joinStudentClassroom', 'changeStudentClassroomMode', 'leaveStudentClassroom', 'ClassroomStudentModeRenderer', 'participationMode: mode']) {
+  for (const snippet of ['createClassroomParticipationClient', 'joinStudentClassroom', 'changeStudentClassroomMode', 'leaveStudentClassroom', 'ClassroomStudentModeRenderer', 'useAuthoritativeSnapshotState(', 'snapshot.participation', 'refreshAfterSnapshotVersion', 'snapshot.classroom.revision']) {
     if (!clientText.includes(snippet)) fail(`student-follow-client.tsx must use durable participation and the dedicated renderer through ${snippet}`);
   }
-  for (const forbidden of ['studentControlSource', 'scene-follow-path', 'setSelfIndex', 'studentSyncState === \'forced\'', 'self-study-cursor-client']) {
+  if (clientText.split('useAuthoritativeSnapshotState(').length !== 2) {
+    fail('student-follow-client.tsx must render from exactly one authoritative snapshot hook');
+  }
+  for (const forbidden of ['useClassSession', 'initialParticipation', 'setParticipation', 'participationMode: mode', 'studentControlSource', 'scene-follow-path', 'setSelfIndex', 'studentSyncState === \'forced\'', 'self-study-cursor-client']) {
     if (clientText.includes(forbidden)) fail(`student-follow-client.tsx must not restore mixed self/follow state through ${forbidden}`);
   }
 
-  for (const snippet of ['await gateway.leave(sessionId)', 'navigate(href)']) {
-    if (!runtimeText.includes(snippet)) fail(`student-follow-runtime.ts must persist leave before navigation through ${snippet}`);
+  for (const snippet of ['await gateway.leave(sessionId)']) {
+    if (!runtimeText.includes(snippet)) fail(`student-follow-runtime.ts must persist participation through ${snippet}`);
   }
-  for (const snippet of ['data-classroom-current-unit', 'data-teacher-task', 'data-classroom-activity', 'data-return-self-study', 'data-classroom-self-status', 'data-classroom-entry-status']) {
+  if (runtimeText.includes('navigate(')) fail('student-follow-runtime.ts must not treat a mutation response as navigation authority');
+  for (const snippet of ['await refreshAfterSnapshotVersion(beforeVersion)', 'navigate(returnTarget.href)']) {
+    if (!clientText.includes(snippet)) fail(`student-follow-client.tsx must await a newer authoritative cut before navigation through ${snippet}`);
+  }
+  for (const snippet of ['data-classroom-current-page', 'data-classroom-current-unit', 'data-teacher-task', 'data-classroom-activity', 'ActivityWorkbench', "channel: 'classroom'", 'classroomRunId: model.cursor.lessonRunId', 'data-return-self-study', 'data-classroom-self-status', 'data-classroom-entry-status']) {
     if (!rendererText.includes(snippet)) fail(`classroom-follow-renderer.tsx must expose the focused classroom regions through ${snippet}`);
   }
 
   for (const snippet of ['createClassSessionPoller', 'resolvePollTier', 'participationMode', 'visibilitychange']) {
-    if (!pollerText.includes(snippet)) fail(`use-class-session.ts must use completion-scheduled lifecycle polling through ${snippet}`);
+    if (!pollerText.includes(snippet)) fail(`authoritative-snapshot-client.ts must use completion-scheduled lifecycle polling through ${snippet}`);
   }
 
   for (const snippet of ['.classroom-follow-renderer', '.classroom-follow-current', '.classroom-follow-task', '.classroom-follow-activity', '.classroom-follow-return', '@media (max-width: 720px)']) {
     if (!stylesText.includes(snippet)) fail(`student-classroom-runtime.css must style the focused classroom regions through ${snippet}`);
   }
   for (const forbidden of ['setInterval', 'ACTIVE_POLL_INTERVAL_MS', '400']) {
-    if (pollerText.includes(forbidden)) fail(`use-class-session.ts must not restore the old hot polling loop through ${forbidden}`);
+    if (pollerText.includes(forbidden)) fail(`authoritative-snapshot-client.ts must not restore the old hot polling loop through ${forbidden}`);
   }
 
   for (const snippet of ["method: 'GET'", "method: 'PUT'", "method: 'PATCH'", "method: 'DELETE'", "credentials: 'same-origin'"]) {
@@ -1057,7 +1063,7 @@ function checkP1LearningLoopContract() {
     for (const file of [followRendererFile, followModelFile, followLoaderFile]) if (!exists(file)) fail(`${slash(relative(root, file))} is required for generated classroom follow content`);
     if ([followRendererFile, followModelFile, followLoaderFile].every(exists)) {
       const followText = [followFile, followRendererFile, followModelFile, followLoaderFile].map((file) => readFileSync(file, 'utf8')).join('\n');
-      for (const snippet of ['createClassroomContentCatalog', 'loadSelfStudyCatalog', 'data-classroom-current-unit', 'data-teacher-task', 'data-classroom-activity', 'data-return-self-study']) {
+      for (const snippet of ['createClassroomActivityCatalog', 'p1Activities', 'canonicalActivityIds', 'data-classroom-current-page', 'data-classroom-current-unit', 'data-teacher-task', 'data-classroom-activity', 'data-return-self-study']) {
         if (!followText.includes(snippet)) fail(`classroom follow must render generated P01/P02/P03 content through ${snippet}`);
       }
     }
@@ -1175,10 +1181,13 @@ function checkP1LearningLoopContract() {
     }
   }
 
-  const followFile = join(classroomRoot, 'student-follow-client.tsx');
+  const followFile = join(classroomRoot, 'classroom-follow-renderer.tsx');
   const handoffFile = join(classroomRoot, 'classroom-skill-handoff.tsx');
-  if (exists(followFile) && !readFileSync(followFile, 'utf8').includes("type: 'classroom_submitted'")) {
-    fail('student-follow-client.tsx must write classroom_submitted into skill progress');
+  if (exists(followFile)) {
+    const text = readFileSync(followFile, 'utf8');
+    for (const snippet of ['ActivityWorkbench', "channel: 'classroom'", 'classroomRunId: model.cursor.lessonRunId']) {
+      if (!text.includes(snippet)) fail(`classroom-follow-renderer.tsx must submit canonical classroom activity evidence through ${snippet}`);
+    }
   }
   if (exists(handoffFile) && !readFileSync(handoffFile, 'utf8').includes('data-follow-skill-handoff')) {
     fail('classroom-skill-handoff.tsx must return submitted learners to the professional challenge');

@@ -34,6 +34,11 @@ import {
 } from './formal-assessment-catalog.server.ts';
 import { validatePersistedAssessmentDiagnostic } from './persisted-assessment-diagnostic.ts';
 import { currentUserFormalAssessmentState } from './formal-assessment-state-projection.ts';
+import {
+  currentOutputState,
+  hasValidPrerequisiteOutputSubmission,
+  hasValidUserOutputSubmission,
+} from './bound-output-submission.ts';
 
 export const REQUIRED_SELF_STUDY_SECTIONS = [
   'problem',
@@ -170,21 +175,19 @@ function projectStudentLearningFacts(facts: StudentLearningFacts): StudentLearni
     const classroomSubmitted = practiceAttempts.some(
       ({ deliveryChannel }) => deliveryChannel === 'classroom',
     );
-    const evidence = latestOutputForNode(facts.outputs, policy.nodeId);
+    const evidence = latestOutputForNode(facts, policy.taskId, policy.nodeId);
     const storedReview = evidence
-      ? latestReviewForOutput(facts.reviews, evidence.outputId, evidence.currentVersion)
+      ? latestReviewForOutput(facts.reviews, evidence)
       : undefined;
     const review = storedReview ? toReviewProjection(storedReview) : undefined;
     const userEvidence = latestOutputForNode(
-      facts.outputs.filter(({ origin }) => origin === 'user'),
+      facts,
+      policy.taskId,
       policy.nodeId,
+      'user',
     );
     const userStoredReview = userEvidence
-      ? latestReviewForOutput(
-          facts.reviews.filter(({ origin }) => origin === 'user'),
-          userEvidence.outputId,
-          userEvidence.currentVersion,
-        )
+      ? latestReviewForOutput(facts.reviews, userEvidence)
       : undefined;
     const userReview = userStoredReview ? toReviewProjection(userStoredReview) : undefined;
     const taskTestNodeId = nodeLearningPolicies.find((candidate) => (
@@ -195,6 +198,7 @@ function projectStudentLearningFacts(facts: StudentLearningFacts): StudentLearni
           facts,
           taskId: policy.taskId,
           testNodeId: taskTestNodeId,
+          outputNodeId: policy.nodeId,
           output: userEvidence,
           outputReview: userStoredReview,
         })
@@ -226,7 +230,7 @@ function projectStudentLearningFacts(facts: StudentLearningFacts): StudentLearni
         policy.nodeId,
       ),
       outputState: currentOutputState(
-        facts.events,
+        facts,
         policy.taskId,
         policy.nodeId,
         userEvidence,
@@ -282,7 +286,7 @@ function projectStudentLearningFacts(facts: StudentLearningFacts): StudentLearni
       prerequisites,
       ...(bestFormalScore === undefined ? {} : { bestFormalScore }),
       nextRequirement: projection.nextRequirement,
-      taskAdvanceReady: hasValidUserOutputSubmission(facts.events, policy.taskId, policy.nodeId),
+      taskAdvanceReady: hasValidUserOutputSubmission(facts, policy.taskId, policy.nodeId),
       ...(origin ? { origin } : {}),
     };
     snapshots.set(policy.nodeId, node);
@@ -296,15 +300,20 @@ function projectStudentLearningFacts(facts: StudentLearningFacts): StudentLearni
       .filter(({ assessmentRole }) => assessmentRole === 'node-test')
       .map(({ nodeId }) => nodeId));
     const taskAttempts = [...testNodeIds].flatMap((nodeId) => (
-      preferUserOrigin(validFormalAttempts(facts.attempts, nodeId))
+      preferUserOrigin(validFormalAttempts(
+        facts.attempts.filter(({ studentId }) => studentId === facts.studentId),
+        nodeId,
+      ))
     ));
     const scores = taskAttempts.map(({ score }) => score);
     const nodeTestHighestScore = scores.length ? Math.max(...scores) : undefined;
     const nodeTestScoreOrigin = activeOrigin(taskAttempts);
     const outputPolicy = taskPolicies.find(({ requiresProfessionalOutput }) => requiresProfessionalOutput);
-    const output = outputPolicy ? latestOutputForNode(facts.outputs, outputPolicy.nodeId) : undefined;
+    const output = outputPolicy
+      ? latestOutputForNode(facts, taskId, outputPolicy.nodeId)
+      : undefined;
     const outputReview = output
-      ? latestReviewForOutput(facts.reviews, output.outputId, output.currentVersion)
+      ? latestReviewForOutput(facts.reviews, output)
       : undefined;
     const outputRubricScore = output?.status === 'verified'
       && outputReview?.status === 'verified'
@@ -316,6 +325,7 @@ function projectStudentLearningFacts(facts: StudentLearningFacts): StudentLearni
       facts,
       taskId,
       testNodeId: [...testNodeIds][0],
+      outputNodeId: outputPolicy?.nodeId,
       output,
       outputReview,
     });
@@ -397,30 +407,42 @@ function findCertifiedTaskScore({
   facts,
   taskId,
   testNodeId,
+  outputNodeId,
   output,
   outputReview,
 }: {
   facts: StudentLearningFacts;
   taskId: P1TaskId;
   testNodeId: P1NodeId | undefined;
+  outputNodeId: P1NodeId | undefined;
   output: StoredProfessionalOutput | undefined;
   outputReview: StoredOutputReview | undefined;
 }): CertifiedTaskScore | undefined {
   if (
     !testNodeId
+    || !outputNodeId
     || !output
+    || output.studentId !== facts.studentId
+    || output.taskId !== taskId
+    || output.nodeId !== outputNodeId
     || output.status !== 'verified'
     || !outputReview
+    || outputReview.outputId !== output.outputId
     || outputReview.status !== 'verified'
     || outputReview.outputVersion !== output.currentVersion
     || outputReview.score === undefined
     || output.origin !== outputReview.origin
+    || !facts.outputVersions.some((version) => (
+      version.outputId === output.outputId
+      && version.taskId === taskId
+      && version.version === output.currentVersion
+    ))
   ) return undefined;
 
   const policy = getFormalAssessmentValidationPolicy(testNodeId);
   if (!policy) return undefined;
   const candidates = facts.frozenTaskScores
-    .filter((score) => canonicalFrozenTaskId(score.taskId) === taskId)
+    .filter((score) => score.studentId === facts.studentId && score.taskId === taskId)
     .slice()
     .reverse();
   for (const frozen of candidates) {
@@ -432,7 +454,12 @@ function findCertifiedTaskScore({
     const attempt = attemptId
       ? facts.attempts.find((candidate) => candidate.attemptId === attemptId)
       : undefined;
-    if (!details || !attempt || attempt.origin !== frozen.origin) continue;
+    if (
+      !details
+      || !attempt
+      || attempt.studentId !== facts.studentId
+      || attempt.origin !== frozen.origin
+    ) continue;
     const validated = validatePersistedAssessmentDiagnostic({
       attemptId: attempt.attemptId,
       studentId: attempt.studentId,
@@ -502,18 +529,6 @@ function findCertifiedTaskScore({
   return undefined;
 }
 
-function canonicalFrozenTaskId(taskId: string): P1TaskId | undefined {
-  const aliases: Record<string, P1TaskId> = {
-    P01: 'P01',
-    P02: 'P02',
-    P03: 'P03',
-    P1T1: 'P01',
-    P1T2: 'P02',
-    P1T3: 'P03',
-  };
-  return aliases[taskId];
-}
-
 function stringValue(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
 }
@@ -543,18 +558,30 @@ function toReviewProjection(review: StoredOutputReview): OutputReviewProjection 
   };
 }
 
-function latestOutputForNode(outputs: StoredProfessionalOutput[], nodeId: string): StoredProfessionalOutput | undefined {
-  return preferUserOrigin(outputs.filter((output) => output.nodeId === nodeId)).at(-1);
+function latestOutputForNode(
+  facts: StudentLearningFacts,
+  taskId: P1TaskId,
+  nodeId: string,
+  origin?: LearningOrigin,
+): StoredProfessionalOutput | undefined {
+  const outputs = facts.outputs.filter((output) => (
+    output.studentId === facts.studentId
+    && output.taskId === taskId
+    && output.nodeId === nodeId
+    && (origin === undefined || output.origin === origin)
+  ));
+  return preferUserOrigin(outputs).at(-1);
 }
 
 function latestReviewForOutput(
   reviews: StoredOutputReview[],
-  outputId: string,
-  outputVersion: number,
+  output: StoredProfessionalOutput,
 ): StoredOutputReview | undefined {
-  const scoped = preferUserOrigin(reviews.filter((review) => review.outputId === outputId));
-  return scoped.filter((review) => review.outputVersion === outputVersion).at(-1)
-    ?? scoped.filter((review) => review.outputVersion === undefined).at(-1);
+  return reviews.filter((review) => (
+    review.outputId === output.outputId
+    && review.origin === output.origin
+    && review.outputVersion === output.currentVersion
+  )).at(-1);
 }
 
 function evidenceReviewState(
@@ -567,49 +594,23 @@ function evidenceReviewState(
   return 'submitted';
 }
 
-function currentOutputState(
-  events: StoredLearningEvent[],
-  taskId: P1TaskId,
-  nodeId: string,
-  output: StoredProfessionalOutput | undefined,
-  review: OutputReviewProjection | undefined,
-): 'editing' | 'submitted' | 'returned' | 'revising' | 'resubmitted' | 'verified' {
-  const submissions = validUserOutputSubmissions(events, taskId, nodeId);
-  if (!output || output.status === 'draft') {
-    return output && submissions.length > 0 ? 'revising' : 'editing';
-  }
-  if (output.status === 'returned' || review?.status === 'returned') return 'returned';
-  if (output.status === 'verified' && review?.status === 'verified') return 'verified';
-  const currentSubmissions = submissions.filter(({ payload }) => (
-    payload.outputId === output.outputId && payload.version === output.currentVersion
-  ));
-  const outputSubmissions = submissions.filter(({ payload }) => payload.outputId === output.outputId);
-  return currentSubmissions.length > 0 && outputSubmissions.length > 1
-    ? 'resubmitted'
-    : 'submitted';
-}
-
 function prerequisiteProgressForNode(
   facts: StudentLearningFacts,
   nodeId: string,
 ): PrerequisiteProgress {
   const policy = getNodeLearningPolicy(nodeId);
-  const userPracticeAttempts = facts.practiceAttempts.filter((attempt) => (
-    attempt.nodeId === nodeId && attempt.origin === 'user'
+  const prerequisitePracticeAttempts = facts.practiceAttempts.filter((attempt) => (
+    attempt.nodeId === nodeId
   ));
-  const validFormalAttempts = validUserFormalAttempts(facts.attempts, nodeId);
+  const prerequisiteFormalAttempts = validFormalAttempts(facts.attempts, nodeId);
   const professionalOutputSubmittedOnce = policy
-    ? hasValidUserOutputSubmission(facts.events, policy.taskId, nodeId)
+    ? hasValidPrerequisiteOutputSubmission(facts, policy.taskId, nodeId)
     : false;
   const output = policy
-    ? latestOutputForNode(facts.outputs.filter(({ origin }) => origin === 'user'), nodeId)
+    ? latestOutputForNode(facts, policy.taskId, nodeId, 'user')
     : undefined;
   const review = output
-    ? latestReviewForOutput(
-        facts.reviews.filter(({ origin }) => origin === 'user'),
-        output.outputId,
-        output.currentVersion,
-      )
+    ? latestReviewForOutput(facts.reviews, output)
     : undefined;
   const testNodeId = policy
     ? nodeLearningPolicies.find((candidate) => (
@@ -619,15 +620,16 @@ function prerequisiteProgressForNode(
   return {
     nodeId,
     microPracticePassed: policy
-      ? microPracticePassed(policy.requiredActivityIds, userPracticeAttempts)
+      ? microPracticePassed(policy.requiredActivityIds, prerequisitePracticeAttempts)
       : false,
     formalTestPassed: policy?.requiresFormalTest === true
-      && validFormalAttempts.some(({ score }) => score >= (policy.formalPassScore ?? 80)),
+      && prerequisiteFormalAttempts.some(({ score }) => score >= (policy.formalPassScore ?? 80)),
     professionalOutputSubmittedOnce,
     teacherVerified: policy !== undefined && findCertifiedTaskScore({
       facts,
       taskId: policy.taskId,
       testNodeId,
+      outputNodeId: policy.nodeId,
       output,
       outputReview: review,
     })?.origin === 'user',
@@ -648,47 +650,6 @@ function prerequisiteFactMet(
     case 'teacher-verified':
       return progress.teacherVerified;
   }
-}
-
-function hasValidUserOutputSubmission(
-  events: StoredLearningEvent[],
-  taskId: P1TaskId,
-  nodeId: string,
-): boolean {
-  return validUserOutputSubmissions(events, taskId, nodeId).length > 0;
-}
-
-function validUserOutputSubmissions(
-  events: StoredLearningEvent[],
-  taskId: P1TaskId,
-  nodeId: string,
-): Array<StoredLearningEvent & {
-  payload: { taskId: P1TaskId; outputId: string; version: number };
-}> {
-  return events.flatMap((event) => {
-    if (
-      event.origin !== 'user'
-      || event.nodeId !== nodeId
-      || event.eventType !== 'evidence_submitted'
-      || !isRecord(event.payload)
-    ) return [];
-    const valid = hasExactKeys(event.payload, ['taskId', 'outputId', 'version', 'stateRevision'])
-      && event.payload.taskId === taskId
-      && typeof event.payload.outputId === 'string'
-      && event.payload.outputId.trim().length > 0
-      && Number.isInteger(event.payload.version)
-      && Number(event.payload.version) >= 1
-      && Number.isInteger(event.payload.stateRevision)
-      && Number(event.payload.stateRevision) >= 1;
-    return valid ? [{
-      ...event,
-      payload: {
-        taskId,
-        outputId: event.payload.outputId as string,
-        version: Number(event.payload.version),
-      },
-    }] : [];
-  });
 }
 
 function validUserFormalAttempts(
@@ -781,8 +742,4 @@ function requiredSnapshot(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function hasExactKeys(record: Record<string, unknown>, keys: readonly string[]): boolean {
-  return Object.keys(record).length === keys.length && keys.every((key) => Object.hasOwn(record, key));
 }

@@ -72,6 +72,40 @@ test('start atomically provisions one shared run and independent instances and t
   }
 });
 
+test('classroom start supersedes a standalone in-progress paper without losing classroom eligibility', () => {
+  const fixture = classroomFixture();
+  try {
+    readyForFormalAssessment(fixture.database, studentOne.userId);
+    const standalone = fixture.formal.openOrResume(studentOne, 'P1T1-N02');
+    assert.equal(standalone.state, 'in-progress');
+
+    const started = start(fixture, new Date('2026-07-18T02:02:00.000Z'));
+    assert.equal(started.eligibleCount, 3);
+    assert.deepEqual(fixture.database.prepare(`
+      SELECT status, closure_reason AS closureReason
+      FROM formal_assessment_instances WHERE assessment_id = ?
+    `).get(standalone.assessmentId), { status: 'closed', closureReason: 'cancelled' });
+    assert.equal(fixture.database.prepare(`
+      SELECT COUNT(*) FROM formal_assessment_tokens
+      WHERE assessment_id = ? AND used_at IS NULL
+    `).pluck().get(standalone.assessmentId), 0);
+
+    const classroomPaper = fixture.formal.openOrResume(
+      studentOne, 'P1T1-N02', { classroomSessionId: 'demo-class' },
+    );
+    assert.equal(classroomPaper.state, 'in-progress');
+    assert.notEqual(classroomPaper.assessmentId, standalone.assessmentId);
+    assert.equal(
+      fixture.database.prepare(`
+        SELECT classroom_run_id FROM formal_assessment_instances WHERE assessment_id = ?
+      `).pluck().get(classroomPaper.assessmentId),
+      started.runId,
+    );
+  } finally {
+    fixture.cleanup();
+  }
+});
+
 test('assessment pause freezes remainder and resume reissues timing tokens without replacing identity or draft', () => {
   const fixture = classroomFixture();
   try {
@@ -281,6 +315,78 @@ test('last eligible submission atomically closes the shared run and advances cla
   }
 });
 
+test('the last submitter resumes the current all-submitted run as the same terminal result', () => {
+  const fixture = classroomFixture();
+  try {
+    const started = start(fixture, new Date('2026-07-18T02:00:00.000Z'));
+    fixture.formal.submitAnswers(studentTwo, fixture.tokens[1]!, passingAnswers, 'P1T1-N02');
+    fixture.formal.submitAnswers(studentThree, fixture.tokens[2]!, passingAnswers, 'P1T1-N02');
+    const assessmentId = assessmentIdForStudent(fixture.database, started.runId, studentOne.userId);
+    const submitted = fixture.formal.submitAnswers(
+      studentOne, fixture.tokens[0]!, passingAnswers, 'P1T1-N02',
+    );
+    assert.deepEqual(
+      fixture.repository.readRun(started.runId),
+      {
+        ...fixture.repository.readRun(started.runId),
+        status: 'closed',
+        closedReason: 'all-submitted',
+      },
+    );
+    const persisted = persistenceCounts(fixture.database);
+
+    const resumed = fixture.formal.openOrResume(
+      studentOne, 'P1T1-N02', { classroomSessionId: 'demo-class' },
+    );
+    assert.equal(resumed.state, 'submitted');
+    if (resumed.state !== 'submitted') assert.fail('Expected the submitted terminal result.');
+    assert.equal(resumed.assessmentId, assessmentId);
+    assert.equal(resumed.result.assessmentId, assessmentId);
+    assert.equal(resumed.result.attemptId, submitted.attemptId);
+    assert.equal(Object.hasOwn(resumed, 'attemptToken'), false);
+    assert.deepEqual(persistenceCounts(fixture.database), persisted);
+    assert.throws(
+      () => fixture.formal.openOrResume(studentOne, 'P1T1-N02', {
+        classroomSessionId: 'demo-class', restart: true,
+      }),
+      TypeError,
+    );
+    assert.deepEqual(persistenceCounts(fixture.database), persisted);
+
+    const reviewing = fixture.service.execute(teacher, 'demo-class', {
+      type: 'begin-review', runId: started.runId,
+      expectedRevision: fixture.repository.readRun(started.runId)!.revision,
+    }, new Date('2026-07-18T02:02:00.000Z'));
+    const reviewingResume = fixture.formal.openOrResume(
+      studentOne, 'P1T1-N02', { classroomSessionId: 'demo-class' },
+    );
+    assert.equal(reviewingResume.state, 'submitted');
+    assert.equal(reviewingResume.assessmentId, assessmentId);
+    fixture.service.execute(teacher, 'demo-class', {
+      type: 'collect', runId: started.runId, expectedRevision: reviewing.revision,
+    }, new Date('2026-07-18T02:02:30.000Z'));
+    const collectedResume = fixture.formal.openOrResume(
+      studentOne, 'P1T1-N02', { classroomSessionId: 'demo-class' },
+    );
+    assert.equal(collectedResume.state, 'submitted');
+    assert.equal(collectedResume.assessmentId, assessmentId);
+    const next = start(fixture, new Date('2026-07-18T02:03:00.000Z'));
+    const current = fixture.formal.openOrResume(
+      studentOne, 'P1T1-N02', { classroomSessionId: 'demo-class' },
+    );
+    assert.equal(current.state, 'in-progress');
+    assert.notEqual(current.assessmentId, assessmentId);
+    assert.equal(
+      fixture.database.prepare(`
+        SELECT classroom_run_id FROM formal_assessment_instances WHERE assessment_id = ?
+      `).pluck().get(current.assessmentId),
+      next.runId,
+    );
+  } finally {
+    fixture.cleanup();
+  }
+});
+
 test('expiry persists once and collect CAS failures roll back every assessment fact', () => {
   const fixture = classroomFixture();
   try {
@@ -325,7 +431,46 @@ test('start eligibility excludes joined inactive and non-student users', () => {
   }
 });
 
-function classroomFixture() {
+test('run eligibility stays frozen to students provisioned at assessment start', () => {
+  const fixture = classroomFixture(['stu-01']);
+  try {
+    const participation = new ClassroomParticipationRepository(fixture.database);
+    participation.setMode('demo-class', studentOne.userId, 'self');
+    readyForFormalAssessment(fixture.database, studentThree.userId);
+    const started = start(fixture, new Date('2026-07-18T02:00:00.000Z'));
+    const provisionedId = assessmentIdForStudent(
+      fixture.database, started.runId, studentOne.userId,
+    );
+    assert.deepEqual(
+      fixture.repository.readSubmissionCounts(started.runId),
+      { eligible: 1, submitted: 0 },
+    );
+
+    participation.leave('demo-class', studentOne.userId);
+    const resumed = fixture.formal.openOrResume(
+      studentOne, 'P1T1-N02', { classroomSessionId: 'demo-class' },
+    );
+    assert.equal(resumed.state, 'in-progress');
+    assert.equal(resumed.assessmentId, provisionedId);
+    const persisted = persistenceCounts(fixture.database);
+
+    assert.throws(
+      () => fixture.formal.openOrResume(
+        studentThree, 'P1T1-N02', { classroomSessionId: 'demo-class' },
+      ),
+      AssessmentClassroomWindowError,
+    );
+    assert.deepEqual(persistenceCounts(fixture.database), persisted);
+    assert.deepEqual(
+      fixture.repository.readSubmissionCounts(started.runId),
+      { eligible: 1, submitted: 0 },
+    );
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+function classroomFixture(joinedStudentIds = ['stu-01', 'stu-02', 'stu-03']) {
   const fixture = createTestDatabase();
   migrateDatabase(fixture.database);
   seedDemo(fixture.database);
@@ -344,7 +489,7 @@ function classroomFixture() {
     },
   }).run;
   const participation = new ClassroomParticipationRepository(fixture.database);
-  for (const studentId of ['stu-01', 'stu-02', 'stu-03']) participation.join('demo-class', studentId);
+  for (const studentId of joinedStudentIds) participation.join('demo-class', studentId);
   let id = 0;
   let token = 0;
   const tokens: string[] = [];
@@ -386,6 +531,41 @@ function assessmentIds(database: ReturnType<typeof createTestDatabase>['database
     SELECT assessment_id FROM formal_assessment_instances
     WHERE classroom_run_id = ? ORDER BY assessment_id
   `).pluck().all(runId) as string[];
+}
+
+function assessmentIdForStudent(
+  database: ReturnType<typeof createTestDatabase>['database'],
+  runId: string,
+  studentId: string,
+): string {
+  const assessmentId = database.prepare(`
+    SELECT instance.assessment_id
+    FROM formal_assessment_instances AS instance
+    INNER JOIN formal_assessment_tokens AS token
+      ON token.assessment_id = instance.assessment_id
+      AND token.student_id = ?
+    WHERE instance.classroom_run_id = ?
+    LIMIT 1
+  `).pluck().get(studentId, runId);
+  assert.equal(typeof assessmentId, 'string');
+  return assessmentId as string;
+}
+
+function readyForFormalAssessment(
+  database: ReturnType<typeof createTestDatabase>['database'],
+  studentId: string,
+): void {
+  const insert = database.prepare(`
+    INSERT INTO practice_attempts (
+      attempt_id, student_id, activity_id, node_id, passed, origin, attempted_at
+    ) VALUES (?, ?, ?, ?, 1, 'user', '1999-12-31T23:59:00.000Z')
+  `);
+  for (const [activityId, nodeId] of [
+    ['P1T1-N01-micro-01', 'P1T1-N01'],
+    ['P1T1-N02-foundation-01', 'P1T1-N02'],
+    ['P1T1-N02-application-01', 'P1T1-N02'],
+    ['P1T1-N02-transfer-01', 'P1T1-N02'],
+  ]) insert.run(`classroom-ready-${studentId}-${activityId}`, studentId, activityId, nodeId);
 }
 
 function count(database: ReturnType<typeof createTestDatabase>['database'], table: string, where = '1 = 1'): number {

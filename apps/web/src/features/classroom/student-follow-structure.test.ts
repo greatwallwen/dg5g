@@ -8,17 +8,21 @@ test('student classroom runtime is exact-session and participation driven', () =
   const page = source('../../app/classroom/[sessionId]/page.tsx');
   const loader = source('./student-follow-loader.ts');
   const client = source('./student-follow-client.tsx');
-  const polling = source('./use-class-session.ts');
+  const polling = source('../snapshot/authoritative-snapshot-client.ts');
 
   assert.match(page, /loadStudentFollowPage\(getDatabase\(\), actor, params\.sessionId\)/);
   assert.doesNotMatch(page, /isActiveDemoSession|getStudentFollowState|mock-api/);
 
-  assert.match(loader, /sessionRepository\.readSession\(sessionId\)/);
-  assert.match(loader, /participationRepository\.read\(sessionId, studentId\)/);
+  assert.match(loader, /AuthoritativeSnapshotReader/);
+  assert.match(loader, /initialSnapshot/);
+  assert.match(loader, /createClassroomActivityCatalog/);
   assert.doesNotMatch(loader, /joinClassroomParticipation|P1T1-N01/);
 
   assert.match(client, /createClassroomParticipationClient/);
   assert.match(client, /ClassroomStudentModeRenderer/);
+  assert.equal((client.match(/useAuthoritativeSnapshotState\(/g) ?? []).length, 1);
+  assert.doesNotMatch(client, /useClassSession/);
+  assert.match(client, /lastSeenClassroomRevision:\s*snapshot\.classroom\.revision/);
   assert.doesNotMatch(client, /scene-follow-path|studentControlSource|setSelfIndex|self-study-cursor-client/);
 
   assert.match(polling, /createClassSessionPoller/);

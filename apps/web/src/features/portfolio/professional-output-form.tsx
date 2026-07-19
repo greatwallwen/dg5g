@@ -111,7 +111,7 @@ export function ProfessionalOutputForm({
     return <section className="professional-output-loading" data-professional-output={schema.taskId}><span /><strong>正在恢复专业产出草稿</strong><small>读取当前版本、预填来源与证据挂接…</small></section>;
   }
   const complete = isProfessionalOutputComplete(schema, state.fields);
-  const statusCopy = professionalOutputStatusCopy(state.workflow.state);
+  const statusCopy = professionalOutputStatusCopy(state.workflow.state, schema.taskId);
   const submitBlockedByReturn = state.workflow.state === 'returned';
   const visibleTeacherFeedback = teacherFeedback ?? state.teacherFeedback;
   return (

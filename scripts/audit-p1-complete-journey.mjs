@@ -2,7 +2,10 @@
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { Image2FixtureManager } from './capture-image2-implementation.mjs';
+import {
+  Image2FixtureManager,
+  classroomLessonIntentRequest,
+} from './capture-image2-implementation.mjs';
 import { launchChromium } from './utils/playwright-browser.mjs';
 import { normalizeBaseUrl } from './utils/image2-visual-audit.mjs';
 
@@ -62,10 +65,12 @@ try {
 
   const beforeSwitch = await readTeacherSession(teacher, fixture);
   const toPhase = nextPhase(beforeSwitch.lessonState.phase);
-  const switched = await fixture.api(teacher, 'PATCH', '/api/class-sessions/demo-class', {
-    intent: { type: 'phase_changed', phase: toPhase },
-    expectedRevision: beforeSwitch.lessonState.revision,
-  });
+  const switchRequest = classroomLessonIntentRequest(
+    'demo-class',
+    beforeSwitch,
+    toPhase,
+  );
+  const switched = await fixture.api(teacher, 'PATCH', switchRequest.route, switchRequest.data);
   assert(switched.session.lessonState.revision === beforeSwitch.lessonState.revision + 1, 'teacher page switch must advance revision once');
   const followPages = await Promise.all(['stu-01', 'stu-03'].map((actor) => assertStudentModePage(
     students[actor], actor, 'follow', switched.session.lessonState.revision,
@@ -174,23 +179,30 @@ async function assertTeacherEntry(context) {
   assert((await primary.innerText()).includes('P1T1-N02'), 'teacher primary action must name P1T1-N02');
   await primary.click();
   await page.waitForURL((url) => url.pathname === '/teacher/sessions/demo-class', { timeout: 20_000 });
-  await page.locator('[data-role-scope="teacher"]').waitFor({ state: 'visible', timeout: 20_000 });
+  await page.locator('[data-role-scope="teacher"]').waitFor({ state: 'attached', timeout: 20_000 });
+  await page.locator('.teacher-console').waitFor({ state: 'visible', timeout: 20_000 });
   await screenshot(page, 'teacher-entry-p1t1-n02.png');
   await page.close();
 }
 
 async function activateClassroom(teacher, fixture) {
-  const before = await readTeacherSession(teacher, fixture);
-  if (before.sessionStatus === 'active') {
-    return { activeNodeId: before.activeNodeId, revision: before.lessonState.revision, alreadyActive: true };
+  let current = await readTeacherSession(teacher, fixture);
+  if (current.lessonRunStatus === 'preparing' || current.lessonRunStatus === 'paused') {
+    const command = current.lessonRunStatus === 'preparing' ? 'start' : 'resume';
+    const resumed = await fixture.api(teacher, 'PATCH', '/api/class-sessions/demo-class/lesson', {
+      lessonRunId: current.activeLessonRunId,
+      expectedRevision: current.lessonState.revision,
+      command: { type: command },
+    });
+    current = resumed.session;
   }
-  const phase = nextPhase(before.lessonState.phase);
-  const result = await fixture.api(teacher, 'PATCH', '/api/class-sessions/demo-class', {
-    intent: { type: 'phase_changed', phase },
-    expectedRevision: before.lessonState.revision,
-  });
-  assert(result.session.activeNodeId === 'P1T1-N02', 'teacher session did not start at P1T1-N02');
-  return { activeNodeId: result.session.activeNodeId, revision: result.session.lessonState.revision, alreadyActive: false };
+  if (current.lessonState.phase !== 'lecture') {
+    const request = classroomLessonIntentRequest('demo-class', current, 'lecture');
+    current = (await fixture.api(teacher, 'PATCH', request.route, request.data)).session;
+  }
+  assert(current.sessionStatus === 'active', 'teacher session did not resume');
+  assert(current.activeNodeId === 'P1T1-N02', 'teacher session did not start at P1T1-N02');
+  return { activeNodeId: current.activeNodeId, revision: current.lessonState.revision, alreadyActive: false };
 }
 
 async function readTeacherSession(teacher, fixture) {
@@ -218,7 +230,10 @@ async function readCursor(context, nodeId) {
 }
 
 async function goto(page, route) {
-  const response = await page.goto(new URL(route, baseUrl).toString(), { waitUntil: 'networkidle', timeout: 60_000 });
+  const response = await page.goto(new URL(route, baseUrl).toString(), {
+    waitUntil: 'domcontentloaded',
+    timeout: 60_000,
+  });
   assert(response?.ok(), `${route} returned ${response?.status() ?? 'no response'}`);
 }
 

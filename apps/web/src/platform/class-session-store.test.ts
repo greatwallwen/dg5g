@@ -36,6 +36,7 @@ const { ClassroomParticipationRepository } = await import('./classroom-participa
 const activeLessonRuns = new Map([
   'P1T1-N02-intent-server-revision',
   'P1T1-N02-intent-conflict',
+  'P1T1-N02-intent-illegal',
 ].map((sessionId) => [sessionId, startActiveLessonRun(fixture.database, sessionId)]));
 process.env.DGBOOK_SQLITE_PATH = fixture.databasePath;
 
@@ -98,12 +99,20 @@ test('rejects a stale expected revision instead of overwriting a newer class sta
 test('rejects an illegal phase transition without publishing another revision', () => {
   const sessionId = 'P1T1-N02-intent-illegal';
   const initial = getClassSession(sessionId);
+  const initialRevision = initial.lessonState?.revision;
+  assert.ok(initialRevision !== undefined);
+  const initialCommandCount = fixture.database.prepare(`
+    SELECT COUNT(*) FROM classroom_commands WHERE session_id = ?
+  `).pluck().get(sessionId);
 
   assert.throws(
-    () => applyClassroomIntent(sessionId, { type: 'phase_changed', phase: 'review' }, initial.lessonState?.revision ?? 0, now),
+    () => applyClassroomIntent(sessionId, { type: 'phase_changed', phase: 'challenge' }, initialRevision, now),
     /illegal classroom intent/i,
   );
-  assert.equal(getClassSession(sessionId).lessonState?.revision, 0);
+  assert.equal(getClassSession(sessionId).lessonState?.revision, initialRevision);
+  assert.equal(fixture.database.prepare(`
+    SELECT COUNT(*) FROM classroom_commands WHERE session_id = ?
+  `).pluck().get(sessionId), initialCommandCount);
 });
 
 function seedClassroomSessions(

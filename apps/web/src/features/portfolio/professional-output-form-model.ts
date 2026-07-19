@@ -136,14 +136,32 @@ export async function loadUpstreamReference(
   return output ? [{ outputId: output.head.outputId, version: output.head.currentVersion }] : [];
 }
 
-export function professionalOutputStatusCopy(state: OutputWorkflowState) {
+export function professionalOutputStatusCopy(
+  state: OutputWorkflowState,
+  taskId: ProfessionalOutputSchema['taskId'],
+) {
   if (state === 'submitted') return { title: '已提交 · 等待教师复核', description: '当前版本已锁定；教师退回后才能继续修订。' };
   if (state === 'returned') return { title: '教师退回 · 等待实质修订', description: '历史版本保持不变；修改字段或证据后才能再次提交。' };
   if (state === 'revising') return { title: '修订中 · 正在补齐证据', description: '本次修改将形成新版本，原退回版本仍可追溯。' };
   if (state === 'resubmitted') return { title: '再次提交 · 等待教师复核', description: '修订版本已锁定并重新进入教师复核队列。' };
   if (state === 'verified') return { title: '教师确认 · 成果已认证', description: '当前职业成果已由教师确认并进入项目成果包。' };
-  return { title: '编辑中 · 室内设备与链路证据表', description: '核对活动预填，挂接可回查证据，完成十项职业字段。' };
+  return editingStatusCopy[taskId];
 }
+
+const editingStatusCopy: Record<ProfessionalOutputSchema['taskId'], { title: string; description: string }> = {
+  P01: {
+    title: '编辑中 · 室内设备与链路证据表',
+    description: '核对活动预填，挂接可回查证据，完成十项职业字段。',
+  },
+  P02: {
+    title: '编辑中 · 室外站点与覆盖采集表',
+    description: '核对扇区、方位、下倾、挂高与覆盖边界，挂接可回查证据后形成岗位成果。',
+  },
+  P03: {
+    title: '编辑中 · 投诉信息调查单',
+    description: '核对投诉时间、地点、业务与终端复现条件，关联多源证据后形成调查记录。',
+  },
+};
 
 export function professionalOutputErrorMessage(reason: unknown): string {
   return reason instanceof Error ? reason.message : '专业产出请求失败，请稍后重试。';

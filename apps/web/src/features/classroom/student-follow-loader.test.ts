@@ -5,10 +5,11 @@ import type { AuthenticatedActor } from '../../platform/auth/actor.ts';
 import { seedDemo } from '../../platform/db/demo-seed.ts';
 import { migrateDatabase } from '../../platform/db/migrations.ts';
 import { createTestDatabase } from '../../platform/db/test-database.ts';
+import { p1Activities } from '../learning-activities/activity-catalog.ts';
 
 const loaderUrl = new URL('./student-follow-loader.ts', import.meta.url);
 
-test('loads the exact demo-class SQLite session without joining or deriving a node from the URL', async () => {
+test('loads one student authoritative snapshot without joining or deriving a node from the URL', async () => {
   assert.equal(existsSync(loaderUrl), true, 'student follow loader must exist');
   const { loadStudentFollowPage } = await import(loaderUrl.href);
   const fixture = createTestDatabase();
@@ -19,17 +20,21 @@ test('loads the exact demo-class SQLite session without joining or deriving a no
     const loaded = loadStudentFollowPage(fixture.database, studentActor, 'demo-class');
 
     assert.ok(loaded);
-    assert.equal(loaded.session.sessionId, 'demo-class');
-    assert.equal(loaded.session.activeNodeId, 'P1T1-N02');
-    assert.equal(loaded.sessionStatus, 'paused');
-    assert.equal(loaded.participation.participation, null);
-    assert.equal(loaded.participation.joinedCount, 0);
-    assert.equal(loaded.participation.followingCount, 0);
+    assert.equal(loaded.initialSnapshot.audience, 'student');
+    assert.equal(loaded.initialSnapshot.classroom.sessionId, 'demo-class');
+    assert.equal(loaded.initialSnapshot.classroom.activeNodeId, 'P1T1-N02');
+    assert.equal(loaded.initialSnapshot.classroom.status, 'paused');
+    assert.equal(loaded.initialSnapshot.participation, null);
+    assert.equal('initialParticipation' in loaded, false);
     assert.deepEqual(loaded.returnTarget, {
       href: '/learn/P1T1-N01',
       nodeId: 'P1T1-N01',
     });
-    assert.equal(Object.keys(loaded.contentCatalog).length, 12);
+    assert.equal(Object.keys(loaded.activityCatalog).length, p1Activities.length);
+    assert.equal(
+      loaded.activityCatalog['P1T2-N02-application-01'].kind,
+      'link-reconstruction',
+    );
     assert.equal(fixture.database.prepare(`
       SELECT COUNT(*) FROM classroom_participation
     `).pluck().get(), 0, 'an RSC read must never join implicitly');

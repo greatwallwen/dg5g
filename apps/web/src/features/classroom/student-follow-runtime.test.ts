@@ -14,9 +14,9 @@ test('joins and persists self/follow mode only through the participation gateway
   const self = await runtime.changeStudentClassroomMode(gateway, 'demo-class', 'self');
   const follow = await runtime.changeStudentClassroomMode(gateway, 'demo-class', 'follow');
 
-  assert.equal(joined.participation?.state, 'joined');
-  assert.equal(self.participation?.mode, 'self');
-  assert.equal(follow.participation?.mode, 'follow');
+  assert.equal(joined, undefined);
+  assert.equal(self, undefined);
+  assert.equal(follow, undefined);
   assert.deepEqual(calls, [
     'join:demo-class',
     'mode:demo-class:self',
@@ -24,19 +24,14 @@ test('joins and persists self/follow mode only through the participation gateway
   ]);
 });
 
-test('leaves durably before navigation and never navigates when leave fails', async () => {
+test('leave response is confirmation only and never owns navigation', async () => {
   assert.equal(existsSync(runtimeUrl), true, 'student follow runtime must exist');
   const runtime = await import(runtimeUrl.href);
   const calls: string[] = [];
   const gateway = gatewayFixture(calls);
 
-  await runtime.leaveStudentClassroom(
-    gateway,
-    'demo-class',
-    '/learn/P1T1-N02',
-    (href: string) => calls.push(`navigate:${href}`),
-  );
-  assert.deepEqual(calls, ['leave:demo-class', 'navigate:/learn/P1T1-N02']);
+  assert.equal(await runtime.leaveStudentClassroom(gateway, 'demo-class'), undefined);
+  assert.deepEqual(calls, ['leave:demo-class']);
 
   const failedCalls: string[] = [];
   await assert.rejects(() => runtime.leaveStudentClassroom(
@@ -45,8 +40,6 @@ test('leaves durably before navigation and never navigates when leave fails', as
       throw new Error('offline');
     } },
     'demo-class',
-    '/learn/P1T1-N02',
-    (href: string) => failedCalls.push(`navigate:${href}`),
   ), /offline/);
   assert.deepEqual(failedCalls, ['leave:demo-class']);
 });

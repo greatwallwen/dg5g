@@ -4,6 +4,7 @@ import { seedBase, seedDemo } from './db/demo-seed.ts';
 import { migrateDatabase } from './db/migrations.ts';
 import { createTestDatabase } from './db/test-database.ts';
 import { LearningReadModel } from './learning-read-model.ts';
+import { createLearningCommandService } from './learning-command-service.ts';
 import { getNodeLearningPolicy } from './learning-policy.ts';
 import { LearningRepository } from './learning-repository.ts';
 import { seedUserFormalAssessment } from './professional-output-policy-test-support.ts';
@@ -20,6 +21,10 @@ test('a first valid user submission opens P02 and a later teacher return never r
     assert.equal(requiredNode(model.readStudentSnapshot('stu-01'), 'P1T2-N01').state, 'locked');
 
     fixture.database.exec(`
+      INSERT INTO professional_outputs (
+        output_id, student_id, task_id, node_id, status, content_json,
+        current_version, state_revision, origin
+      ) VALUES ('advance-output', 'stu-01', 'P01', 'P1T1-N04', 'submitted', '{}', 1, 1, 'user');
       INSERT INTO learning_events (
         event_id, student_id, node_id, channel, event_type, payload_json, origin
       ) VALUES ('advance-submit', 'stu-01', 'P1T1-N04', 'self-study', 'evidence_submitted',
@@ -28,10 +33,9 @@ test('a first valid user submission opens P02 and a later teacher return never r
     assert.equal(requiredNode(model.readStudentSnapshot('stu-01'), 'P1T2-N01').state, 'available');
 
     fixture.database.exec(`
-      INSERT INTO professional_outputs (
-        output_id, student_id, task_id, node_id, status, content_json,
-        current_version, state_revision, origin
-      ) VALUES ('advance-output', 'stu-01', 'P01', 'P1T1-N04', 'returned', '{}', 1, 3, 'user');
+      UPDATE professional_outputs
+      SET status = 'returned', state_revision = 3
+      WHERE output_id = 'advance-output';
       INSERT INTO output_reviews (
         review_id, output_id, reviewer_id, status, feedback, origin
       ) VALUES ('advance-return', 'advance-output', 'teacher-01', 'returned', 'revise', 'user');
@@ -45,42 +49,6 @@ test('a first valid user submission opens P02 and a later teacher return never r
     assert.equal(requiredNode(returnedSnapshot, 'P1T1-N04').taskAdvanceReady, true);
     assert.equal(requiredNode(returnedSnapshot, 'P1T1-N04').axes.output, 'returned');
     assert.equal(requiredNode(returnedSnapshot, 'P1T1-N04').axes.certification, 'pending-review');
-  } finally {
-    fixture.cleanup();
-  }
-});
-
-test('output axis distinguishes the current resubmitted version from active revision work', () => {
-  const fixture = createTestDatabase();
-  try {
-    migrateDatabase(fixture.database);
-    seedBase(fixture.database);
-    fixture.database.exec(`
-      INSERT INTO professional_outputs (
-        output_id, student_id, task_id, node_id, status, content_json,
-        current_version, state_revision, origin
-      ) VALUES ('axis-output', 'stu-01', 'P01', 'P1T1-N04', 'submitted', '{}', 2, 4, 'user');
-      INSERT INTO learning_events (
-        event_id, student_id, node_id, channel, event_type, payload_json, origin, occurred_at
-      ) VALUES
-        ('axis-submit-v1', 'stu-01', 'P1T1-N04', 'self-study', 'evidence_submitted',
-          '{"taskId":"P01","outputId":"axis-output","version":1,"stateRevision":2}', 'user', '2026-07-17T01:00:00.000Z'),
-        ('axis-submit-v2', 'stu-01', 'P1T1-N04', 'self-study', 'evidence_submitted',
-          '{"taskId":"P01","outputId":"axis-output","version":2,"stateRevision":4}', 'user', '2026-07-17T02:00:00.000Z');
-    `);
-    const model = new LearningReadModel(new LearningRepository(fixture.database));
-    assert.equal(requiredNode(model.readStudentSnapshot('stu-01'), 'P1T1-N04').axes.output, 'resubmitted');
-
-    fixture.database.exec(`
-      UPDATE professional_outputs
-      SET status = 'draft', current_version = 3, state_revision = 5
-      WHERE output_id = 'axis-output';
-    `);
-    const revising = requiredNode(model.readStudentSnapshot('stu-01'), 'P1T1-N04');
-    assert.equal(revising.axes.output, 'revising');
-    assert.equal(revising.taskAdvanceReady, true);
-    assert.equal(revising.state, 'locked');
-    assert.equal(revising.axes.access, 'locked');
   } finally {
     fixture.cleanup();
   }
@@ -127,7 +95,7 @@ test('N02 to N03 requires both user practice and a catalog-valid user score at t
   }
 });
 
-test('demo, malformed submission payloads, and bare formal rows never unlock downstream nodes', () => {
+test('malformed or orphan submissions and invalid formal rows never unlock downstream nodes', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
@@ -143,11 +111,15 @@ test('demo, malformed submission payloads, and bare formal rows never unlock dow
         '{"taskId":"P01","outputId":"demo-output","version":1,"stateRevision":1}', 'demo');
 
       INSERT INTO formal_attempts (attempt_id, student_id, node_id, score, origin)
-      VALUES ('bare-forged-100', 'stu-02', 'P1T1-N02', 100, 'user');
+      VALUES ('bare-forged-100', 'stu-02', 'P1T1-N02', 100, 'demo');
+      INSERT INTO professional_outputs (
+        output_id, student_id, task_id, node_id, status, content_json,
+        current_version, state_revision, origin
+      ) VALUES ('bare-output', 'stu-02', 'P01', 'P1T1-N04', 'submitted', '{}', 1, 1, 'demo');
       INSERT INTO learning_events (
         event_id, student_id, node_id, channel, event_type, payload_json, origin
       ) VALUES ('bare-submit', 'stu-02', 'P1T1-N04', 'self-study', 'evidence_submitted',
-        '{"taskId":"P01","outputId":"bare-output","version":1,"stateRevision":1}', 'user');
+        '{"taskId":"P01","outputId":"bare-output","version":1,"stateRevision":1}', 'demo');
     `);
     seedUserFormalAssessment(fixture.database, 'stu-03', 'P01', 100, 'malformed-event');
     fixture.database.exec(`
@@ -437,17 +409,30 @@ test('clean, returned, and complete demo personas project consistently with visi
     assert.equal(clean.tasks.every(({ nodeTestHighestScore, taskCompositeScore }) => (
       nodeTestHighestScore === undefined && taskCompositeScore === undefined
     )), true);
-    assert.equal(requiredNode(returned, 'P1T1-N04').state, 'locked');
-    assert.equal(requiredNode(returned, 'P1T1-N04').axes.access, 'locked');
+    assert.equal(requiredNode(clean, 'P1T1-N02').axes.access, 'locked');
+    assert.equal(requiredNode(returned, 'P1T1-N04').state, 'available');
+    assert.equal(requiredNode(returned, 'P1T1-N04').axes.access, 'open');
     assert.equal(requiredNode(returned, 'P1T1-N04').origin, undefined);
     assert.equal(requiredNode(returned, 'P1T1-N04').evidence?.origin, 'demo');
     assert.equal(requiredNode(returned, 'P1T1-N04').review?.origin, 'demo');
     assert.equal(returned.tasks[0]?.nodeTestHighestScore, 88);
     assert.equal(returned.tasks[0]?.origin, 'demo');
     assert.equal(returned.tasks[0]?.taskCompositeScore, undefined);
-    assert.equal(requiredNode(complete, 'P1T1-N04').state, 'locked');
-    assert.equal(requiredNode(complete, 'P1T2-N04').state, 'locked');
-    assert.equal(requiredNode(complete, 'P1T3-N04').state, 'locked');
+    assert.equal(complete.nodes.every(({ axes }) => axes.access === 'open'), true);
+    for (const nodeId of ['P1T1-N02', 'P1T2-N02', 'P1T3-N02']) {
+      const node = requiredNode(complete, nodeId);
+      assert.equal(node.state, 'available');
+      assert.equal(node.axes.learning, 'not-started');
+      assert.equal(node.axes.formalTest, 'ready');
+      assert.equal(node.axes.certification, 'not-reached');
+      assert.equal(node.bestFormalScore, undefined);
+    }
+    for (const nodeId of ['P1T1-N04', 'P1T2-N04', 'P1T3-N04']) {
+      const node = requiredNode(complete, nodeId);
+      assert.equal(node.taskAdvanceReady, false);
+      assert.equal(node.axes.certification, 'not-reached');
+      assert.equal(node.evidence?.origin, 'demo');
+    }
     assert.deepEqual(complete.tasks.map(({ nodeTestHighestScore }) => nodeTestHighestScore), [93, 91, 90]);
     assert.deepEqual(complete.tasks.map(({ taskId, taskCompositeScore, origin }) => ({
       taskId, taskCompositeScore, origin,
@@ -457,6 +442,17 @@ test('clean, returned, and complete demo personas project consistently with visi
       { taskId: 'P03', taskCompositeScore: 91, origin: 'demo' },
     ]);
     assert.equal(complete.projectCompositeScore, 92);
+    assert.equal(complete.tasks.every(({ realTaskCertified }) => !realTaskCertified), true);
+    assert.equal(complete.tasks.every(({ demoTaskCertified }) => demoTaskCertified), true);
+
+    const actor = {
+      userId: 'stu-03', username: 'student03', displayName: '学生三',
+      role: 'student' as const, classId: 'demo-class', studentId: 'stu-03',
+    };
+    const access = createLearningCommandService(fixture.database);
+    for (const nodeId of ['P1T1-N02', 'P1T2-N02', 'P1T3-N02']) {
+      assert.equal(access.requireNodeAccess(actor, nodeId).kind, 'open');
+    }
   } finally {
     fixture.cleanup();
   }
@@ -472,8 +468,8 @@ test('class read uses the same student projections and one shared global snapsho
     assert.deepEqual(snapshot.students.map(({ studentId }) => studentId), ['stu-01', 'stu-02', 'stu-03']);
     assert.equal(snapshot.students.every(({ globalVersion }) => globalVersion === snapshot.version), true);
     assert.equal(requiredNode(snapshot.students[0]!, 'P1T1-N01').state, 'available');
-    assert.equal(requiredNode(snapshot.students[1]!, 'P1T1-N04').state, 'locked');
-    assert.equal(requiredNode(snapshot.students[2]!, 'P1T3-N04').state, 'locked');
+    assert.equal(requiredNode(snapshot.students[1]!, 'P1T1-N04').state, 'available');
+    assert.equal(requiredNode(snapshot.students[2]!, 'P1T3-N04').state, 'available');
   } finally {
     fixture.cleanup();
   }
@@ -528,7 +524,7 @@ test('legacy demo pass history neither advances nor taints a user activity miles
   }
 });
 
-test('node origin stays demo until every required fact and prerequisite is user-origin', () => {
+test('demo prerequisite access does not replace user-owned node progress', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
@@ -543,7 +539,8 @@ test('node origin stays demo until every required fact and prerequisite is user-
     const model = new LearningReadModel(new LearningRepository(fixture.database));
     assert.equal(requiredNode(model.readStudentSnapshot('stu-01'), 'P1T1-N01').origin, undefined);
     assert.equal(requiredNode(model.readStudentSnapshot('stu-01'), 'P1T1-N01').state, 'available');
-    assert.equal(requiredNode(model.readStudentSnapshot('stu-01'), 'P1T1-N02').state, 'locked');
+    assert.equal(requiredNode(model.readStudentSnapshot('stu-01'), 'P1T1-N02').state, 'achieved');
+    assert.equal(requiredNode(model.readStudentSnapshot('stu-01'), 'P1T1-N02').origin, 'user');
 
     insertPassedPractice(fixture.database, 'stu-01', 'P1T1-N01-micro-01', 'P1T1-N01', 'user', 'replacement');
     assert.equal(requiredNode(model.readStudentSnapshot('stu-01'), 'P1T1-N01').origin, 'user');

@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import test from 'node:test';
-import { loadSelfStudyCatalog } from '../textbook-scene/self-study-content.ts';
+import { p1Activities } from '../learning-activities/activity-catalog.ts';
+import { p1TeachingPackage } from '../textbook-scene/p1-teaching-package.ts';
+import { resolveClassroomLessonPage } from '@/platform/classroom-lesson-page-catalog.ts';
 
 const sourceUrl = new URL('./classroom-follow-model.ts', import.meta.url);
 
@@ -10,60 +12,102 @@ async function loadModel(): Promise<any> {
   return import(sourceUrl.href);
 }
 
-test('projects all twelve generated nodes into client-safe classroom content', async () => {
+test('projects every canonical activity id to its real client-safe ActivityPublicDto', async () => {
   const model = await loadModel();
-  const source = loadSelfStudyCatalog();
-  const projection = model.createClassroomContentCatalog(source);
+  const projection = model.createClassroomActivityCatalog(
+    p1Activities.map(({ activity }) => activity),
+  );
 
-  assert.equal(Object.keys(projection).length, 12);
-  for (const document of Object.values(source)) {
-    const unit = projection[document.nodeId];
-    assert.equal(unit.nodeId, document.nodeId);
-    assert.equal(unit.unitId, document.sourceKnowledgeUnitId);
-    assert.equal(unit.teacherInstruction, document.nodeGoal);
-    const expectedPractice = document.content.kind === 'deep'
-      ? document.content.practices.foundation[0]
-      : document.content.microPractice[0];
-    assert.equal(unit.activity.id, expectedPractice.id);
-    assert.equal(unit.activity.nodeId, document.nodeId);
-    assert.equal(unit.activity.prompt, expectedPractice.prompt);
-    assert.deepEqual(unit.activity.expectedEvidence, expectedPractice.expectedEvidence);
+  assert.equal(Object.keys(projection).length, p1Activities.length);
+  for (const { activity } of p1Activities) {
+    assert.deepEqual(projection[activity.id], activity);
   }
+  assert.equal(
+    projection['P1T2-N02-application-01'].kind,
+    'link-reconstruction',
+  );
+  assert.equal(
+    projection['P1T3-N02-application-01'].kind,
+    'link-reconstruction',
+  );
 });
 
-test('builds one current unit and fails closed for unknown or mismatched cursors', async () => {
+test('projects explicit supported visual metadata for all 24 canonical teaching pages', () => {
+  const pages = p1TeachingPackage.flatMap((lesson) => lesson.pages);
+  assert.equal(pages.length, 24);
+
+  for (const page of pages) {
+    const pageIndex = p1TeachingPackage
+      .find((lesson) => lesson.id === page.lessonId)!
+      .pages.findIndex(({ id }) => id === page.id);
+    const resolved = resolveClassroomLessonPage({
+      lessonId: page.lessonId,
+      pageId: page.id,
+      pageIndex,
+      phase: 'lecture',
+      actionId: `${page.nodeId}-S${String(pageIndex + 1).padStart(2, '0')}`,
+      actionIndex: pageIndex,
+      taskId: page.taskId,
+      nodeId: page.nodeId,
+      unitId: `${page.taskId}-ku-${page.nodeId.slice(-2)}`,
+    });
+    assert.deepEqual(
+      { renderer: resolved?.visualRenderer, visualId: resolved?.visualId },
+      page.classroomVisual,
+      page.id,
+    );
+  }
+
+  const page = (id: string) => pages.find((candidate) => candidate.id === id)!;
+  assert.deepEqual(page('P01-L1-P01').classroomVisual, {
+    renderer: 'scene-visual', visualId: 'indoor-boundary',
+  }, 'P1T1-N01 keeps its page-owned indoor boundary visual');
+  assert.equal(page('P02-L1-P04').classroomVisual.visualId, 'outdoor-obstacle');
+  assert.equal(page('P03-L1-P03').classroomVisual.visualId, 'route');
+});
+
+test('builds the exact authoritative lesson page and current canonical activity', async () => {
   const model = await loadModel();
-  const content = model.createClassroomContentCatalog(loadSelfStudyCatalog());
-  const current = content['P1T1-N02'];
-  const result = model.buildClassroomFollowViewModel({
-    sessionId: 'demo-class',
-    revision: 7,
-    phase: 'lecture',
-    activeNodeId: current.nodeId,
-    activeUnitId: current.unitId,
-    activityState: 'pushed',
-  }, content, { href: '/learn/P1T3-N02', nodeId: 'P1T3-N02' });
+  const activities = model.createClassroomActivityCatalog(
+    p1Activities.map(({ activity }) => activity),
+  );
+  const snapshot = studentSnapshot({
+    lessonId: 'P02-L1',
+    taskId: 'P02',
+    nodeId: 'P1T2-N02',
+    unitId: 'P02-ku-02',
+    pageId: 'P02-L1-P03',
+    pageIndex: 2,
+    actionId: 'P1T2-N02-S03',
+    actionIndex: 2,
+    phase: 'practice',
+    revision: 9,
+  });
+  const result = model.buildClassroomFollowViewModel(
+    snapshot,
+    activities,
+    { href: '/learn/P1T3-N02', nodeId: 'P1T3-N02' },
+  );
 
   assert.equal(result.ok, true);
-  assert.equal(result.value.currentUnit.nodeId, 'P1T1-N02');
-  assert.equal(result.value.classroomActivity.state, 'open');
+  assert.equal(result.value.cursor.lessonId, 'P02-L1');
+  assert.equal(result.value.cursor.pageId, 'P02-L1-P03');
+  assert.equal(result.value.cursor.pageIndex, 2);
+  assert.equal(result.value.cursor.pageCount, 6);
+  assert.equal(result.value.cursor.revision, 9);
+  assert.equal(result.value.classroomActivity.activity.id, 'P1T2-N02-application-01');
+  assert.equal(result.value.classroomActivity.activity.kind, 'link-reconstruction');
   assert.equal(result.value.returnToSelfStudy.href, '/learn/P1T3-N02');
 
-  for (const cursor of [
-    { ...result.value, activeNodeId: 'P9T9-N99', activeUnitId: 'missing' },
-    { ...result.value, activeNodeId: 'P1T1-N02', activeUnitId: 'wrong-unit' },
-  ]) {
-    const unavailable = model.buildClassroomFollowViewModel({
-      sessionId: 'demo-class',
-      revision: 8,
-      phase: 'lecture',
-      activeNodeId: cursor.activeNodeId,
-      activeUnitId: cursor.activeUnitId,
-      activityState: 'not_pushed',
-    }, content, undefined);
-    assert.equal(unavailable.ok, false);
-    assert.notEqual(unavailable.reason, 'fallback');
-  }
+  const staleAction = structuredClone(snapshot);
+  staleAction.classroom.activeLesson.cursor.actionId = 'P1T2-N02-S02';
+  const unavailable = model.buildClassroomFollowViewModel(staleAction, activities);
+  assert.equal(unavailable.ok, false);
+  assert.equal(unavailable.reason, 'cursor-mismatch');
+
+  const stalePageCount = structuredClone(snapshot);
+  stalePageCount.classroom.activeLesson.pageCount = 7;
+  assert.equal(model.buildClassroomFollowViewModel(stalePageCount, activities).ok, false);
 });
 
 test('self mode preserves its return target and only announces a newer teacher revision', async () => {
@@ -92,15 +136,98 @@ test('activity draft resets whenever the generated activity identity changes', a
   });
 });
 
-test('paused and closed sessions never render a teacher unit even for an existing follower', async () => {
+test('paused followers retain the current page read-only while closed sessions return to entry', async () => {
   const model = await loadModel();
-  for (const sessionStatus of ['paused', 'closed']) {
-    const screen = model.selectClassroomStudentScreen({
-      participation: { state: 'joined', mode: 'follow', lastFollowedRevision: 4 },
-      teacherRevision: 5,
-      returnTarget: { href: '/learn/P1T1-N02', nodeId: 'P1T1-N02' },
-      sessionStatus,
-    });
-    assert.equal(screen.kind, 'entry');
-  }
+  const input = {
+    participation: { state: 'joined' as const, mode: 'follow' as const, lastFollowedRevision: 4 },
+    teacherRevision: 5,
+    returnTarget: { href: '/learn/P1T1-N02' as const, nodeId: 'P1T1-N02' as const },
+  };
+
+  assert.equal(model.selectClassroomStudentScreen({ ...input, sessionStatus: 'paused' }).kind, 'follow');
+  assert.equal(model.selectClassroomStudentScreen({ ...input, sessionStatus: 'closed' }).kind, 'entry');
 });
+
+test('no-activity pages stay activity-free and paused pages remain readable', async () => {
+  const model = await loadModel();
+  const activities = model.createClassroomActivityCatalog(
+    p1Activities.map(({ activity }) => activity),
+  );
+  const snapshot = studentSnapshot({
+    lessonId: 'P01-L1', taskId: 'P01', nodeId: 'P1T1-N02', unitId: 'P01-ku-02',
+    pageId: 'P01-L1-P02', pageIndex: 1, actionId: 'P1T1-N02-S02', actionIndex: 1,
+    phase: 'lecture', revision: 11,
+  });
+  snapshot.classroom.status = 'paused';
+  snapshot.classroom.activeLesson.status = 'paused';
+  snapshot.classroom.activeLesson.pageCount = 6;
+
+  const result = model.buildClassroomFollowViewModel(snapshot, activities);
+  assert.equal(result.ok, true);
+  assert.equal(result.value.readOnly, true);
+  assert.equal(result.value.classroomActivity, undefined);
+});
+
+test('formal assessment and professional output targets remain independent of activities', async () => {
+  const model = await loadModel();
+  const activities = model.createClassroomActivityCatalog(
+    p1Activities.map(({ activity }) => activity),
+  );
+  const assessment = model.buildClassroomFollowViewModel(studentSnapshot({
+    lessonId: 'P02-L1', taskId: 'P02', nodeId: 'P1T2-N02', unitId: 'P02-ku-02',
+    pageId: 'P02-L1-P06', pageIndex: 5, actionId: 'P1T2-N02-S06', actionIndex: 5,
+    phase: 'assessment', revision: 12,
+  }), activities);
+  assert.equal(assessment.ok, true);
+  assert.equal(assessment.value.classroomActivity.activity.id, 'P1T2-N02-transfer-01');
+  assert.equal(assessment.value.formalAssessment.gameId, 'P1T2-N02-server-assessment');
+
+  const output = model.buildClassroomFollowViewModel(studentSnapshot({
+    lessonId: 'P02-L1', taskId: 'P02', nodeId: 'P1T2-N04', unitId: 'P02-ku-04',
+    pageId: 'P02-L1-P05', pageIndex: 4, actionId: 'P1T2-N04-S05', actionIndex: 4,
+    phase: 'practice', revision: 13,
+  }), activities);
+  assert.equal(output.ok, true);
+  assert.equal(output.value.classroomActivity.activity.id, 'P1T2-N04-micro-01');
+  assert.equal(output.value.professionalOutput.taskId, 'P02');
+});
+
+function studentSnapshot(cursor: Record<string, unknown>): any {
+  return {
+    audience: 'student',
+    snapshotVersion: 12,
+    generatedAt: '2026-07-18T00:00:00.000Z',
+    serverNow: '2026-07-18T00:00:00.000Z',
+    classroom: {
+      sessionId: 'demo-class',
+      classId: 'demo-class',
+      revision: cursor.revision,
+      status: 'active',
+      activeLesson: {
+        runId: 'lesson-run-p02',
+        lessonId: cursor.lessonId,
+        status: 'active',
+        revision: cursor.revision,
+        cursor: {
+          lessonRunId: 'lesson-run-p02',
+          playbackStatus: 'idle',
+          positionMs: 0,
+          rate: 1,
+          audioOwner: 'teacher',
+          updatedAt: '2026-07-18T00:00:00.000Z',
+          ...cursor,
+        },
+        pageCount: 6,
+      },
+      activeTaskId: cursor.taskId,
+      activeNodeId: cursor.nodeId,
+      activeUnitId: cursor.unitId,
+    },
+    project: { projectId: 'P1', projectTitle: 'P1', finalOutputTitle: 'output', taskIds: ['P01', 'P02', 'P03'] },
+    membership: { classSize: 3, joinedCount: 1, followingCount: 1 },
+    submissions: {},
+    classScores: { distribution: [] },
+    helper: {},
+    me: { studentId: 'stu-01', nodes: [], tasks: [], project: {}, learning: { nodes: [] } },
+  };
+}

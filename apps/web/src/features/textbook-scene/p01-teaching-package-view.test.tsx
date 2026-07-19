@@ -77,7 +77,9 @@ test('teacher console binds its private teaching inspector to the current comple
   const inspector = source('../classroom/teacher-console-inspector.tsx');
   const view = source('../classroom/teacher-console-view.tsx');
 
-  assert.match(client, /teachingPageAt/);
+  assert.match(client, /const cut = projectTeacherClassroomCut\(snapshot\)!/);
+  assert.match(client, /const teachingPage = cut\.page/);
+  assert.match(client, /teachingPage=\{teachingPage\}/);
   assert.match(inspector, /teacherExplanation/);
   assert.match(inspector, /<p><b>讲<\/b><span>\{p\.teachingPage\.teacherExplanation\}<\/span><\/p>/);
   assert.match(inspector, /typicalAnswer/);
@@ -88,7 +90,7 @@ test('teacher console binds its private teaching inspector to the current comple
   assert.doesNotMatch(inspector, /答案需包含对象、证据、判断依据和下一步动作/);
   assert.match(view, /data-teaching-lesson=/);
   assert.match(view, /data-teaching-page=/);
-  assert.match(view, /suggestedMinutes/);
+  assert.match(inspector, /suggestedMinutes/);
 });
 
 function source(relativePath: string): string {

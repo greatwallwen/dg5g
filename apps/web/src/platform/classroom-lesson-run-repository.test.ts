@@ -187,6 +187,57 @@ test('mutates the teaching cursor with one run-and-session CAS and zero stale wr
   }
 });
 
+test('rejects prefix-valid but catalog-incoherent cursor mutations before any write', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    const runs = new ClassroomLessonRunRepository(fixture.database);
+    const prepared = runs.startLessonRun({
+      sessionId: 'demo-class', lessonId: 'P01-L1', expectedRevision: 0,
+    }).run;
+    const active = runs.transitionLessonRun({
+      sessionId: 'demo-class', lessonRunId: prepared.lessonRunId,
+      expectedRevision: 1, nextStatus: 'active',
+    }).run;
+    const before = {
+      run: runs.readLessonRun(active.lessonRunId),
+      commandCount: commandCount(fixture.database, 'demo-class'),
+      topic: topicVersion(fixture.database, 'classroom:demo-class'),
+    };
+    const canonicalPageTwo = {
+      ...active.teachingCursor,
+      nodeId: 'P1T1-N02',
+      unitId: 'P01-ku-02',
+      pageId: 'P01-L1-P02',
+      pageIndex: 1,
+      actionId: 'P1T1-N02-S02',
+      actionIndex: 1,
+    };
+
+    for (const forged of [
+      { pageId: 'P01-L1-P03' },
+      { pageIndex: 2 },
+      { actionId: 'P1T1-N02-S03' },
+      { actionIndex: 2 },
+      { nodeId: 'P1T1-N03' },
+      { unitId: 'P01-ku-03' },
+    ]) {
+      assert.throws(() => runs.updateTeachingCursor({
+        sessionId: 'demo-class',
+        lessonRunId: active.lessonRunId,
+        expectedRevision: active.revision,
+        next: { ...canonicalPageTwo, ...forged },
+      }), ClassroomLessonRunConflictError);
+      assert.deepEqual(runs.readLessonRun(active.lessonRunId), before.run);
+      assert.equal(commandCount(fixture.database, 'demo-class'), before.commandCount);
+      assert.equal(topicVersion(fixture.database, 'classroom:demo-class'), before.topic);
+    }
+  } finally {
+    fixture.cleanup();
+  }
+});
+
 test('rejects cursor movement while the lesson is paused without any write', () => {
   const fixture = createTestDatabase();
   try {

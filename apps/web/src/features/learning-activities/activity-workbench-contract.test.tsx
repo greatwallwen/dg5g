@@ -3,9 +3,16 @@ import test from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { p01BaseActivities } from './activity-catalog.ts';
-import { ActivityWorkbench } from './activity-workbench.tsx';
+import { ActivityWorkbench, shouldLoadActivityProgress } from './activity-workbench.tsx';
 
 (globalThis as typeof globalThis & { React: typeof React }).React = React;
+
+test('only self-study workbenches restore self-study attempt history', () => {
+  assert.equal(shouldLoadActivityProgress({ channel: 'self-study' }), true);
+  assert.equal(shouldLoadActivityProgress({
+    channel: 'classroom', sessionId: 'demo-class', classroomRunId: 'lesson-run-001',
+  }), false);
+});
 
 test('six activity kinds render purpose-built control contracts', () => {
   const markup = p01BaseActivities.map(({ activity }) => renderToStaticMarkup(

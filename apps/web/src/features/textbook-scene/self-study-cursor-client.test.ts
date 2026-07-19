@@ -36,6 +36,11 @@ test('self-study cursor client sends only cursor fields to the actor-scoped node
   assert.ok(calls.every(({ init }) => init?.credentials === 'same-origin'));
 });
 
+test('a first visit treats an authorised empty cursor as a normal default position', async () => {
+  const client = createSelfStudyCursorClient(async () => Response.json({ cursor: null }));
+  assert.equal(await client.read('P1T1-N02'), undefined);
+});
+
 test('cursor restoration accepts six canonical sections and seeded legacy playback ids', () => {
   for (const [actionId, expected] of [
     ['problem', 'problem'],

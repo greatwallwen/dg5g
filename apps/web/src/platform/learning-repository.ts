@@ -142,6 +142,7 @@ export interface StudentLearningFacts {
   assessmentInstances: StoredFormalAssessmentInstance[];
   attempts: StoredFormalAttempt[];
   outputs: StoredProfessionalOutput[];
+  outputVersions: StoredProfessionalOutputVersion[];
   reviews: StoredOutputReview[];
   frozenTaskScores: StoredFrozenTaskScore[];
 }
@@ -188,6 +189,12 @@ interface EventRow {
   payloadJson: string;
   occurredAt: string;
   origin: LearningOrigin;
+}
+
+export interface StoredProfessionalOutputVersion {
+  outputId: string;
+  taskId: string;
+  version: number;
 }
 interface PracticeAttemptRow extends Omit<StoredPracticeAttempt,
   'passed' | 'response' | 'result' | 'artifact' | 'classroomSessionId' | 'classroomRunId'> {
@@ -457,6 +464,13 @@ export class LearningRepository {
         WHERE student_id = ?
         ORDER BY updated_at, output_id
       `).all(studentId) as ProfessionalOutputRow[];
+      const outputVersions = this.database.prepare(`
+        SELECT version.output_id AS outputId, version.task_id AS taskId, version.version
+        FROM professional_output_versions AS version
+        INNER JOIN professional_outputs AS output ON output.output_id = version.output_id
+        WHERE output.student_id = ?
+        ORDER BY version.output_id, version.version
+      `).all(studentId) as StoredProfessionalOutputVersion[];
       const reviews = this.database.prepare(`
         SELECT
           review.review_id AS reviewId,
@@ -503,6 +517,7 @@ export class LearningRepository {
         assessmentInstances,
         attempts,
         outputs: outputs.map(toStoredOutput),
+        outputVersions,
         reviews: reviews.map(toStoredReview),
         frozenTaskScores: frozenTaskScores.map(toStoredFrozenTaskScore),
       };

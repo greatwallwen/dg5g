@@ -213,11 +213,11 @@
           "setup": { "fixture": "demo-seed", "packageStatus": "demo-complete" },
           "viewportProfiles": ["desktop-1440", "desktop-1920", "mobile-390"],
           "derivedFrom": ["course-graph/P1-current", "n02-p01/figure"],
-          "primaryActionPolicy": "none",
+          "primaryActionPolicy": "exactly-one",
           "allowedInternalScrollers": [],
           "checks": ["overflow", "keyboard", "reduced-motion", "primary-action"],
           "screenshotPolicy": { "captures": ["viewport", "full-page", "bottom"], "mobile": "full" },
-          "requiredSelectors": ["[data-p1-project=\"P1\"]", "[data-p1-portfolio-status=\"demo-complete\"]", "[data-p1-task=\"P03\"]", "[data-p1-portfolio-link=\"demo-complete\"]"],
+          "requiredSelectors": ["[data-p1-project=\"P1\"]", "[data-p1-portfolio-status=\"demo-complete\"]", "[data-p1-task=\"P03\"]", "[data-p1-portfolio-link=\"demo-complete\"]", "[data-primary-action]"],
           "regions": [
             { "name": "demo-package-status", "selector": "[data-p1-portfolio-status=\"demo-complete\"]" },
             { "name": "p03-task", "selector": "[data-p1-task=\"P03\"]" },

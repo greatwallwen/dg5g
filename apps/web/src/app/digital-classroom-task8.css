@@ -120,6 +120,16 @@
 }
 
 @media (max-width: 760px) {
+  .scene-teacher-console .scene-classroom-topbar nav {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .scene-teacher-console .teacher-helper-pill,
+  .scene-teacher-console .account-menu-identity {
+    display: none;
+  }
+
   .scene-teacher-console {
     height: 100dvh;
     min-height: 620px;

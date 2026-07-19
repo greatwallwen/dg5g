@@ -37,6 +37,14 @@ test('semantic graph preserves full detail and one learn action on mobile', () =
   );
 });
 
+test('professional-output graph nodes name the real成果表 destination', () => {
+  const graph = source('./semantic-course-graph.tsx');
+  assert.match(
+    graph,
+    /detail\.node\.action === 'professional-output' \? '进入成果表' : '继续学习'/,
+  );
+});
+
 test('semantic graph supports explicit active paused and reduced motion states', () => {
   const overview = source('../textbook-scene/course-overview.tsx');
   const graph = source('./semantic-course-graph.tsx');

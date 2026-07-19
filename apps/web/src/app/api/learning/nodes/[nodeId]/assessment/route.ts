@@ -187,7 +187,11 @@ function assessmentError(error: unknown): NextResponse {
     return response({ error: error.message, remediationTargets: error.targets }, 409);
   }
   if (error instanceof AssessmentDraftRevisionConflictError) {
-    return response({ error: error.message, draftState: 'revision-conflict' }, 409);
+    return response({
+      error: error.message,
+      draftState: 'revision-conflict',
+      authoritativeDraft: error.authoritativeDraft,
+    }, 409);
   }
   if (error instanceof AssessmentClassroomWindowError) {
     return response({ error: error.message, classroomWindow: 'unavailable' }, 409);

@@ -48,7 +48,7 @@ try {
       '/api/learning/activities/P1T1-N01-micro-01/attempts',
       {
         attemptId: `self-study-audit-scope-${randomUUID()}`,
-        expectedVersion: 0,
+        delivery: { channel: 'self-study' },
         response: {
           assignments: {
             'room-01-cabinets': 'in-scope',
@@ -61,7 +61,7 @@ try {
     if (!scopeAttempt.passed) throw new Error('N01 scope activity did not pass server evaluation.');
     studentSnapshot = await requestJson(studentContext, 'GET', '/api/learning/me');
 
-    for (const sectionId of ['understand', 'evidence', 'explain', 'practice']) {
+    for (const sectionId of ['problem', 'figure', 'steps', 'correction']) {
       studentSnapshot = await requestJson(
         studentContext,
         'POST',
@@ -113,7 +113,7 @@ try {
         `/api/learning/activities/${practice.activityId}/attempts`,
         {
           attemptId: `self-study-audit-${practice.activityId}-${randomUUID()}`,
-          expectedVersion: 0,
+          delivery: { channel: 'self-study' },
           response: practice.response,
         },
       );
@@ -242,7 +242,8 @@ function collectBlockingIssues() {
     const mutation = checkpoints['isolated-self-study-write'];
     const sections = mutation?.completedSections ?? [];
     const practiceActivities = mutation?.practiceActivities ?? [];
-    if (!['understand', 'evidence', 'explain', 'practice'].every((sectionId) => sections.includes(sectionId))
+    if (!['problem', 'figure', 'steps', 'correction']
+      .every((sectionId) => sections.includes(sectionId))
       || mutation?.scopeActivityPassed !== true
       || !['P1T1-N02-foundation-01', 'P1T1-N02-application-01', 'P1T1-N02-transfer-01']
         .every((activityId) => practiceActivities.includes(activityId))

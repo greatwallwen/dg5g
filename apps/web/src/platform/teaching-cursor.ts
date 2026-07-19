@@ -1,4 +1,5 @@
 import { getNodeLearningPolicy } from './learning-policy.ts';
+import { resolveClassroomLessonPage } from './classroom-lesson-page-catalog.ts';
 
 export type ClassroomLessonId = 'P01-L1' | 'P01-L2' | 'P02-L1' | 'P03-L1';
 export type ClassroomLessonRunStatus = 'preparing' | 'active' | 'paused' | 'closed';
@@ -145,12 +146,18 @@ export function parseTeachingCursor(
     || !isTeachingAudioOwner(value.audioOwner)
     || !isSafeNonNegativeInteger(value.revision)
     || !isValidIsoDate(value.updatedAt)) return undefined;
-  const anchor = lessonAnchorFor(value.lessonId);
-  const nodePolicy = getNodeLearningPolicy(value.nodeId);
-  if (value.taskId !== anchor.taskId
-    || nodePolicy?.taskId !== value.taskId
-    || value.unitId !== `${value.taskId}-ku-${value.nodeId.slice(-2)}`
-    || !value.pageId.startsWith(`${value.lessonId}-P`)
+  const resolvedPage = resolveClassroomLessonPage({
+    lessonId: value.lessonId,
+    taskId: value.taskId,
+    nodeId: value.nodeId,
+    unitId: value.unitId,
+    pageId: value.pageId,
+    pageIndex: value.pageIndex,
+    phase: value.phase,
+    actionId: value.actionId,
+    actionIndex: value.actionIndex,
+  });
+  if (!resolvedPage
     || (options.expectedLessonRunId !== undefined
       && value.lessonRunId !== options.expectedLessonRunId)) return undefined;
   return value as unknown as TeachingCursor;

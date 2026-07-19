@@ -91,8 +91,10 @@ test('joined student logout attempts to leave class but cannot be blocked by lea
   const source = read('apps/web/src/features/classroom/student-follow-client.tsx');
 
   assert.match(source, /beforeLogout=/);
-  assert.match(source, /participation\.participation\?\.state\s*===\s*['"]joined['"]/);
-  assert.match(source, /gateway\.leave\(session\.sessionId\)/);
+  assert.match(source, /const participation = snapshot\.participation/);
+  assert.match(source, /participation\?\.state\s*===\s*['"]joined['"]/);
+  assert.match(source, /leaveStudentClassroom\(gateway, snapshot\.classroom\.sessionId\)/);
+  assert.match(source, /refreshAfterSnapshotVersion\(beforeVersion\)/);
   assert.match(
     read(accountMenuPath),
     /await settleBeforeLogout\(beforeLogout\);[\s\S]*await logoutCurrentActor\(\)/,

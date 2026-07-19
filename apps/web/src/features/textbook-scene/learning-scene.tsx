@@ -4,6 +4,7 @@ import { Icon, type IconName } from '@/ui/foundation/icons';
 import type { DemoTaskProfile, DemoUnit } from '@/features/platform/deep-textbook-demo-data';
 import type { SelfStudyDocument, SelfStudySectionId } from './self-study-types.ts';
 import { SelfStudyRenderer } from './self-study-renderer.tsx';
+import { sceneVisualIdFrom, type SceneVisualId } from './scene-visual-contract.ts';
 
 type LearningSceneProps = {
   document?: SelfStudyDocument;
@@ -60,7 +61,8 @@ function LegacyLearningStage({ profile, unit, completed, saving, onComplete }: {
   );
 }
 
-export function SceneVisual({ visualId, activeStep }: { visualId: string; activeStep: number }) {
+export function SceneVisual({ visualId: requestedVisualId, activeStep }: { visualId: string; activeStep: number }) {
+  const visualId: SceneVisualId = sceneVisualIdFrom(requestedVisualId);
   if (visualId === 'indoor-boundary') return <NodeFlow title="采集边界" icons={['site', 'room', 'grid']} labels={['站点A-3', '机房03', '机柜区B']} activeStep={activeStep} />;
   if (visualId === 'indoor-topology') return <NodeFlow title="设备拓扑" icons={['room', 'bbu', 'rru', 'link']} labels={['机柜02', 'BBU槽位3', 'AAU/RRU', '端口链']} activeStep={activeStep} />;
   if (visualId === 'indoor-condition') return <ConditionBoard />;
@@ -68,7 +70,12 @@ export function SceneVisual({ visualId, activeStep }: { visualId: string; active
   if (visualId === 'outdoor-boundary') return <CoverageMap mode="boundary" />;
   if (visualId === 'antenna-posture') return <AntennaPosture />;
   if (visualId === 'outdoor-obstacle') return <CoverageMap mode="obstacle" />;
-  return <CoverageMap mode="route" />;
+  if (visualId === 'route') return <CoverageMap mode="route" />;
+  return exhaustiveSceneVisual(visualId);
+}
+
+function exhaustiveSceneVisual(visualId: never): never {
+  throw new Error(`Unsupported scene visual: ${visualId}`);
 }
 
 function NodeFlow({ title, icons, labels, activeStep }: { title: string; icons: IconName[]; labels: string[]; activeStep: number }) {

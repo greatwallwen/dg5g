@@ -49,7 +49,7 @@ const expectedReferences = new Map(Object.entries({
   'student-follow/follow': 'docs/design/image2/dgbook-image2-student-follow-dark-v4.png',
   'formal-test/open': 'docs/design/image2/dgbook-image2-pixi-dark-v4.png',
 }));
-const noPrimary = new Set(['p1-project/demo-complete', 'n04-p02/verified', 'n04-p03/verified', 'portfolio/incomplete', 'portfolio/demo-complete', 'projector/active']);
+const noPrimary = new Set(['n04-p02/verified', 'n04-p03/verified', 'portfolio/incomplete', 'portfolio/demo-complete', 'projector/active']);
 const atMostOnePrimary = new Set();
 const longPages = new Set([
   'p1-project/P01-current', 'p1-project/P01-returned', 'p1-project/demo-complete',

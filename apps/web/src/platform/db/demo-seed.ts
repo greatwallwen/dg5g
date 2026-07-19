@@ -657,12 +657,16 @@ export function resetDemo(database: AppDatabase, seed = readDemoSeed()): void {
     database.prepare('DELETE FROM classroom_commands WHERE session_id = ?').run(DEMO_CLASS_ID);
     database.prepare('DELETE FROM device_presence WHERE session_id = ?').run(DEMO_CLASS_ID);
     database.prepare('DELETE FROM classroom_participation WHERE session_id = ?').run(DEMO_CLASS_ID);
+    database.prepare(`
+      UPDATE classroom_sessions SET active_lesson_run_id = NULL WHERE session_id = ?
+    `).run(DEMO_CLASS_ID);
+    database.prepare('DELETE FROM classroom_lesson_runs WHERE session_id = ?').run(DEMO_CLASS_ID);
     const classroom = seed.base.classrooms.find(({ sessionId }) => sessionId === DEMO_CLASS_ID)!;
     database.prepare(`
       UPDATE classroom_sessions
       SET name = @name, teacher_id = @teacherId, status = @status,
         active_node_id = @activeNodeId, active_unit_id = @activeUnitId,
-        state_json = '{}', revision = revision + 1, updated_at = CURRENT_TIMESTAMP,
+        active_lesson_run_id = NULL, state_json = '{}', revision = revision + 1, updated_at = CURRENT_TIMESTAMP,
         closed_at = NULL
       WHERE session_id = @sessionId
     `).run(classroom);

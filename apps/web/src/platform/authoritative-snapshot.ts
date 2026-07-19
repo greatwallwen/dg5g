@@ -1,5 +1,8 @@
 import type { AuthenticatedActor } from './auth/actor.ts';
-import { ClassroomParticipationRepository } from './classroom-participation-repository.ts';
+import {
+  ClassroomParticipationRepository,
+  type ClassroomParticipation,
+} from './classroom-participation-repository.ts';
 import {
   ClassroomSessionNotFoundError,
   ClassroomSessionRepository,
@@ -26,6 +29,10 @@ import { ClassroomAssessmentRunRepository } from './classroom-assessment-run-rep
 import {
   type AssessmentDimensionKey,
 } from './formal-assessment-contract.ts';
+import {
+  classroomLessonPageCountFromCatalog,
+  resolveClassroomLessonPage,
+} from './classroom-lesson-page-catalog.ts';
 
 export type SnapshotAudience = 'student' | 'teacher' | 'projector' | 'graph';
 export type ScoreDistributionRange = '90-100' | 'pass-89' | '60-below-pass' | 'below-60';
@@ -157,7 +164,11 @@ type StudentGraphDetail = Pick<StudentSnapshotDetail,
   'studentId' | 'studentVersion' | 'nodes' | 'tasks' | 'projectCompositeScore' | 'projectCompositeOrigin'>;
 
 export type AuthoritativeSnapshot =
-  | (SnapshotCommon & { audience: 'student'; me: StudentSelfSnapshotDetail })
+  | (SnapshotCommon & {
+      audience: 'student';
+      participation: ClassroomParticipation | null;
+      me: StudentSelfSnapshotDetail;
+    })
   | (SnapshotCommon & { audience: 'teacher'; students: StudentSnapshotDetail[]; weakPoints: WeakPointSnapshot[] })
   | (SnapshotCommon & { audience: 'projector' })
   | (SnapshotCommon & { audience: 'graph'; mode: 'student'; me: StudentGraphDetail })
@@ -429,6 +440,10 @@ export class AuthoritativeSnapshotReader {
       return {
         ...common,
         audience,
+        participation: new ClassroomParticipationRepository(this.database).read(
+          common.classroom.sessionId,
+          student.member.studentId,
+        ) ?? null,
         me: { ...projectStudentDetail(student), learning: student.learning },
       };
     }
@@ -477,10 +492,10 @@ function projectActiveLesson(
   if (classroomRevision !== teachingCursor.revision) {
     throw new Error('Classroom, lesson, and teaching cursor revisions are incoherent.');
   }
-  const pageCount = lessonPageCount(teachingCursor.lessonId);
-  if (teachingCursor.pageIndex >= pageCount) {
-    throw new Error('Teaching cursor page is outside its lesson package.');
+  if (!resolveClassroomLessonPage(teachingCursor)) {
+    throw new Error('Teaching cursor page is incoherent with its lesson package.');
   }
+  const pageCount = classroomLessonPageCountFromCatalog(teachingCursor.lessonId);
   return {
     runId: lessonRunId,
     lessonId: teachingCursor.lessonId,
@@ -489,16 +504,6 @@ function projectActiveLesson(
     cursor: teachingCursor,
     pageCount,
   };
-}
-
-function lessonPageCount(lessonId: TeachingCursor['lessonId']): number {
-  switch (lessonId) {
-    case 'P01-L1':
-    case 'P01-L2':
-    case 'P02-L1':
-    case 'P03-L1':
-      return 6;
-  }
 }
 
 function projectSubmissionMetrics(

@@ -7,6 +7,7 @@ import { migrateDatabase } from './db/migrations.ts';
 import { createTestDatabase } from './db/test-database.ts';
 import { ClassroomSessionRepository } from './classroom-session-repository.ts';
 import { ClassroomRosterRepository } from './classroom-roster-repository.ts';
+import { provisionClassroomAssessmentParticipants } from './classroom-lesson-run-test-fixture.ts';
 import { getNodeLearningPolicy } from './learning-policy.ts';
 import { FormalAssessmentService, type AssessmentAnswers } from './formal-assessment-service.ts';
 import {
@@ -291,6 +292,12 @@ test('blocks review at zero real submissions and opens it after one valid submis
       '2026-07-16T04:00:00.000Z',
       '2026-07-16T04:15:00.000Z',
     );
+    provisionClassroomAssessmentParticipants(fixture.database, {
+      runId: running.formalTest.runId,
+      studentIds: [student.userId],
+      openedAt: '2026-07-16T04:00:00.000Z',
+      expiresAt: '2026-07-16T04:15:00.000Z',
+    });
 
     assert.throws(
       () => service.applyTeacherIntent(
@@ -641,30 +648,25 @@ function wrongAssessmentAnswers(): AssessmentAnswers {
 
 function seedActiveLessonRun(database: ReturnType<typeof createTestDatabase>['database']): string {
   const lessonRunId = 'service-test-lesson-run';
-  const base = createInitialTeachingCursor({
+  const cursor = createInitialTeachingCursor({
     lessonRunId,
-    lessonId: 'P01-L1',
+    lessonId: 'P01-L2',
     revision: 0,
     now: new Date('2026-07-16T01:00:00.000Z'),
   });
-  const cursor = {
-    ...base,
-    nodeId: 'P1T1-N02',
-    unitId: 'P01-ku-02',
-    actionId: 'P1T1-N02-S01',
-  };
   database.prepare(`
     INSERT INTO classroom_lesson_runs (
       lesson_run_id, session_id, lesson_id, task_id, node_id, status,
       teaching_cursor_json, revision, started_at, created_at
-    ) VALUES (?, 'demo-class', 'P01-L1', 'P01', 'P1T1-N02', 'active', ?, 0,
+    ) VALUES (?, 'demo-class', ?, ?, ?, 'active', ?, 0,
       '2026-07-16T01:00:00.000Z', '2026-07-16T01:00:00.000Z')
-  `).run(lessonRunId, JSON.stringify(cursor));
+  `).run(lessonRunId, cursor.lessonId, cursor.taskId, cursor.nodeId, JSON.stringify(cursor));
   database.prepare(`
     UPDATE classroom_sessions
-    SET status = 'active', active_lesson_run_id = ?
+    SET status = 'active', active_node_id = ?, active_unit_id = ?,
+      active_lesson_run_id = ?, revision = 0
     WHERE session_id = 'demo-class'
-  `).run(lessonRunId);
+  `).run(cursor.nodeId, cursor.unitId, lessonRunId);
   return lessonRunId;
 }
 

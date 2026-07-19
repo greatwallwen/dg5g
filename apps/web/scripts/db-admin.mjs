@@ -4,6 +4,7 @@ import { mkdirSync } from 'node:fs';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { openDatabase, resolveDatabasePath } from '../src/platform/db/database.ts';
 import { resetDemo, seedBase, seedDemo } from '../src/platform/db/demo-seed.ts';
+import { ensureDemoClassroomReady } from '../src/platform/demo-classroom-ready.ts';
 import {
   LATEST_SCHEMA_VERSION,
   migrateDatabase,
@@ -25,10 +26,12 @@ try {
   } else if (command === 'seed' && args[1] === 'demo' && args.length === 2) {
     migrateDatabase(database);
     seedDemo(database);
+    ensureDemoClassroomReady(database);
     console.log('Demo seed complete.');
   } else if (command === 'reset' && args[1] === 'demo' && args.length === 2) {
     migrateDatabase(database);
     resetDemo(database);
+    ensureDemoClassroomReady(database);
     console.log('Demo reset complete.');
   } else if (command === 'verify' && args.length === 1) {
     verifyDatabase(database);

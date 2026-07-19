@@ -4,7 +4,9 @@ import {
   type P1ProfessionalOutputTarget,
   type P1TeachingLessonId,
   type P1TeachingTaskId,
+  type ClassroomPageVisualRenderer,
 } from '../features/textbook-scene/p1-teaching-package.ts';
+import type { SceneVisualId } from '../features/textbook-scene/scene-visual-contract.ts';
 import type { TeachingCursor, TeachingCursorPhase } from './teaching-cursor.ts';
 
 export interface ClassroomLessonPageMetadata {
@@ -17,6 +19,8 @@ export interface ClassroomLessonPageMetadata {
   actionId: string;
   actionIndex: number;
   canonicalActivityIds: readonly string[];
+  visualRenderer: ClassroomPageVisualRenderer;
+  visualId: SceneVisualId;
   formalAssessment?: P1FormalAssessmentTarget;
   professionalOutput?: P1ProfessionalOutputTarget;
 }
@@ -43,6 +47,8 @@ const lessonPageCatalog = new Map<P1TeachingLessonId, readonly ClassroomLessonPa
       actionId: `${page.nodeId}-S${String(pageIndex + 1).padStart(2, '0')}`,
       actionIndex: pageIndex,
       canonicalActivityIds: [...page.canonicalActivityIds],
+      visualRenderer: page.classroomVisual.renderer,
+      visualId: page.classroomVisual.visualId,
       ...(page.formalAssessment ? { formalAssessment: page.formalAssessment } : {}),
       ...(page.professionalOutput ? { professionalOutput: page.professionalOutput } : {}),
     })),

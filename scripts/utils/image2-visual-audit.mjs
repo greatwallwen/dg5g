@@ -228,8 +228,36 @@ export async function waitForImage2Stability(page, state, timeout = 20_000) {
   for (const selector of state.requiredSelectors ?? []) {
     await page.locator(selector).first().waitFor({ state: 'attached', timeout });
   }
+  await page.evaluate(async () => {
+    const renderedImages = [...document.images].filter((image) => image.getClientRects().length > 0);
+    if (renderedImages.every((image) => image.complete)) return;
+    const original = { x: window.scrollX, y: window.scrollY };
+    const step = Math.max(1, window.innerHeight);
+    const limit = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    for (let y = 0; y <= limit; y += step) {
+      window.scrollTo(0, Math.min(y, limit));
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    }
+    window.scrollTo(original.x, original.y);
+    const scrollers = [...document.querySelectorAll('*')].filter((element) => {
+      const overflowY = getComputedStyle(element).overflowY;
+      return /(auto|scroll)/.test(overflowY) && element.scrollHeight > element.clientHeight + 1;
+    });
+    for (const scroller of scrollers) {
+      const originalTop = scroller.scrollTop;
+      const scrollLimit = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+      const scrollStep = Math.max(1, scroller.clientHeight);
+      for (let top = 0; top <= scrollLimit; top += scrollStep) {
+        scroller.scrollTop = Math.min(top, scrollLimit);
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      }
+      scroller.scrollTop = originalTop;
+    }
+  });
   await page.waitForFunction(() => (
-    [...document.images].every((image) => image.complete)
+    [...document.images]
+      .filter((image) => image.getClientRects().length > 0)
+      .every((image) => image.complete)
   ), null, { timeout });
   const animationQuietMarker = '__dgbookImage2AnimationQuietSince';
   await page.waitForFunction(({ quietWindowMs, marker }) => {

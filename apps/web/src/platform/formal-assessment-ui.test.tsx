@@ -100,12 +100,20 @@ test('draft save coordinator preserves the newest edit after a failed PATCH and 
 
 test('assessment client restores server draft, autosaves after 500ms, and uses a one-shot expiry submit', () => {
   const client = read('features/formal-assessment/formal-assessment-client.tsx');
+  const draftSaver = read('features/formal-assessment/formal-assessment-draft-saver.ts');
   const paper = read('features/formal-assessment/formal-assessment-paper-content.tsx');
   assert.match(client, /performance\.now\(\)/);
   assert.match(client, /500/);
-  assert.match(client, /method:\s*'PATCH'/);
+  assert.match(draftSaver, /method:\s*'PATCH'/);
   assert.match(client, /createDraftSaveCoordinator/);
   assert.match(client, /expirySubmitAttemptedRef/);
+  const responseIdentityGuard = client.indexOf('if (body.assessmentId !== issued.assessmentId)');
+  const closeAfterValidation = client.indexOf('closeAttemptActivity();', responseIdentityGuard);
+  const adoptValidatedResult = client.indexOf('setResult(body);', closeAfterValidation);
+  assert.ok(responseIdentityGuard >= 0, 'submission response must match the active assessment');
+  assert.ok(closeAfterValidation > responseIdentityGuard, 'validated submission must close its attempt token');
+  assert.ok(adoptValidatedResult > closeAfterValidation, 'only the validated result may be adopted');
+  assert.match(client, /if \(!activityOpen\) return undefined/);
   assert.match(paper, /defaultChecked|defaultValue/);
   assert.match(client, /draftCoordinator\?\.retry\(\)/);
 });
@@ -121,7 +129,7 @@ test('every expired POST response moves the assessment into read-only expiry sta
 });
 
 test('expired assessment renders its saved draft read-only and offers an explicit restart', () => {
-  const markup = renderToStaticMarkup(<FormalAssessmentClient issued={{
+  const markup = renderToStaticMarkup(<FormalAssessmentClient classroomSessionId={undefined} initialSnapshot={undefined} issued={{
     assessmentId: 'assessment-expired',
     serverNow: '2026-07-17T01:16:00.000Z',
     expiresAt: '2026-07-17T01:15:00.000Z',
@@ -148,6 +156,21 @@ test('expired assessment renders its saved draft read-only and offers an explici
   assert.match(markup, /只读/);
   assert.match(markup, /href="\/learn\/P1T1-N02\/test\?restart=true"/);
   assert.match(markup, /开始新测试/);
+});
+
+test('classroom paused assessment resumes from the student snapshot with one session-scoped GET', () => {
+  const page = read('app/learn/[nodeId]/test/page.tsx');
+  const client = read('features/formal-assessment/formal-assessment-client.tsx');
+  const classroomClient = read('features/formal-assessment/formal-assessment-classroom-client.tsx');
+  assert.match(page, /AuthoritativeSnapshotReader/);
+  assert.match(page, /read\(actor, 'student', \{ sessionId: classroomSessionId \}\)/);
+  assert.match(page, /classroomSessionId=\{classroomSessionId\}/);
+  assert.match(page, /initialSnapshot=\{initialSnapshot\}/);
+  assert.match(classroomClient, /useAuthoritativeSnapshotState/);
+  assert.match(classroomClient, /createClassroomAssessmentResumeCoordinator/);
+  assert.match(classroomClient, /URLSearchParams\(\{ classroomSessionId \}\)/);
+  assert.match(classroomClient, /method:\s*'GET'/);
+  assert.doesNotMatch(`${client}\n${classroomClient}`, /localStorage|sessionStorage/);
 });
 
 test('assessment client submits only answers and contains no server grading material', () => {
@@ -280,7 +303,7 @@ test('the live classroom route owns the server-graded formal assessment handoff'
   const renderer = read('features/classroom/classroom-follow-renderer.tsx');
   assert.match(page, /StudentFollowClient/);
   assert.match(client, /ClassroomStudentModeRenderer/);
-  assert.match(renderer, /data-classroom-formal-test/);
+  assert.match(renderer, /data-classroom-formal-assessment/);
   assert.match(renderer, /classroomSessionId=\$\{encodeURIComponent\(model\.sessionId\)\}/);
   assert.match(assessmentPage, /parseAssessmentClassroomSessionId\(searchParams\.classroomSessionId\)/);
   assert.match(assessmentPage, /openOrResume\(actor, params\.nodeId, \{/);

@@ -222,7 +222,7 @@ export function SemanticCourseGraph({
           <header><span>{graphKindLabel[detail.node.kind]}</span><h2>{detail.title}</h2><small>{detail.node.id}</small></header>
           <dl>{detail.rows.map((row) => <div key={row.label}><dt>{row.label}</dt><dd>{row.value}</dd></div>)}</dl>
           <div className="graph-detail-score"><span>当前状态</span><strong>{detail.status}</strong><i><b style={{ width: `${detail.percent}%` }} /></i></div>
-          {(detail.node.nodeId || detail.node.taskId) ? <button data-primary-action={selectedAccess.disabled ? undefined : ''} disabled={selectedAccess.disabled} onClick={() => { if (!selectedAccess.disabled) chooseNode(detail.node); }} title={selectedAccess.label} type="button">{actorMode === 'teacher' ? '进入授课' : detail.node.action === 'formal-test' ? '进入正式测试' : '继续学习'}<Icon name="arrow" size={18} /></button> : null}
+          {(detail.node.nodeId || detail.node.taskId) ? <button data-primary-action={selectedAccess.disabled ? undefined : ''} disabled={selectedAccess.disabled} onClick={() => { if (!selectedAccess.disabled) chooseNode(detail.node); }} title={selectedAccess.label} type="button">{actorMode === 'teacher' ? '进入授课' : detail.node.action === 'formal-test' ? '进入正式测试' : detail.node.action === 'professional-output' ? '进入成果表' : '继续学习'}<Icon name="arrow" size={18} /></button> : null}
         </> : null}
       </aside>
     </section>

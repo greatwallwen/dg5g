@@ -5,6 +5,7 @@ import {
   parseTeachingCursor,
   resolveCanonicalActivityId,
 } from './teaching-cursor.ts';
+import { classroomLessonPageFor } from './classroom-lesson-page-catalog.ts';
 
 test('creates and parses the exact authoritative cursor for a stable lesson anchor', () => {
   const cursor = createInitialTeachingCursor({
@@ -60,4 +61,49 @@ test('rejects a syntactically valid cursor whose relational identities conflict'
   assert.equal(parseTeachingCursor({ ...cursor, unitId: 'P01-ku-99' }), undefined);
   assert.equal(parseTeachingCursor({ ...cursor, pageId: 'P01-L2-P01' }), undefined);
   assert.equal(parseTeachingCursor(cursor, { expectedLessonRunId: 'lesson-run-other' }), undefined);
+});
+
+test('accepts all 24 canonical lesson pages and rejects every independently forged coordinate', () => {
+  for (const lessonId of ['P01-L1', 'P01-L2', 'P02-L1', 'P03-L1'] as const) {
+    for (let pageIndex = 0; pageIndex < 6; pageIndex += 1) {
+      const page = classroomLessonPageFor(lessonId, pageIndex);
+      assert.ok(page);
+      const cursor = {
+        ...createInitialTeachingCursor({
+          lessonRunId: `lesson-run-${lessonId}`,
+          lessonId,
+          revision: 7,
+          now: new Date('2026-07-17T01:00:00.000Z'),
+        }),
+        lessonId: page.lessonId,
+        taskId: page.taskId,
+        nodeId: page.nodeId,
+        unitId: page.unitId,
+        pageId: page.pageId,
+        pageIndex: page.pageIndex,
+        actionId: page.actionId,
+        actionIndex: page.actionIndex,
+        phase: 'practice' as const,
+      };
+      assert.deepEqual(parseTeachingCursor(cursor), cursor, `${lessonId} page ${pageIndex}`);
+
+      const otherIndex = pageIndex === 0 ? 1 : 0;
+      const otherPage = classroomLessonPageFor(lessonId, otherIndex);
+      assert.ok(otherPage);
+      for (const forged of [
+        { pageId: otherPage.pageId },
+        { pageIndex: otherPage.pageIndex },
+        { actionId: otherPage.actionId },
+        { actionIndex: otherPage.actionIndex },
+        { nodeId: otherPage.nodeId === page.nodeId ? 'P1T1-N04' : otherPage.nodeId },
+        { unitId: otherPage.unitId === page.unitId ? 'P01-ku-04' : otherPage.unitId },
+      ]) {
+        assert.equal(
+          parseTeachingCursor({ ...cursor, ...forged }),
+          undefined,
+          `${lessonId} page ${pageIndex} accepted ${JSON.stringify(forged)}`,
+        );
+      }
+    }
+  }
 });

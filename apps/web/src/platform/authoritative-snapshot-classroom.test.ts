@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { AuthenticatedActor } from './auth/actor.ts';
-import { startActiveLessonRun } from './classroom-lesson-run-test-fixture.ts';
+import {
+  provisionClassroomAssessmentParticipants,
+  startActiveLessonRun,
+} from './classroom-lesson-run-test-fixture.ts';
 import { seedDemo } from './db/demo-seed.ts';
 import { migrateDatabase } from './db/migrations.ts';
 import { createTestDatabase } from './db/test-database.ts';
@@ -30,6 +33,7 @@ test('snapshot read persists a due assessment expiry exactly once before cutting
       'classroom-run-due',
       '2026-07-16T01:10:00.000Z',
       '2026-07-16T01:19:00.000Z',
+      ['stu-01', 'stu-02', 'stu-03'],
     );
     let sequence = 0;
     const assessment = new FormalAssessmentService(fixture.database, {
@@ -93,12 +97,6 @@ test('review projection stays anonymous and cannot restart after review was coll
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
     readyForFormalAssessment(fixture.database, 'stu-01');
-    const lesson = openRelationalAssessmentRun(
-      fixture.database,
-      'classroom-run-shared-01',
-      '2026-07-16T01:10:00.000Z',
-      '2026-07-16T01:25:00.000Z',
-    );
     let sequence = 0;
     const assessment = new FormalAssessmentService(fixture.database, {
       now: () => new Date('2026-07-16T01:15:00.000Z'),
@@ -107,9 +105,18 @@ test('review projection stays anonymous and cannot restart after review was coll
     });
     const selfIssued = assessment.issuePaper(studentActor('stu-01'), 'P1T1-N02');
     assessment.submitAnswers(studentActor('stu-01'), selfIssued.attemptToken, passingAssessmentAnswers());
+    const lesson = openRelationalAssessmentRun(
+      fixture.database,
+      'classroom-run-shared-01',
+      '2026-07-16T01:10:00.000Z',
+      '2026-07-16T01:25:00.000Z',
+      ['stu-01'],
+    );
     const issued = assessment.issuePaper(studentActor('stu-01'), 'P1T1-N02', {
       classroomSessionId: 'demo-class',
     });
+    assert.notEqual(issued.assessmentId, selfIssued.assessmentId);
+    assert.equal(issued.state, 'in-progress');
     assessment.submitAnswers(
       studentActor('stu-01'),
       issued.attemptToken,
@@ -239,6 +246,7 @@ function openRelationalAssessmentRun(
   runId: string,
   startedAt: string,
   expiresAt: string,
+  studentIds: readonly string[] = [],
 ): ReturnType<typeof startActiveLessonRun> {
   const lessonRun = startActiveLessonRun(database, 'demo-class', {
     now: new Date(startedAt),
@@ -250,6 +258,12 @@ function openRelationalAssessmentRun(
     ) VALUES (?, ?, 'demo-class', 'P1T1-N02', 'P1T1-N02-server-assessment',
       'running', ?, ?)
   `).run(runId, lessonRun.lessonRunId, startedAt, expiresAt);
+  provisionClassroomAssessmentParticipants(database, {
+    runId,
+    studentIds,
+    openedAt: startedAt,
+    expiresAt,
+  });
   return lessonRun;
 }
 

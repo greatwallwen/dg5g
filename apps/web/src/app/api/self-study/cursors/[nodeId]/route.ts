@@ -32,7 +32,7 @@ export function GET(request: Request, { params }: RouteContext) {
     createLearningCommandService(database).requireNodeAccess(actor, params.nodeId);
     const cursor = new SelfStudyCursorRepository(database).read(actor.studentId, params.nodeId as P1NodeId);
     if (!cursor) {
-      return NextResponse.json({ error: `Self-study cursor not found: ${params.nodeId}.` }, { status: 404 });
+      return NextResponse.json({ cursor: null });
     }
     return NextResponse.json({ cursor });
   } catch (error) {

@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
-import { access, cp, lstat, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
+import { access, cp, lstat, mkdir, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { classifyWorkspacePath, normalizeWorkspacePath } from './active-workspace-policy.mjs';
 
-const SCHEMA = 'dgbook-runtime-cleanup/v1';
+const SCHEMA = 'dgbook-runtime-cleanup/v2';
 const APPLY_RECEIPT_SCHEMA = 'dgbook-runtime-cleanup-apply/v1';
 const RESTORE_RECEIPT_SCHEMA = 'dgbook-runtime-cleanup-restore/v1';
+const WORKSPACE_QUARANTINE_DIRECTORY = '.runtime-cleanup-quarantine';
 
 export class CleanupManifestError extends Error {
   constructor(code, message, details = undefined) {
@@ -42,16 +43,58 @@ function samePath(leftPath, rightPath) {
   return process.platform === 'win32' ? left.toLowerCase() === right.toLowerCase() : left === right;
 }
 
-function assertExternalQuarantine(rootPath, quarantineRootPath) {
-  if (
-    isAtOrBelow(quarantineRootPath, rootPath) ||
-    isAtOrBelow(rootPath, quarantineRootPath)
-  ) {
-    fail('QUARANTINE_ROOT_OVERLAP', 'Quarantine root must be outside the workspace tree.', {
+function workspaceQuarantineBase(rootPath) {
+  return path.join(rootPath, WORKSPACE_QUARANTINE_DIRECTORY);
+}
+
+function workspaceQuarantineDirectoryName(manifestId, createdAt) {
+  const timestampDate = new Date(createdAt);
+  if (Number.isNaN(timestampDate.valueOf())) {
+    fail('INVALID_CREATED_AT', 'Manifest createdAt must be a valid timestamp.', { createdAt });
+  }
+  const timestamp = timestampDate.toISOString();
+  return `${timestamp.replace(/[:.]/g, '-')}--${manifestId}`;
+}
+
+function workspaceQuarantinePath(rootPath, manifestId, createdAt) {
+  return path.join(
+    workspaceQuarantineBase(rootPath),
+    workspaceQuarantineDirectoryName(manifestId, createdAt),
+  );
+}
+
+function resolveWorkspaceQuarantine(rootPath, manifestId, createdAt, suppliedPath) {
+  const expectedBasePath = workspaceQuarantineBase(rootPath);
+  const basePath = suppliedPath === undefined ? expectedBasePath : normalizeAbsolute(suppliedPath);
+  if (!samePath(basePath, expectedBasePath)) {
+    fail('QUARANTINE_ROOT_OUTSIDE_WORKSPACE', 'Quarantine base must be the workspace cleanup quarantine directory.', {
       rootPath,
-      quarantineRootPath,
+      expectedBasePath,
+      suppliedPath: basePath,
     });
   }
+  return workspaceQuarantinePath(rootPath, manifestId, createdAt);
+}
+
+function resolveManifestQuarantine(rootPath, manifest, suppliedPath) {
+  const expectedPath = workspaceQuarantinePath(rootPath, manifest.manifestId, manifest.createdAt);
+  if (!samePath(normalizeAbsolute(manifest.quarantineRootPath), expectedPath)) {
+    fail('QUARANTINE_ROOT_MISMATCH', 'Manifest quarantine path is not the canonical workspace timestamp directory.', {
+      expectedPath,
+      actualPath: manifest.quarantineRootPath,
+    });
+  }
+  if (suppliedPath !== undefined) {
+    const requestedPath = normalizeAbsolute(suppliedPath);
+    const requestedBasePath = workspaceQuarantineBase(rootPath);
+    if (!samePath(requestedPath, expectedPath) && !samePath(requestedPath, requestedBasePath)) {
+      fail('QUARANTINE_ROOT_MISMATCH', 'Operation quarantine path differs from the immutable workspace timestamp directory.', {
+        expectedPath,
+        requestedPath,
+      });
+    }
+  }
+  return expectedPath;
 }
 
 function assertManifestId(manifestId) {
@@ -144,17 +187,10 @@ function suppliedRole(decision) {
   return decision.role ?? decision.evidenceRole ?? 'not-evidence';
 }
 
-function validateRemovableDecision(decision, relativePath) {
+function classifyCleanupDecision(decision, relativePath) {
   const role = suppliedRole(decision);
-  if (decision.disposition !== 'removable') return undefined;
-  if (!['not-evidence', 'superseded'].includes(role)) {
-    fail('PROTECTED_EVIDENCE_ROLE', 'Only non-evidence caches or proven superseded evidence may be removable.', {
-      relativePath,
-      role,
-    });
-  }
   const metadata = {
-    ...(role === 'superseded' ? { evidenceRole: role } : {}),
+    ...(role === 'not-evidence' ? {} : { evidenceRole: role }),
     isReparsePoint: decision.isReparsePoint,
     hasReparseAncestor: decision.hasReparseAncestor,
   };
@@ -170,7 +206,15 @@ function validateRemovableDecision(decision, relativePath) {
     throw error;
   }
 
-  if (policy.disposition !== 'removable' || policy.reason !== decision.reason) {
+  if (policy.disposition !== 'removable' || decision.disposition !== 'removable') {
+    return {
+      kind: 'protected-refusal',
+      relativePath,
+      reason: policy.disposition === 'protected' ? policy.reason : 'not-approved-for-cleanup',
+      role,
+    };
+  }
+  if (policy.reason !== decision.reason) {
     fail('DECISION_MISMATCH', 'Supplied removal decision does not match the path policy.', {
       relativePath,
       supplied: { disposition: decision.disposition, reason: decision.reason },
@@ -185,7 +229,7 @@ function validateRemovableDecision(decision, relativePath) {
       relativePath,
     });
   }
-  return { role, supersededBy: decision.supersededBy ?? null };
+  return { kind: 'candidate', role, supersededBy: decision.supersededBy ?? null };
 }
 
 function targetName(manifestId, index, relativePath) {
@@ -208,7 +252,11 @@ export function verifyCleanupManifest(manifest) {
   if (manifest.schema !== SCHEMA || !Array.isArray(manifest.candidates)) {
     fail('INVALID_MANIFEST', 'Cleanup manifest schema or candidate list is invalid.');
   }
-  if (manifest.candidateCount !== manifest.candidates.length) {
+  if (
+    manifest.candidateCount !== manifest.candidates.length ||
+    !Array.isArray(manifest.protectedRefusals) ||
+    manifest.protectedRefusalCount !== manifest.protectedRefusals.length
+  ) {
     fail('INVALID_MANIFEST', 'Cleanup manifest candidate count is inconsistent.');
   }
   const { manifestSha256, ...payload } = manifest;
@@ -238,25 +286,30 @@ export async function createCleanupManifest({
   createdAt = new Date().toISOString(),
 }) {
   const rootPath = normalizeAbsolute(root);
-  const quarantineRootPath = normalizeAbsolute(quarantineRoot);
-  assertExternalQuarantine(rootPath, quarantineRootPath);
   assertManifestId(manifestId);
+  const quarantineRootPath = resolveWorkspaceQuarantine(rootPath, manifestId, createdAt, quarantineRoot);
   await assertNoReparseChain(rootPath);
-  await assertNoReparseChain(quarantineRootPath);
+  await assertNoReparseChain(quarantineRootPath, { allowMissing: true });
   if (!Array.isArray(decisions)) {
     fail('INVALID_DECISIONS', 'Path decisions must be supplied as an array.');
   }
 
   const removable = [];
+  const protectedRefusals = [];
   for (const decision of decisions) {
     if (!decision || typeof decision !== 'object') {
       fail('INVALID_DECISION', 'Every path decision must be an object.', { decision });
     }
     const relativePath = normalizeWorkspacePath(decision.path);
-    const proof = validateRemovableDecision(decision, relativePath);
-    if (proof) removable.push({ decision, relativePath, ...proof });
+    const classification = classifyCleanupDecision(decision, relativePath);
+    if (classification.kind === 'candidate') {
+      removable.push({ decision, relativePath, ...classification });
+    } else {
+      protectedRefusals.push(classification);
+    }
   }
   removable.sort((left, right) => compareText(left.relativePath, right.relativePath));
+  protectedRefusals.sort((left, right) => compareText(left.relativePath, right.relativePath));
   for (let leftIndex = 0; leftIndex < removable.length; leftIndex += 1) {
     for (let rightIndex = leftIndex + 1; rightIndex < removable.length; rightIndex += 1) {
       const leftPath = removable[leftIndex].relativePath.toLowerCase();
@@ -315,6 +368,8 @@ export async function createCleanupManifest({
       quarantineRootPath,
       candidateCount: candidates.length,
       candidates,
+      protectedRefusalCount: protectedRefusals.length,
+      protectedRefusals,
     }),
   );
 }
@@ -434,7 +489,7 @@ function assertManifestCandidateCanonical(manifest, entry, index, rootPath, quar
 
 async function assertCleanupBoundary(manifest, root, quarantineRoot) {
   const rootPath = normalizeAbsolute(root);
-  const quarantineRootPath = normalizeAbsolute(quarantineRoot);
+  const quarantineRootPath = resolveManifestQuarantine(rootPath, manifest, quarantineRoot);
   if (!samePath(rootPath, normalizeAbsolute(manifest.rootPath))) {
     fail('ROOT_MISMATCH', 'Operation root differs from the immutable dry-run root.', {
       expected: manifest.rootPath,
@@ -447,7 +502,6 @@ async function assertCleanupBoundary(manifest, root, quarantineRoot) {
       actual: quarantineRootPath,
     });
   }
-  assertExternalQuarantine(rootPath, quarantineRootPath);
   await assertNoReparseChain(rootPath);
   await assertNoReparseChain(quarantineRootPath);
   const quarantineInfo = await lstat(quarantineRootPath);
@@ -892,7 +946,7 @@ export async function applyCleanupManifest(
 ) {
   verifyCleanupManifest(manifest);
   const rootPath = normalizeAbsolute(root);
-  const quarantineRootPath = normalizeAbsolute(quarantineRoot);
+  const quarantineRootPath = resolveManifestQuarantine(rootPath, manifest, quarantineRoot);
   if (!samePath(rootPath, normalizeAbsolute(manifest.rootPath))) {
     fail('ROOT_MISMATCH', 'Apply root differs from the immutable dry-run root.', {
       expected: manifest.rootPath,
@@ -905,8 +959,9 @@ export async function applyCleanupManifest(
       actual: quarantineRootPath,
     });
   }
-  assertExternalQuarantine(rootPath, quarantineRootPath);
   await assertNoReparseChain(rootPath);
+  await assertNoReparseChain(quarantineRootPath, { allowMissing: true });
+  await mkdir(quarantineRootPath, { recursive: true });
   await assertNoReparseChain(quarantineRootPath);
   const quarantineInfo = await lstat(quarantineRootPath);
   if (!quarantineInfo.isDirectory() || quarantineInfo.isSymbolicLink()) {
@@ -1096,12 +1151,13 @@ function optionValue(args, name) {
 
 function usage() {
   return `Usage:
-  node scripts/cleanup-runtime-artifacts.mjs --dry-run --decisions <json> --manifest <json> --quarantine-root <absolute-dir> [--root <absolute-dir>]
+  node scripts/cleanup-runtime-artifacts.mjs --dry-run --decisions <json> --manifest <json> [--root <absolute-dir>] [--quarantine-root <workspace-quarantine-base>]
   node scripts/cleanup-runtime-artifacts.mjs --apply-manifest <json> [--root <absolute-dir>] [--quarantine-root <absolute-dir>]
   node scripts/cleanup-runtime-artifacts.mjs --publish-apply-receipt <json> [--root <absolute-dir>] [--quarantine-root <absolute-dir>]
   node scripts/cleanup-runtime-artifacts.mjs --restore-manifest <json> [--root <absolute-dir>] [--quarantine-root <absolute-dir>]
 
 Dry-run consumes supplied path decisions and writes a new immutable manifest. It never discovers candidates itself.
+Quarantine is always <workspace>/.runtime-cleanup-quarantine/<manifest-id>; dry-run does not create it.
 Receipt-only verifies an already-applied payload without moving or restoring it.`;
 }
 
@@ -1182,20 +1238,20 @@ export async function runCleanupCli(args = process.argv.slice(2)) {
   const manifestPath = optionValue(args, '--manifest');
   const quarantineRoot = optionValue(args, '--quarantine-root');
   const manifestId = optionValue(args, '--manifest-id') ?? undefined;
-  if (!decisionsPath || !manifestPath || !quarantineRoot) {
-    fail('MISSING_ARGUMENT', '--decisions, --manifest, and --quarantine-root are required.');
+  if (!decisionsPath || !manifestPath) {
+    fail('MISSING_ARGUMENT', '--decisions and --manifest are required.');
   }
   const decisionDocument = JSON.parse(await readFile(path.resolve(decisionsPath), 'utf8'));
   const decisions = Array.isArray(decisionDocument) ? decisionDocument : decisionDocument.decisions;
   const manifest = await createCleanupManifest({
     root,
-    quarantineRoot: path.resolve(quarantineRoot),
+    ...(quarantineRoot ? { quarantineRoot: path.resolve(quarantineRoot) } : {}),
     decisions,
     ...(manifestId ? { manifestId } : {}),
   });
   await writeCleanupManifest(path.resolve(manifestPath), manifest);
   console.log(
-    `DRY-RUN manifest ${manifest.manifestSha256}: ${manifest.candidateCount} candidate(s) -> ${path.resolve(manifestPath)}`,
+    `DRY-RUN manifest ${manifest.manifestSha256}: ${manifest.candidateCount} candidate(s), ${manifest.protectedRefusalCount} protected refusal(s) -> ${path.resolve(manifestPath)}`,
   );
   return 0;
 }

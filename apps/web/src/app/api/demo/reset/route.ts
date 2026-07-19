@@ -7,6 +7,7 @@ import {
   DEMO_TEACHER_ID,
   resetDemo,
 } from '@/platform/db/demo-seed';
+import { ensureDemoClassroomReady } from '@/platform/demo-classroom-ready';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,7 +31,9 @@ export async function POST(request: Request) {
     return json({ error: `confirmation must equal ${confirmation}` }, 400);
   }
 
-  resetDemo(getDatabase());
+  const database = getDatabase();
+  resetDemo(database);
+  ensureDemoClassroomReady(database);
   return json({ reset: true, students: [...DEMO_STUDENT_IDS] }, 200);
 }
 

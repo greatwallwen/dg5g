@@ -3,8 +3,15 @@ import test from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { assessmentDimensionKeys } from '../../platform/formal-assessment-contract.ts';
+import { loadP1DemoContent } from '../platform/p1-content.ts';
+import { loadSelfStudyCatalog } from '../textbook-scene/self-study-content.ts';
 import { p01OutputFieldDefinitions } from './p01-output-definition.ts';
-import { buildP1PortfolioDetailModel, type P1PortfolioDetailFacts } from './p1-portfolio-detail-model.ts';
+import { buildP1PortfolioDetailDefinition } from './p1-portfolio-detail-definition.ts';
+import {
+  buildP1PortfolioDetailModel,
+  type P1PortfolioDetailFacts,
+  type PortfolioVersionFact,
+} from './p1-portfolio-detail-model.ts';
 import { P1PortfolioDetailView } from './p1-portfolio-detail-view.tsx';
 
 (globalThis as typeof globalThis & { React: typeof React }).React = React;
@@ -64,6 +71,51 @@ test('renders a truthful unformed page without fake version, score, fields, or c
   assert.equal((html.match(/data-primary-action="true"/g) ?? []).length, 1);
 });
 
+test('each canonical task renders its generated output title, fields, provenance, revisions, and formal diagnosis', () => {
+  const content = loadP1DemoContent();
+  const catalog = loadSelfStudyCatalog(content);
+  const cases = [
+    { taskId: 'P01' as const, origin: 'demo' as const, originLabel: '演示数据' },
+    { taskId: 'P02' as const, origin: 'user' as const, originLabel: '真实学习记录' },
+    { taskId: 'P03' as const, origin: 'demo' as const, originLabel: '演示数据' },
+  ];
+
+  for (const { taskId, origin, originLabel } of cases) {
+    const definition = buildP1PortfolioDetailDefinition(taskId, content, catalog);
+    const firstField = definition.fieldDefinitions[0]!;
+    const taskNumber = Number(taskId.slice(-1));
+    const model = buildP1PortfolioDetailModel(definition, canonicalFacts({
+      taskId,
+      fields: definition.fieldDefinitions.map(({ key }) => key),
+      firstField: firstField.key,
+      origin,
+      taskNumber,
+    }));
+    const html = renderToStaticMarkup(
+      <P1PortfolioDetailView displayName="学生三" model={model} />,
+    );
+
+    assert.equal(model.outputTitle, content.tasks[taskNumber - 1]!.taskOutputTitle, taskId);
+    assert.equal(model.outputHref, `/learn/P1T${taskNumber}-N04?section=output`, taskId);
+    assert.equal(model.deliveryState, origin === 'demo' ? 'demo-only' : 'verified-deliverable', taskId);
+    assert.match(html, new RegExp(escapeRegExp(definition.outputTitle)), taskId);
+    assert.match(html, new RegExp(`data-portfolio-detail="${taskId}"`), taskId);
+    assert.match(html, new RegExp(`href="/learn/P1T${taskNumber}-N04\\?section=output"`), taskId);
+    assert.equal((html.match(/data-portfolio-field=/g) ?? []).length, definition.fieldDefinitions.length * 2, taskId);
+    for (const field of definition.fieldDefinitions) {
+      assert.match(html, new RegExp(`data-portfolio-field="${field.key}"`), `${taskId}:${field.key}`);
+    }
+    assert.match(html, new RegExp(`data-portfolio-evidence="${taskId}-evidence"`), taskId);
+    assert.match(html, new RegExp(`data-portfolio-source="P1T${taskNumber}-N01:${taskId}-attempt"`), taskId);
+    assert.match(html, new RegExp(`href="/learn/P1T${taskNumber}-N01"`), taskId);
+    assert.match(html, new RegExp(escapeRegExp(originLabel)), taskId);
+    assert.match(html, /data-version-diff="1:2"/, taskId);
+    assert.match(html, new RegExp(`href="/learn/P1T${taskNumber}-N02/test"`), taskId);
+    assert.equal((html.match(/data-assessment-dimension=/g) ?? []).length, 4, taskId);
+    assert.match(html, /总分 92/, taskId);
+  }
+});
+
 function facts(): P1PortfolioDetailFacts {
   const base = Object.fromEntries(p01OutputFieldDefinitions.map(({ key }) => [key, `已填写：${key}`]));
   return {
@@ -121,4 +173,71 @@ function evidence() {
     evidenceId: 'ev-room', title: 'HY-01机房全景', kind: 'photo' as const,
     assetUrl: '/media/5g/image29.png', metadata: { annotation: '站点与机房同框' }, origin: 'demo' as const,
   };
+}
+
+function canonicalFacts({
+  taskId,
+  fields,
+  firstField,
+  origin,
+  taskNumber,
+}: {
+  taskId: 'P01' | 'P02' | 'P03';
+  fields: string[];
+  firstField: string;
+  origin: 'demo' | 'user';
+  taskNumber: number;
+}): P1PortfolioDetailFacts {
+  const values = (version: number) => Object.fromEntries(fields.map((key) => [
+    key,
+    key === firstField ? `${taskId} ${key} revision ${version}` : `${taskId} ${key} evidence`,
+  ]));
+  const versionFact = (version: number): PortfolioVersionFact => ({
+    outputId: `output-${taskId.toLowerCase()}`,
+    taskId,
+    version,
+    schemaVersion: 1,
+    fields: values(version),
+    upstreamRefs: [],
+    evidenceLinks: {
+      [firstField]: [{
+        evidenceId: `${taskId}-evidence`, title: `${taskId} source evidence`, kind: 'photo',
+        assetUrl: `/media/${taskId.toLowerCase()}-evidence.png`, metadata: {}, origin,
+      }],
+    },
+    evidenceGaps: {},
+    fieldSources: [{
+      fieldKey: firstField, sourceNodeId: `P1T${taskNumber}-N01`, sourceAttemptId: `${taskId}-attempt`,
+    }],
+  });
+  return {
+    taskId,
+    output: {
+      head: {
+        outputId: `output-${taskId.toLowerCase()}`, studentId: 'stu-03', taskId, currentVersion: 2,
+        stateRevision: 2, status: 'verified', origin,
+      },
+      submissionCount: 2,
+      versions: [versionFact(1), versionFact(2)],
+      reviewHistory: [{
+        reviewId: `${taskId}-review`, reviewerId: 'teacher-01', status: 'verified', outputVersion: 2,
+        feedback: `${taskId} evidence verified`, reviewedAt: '2026-07-16T09:00:00.000Z', origin,
+        annotations: [],
+      }],
+    },
+    assessment: {
+      assessmentId: `${taskId}-assessment`, attemptId: `${taskId}-formal`, nodeId: `P1T${taskNumber}-N02`,
+      questionVersion: `${taskId.toLowerCase()}-n02-v1`, totalScore: 92, passed: true, origin,
+      completedAt: '2026-07-16T07:00:00.000Z', remediationTargets: [],
+      dimensions: Object.fromEntries(assessmentDimensionKeys.map((key) => [key, {
+        score: 23, maxScore: 25 as const, feedback: `${taskId} ${key} diagnosis`,
+      }])) as P1PortfolioDetailFacts['assessment'] extends infer T
+        ? T extends { dimensions: infer D } ? D : never
+        : never,
+    },
+  };
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }

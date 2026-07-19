@@ -34,7 +34,7 @@ test('projects the authoritative P01 to P03 chain for each seeded student', () =
 
     assert.equal(studentOne.tasks[0].nextNodeId, 'P1T1-N01');
     assert.equal(studentTwo.tasks[0].nextNodeId, 'P1T1-N01');
-    assert.equal(studentThree.tasks[2].nextNodeId, undefined);
+    assert.equal(studentThree.tasks[2].nextNodeId, 'P1T3-N01');
     assert.equal(studentTwo.tasks[0].outputOrigin, 'demo');
     assert.equal(studentTwo.tasks[0].outputStatus, 'returned');
     assert.equal(studentTwo.tasks[0].state, 'output-pending');

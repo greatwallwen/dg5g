@@ -5,6 +5,51 @@ import type {
 import type { StudentSyncState } from '@/platform/models.ts';
 import { nodeLearningStateCompletionPercent } from '@/platform/learning-status.ts';
 import type { TeacherSkillPulseProgress } from '@/features/skill-tree/teacher-skill-pulse.tsx';
+import { teachingPageFor, type P1TeachingPage } from '@/features/textbook-scene/p1-teaching-package.ts';
+import type { ClassroomLessonState } from '@/platform/models.ts';
+
+export interface TeacherClassroomCut {
+  lessonRunId: string;
+  lessonId: NonNullable<TeacherAuthoritativeSnapshot['classroom']['activeLesson']>['lessonId'];
+  revision: number;
+  pageIndex: number;
+  pageCount: number;
+  page: P1TeachingPage;
+  lessonState: ClassroomLessonState;
+}
+
+export function projectTeacherClassroomCut(
+  snapshot: TeacherAuthoritativeSnapshot,
+): TeacherClassroomCut | undefined {
+  const activeLesson = snapshot.classroom.activeLesson;
+  if (!activeLesson) return undefined;
+  const cursor = activeLesson.cursor;
+  const phase = cursor.phase === 'assessment' ? 'challenge' : cursor.phase;
+  return {
+    lessonRunId: activeLesson.runId,
+    lessonId: activeLesson.lessonId,
+    revision: activeLesson.revision,
+    pageIndex: cursor.pageIndex,
+    pageCount: activeLesson.pageCount,
+    page: teachingPageFor(activeLesson.lessonId, cursor.pageIndex),
+    lessonState: {
+      phase,
+      activeNodeId: cursor.nodeId,
+      activeUnitId: cursor.unitId,
+      revision: cursor.revision,
+      playback: {
+        sceneId: `${cursor.nodeId}-lesson`,
+        actionId: cursor.actionId,
+        actionIndex: cursor.actionIndex,
+        status: cursor.playbackStatus,
+        positionMs: cursor.positionMs,
+        rate: cursor.rate,
+        revision: cursor.revision,
+        audioOwner: cursor.audioOwner,
+      },
+    },
+  };
+}
 
 export interface TeacherConsoleSnapshotModel {
   rosterStats: {

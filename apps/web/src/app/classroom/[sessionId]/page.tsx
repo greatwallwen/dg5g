@@ -14,13 +14,10 @@ export default async function StudentFollowPage({ params }: { params: { sessionI
   }
   return (
     <StudentFollowClient
-      contentCatalog={data.contentCatalog}
+      activityCatalog={data.activityCatalog}
       displayName={actor.displayName}
-      initialParticipation={data.participation}
-      initialSession={data.session}
+      initialSnapshot={data.initialSnapshot}
       returnTarget={data.returnTarget}
-      sessionStatus={data.sessionStatus}
-      studentId={actor.studentId}
     />
   );
 }

@@ -68,11 +68,13 @@ test('one isolated server/reset run executes snapshot, classroom, and self-study
 
 test('three-terminal audit uses a bounded stable-version handshake and API-to-DOM assertions', () => {
   for (const proof of [
-    'MAX_SNAPSHOT_WINDOW_ATTEMPTS = 3',
+    'MAX_SNAPSHOT_WINDOW_ATTEMPTS = 8',
     'captureStableSnapshotWindow',
+    'suppressAuditPresenceWrites',
+    '/api/class-sessions/${sessionId}/presence*',
+    "route.request().method() !== 'POST'",
     'teacherV1',
     'teacherV2',
-    'helper.observedAt',
     'data-classroom-revision',
     'data-snapshot-version',
     'data-class-size',
@@ -100,8 +102,12 @@ test('cross-context audit proves projector page controls, follow revision, and s
     'selfTeacherRevision',
     'projector page revision overwrote the self-study student personal cursor',
     'assertNoPersonLevelData',
+    "getAttribute('aria-pressed') === 'false'",
   ]) assert.ok(crossContext.includes(proof), `cross-context audit omits ${proof}`);
   assert.equal(crossContext.includes("locator('[data-session-action]').count() === 0"), false);
+  assert.ok(crossContext.includes("unitId: 'P01-ku-06'"));
+  assert.equal(crossContext.includes("unitId: 'P01-ku-04'"), false);
+  assert.ok(crossContext.includes('{ teacher, projector, studentFollow, studentSelf }'));
 });
 
 test('complete journey preserves a cursor the seeded self-study actor can actually access', () => {
@@ -112,6 +118,8 @@ test('complete journey preserves a cursor the seeded self-study actor can actual
   assert.ok(completeJourney.includes("review.status === 'verified' && review.origin === 'demo'"));
   assert.ok(completeJourney.includes('data-p1-portfolio="demo-complete"'));
   assert.equal(completeJourney.includes('data-p1-portfolio="complete"'), false);
+  assert.match(completeJourney, /\[data-role-scope="teacher"\][\s\S]*state: 'attached'/);
+  assert.ok(completeJourney.includes("locator('.teacher-console').waitFor({ state: 'visible'"));
 });
 
 async function source(name) {

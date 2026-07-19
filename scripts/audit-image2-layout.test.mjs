@@ -10,7 +10,11 @@ import {
   waitForImage2Stability,
 } from './utils/image2-visual-audit.mjs';
 import {
+  Image2FixtureManager,
   apiResponseCanBeEmpty,
+  classroomPageIntentRequest,
+  classroomLessonIntentRequest,
+  formalAssessmentOpenFixturePlan,
   outputStateSatisfies,
   planClassroomActivationPhases,
 } from './capture-image2-implementation.mjs';
@@ -172,6 +176,12 @@ test('waits for an animation-free quiet window without weakening the running-ani
   assert.ok(animationWait.options.timeout <= 1_000);
   assert.equal(fixedDelayCalls, 0, 'a condition-based quiet window replaces the fixed delay');
 
+  const utilitySource = readFileSync(new URL('./utils/image2-visual-audit.mjs', import.meta.url), 'utf8');
+  assert.match(utilitySource, /getClientRects\(\)\.length > 0/);
+  assert.match(utilitySource, /document\.images[\s\S]*window\.scrollTo\(0, Math\.min\(y, limit\)\)/);
+  assert.match(utilitySource, /window\.scrollTo\(original\.x, original\.y\)/);
+  assert.match(utilitySource, /overflowY[\s\S]*element\.scrollHeight > element\.clientHeight[\s\S]*scroller\.scrollTop = Math\.min/);
+
   const failures = evaluateImage2Layout({
     state: contract.surfaces[0].states[0],
     contract,
@@ -206,6 +216,107 @@ test('fixture setup never forges learning events or client-reported formal score
   assert.match(source, /snapshot\?\.me\?\.project\?\.portfolioStatus/);
 });
 
+test('capture navigation does not wait for idle on continuously polled classroom surfaces', () => {
+  const source = readFileSync(new URL('./capture-image2-implementation.mjs', import.meta.url), 'utf8');
+  const openState = source.slice(source.indexOf('async function openState'), source.indexOf('async function', source.indexOf('async function openState') + 1));
+  assert.match(openState, /waitUntil: 'domcontentloaded'/);
+  assert.match(openState, /waitForLoadState\('load'\)/);
+  assert.match(openState, /await waitForImage2Stability\(page, job\.state\);/);
+  assert.doesNotMatch(openState, /waitForImage2Stability[\s\S]*?catch/);
+  assert.doesNotMatch(openState, /networkidle/);
+});
+
+test('classroom activity fixture moves through the narrow authoritative page intent', () => {
+  assert.deepEqual(classroomPageIntentRequest('demo-class', {
+    activeLessonRunId: 'lesson-run-p01-l2',
+    lessonState: { revision: 12 },
+  }, 3), {
+    route: '/api/class-sessions/demo-class/lesson',
+    data: {
+      lessonRunId: 'lesson-run-p01-l2',
+      expectedRevision: 12,
+      intent: { type: 'page_changed', pageIndex: 3 },
+    },
+  });
+});
+
+test('formal-test fixture reaches readiness only through canonical public learning commands', () => {
+  const plan = formalAssessmentOpenFixturePlan();
+  assert.equal(plan.actor, 'stu-03');
+  assert.equal(plan.nodeId, 'P1T1-N02');
+  assert.equal(plan.assessmentRoute, '/api/learning/nodes/P1T1-N02/assessment');
+  assert.deepEqual(plan.scope, {
+    activityId: 'P1T1-N01-micro-01',
+    route: '/api/learning/activities/P1T1-N01-micro-01/attempts',
+    data: {
+      attemptId: 'image2-stu-03-P1T1-N01-micro-01',
+      delivery: { channel: 'self-study' },
+      response: {
+        assignments: {
+          'room-01-cabinets': 'in-scope',
+          'shared-operator-cabinet': 'out-of-scope',
+          'room-02-cabinets': 'out-of-scope',
+        },
+      },
+    },
+  });
+  assert.deepEqual(plan.sections.map(({ sectionId }) => sectionId), [
+    'problem', 'figure', 'steps', 'correction',
+  ]);
+  for (const section of plan.sections) {
+    assert.deepEqual(Object.keys(section.data).sort(), ['channel', 'eventId', 'eventType', 'payload']);
+    assert.equal(section.data.eventType, 'section_completed');
+    assert.deepEqual(section.data.payload, { sectionId: section.sectionId, completed: true });
+  }
+  assert.deepEqual(plan.practices.map(({ activityId }) => activityId), [
+    'P1T1-N02-foundation-01',
+    'P1T1-N02-application-01',
+    'P1T1-N02-transfer-01',
+  ]);
+  for (const practice of plan.practices) {
+    assert.deepEqual(Object.keys(practice.data).sort(), ['attemptId', 'delivery', 'response']);
+    assert.equal(practice.data.attemptId, `image2-stu-03-${practice.activityId}`);
+    assert.deepEqual(practice.data.delivery, { channel: 'self-study' });
+  }
+});
+
+test('formal-test fixture advances section events with each authoritative student version and is idempotent', async () => {
+  const manager = Object.create(Image2FixtureManager.prototype);
+  manager.completed = new Set();
+  manager.context = async (actor) => ({ actor });
+  const calls = [];
+  let sectionVersion = 7;
+  manager.api = async (_context, method, route, data) => {
+    calls.push({ method, route, data });
+    if (route.endsWith('/attempts')) return { passed: true };
+    if (method === 'POST' && route.endsWith('/events')) {
+      assert.equal(data.expectedVersion, sectionVersion);
+      sectionVersion += 1;
+      return { version: sectionVersion };
+    }
+    if (route === '/api/learning/me') {
+      return calls.filter((call) => call.route === route).length === 1
+        ? { version: sectionVersion }
+        : { version: sectionVersion, nodes: [{ nodeId: 'P1T1-N02', axes: { learning: 'practice-passed' } }] };
+    }
+    if (route.endsWith('/assessment')) {
+      return { state: 'in-progress', attemptToken: 'server-issued-token-with-enough-entropy' };
+    }
+    throw new Error(`Unexpected fixture call: ${method} ${route}`);
+  };
+
+  await manager.ensureFormalAssessmentOpen();
+  assert.deepEqual(
+    calls.filter(({ route }) => route.endsWith('/events')).map(({ data }) => data.expectedVersion),
+    [7, 8, 9, 10],
+  );
+  assert.equal(calls.filter(({ route }) => route.endsWith('/attempts')).length, 4);
+  assert.equal(calls.at(-1).route, '/api/learning/nodes/P1T1-N02/assessment');
+  const callCount = calls.length;
+  await manager.ensureFormalAssessmentOpen();
+  assert.equal(calls.length, callCount, 'completed fixture must not replay within one audit run');
+});
+
 test('plans the shortest legal path to an active lecture classroom', () => {
   assert.deepEqual(planClassroomActivationPhases('paused', 'prepare'), ['lecture']);
   assert.deepEqual(planClassroomActivationPhases('paused', 'lecture'), ['question', 'lecture']);
@@ -214,6 +325,34 @@ test('plans the shortest legal path to an active lecture classroom', () => {
   assert.deepEqual(planClassroomActivationPhases('active', 'challenge'), ['review', 'lecture']);
   assert.throws(() => planClassroomActivationPhases('closed', 'lecture'), /closed classroom/i);
   assert.throws(() => planClassroomActivationPhases('active', 'close'), /closed lesson phase/i);
+});
+
+test('plans Image2 teaching cursor changes through the narrow lesson CAS endpoint', () => {
+  assert.deepEqual(classroomLessonIntentRequest('demo-class', {
+    activeLessonRunId: 'lesson-run-p01-l1',
+    lessonState: { revision: 7 },
+  }, 'lecture'), {
+    route: '/api/class-sessions/demo-class/lesson',
+    data: {
+      lessonRunId: 'lesson-run-p01-l1',
+      expectedRevision: 7,
+      intent: { type: 'phase_changed', phase: 'lecture' },
+    },
+  });
+  assert.throws(
+    () => classroomLessonIntentRequest('demo-class', { lessonState: { revision: 7 } }, 'lecture'),
+    /active lesson run/i,
+  );
+});
+
+test('classroom fixture prepares and starts a real P01-L2 lesson before cursor intents', () => {
+  const source = readFileSync(new URL('./capture-image2-implementation.mjs', import.meta.url), 'utf8');
+  const fixture = source.slice(source.indexOf('async ensureClassroomFixture()'), source.indexOf('async api(', source.indexOf('async ensureClassroomFixture()')));
+  assert.match(fixture, /POST', '\/api\/class-sessions\/demo-class\/lesson'/);
+  assert.match(fixture, /lessonId: 'P01-L2'/);
+  assert.match(fixture, /lessonRunStatus === 'preparing'/);
+  assert.match(fixture, /command: \{ type: 'start' \}/);
+  assert.ok(fixture.indexOf("command: { type: 'start' }") < fixture.indexOf('classroomLessonIntentRequest'));
 });
 
 test('only treats an explicit locked-route 403 as an allowed pre-unlock empty output', () => {

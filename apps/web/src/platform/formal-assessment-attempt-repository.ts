@@ -20,7 +20,7 @@ export interface SaveAssessmentDraftCommand {
 }
 
 export class AssessmentDraftRevisionConflictError extends Error {
-  constructor() {
+  constructor(readonly authoritativeDraft: AssessmentDraftDto) {
     super('The formal assessment draft has a newer revision.');
     this.name = 'AssessmentDraftRevisionConflictError';
   }
@@ -58,7 +58,9 @@ export class FormalAssessmentAttemptRepository {
       `).pluck().get(command.assessmentId, command.studentId) as number | undefined;
       if ((currentRevision ?? 0) !== command.expectedRevision
         || (currentRevision === undefined && command.expectedRevision !== 0)) {
-        throw new AssessmentDraftRevisionConflictError();
+        throw new AssessmentDraftRevisionConflictError(
+          this.readDraft(command.assessmentId, command.studentId),
+        );
       }
 
       const nextRevision = command.expectedRevision + 1;
@@ -86,7 +88,11 @@ export class FormalAssessmentAttemptRepository {
             command.studentId,
             command.expectedRevision,
           );
-      if (changed.changes !== 1) throw new AssessmentDraftRevisionConflictError();
+      if (changed.changes !== 1) {
+        throw new AssessmentDraftRevisionConflictError(
+          this.readDraft(command.assessmentId, command.studentId),
+        );
+      }
       return this.readDraft(command.assessmentId, command.studentId);
     }).immediate();
   }

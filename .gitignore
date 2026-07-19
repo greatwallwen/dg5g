@@ -53,6 +53,7 @@ runtime/**/*.mkv
 .playwright-mcp/
 runtime/screenshots/
 .codex-runtime/
+.runtime-cleanup-quarantine/
 .codex/
 .codegraph/
 .pnpm-store/

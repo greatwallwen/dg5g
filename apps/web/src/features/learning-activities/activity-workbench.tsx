@@ -22,6 +22,7 @@ export function ActivityWorkbench({
   onAttempt,
   delivery = selfStudyDelivery,
   focused = false,
+  primaryAction = false,
 }: {
   activity: ActivityPublicDto;
   level: 'foundation' | 'application' | 'transfer';
@@ -31,6 +32,7 @@ export function ActivityWorkbench({
   onAttempt?: (result: ActivityAttemptResult) => void;
   delivery?: ActivityDeliveryContext;
   focused?: boolean;
+  primaryAction?: boolean;
 }) {
   const cardRef = useRef<HTMLElement>(null);
   const [values, setValues] = useState<Record<string, string>>({});
@@ -49,6 +51,7 @@ export function ActivityWorkbench({
     setResult(null);
     setRequestError('');
     let current = true;
+    if (!shouldLoadActivityProgress(delivery)) return () => { current = false; };
     void fetch(`/api/learning/activities/${encodeURIComponent(activity.id)}/attempts`, {
       method: 'GET',
       cache: 'no-store',
@@ -63,7 +66,7 @@ export function ActivityWorkbench({
       if (progress.passed) onPass();
     }).catch(() => undefined);
     return () => { current = false; };
-  }, [activity.id, passed]);
+  }, [activity.id, delivery.channel, passed]);
 
   useEffect(() => {
     if (focused) cardRef.current?.scrollIntoView({ block: 'center', behavior: 'auto' });
@@ -127,7 +130,7 @@ export function ActivityWorkbench({
       <ActivityControl activity={activity} onOrderChange={setOrder} onValueChange={(key, value) => (
         setValues((current) => ({ ...current, [key]: value }))
       )} order={order} values={values} />
-      <button className="activity-submit" disabled={saving} onClick={submitAttempt} type="button">
+      <button className="activity-submit" data-primary-action={primaryAction || undefined} disabled={saving} onClick={submitAttempt} type="button">
         {saving ? '正在评估' : '提交岗位作答'}
       </button>
       <div className="self-study-practice-feedback" hidden={!result && !requestError} role="status">
@@ -152,6 +155,10 @@ export function ActivityWorkbench({
 }
 
 const selfStudyDelivery: ActivityDeliveryContext = { channel: 'self-study' };
+
+export function shouldLoadActivityProgress(delivery: ActivityDeliveryContext): boolean {
+  return delivery.channel === 'self-study';
+}
 
 function responseFor(
   activity: ActivityPublicDto,

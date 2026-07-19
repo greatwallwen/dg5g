@@ -23,7 +23,7 @@ export function createSelfStudyCursorClient(fetchImpl: FetchLike = fetch) {
         method: 'GET',
         cache: 'no-store',
         credentials: 'same-origin',
-      });
+      }, true);
     },
     save(nodeId: string, draft: SelfStudyCursorDraft, mutationAt?: string) {
       return request(fetchImpl, nodeId, {
@@ -40,7 +40,7 @@ export function createSelfStudyCursorClient(fetchImpl: FetchLike = fetch) {
   };
 }
 
-export function readSelfStudyCursor(nodeId: string): Promise<SelfStudyCursor> {
+export function readSelfStudyCursor(nodeId: string): Promise<SelfStudyCursor | undefined> {
   return createSelfStudyCursorClient().read(nodeId);
 }
 
@@ -153,7 +153,24 @@ export function selfStudySectionFromCursor(
   return undefined;
 }
 
-async function request(fetchImpl: FetchLike, nodeId: string, init: RequestInit): Promise<SelfStudyCursor> {
+async function request(
+  fetchImpl: FetchLike,
+  nodeId: string,
+  init: RequestInit,
+  allowMissing: true,
+): Promise<SelfStudyCursor | undefined>;
+async function request(
+  fetchImpl: FetchLike,
+  nodeId: string,
+  init: RequestInit,
+  allowMissing?: false,
+): Promise<SelfStudyCursor>;
+async function request(
+  fetchImpl: FetchLike,
+  nodeId: string,
+  init: RequestInit,
+  allowMissing = false,
+): Promise<SelfStudyCursor | undefined> {
   const response = await fetchImpl(`/api/self-study/cursors/${encodeURIComponent(nodeId)}`, init);
   const body = await response.json().catch(() => ({})) as { cursor?: SelfStudyCursor; error?: string };
   if (!response.ok) {
@@ -162,6 +179,9 @@ async function request(fetchImpl: FetchLike, nodeId: string, init: RequestInit):
       response.status,
     );
   }
-  if (!body.cursor) throw new SelfStudyCursorClientError('Self-study cursor response is incomplete', 502);
+  if (!body.cursor) {
+    if (allowMissing) return undefined;
+    throw new SelfStudyCursorClientError('Self-study cursor response is incomplete', 502);
+  }
   return body.cursor;
 }

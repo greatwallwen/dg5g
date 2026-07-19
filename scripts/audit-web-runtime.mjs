@@ -124,6 +124,9 @@ function bindConsoleCapture(context, label) {
       if (message.type() === 'error') consoleErrors.push(`${label}: ${message.text()}`);
     });
     page.on('pageerror', (error) => consoleErrors.push(`${label}: ${error.message}`));
+    page.on('response', (response) => {
+      if (response.status() === 404) consoleErrors.push(`${label}: HTTP 404 ${response.url()}`);
+    });
   });
 }
 
@@ -163,7 +166,10 @@ function assertCommonSnapshotFacts(snapshots) {
 
 function commonSnapshotFacts(snapshot) {
   const common = structuredClone(snapshot);
-  for (const field of ['audience', 'me', 'students', 'weakPoints', 'mode', 'nodeHeatmap', 'tasks']) delete common[field];
+  for (const field of [
+    'audience', 'me', 'participation', 'students', 'weakPoints',
+    'mode', 'nodeHeatmap', 'tasks', 'serverNow',
+  ]) delete common[field];
   if (common.helper) delete common.helper.observedAt;
   return common;
 }
@@ -446,13 +452,13 @@ async function assertCapabilityGraph(context) {
 async function assertIsolatedMutation(context) {
   const beforeResponse = await context.request.get(api('/api/snapshot?audience=student&sessionId=demo-class'));
   const before = await beforeResponse.json();
-  const eventId = `runtime-audit:${before.me.studentId}:P1T1-N02:evidence`;
+  const eventId = `runtime-audit:${before.me.studentId}:P1T1-N02:problem`;
   const response = await context.request.post(api('/api/learning/nodes/P1T1-N02/events'), {
     data: {
       eventId,
       channel: 'self-study',
       eventType: 'section_completed',
-      payload: { sectionId: 'evidence', completed: true },
+      payload: { sectionId: 'problem', completed: true },
       expectedVersion: before.me.studentVersion,
     },
   });

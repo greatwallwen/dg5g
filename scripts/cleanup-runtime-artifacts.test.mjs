@@ -24,9 +24,8 @@ async function makeSandbox(t) {
   const base = await mkdtemp(path.join(os.tmpdir(), 'dgbook-cleanup-test-'));
   t.after(() => rm(base, { recursive: true, force: true }));
   const root = path.join(base, 'workspace');
-  const quarantineRoot = path.join(base, 'quarantine');
+  const quarantineRoot = path.join(root, '.runtime-cleanup-quarantine');
   await mkdir(path.join(root, 'scripts'), { recursive: true });
-  await mkdir(quarantineRoot, { recursive: true });
   return { base, root, quarantineRoot };
 }
 
@@ -62,9 +61,10 @@ test('dry-run writes an immutable inventory manifest from supplied path decision
   ]);
 
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
-  assert.equal(manifest.schema, 'dgbook-runtime-cleanup/v1');
+  assert.equal(manifest.schema, 'dgbook-runtime-cleanup/v2');
   assert.equal(manifest.rootPath, path.resolve(root));
-  assert.equal(manifest.quarantineRootPath, path.resolve(quarantineRoot));
+  assert.equal(path.dirname(manifest.quarantineRootPath), path.resolve(quarantineRoot));
+  assert.match(path.basename(manifest.quarantineRootPath), /^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z--test-run$/);
   assert.equal(manifest.candidates.length, 1);
   assert.deepEqual(
     {
@@ -564,6 +564,7 @@ test('apply rejects a pre-existing quarantine target as partial state before mov
       },
     ],
   });
+  await mkdir(path.dirname(manifest.candidates[0].targetPath), { recursive: true });
   await writeFile(manifest.candidates[0].targetPath, 'collision');
 
   await assert.rejects(
@@ -637,32 +638,38 @@ test('cross-volume copy fault fails rehash and retains the authoritative source'
   assert.equal(await readFile(manifest.candidates[0].targetPath, 'utf8'), 'corrupted-copy');
 });
 
-test('dry-run rejects removable decisions carrying a protected evidence role', async (t) => {
+test('dry-run reports protected evidence refusals without adding cleanup candidates', async (t) => {
   const { root, quarantineRoot } = await makeSandbox(t);
   const sourcePath = path.join(root, 'scripts', 'current.pyc');
   await writeFile(sourcePath, 'current-evidence');
 
-  await assert.rejects(
-    createCleanupManifest({
-      root,
-      quarantineRoot,
-      manifestId: 'protected-role-run',
-      createdAt: '2026-07-16T00:00:00.000Z',
-      decisions: [
-        {
-          path: 'scripts/current.pyc',
-          disposition: 'removable',
-          reason: 'regenerable:python-bytecode',
-          role: 'current',
-        },
-      ],
-    }),
-    (error) => error instanceof CleanupManifestError && error.code === 'PROTECTED_EVIDENCE_ROLE',
-  );
+  const manifest = await createCleanupManifest({
+    root,
+    quarantineRoot,
+    manifestId: 'protected-role-run',
+    createdAt: '2026-07-16T00:00:00.000Z',
+    decisions: [
+      {
+        path: 'scripts/current.pyc',
+        disposition: 'removable',
+        reason: 'regenerable:python-bytecode',
+        role: 'current',
+      },
+    ],
+  });
+  assert.equal(manifest.candidateCount, 0);
+  assert.deepEqual(manifest.protectedRefusals, [
+    {
+      kind: 'protected-refusal',
+      relativePath: 'scripts/current.pyc',
+      reason: 'evidence:current',
+      role: 'current',
+    },
+  ]);
   assert.equal(await readFile(sourcePath, 'utf8'), 'current-evidence');
 });
 
-test('Task 9 media rollback siblings remain protected from the generic cleanup manifest', async (t) => {
+test('Task 9 media rollback siblings are reported as protected refusals', async (t) => {
   const { root, quarantineRoot } = await makeSandbox(t);
   const rollbackPath = path.join(
     root,
@@ -674,23 +681,22 @@ test('Task 9 media rollback siblings remain protected from the generic cleanup m
   await mkdir(rollbackPath, { recursive: true });
   await writeFile(path.join(rollbackPath, 'asset.jpg'), 'protected-rollback');
 
-  await assert.rejects(
-    createCleanupManifest({
-      root,
-      quarantineRoot,
-      manifestId: 'rollback-protection-run',
-      createdAt: '2026-07-16T00:00:00.000Z',
-      decisions: [
-        {
-          path: 'apps/web/public/media.rollback-task9-media-20260716t2116z',
-          disposition: 'removable',
-          reason: 'regenerable:media-rollback',
-          role: 'not-evidence',
-        },
-      ],
-    }),
-    (error) => error instanceof CleanupManifestError && error.code === 'DECISION_MISMATCH',
-  );
+  const manifest = await createCleanupManifest({
+    root,
+    quarantineRoot,
+    manifestId: 'rollback-protection-run',
+    createdAt: '2026-07-16T00:00:00.000Z',
+    decisions: [
+      {
+        path: 'apps/web/public/media.rollback-task9-media-20260716t2116z',
+        disposition: 'removable',
+        reason: 'regenerable:media-rollback',
+        role: 'not-evidence',
+      },
+    ],
+  });
+  assert.equal(manifest.candidateCount, 0);
+  assert.equal(manifest.protectedRefusals[0].reason, 'authoritative:media-cutover-sibling');
   assert.equal(await readFile(path.join(rollbackPath, 'asset.jpg'), 'utf8'), 'protected-rollback');
 });
 
@@ -756,4 +762,128 @@ test('dry-run honors injected reparse metadata even when local lstat appears ord
     (error) => error instanceof CleanupManifestError && error.code === 'REPARSE_POINT',
   );
   assert.equal(await readFile(sourcePath, 'utf8'), 'metadata');
+});
+
+test('dry-run rejects traversal and an external quarantine base before inventorying any source', async (t) => {
+  const { base, root, quarantineRoot } = await makeSandbox(t);
+  const sourcePath = path.join(root, 'scripts', 'safe.pyc');
+  await writeFile(sourcePath, 'safe');
+
+  await assert.rejects(
+    createCleanupManifest({
+      root,
+      quarantineRoot,
+      manifestId: 'traversal-run',
+      decisions: [
+        {
+          path: 'scripts/../safe.pyc',
+          disposition: 'removable',
+          reason: 'regenerable:python-bytecode',
+          role: 'not-evidence',
+        },
+      ],
+    }),
+    (error) => error.code === 'UNSAFE_PATH',
+  );
+  await assert.rejects(
+    createCleanupManifest({
+      root,
+      quarantineRoot: path.join(base, 'external-quarantine'),
+      manifestId: 'external-quarantine-run',
+      decisions: [],
+    }),
+    (error) => error instanceof CleanupManifestError && error.code === 'QUARANTINE_ROOT_OUTSIDE_WORKSPACE',
+  );
+  assert.equal(await readFile(sourcePath, 'utf8'), 'safe');
+});
+
+test('dry-run rejects a reparse-point workspace quarantine base', async (t) => {
+  const { base, root, quarantineRoot } = await makeSandbox(t);
+  const realQuarantine = path.join(base, 'real-quarantine');
+  await mkdir(realQuarantine, { recursive: true });
+  await symlink(realQuarantine, quarantineRoot, 'junction');
+
+  await assert.rejects(
+    createCleanupManifest({
+      root,
+      quarantineRoot,
+      manifestId: 'quarantine-reparse-run',
+      decisions: [],
+    }),
+    (error) => error instanceof CleanupManifestError && error.code === 'REPARSE_POINT',
+  );
+});
+
+test('apply is idempotently fenced by the manifest after its one permitted quarantine move', async (t) => {
+  const { root, quarantineRoot } = await makeSandbox(t);
+  const sourcePath = path.join(root, 'scripts', 'once.pyc');
+  await writeFile(sourcePath, 'once');
+  const manifest = await createCleanupManifest({
+    root,
+    quarantineRoot,
+    manifestId: 'idempotent-run',
+    decisions: [
+      {
+        path: 'scripts/once.pyc',
+        disposition: 'removable',
+        reason: 'regenerable:python-bytecode',
+        role: 'not-evidence',
+      },
+    ],
+  });
+
+  await applyCleanupManifest(manifest, { root, quarantineRoot });
+  await assert.rejects(
+    applyCleanupManifest(manifest, { root, quarantineRoot }),
+    (error) => error instanceof CleanupManifestError && error.code === 'SOURCE_MISSING',
+  );
+  await assert.rejects(access(sourcePath));
+  assert.equal(await readFile(manifest.candidates[0].targetPath, 'utf8'), 'once');
+});
+
+test('current Playwright and source-release evidence are preserved as protected refusals', async (t) => {
+  const { root, quarantineRoot } = await makeSandbox(t);
+  const playwrightPath = path.join(root, 'output', 'playwright', 'current-run', 'screen.png');
+  const releasePath = path.join(
+    root,
+    'artifacts',
+    'web-source-release-history',
+    'current-release',
+    'source.tar.gz',
+  );
+  await mkdir(path.dirname(playwrightPath), { recursive: true });
+  await mkdir(path.dirname(releasePath), { recursive: true });
+  await writeFile(playwrightPath, 'current-screen');
+  await writeFile(releasePath, 'current-release');
+
+  const manifest = await createCleanupManifest({
+    root,
+    quarantineRoot,
+    manifestId: 'current-release-run',
+    decisions: [
+      {
+        path: 'output/playwright/current-run',
+        disposition: 'removable',
+        reason: 'superseded-evidence:playwright-output',
+        role: 'current',
+      },
+      {
+        path: 'artifacts/web-source-release-history/current-release',
+        disposition: 'removable',
+        reason: 'superseded-evidence:web-source-release-history',
+        role: 'current',
+      },
+    ],
+  });
+
+  assert.equal(manifest.candidateCount, 0);
+  assert.deepEqual(
+    manifest.protectedRefusals.map(({ relativePath, reason }) => ({ relativePath, reason })),
+    [
+      { relativePath: 'artifacts/web-source-release-history/current-release', reason: 'evidence:current' },
+      { relativePath: 'output/playwright/current-run', reason: 'evidence:current' },
+    ],
+  );
+  assert.equal(await readFile(playwrightPath, 'utf8'), 'current-screen');
+  assert.equal(await readFile(releasePath, 'utf8'), 'current-release');
 });

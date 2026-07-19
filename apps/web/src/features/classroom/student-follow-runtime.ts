@@ -1,38 +1,30 @@
-import type {
-  ClassroomParticipationSnapshot,
-} from './classroom-participation-client.ts';
-
 export interface StudentClassroomParticipationGateway {
-  join(sessionId: string): Promise<ClassroomParticipationSnapshot>;
+  join(sessionId: string): Promise<unknown>;
   setMode(
     sessionId: string,
     mode: 'follow' | 'self',
-  ): Promise<ClassroomParticipationSnapshot>;
-  leave(sessionId: string): Promise<ClassroomParticipationSnapshot>;
+  ): Promise<unknown>;
+  leave(sessionId: string): Promise<unknown>;
 }
 
-export function joinStudentClassroom(
+export async function joinStudentClassroom(
   gateway: StudentClassroomParticipationGateway,
   sessionId: string,
-): Promise<ClassroomParticipationSnapshot> {
-  return gateway.join(sessionId);
+): Promise<void> {
+  await gateway.join(sessionId);
 }
 
-export function changeStudentClassroomMode(
+export async function changeStudentClassroomMode(
   gateway: StudentClassroomParticipationGateway,
   sessionId: string,
   mode: 'follow' | 'self',
-): Promise<ClassroomParticipationSnapshot> {
-  return gateway.setMode(sessionId, mode);
+): Promise<void> {
+  await gateway.setMode(sessionId, mode);
 }
 
 export async function leaveStudentClassroom(
   gateway: StudentClassroomParticipationGateway,
   sessionId: string,
-  href: string,
-  navigate: (href: string) => void,
-): Promise<ClassroomParticipationSnapshot> {
-  const snapshot = await gateway.leave(sessionId);
-  navigate(href);
-  return snapshot;
+): Promise<void> {
+  await gateway.leave(sessionId);
 }

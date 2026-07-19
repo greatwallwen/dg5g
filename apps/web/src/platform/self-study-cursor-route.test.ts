@@ -78,6 +78,19 @@ test('cursor PUT rejects a delayed older mutation instead of overwriting the lat
   });
 });
 
+test('an authorised node without a saved cursor returns an empty 200 projection', async () => {
+  await withFixture(async ({ database, studentCookie }) => {
+    database.prepare(`
+      DELETE FROM self_study_cursors
+      WHERE student_id = 'stu-01' AND node_id = 'P1T1-N01'
+    `).run();
+
+    const response = await cursorRoute.GET(request('GET', studentCookie), context());
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { cursor: null });
+  });
+});
+
 test('cursor route rejects authority fields, foreign content, and malformed positions without mutation', async () => {
   await withFixture(async ({ database, studentCookie }) => {
     const before = database.prepare(`

@@ -4,6 +4,8 @@ import { FormalAssessmentClient } from '@/features/formal-assessment/formal-asse
 import { FormalAssessmentRemediationNotice } from '@/features/formal-assessment/formal-assessment-result';
 import { NodeRouteAccessError, type NodeRouteClassification } from '@/platform/access-control';
 import { requireClassRole } from '@/platform/auth/server-actor';
+import { AuthoritativeSnapshotReader } from '@/platform/authoritative-snapshot';
+import { getDatabase } from '@/platform/db/database';
 import {
   AssessmentCatalogError,
   AssessmentClassroomWindowError,
@@ -19,9 +21,7 @@ import {
   createLearningCommandService,
   FormalAssessmentReadinessError,
 } from '@/platform/learning-command-service';
-
 export const dynamic = 'force-dynamic';
-
 export default async function FormalAssessmentPage({
   params,
   searchParams,
@@ -53,7 +53,6 @@ export default async function FormalAssessmentPage({
       </main>
     );
   }
-
   const assessment = createFormalAssessmentService();
   try {
     const classroomSessionId = parseAssessmentClassroomSessionId(searchParams.classroomSessionId);
@@ -62,10 +61,13 @@ export default async function FormalAssessmentPage({
       ...(classroomSessionId ? { classroomSessionId } : {}),
       ...(restart ? { restart: true } : {}),
     });
+    const initialSnapshot = classroomSessionId
+      ? new AuthoritativeSnapshotReader(getDatabase()).read(actor, 'student', { sessionId: classroomSessionId })
+      : undefined;
     return (
       <main className="formal-assessment-page" data-formal-assessment={params.nodeId}>
         <AccountMenu displayName={actor.displayName} role="student" />
-        <FormalAssessmentClient issued={issued} />
+        <FormalAssessmentClient classroomSessionId={classroomSessionId} initialSnapshot={initialSnapshot} issued={issued} />
       </main>
     );
   } catch (error) {

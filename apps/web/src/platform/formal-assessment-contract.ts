@@ -97,7 +97,7 @@ export interface IssuedAssessmentSnapshot {
   assessmentId: string;
   serverNow: string;
   expiresAt: string;
-  state: 'in-progress' | 'paused' | 'expired';
+  state: 'in-progress' | 'paused' | 'expired' | 'submitted';
   draft: AssessmentDraftDto;
 }
 
@@ -106,7 +106,13 @@ export type ActiveIssuedAssessmentPaper = IssuedAssessmentSnapshot & {
   attemptToken: string;
 };
 
-export type IssuedAssessmentPaper = ActiveIssuedAssessmentPaper | (IssuedAssessmentSnapshot & {
+export type SubmittedIssuedAssessmentPaper = IssuedAssessmentSnapshot & {
+  state: 'submitted';
+  attemptToken?: never;
+  result: AssessmentDiagnosis;
+};
+
+export type IssuedAssessmentPaper = ActiveIssuedAssessmentPaper | SubmittedIssuedAssessmentPaper | (IssuedAssessmentSnapshot & {
   state: 'paused' | 'expired';
   attemptToken?: never;
 });

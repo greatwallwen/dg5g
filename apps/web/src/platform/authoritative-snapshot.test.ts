@@ -2,7 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { AuthenticatedActor } from './auth/actor.ts';
 import { ClassroomParticipationRepository } from './classroom-participation-repository.ts';
-import { startActiveLessonRun } from './classroom-lesson-run-test-fixture.ts';
+import {
+  provisionClassroomAssessmentParticipants,
+  startActiveLessonRun,
+} from './classroom-lesson-run-test-fixture.ts';
 import { ClassroomLessonRunRepository } from './classroom-lesson-run-repository.ts';
 import { ClassroomSessionRepository } from './classroom-session-repository.ts';
 import { seedDemo } from './db/demo-seed.ts';
@@ -54,6 +57,7 @@ test('one authoritative transaction yields identical common facts and audience-s
     });
 
     assert.equal(student.audience, 'student');
+    assert.equal(student.participation, null);
     assert.equal(student.me.studentId, 'stu-01');
     assert.equal(student.me.learning.studentId, 'stu-01');
     assert.equal(student.me.learning.version, student.me.studentVersion);
@@ -63,6 +67,10 @@ test('one authoritative transaction yields identical common facts and audience-s
     );
     assert.equal(student.me.nodes.find(({ nodeId }) => nodeId === 'P1T1-N02')?.nodeTestHighestScore, undefined);
     assert.equal('students' in student, false);
+    assert.equal('participation' in teacher, false);
+    assert.equal('participation' in projector, false);
+    assert.equal('participation' in studentGraph, false);
+    assert.equal('participation' in teacherGraph, false);
 
     assert.equal(teacher.audience, 'teacher');
     assert.deepEqual(teacher.students.map(({ studentId }) => studentId), ['stu-01', 'stu-02', 'stu-03']);
@@ -245,11 +253,11 @@ test('a completed assessment from an earlier lesson node does not poison the new
         ...lesson.teachingCursor,
         nodeId: 'P1T1-N03',
         unitId: 'P01-ku-03',
-        pageId: 'P01-L2-P02',
-        pageIndex: 1,
+        pageId: 'P01-L2-P03',
+        pageIndex: 2,
         phase: 'lecture',
-        actionId: 'P1T1-N03-S01',
-        actionIndex: 0,
+        actionId: 'P1T1-N03-S03',
+        actionIndex: 2,
       },
     }, new Date('2026-07-16T01:19:00.000Z'));
 
@@ -367,6 +375,7 @@ test('active assessment facts come from the relational run bound to the active l
       'classroom-run-relational-cut',
       '2026-07-16T01:10:00.000Z',
       '2026-07-16T01:25:00.000Z',
+      ['stu-01', 'stu-02', 'stu-03'],
     );
     let sequence = 0;
     const assessment = new FormalAssessmentService(fixture.database, {
@@ -570,6 +579,8 @@ test('classroom lifecycle, participation, and helper availability remain separat
     assert.deepEqual(commonOf(student), commonOf(teacher));
     assert.deepEqual(commonOf(student), commonOf(projector));
     assert.equal(student.classroom.status, 'active');
+    assert.equal(student.participation?.state, 'joined');
+    assert.equal(student.participation?.mode, 'self');
     assert.deepEqual(student.membership, { classSize: 3, joinedCount: 1, followingCount: 0 });
     assert.equal(student.helper.status, 'online');
     assert.equal(student.helper.onlineStudentDeviceCount, 1);
@@ -642,6 +653,7 @@ test('audience authorization fails closed before returning a snapshot', () => {
 function commonOf(snapshot: AuthoritativeSnapshot): Record<string, unknown> {
   const copy = { ...snapshot } as Record<string, unknown>;
   delete copy.audience;
+  delete copy.participation;
   delete copy.me;
   delete copy.students;
   delete copy.weakPoints;
@@ -730,6 +742,7 @@ function openRelationalAssessmentRun(
   runId: string,
   startedAt: string,
   expiresAt: string,
+  studentIds: readonly string[] = [],
 ): ReturnType<typeof startActiveLessonRun> {
   const lessonRun = startActiveLessonRun(database, 'demo-class', {
     now: new Date(startedAt),
@@ -741,5 +754,11 @@ function openRelationalAssessmentRun(
     ) VALUES (?, ?, 'demo-class', 'P1T1-N02', 'P1T1-N02-server-assessment',
       'running', ?, ?)
   `).run(runId, lessonRun.lessonRunId, startedAt, expiresAt);
+  provisionClassroomAssessmentParticipants(database, {
+    runId,
+    studentIds,
+    openedAt: startedAt,
+    expiresAt,
+  });
   return lessonRun;
 }

@@ -30,9 +30,11 @@ import {
   projectAssessmentPaper,
   type FormalAssessmentDefinition,
 } from './formal-assessment-catalog.server.ts';
+import { projectSubmittedAssessment } from './formal-assessment-submitted-projection.ts';
 import { createLearningCommandService, LearningAuthorizationError } from './learning-command-service.ts';
 import { SnapshotClock } from './snapshot-clock.ts';
 import { getWorkedCorrectionGuidance } from './formal-assessment-correction.server.ts';
+import { parseRemediationTargets } from './formal-assessment-remediation-targets.ts';
 import { recordClassroomAssessmentSubmission } from './classroom-assessment-run-repository.ts';
 export type {
   AssessmentAnswers,
@@ -187,6 +189,31 @@ export class FormalAssessmentService {
       }
 
       const latest = this.readStudentAssessmentInstance(studentId, nodeId);
+      if (!context.restart
+        && context.classroomSessionId
+        && latest?.closureReason === 'submitted'
+        && latest.classroomSessionId === context.classroomSessionId
+        && latest.classroomRunId) {
+        const submittedRun = this.authorizeExistingIssueContext(
+          actor,
+          nodeId,
+          context.classroomSessionId,
+          definition,
+          latest,
+        );
+        const isCurrentTerminalRun = submittedRun?.isCurrentRun === 1
+          && (submittedRun.status === 'reviewing' || submittedRun.status === 'closed');
+        const isCurrentRunningRun = submittedRun?.isCurrentRun === 1
+          && submittedRun.status === 'running'
+          && submittedRun.runId === this.requireActiveClassroomRun(
+            actor, nodeId, context.classroomSessionId, definition,
+          ).runId;
+        if (isCurrentTerminalRun || isCurrentRunningRun) {
+          const submitted = projectSubmittedAssessment(this.database, latest, studentId, serverNow);
+          if (!submitted) throw new AssessmentTokenError('invalid-token');
+          return submitted;
+        }
+      }
       if (!context.restart && latest?.closureReason === 'expired') {
         this.authorizeExistingIssueContext(
           actor,
@@ -372,7 +399,17 @@ export class FormalAssessmentService {
       throw new AssessmentClassroomWindowError();
     }
     const row = this.database.prepare(`
-      SELECT run.session_id AS sessionId, run.run_id AS runId, run.expires_at AS expiresAt, run.status
+      SELECT run.session_id AS sessionId, run.run_id AS runId, run.expires_at AS expiresAt, run.status,
+        CASE WHEN classroom.status = 'active'
+          AND classroom.active_lesson_run_id = run.lesson_run_id
+          AND NOT EXISTS (
+            SELECT 1 FROM classroom_assessment_runs AS newer
+            WHERE newer.session_id = run.session_id
+              AND newer.node_id = run.node_id
+              AND newer.game_id = run.game_id
+              AND (julianday(newer.started_at) > julianday(run.started_at)
+                OR (newer.started_at = run.started_at AND newer.run_id > run.run_id))
+          ) THEN 1 ELSE 0 END AS isCurrentRun
       FROM classroom_assessment_runs AS run
       INNER JOIN classroom_sessions AS classroom ON classroom.session_id = run.session_id
       INNER JOIN classroom_members AS member ON member.session_id = classroom.session_id
@@ -415,15 +452,23 @@ export class FormalAssessmentService {
         AND run.node_id = ?
         AND run.game_id = ?
         AND run.status IN ('running', 'paused')
+        AND EXISTS (
+          SELECT 1
+          FROM formal_assessment_instances AS eligible
+          INNER JOIN formal_assessment_tokens AS eligible_token
+            ON eligible_token.assessment_id = eligible.assessment_id
+            AND eligible_token.student_id = ?
+            AND eligible_token.node_id = eligible.node_id
+            AND eligible_token.question_version = eligible.question_version
+          WHERE eligible.classroom_run_id = run.run_id
+            AND eligible.session_id = run.session_id
+            AND eligible.node_id = run.node_id
+            AND eligible.game_id = run.game_id
+        )
       ORDER BY julianday(run.started_at) DESC, run.run_id DESC
       LIMIT 1
     `).get(
-      actor.userId,
-      sessionId,
-      actor.classId,
-      nodeId,
-      nodeId,
-      definition.gameId,
+      actor.userId, sessionId, actor.classId, nodeId, nodeId, definition.gameId, actor.userId,
     ) as ActiveClassroomAssessmentRunRow | undefined;
     if (!row || row.status !== 'running' || Date.parse(row.expiresAt) <= this.now().getTime()) {
       throw new AssessmentClassroomWindowError();
@@ -749,51 +794,6 @@ interface ActiveClassroomAssessmentRunRow {
 }
 
 interface BoundClassroomAssessmentRunRow {
-  sessionId: string; runId: string; expiresAt: string; status: 'running' | 'paused' | 'reviewing' | 'closed' | 'expired';
-}
-
-function parseRemediationTargets(diagnosticsJson: string): RemediationTarget[] {
-  try {
-    const parsed = JSON.parse(diagnosticsJson) as { remediationTargets?: unknown };
-    if (!Array.isArray(parsed.remediationTargets)) return [];
-    return uniqueRemediationTargets(parsed.remediationTargets.flatMap((target) => {
-      if (typeof target !== 'object' || target === null) return [];
-      const record = target as Record<string, unknown>;
-      if (typeof record.nodeId !== 'string' || typeof record.sectionId !== 'string') return [];
-      if (record.sectionId === 'practice' && typeof record.activityId === 'string') {
-        return [{
-          nodeId: record.nodeId,
-          sectionId: 'practice' as const,
-          activityId: record.activityId,
-        }];
-      }
-      const legacyActivityId = legacyRemediationActivityId(record.sectionId);
-      return legacyActivityId ? [{
-        nodeId: record.nodeId,
-        sectionId: 'practice' as const,
-        activityId: legacyActivityId,
-      }] : [];
-    }));
-  } catch {
-    return [];
-  }
-}
-
-function uniqueRemediationTargets(targets: RemediationTarget[]): RemediationTarget[] {
-  const seen = new Set<string>();
-  return targets.filter((target) => {
-    const key = `${target.nodeId}:${target.sectionId}:${target.activityId}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
-function legacyRemediationActivityId(sectionId: string): string | undefined {
-  return ({
-    evidence: 'P1T1-N02-foundation-01',
-    explain: 'P1T1-N02-application-01',
-    practice: 'P1T1-N02-transfer-01',
-    understand: 'P1T1-N02-transfer-01',
-  } as Record<string, string>)[sectionId];
+  sessionId: string; runId: string; expiresAt: string; isCurrentRun: 0 | 1;
+  status: 'running' | 'paused' | 'reviewing' | 'closed' | 'expired';
 }

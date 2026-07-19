@@ -176,6 +176,27 @@ test('an empty unsubmitted envelope remains editing and never renders achieved o
   assert.match(html, /data-primary-action="true"[^>]*disabled/);
 });
 
+test('each task renders its own N04 editing title and description', () => {
+  const expected = {
+    P01: ['室内设备与链路证据表', '十项职业字段'],
+    P02: ['室外站点与覆盖采集表', '方位、下倾、挂高与覆盖边界'],
+    P03: ['投诉信息调查单', '投诉时间、地点、业务与终端复现条件'],
+  } as const;
+  for (const taskId of ['P01', 'P02', 'P03'] as const) {
+    const schema = professionalOutputSchemaForTask(loadSelfStudyCatalog(), taskId);
+    const html = renderToStaticMarkup(createElement(ProfessionalOutputForm, {
+      schema,
+      upstreamRefs: taskId === 'P01' ? [] : [{ outputId: `upstream-${taskId}`, version: 1 }],
+      initialEnvelope: envelope(null),
+    }));
+    assert.match(html, new RegExp(expected[taskId][0]));
+    assert.match(html, new RegExp(expected[taskId][1]));
+    if (taskId !== 'P01') {
+      assert.doesNotMatch(html, /室内设备与链路证据表/, taskId);
+    }
+  }
+});
+
 test('the client uses one envelope read and sends evidence links on draft and submit commands', async () => {
   const calls: Array<{ url: string; init?: RequestInit }> = [];
   const draftEnvelope = envelope(aggregate('draft', 0));

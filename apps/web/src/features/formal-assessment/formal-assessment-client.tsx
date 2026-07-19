@@ -1,11 +1,5 @@
 'use client';
-
-import React, {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import type {
   AssessmentAnswers,
@@ -13,70 +7,107 @@ import type {
   AssessmentDraftDto,
   IssuedAssessmentPaper,
 } from '@/platform/formal-assessment-contract';
+import type { StudentAuthoritativeSnapshot } from '@/platform/authoritative-snapshot';
 import { FormalAssessmentResult } from './formal-assessment-result';
+import { FormalAssessmentEntryClient } from './formal-assessment-classroom-client';
+import { createAssessmentDraftSaver } from './formal-assessment-draft-saver';
 import {
   ExpiredAssessmentView,
   FormalAssessmentQuestions,
+  readAssessmentAnswers,
 } from './formal-assessment-paper-content';
 import {
   createDraftSaveCoordinator,
   formatAssessmentTime,
+  isAssessmentAttemptActive,
   remainingAssessmentSeconds,
+  type AttemptIssuedAssessment,
 } from './formal-assessment-client-state';
-
-export function FormalAssessmentClient({ issued }: { issued: IssuedAssessmentPaper }) {
+const usePrePaintEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
+export function FormalAssessmentClient({
+  classroomSessionId,
+  initialSnapshot,
+  issued,
+}: {
+  classroomSessionId: string | undefined;
+  initialSnapshot: StudentAuthoritativeSnapshot | undefined;
+  issued: IssuedAssessmentPaper;
+}) {
+  return <FormalAssessmentEntryClient
+    classroomSessionId={classroomSessionId}
+    initialSnapshot={initialSnapshot}
+    issued={issued}
+    renderAttempt={(current, onDraftSaved, allowRestart, lifecycle) => <FormalAssessmentAttempt
+      allowRestart={allowRestart}
+      issued={current}
+      onDraftSaved={onDraftSaved}
+      onSubmissionPendingChange={lifecycle?.onSubmissionPendingChange}
+      onSubmitted={lifecycle?.onSubmitted}
+    />}
+  />;
+}
+function FormalAssessmentAttempt({
+  allowRestart,
+  issued,
+  onDraftSaved,
+  onSubmissionPendingChange,
+  onSubmitted,
+}: {
+  allowRestart: boolean;
+  issued: AttemptIssuedAssessment;
+  onDraftSaved?: (draft: AssessmentDraftDto) => void;
+  onSubmissionPendingChange?: (pending: boolean) => void;
+  onSubmitted?: (result: AssessmentDiagnosis) => void;
+}) {
   const attemptToken = issued.state === 'in-progress' ? issued.attemptToken : undefined;
-  const [result, setResult] = useState<AssessmentDiagnosis | null>(null);
+  const [result, setResult] = useState<AssessmentDiagnosis | null>(
+    issued.state === 'submitted' ? issued.result : null,
+  );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [draftError, setDraftError] = useState('');
   const [expired, setExpired] = useState(issued.state === 'expired');
   const [savedDraft, setSavedDraft] = useState(issued.draft);
-  const [remainingSeconds, setRemainingSeconds] = useState(() => remainingAssessmentSeconds(
-    issued.expiresAt,
-    issued.serverNow,
-    0,
-  ));
+  const [remainingSeconds, setRemainingSeconds] = useState(
+    () => remainingAssessmentSeconds(issued.expiresAt, issued.serverNow, 0),
+  );
   const formRef = useRef<HTMLFormElement>(null);
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const expirySubmitAttemptedRef = useRef(false);
   const submittingRef = useRef(false);
+  const activeTokenRef = useRef(attemptToken);
+  const activityOpen = isAssessmentAttemptActive(attemptToken, expired, Boolean(result));
 
   const draftCoordinator = useMemo(() => {
     if (!attemptToken) return undefined;
     return createDraftSaveCoordinator({
       initialRevision: issued.draft.revision,
-      save: async (answers, expectedRevision) => {
-        const response = await fetch(
-          `/api/learning/nodes/${encodeURIComponent(issued.paper.nodeId)}/assessment`,
-          {
-            method: 'PATCH',
-            headers: {
-              'content-type': 'application/json',
-              'x-assessment-token': attemptToken,
-            },
-            body: JSON.stringify({ answers, expectedRevision }),
-          },
-        );
-        const body = await response.json().catch(() => ({})) as AssessmentDraftDto & { error?: string };
-        if (!response.ok) {
-          if (response.status === 410) setExpired(true);
-          throw new Error(body.error ?? `草稿保存失败：${response.status}`);
-        }
-        setSavedDraft(body);
-        setDraftError('');
-        return body;
-      },
+      save: createAssessmentDraftSaver({
+        nodeId: issued.paper.nodeId,
+        attemptToken,
+        isCurrent: () => activeTokenRef.current === attemptToken,
+        onExpired: () => { closeAttemptActivity(); setExpired(true); },
+        onSaved: (draft) => {
+          setSavedDraft(draft); onDraftSaved?.(draft); setDraftError('');
+        },
+      }),
       onError: (cause) => setDraftError(
         cause instanceof Error ? cause.message : '草稿暂未保存，请检查连接后继续。',
       ),
     });
   }, [attemptToken, issued.assessmentId, issued.draft.revision, issued.paper.nodeId]);
 
+  function closeAttemptActivity() {
+    activeTokenRef.current = undefined;
+    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+    draftCoordinator?.cancel();
+  }
+
   async function postAnswers(answers: AssessmentAnswers, fromExpiry: boolean) {
-    if (!attemptToken || submittingRef.current) return;
+    if (!activityOpen || activeTokenRef.current !== attemptToken || submittingRef.current) return;
     submittingRef.current = true;
     setSubmitting(true);
+    onSubmissionPendingChange?.(true);
     setError('');
     try {
       const response = await fetch(
@@ -91,21 +122,31 @@ export function FormalAssessmentClient({ issued }: { issued: IssuedAssessmentPap
         },
       );
       const body = await response.json().catch(() => ({})) as AssessmentDiagnosis & { error?: string };
+      if (activeTokenRef.current !== attemptToken) return;
       if (!response.ok) {
-        if (response.status === 410) setExpired(true);
+        if (response.status === 410) { closeAttemptActivity(); setExpired(true); }
         throw new Error(body.error ?? `正式测试提交失败：${response.status}`);
       }
+      if (body.assessmentId !== issued.assessmentId) {
+        throw new Error('Submitted assessment response did not match the active assessment.');
+      }
+      closeAttemptActivity();
+      onSubmitted?.(body);
       setResult(body);
     } catch (cause) {
       if (fromExpiry) {
+        closeAttemptActivity();
         setExpired(true);
         setError('测试已到时，未形成成绩。已保留最近一次成功保存的只读草稿。');
       } else {
         setError(cause instanceof Error ? cause.message : '正式测试提交失败，请稍后重试。');
       }
     } finally {
-      submittingRef.current = false;
-      setSubmitting(false);
+      onSubmissionPendingChange?.(false);
+      if (activeTokenRef.current === attemptToken) {
+        submittingRef.current = false;
+        setSubmitting(false);
+      }
     }
   }
 
@@ -115,7 +156,7 @@ export function FormalAssessmentClient({ issued }: { issued: IssuedAssessmentPap
   }
 
   function scheduleDraftSave(event: FormEvent<HTMLFormElement>) {
-    if (!draftCoordinator || expired) return;
+    if (!draftCoordinator || !activityOpen || activeTokenRef.current !== attemptToken) return;
     const form = event.currentTarget;
     if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
     autosaveTimerRef.current = setTimeout(() => {
@@ -124,7 +165,7 @@ export function FormalAssessmentClient({ issued }: { issued: IssuedAssessmentPap
   }
 
   useEffect(() => {
-    if (!attemptToken || expired) return undefined;
+    if (!activityOpen) return undefined;
     const startedAt = performance.now();
     const tick = () => {
       const next = remainingAssessmentSeconds(
@@ -142,24 +183,21 @@ export function FormalAssessmentClient({ issued }: { issued: IssuedAssessmentPap
     tick();
     const timer = window.setInterval(tick, 250);
     return () => window.clearInterval(timer);
-  }, [attemptToken, expired, issued.expiresAt, issued.serverNow]);
+  }, [activityOpen, attemptToken, issued.expiresAt, issued.serverNow]);
 
-  useEffect(() => () => {
-    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
-  }, []);
+  usePrePaintEffect(() => {
+    if (!activityOpen) return undefined;
+    activeTokenRef.current = attemptToken;
+    return () => {
+      if (activeTokenRef.current === attemptToken) activeTokenRef.current = undefined;
+      if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+      draftCoordinator?.cancel();
+    };
+  }, [activityOpen, attemptToken, draftCoordinator]);
 
   if (result) return <FormalAssessmentResult result={result} />;
-  if (issued.state === 'paused') {
-    return (
-      <section className="formal-assessment-entry" data-assessment-state="paused">
-        <span>正式测试已暂停</span>
-        <h1>等待教师恢复测试窗口</h1>
-        <p>草稿保持只读，暂停不会由课堂翻页或课堂暂停自动触发。</p>
-      </section>
-    );
-  }
   if (!attemptToken || expired) {
-    return <ExpiredAssessmentView issued={issued} draft={savedDraft} message={error} />;
+    return <ExpiredAssessmentView allowRestart={allowRestart} issued={issued} draft={savedDraft} message={error} />;
   }
 
   const draft = issued.draft.answers;
@@ -202,26 +240,4 @@ export function FormalAssessmentClient({ issued }: { issued: IssuedAssessmentPap
       </footer>
     </form>
   );
-}
-
-export function readAssessmentAnswers(formData: FormData): AssessmentAnswers {
-  const stringValue = (name: string) => {
-    const value = formData.get(name);
-    return typeof value === 'string' ? value : '';
-  };
-  return {
-    evidenceClassification: stringValue('evidenceClassification'),
-    linkReconstruction: formData.getAll('linkReconstruction').filter(
-      (value): value is string => typeof value === 'string',
-    ),
-    defectiveOutputRevision: formData.getAll('defectiveOutputRevision').filter(
-      (value): value is string => typeof value === 'string',
-    ),
-    professionalConclusion: {
-      confirmedFact: stringValue('professionalConclusion.confirmedFact'),
-      evidenceGap: stringValue('professionalConclusion.evidenceGap'),
-      risk: stringValue('professionalConclusion.risk'),
-      action: stringValue('professionalConclusion.action'),
-    },
-  };
 }

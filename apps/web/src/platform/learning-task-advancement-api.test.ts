@@ -51,6 +51,10 @@ test('direct P02 API access opens only after valid user advancement facts and st
 
     seedUserFormalAssessment(database, 'stu-01', 'P01', 80, 'direct-p02');
     database.exec(`
+      INSERT INTO professional_outputs (
+        output_id, student_id, task_id, node_id, status, content_json,
+        current_version, state_revision, origin
+      ) VALUES ('direct-p02-output', 'stu-01', 'P01', 'P1T1-N04', 'submitted', '{}', 1, 1, 'user');
       INSERT INTO learning_events (
         event_id, student_id, node_id, channel, event_type, payload_json, origin
       ) VALUES ('direct-p02-submit', 'stu-01', 'P1T1-N04', 'self-study', 'evidence_submitted',
@@ -61,10 +65,9 @@ test('direct P02 API access opens only after valid user advancement facts and st
     const openedVersion = (await opened.json()).version as number;
 
     database.exec(`
-      INSERT INTO professional_outputs (
-        output_id, student_id, task_id, node_id, status, content_json,
-        current_version, state_revision, origin
-      ) VALUES ('direct-p02-output', 'stu-01', 'P01', 'P1T1-N04', 'returned', '{}', 1, 3, 'user');
+      UPDATE professional_outputs
+      SET status = 'returned', state_revision = 3
+      WHERE output_id = 'direct-p02-output';
       INSERT INTO output_reviews (
         review_id, output_id, reviewer_id, status, feedback, origin
       ) VALUES ('direct-p02-return', 'direct-p02-output', 'teacher-01', 'returned', 'revise', 'user');
