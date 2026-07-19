@@ -65,12 +65,25 @@ test('demo reset removes the old classroom run before a fresh resumable run is p
       expectedRevision: oldRun.revision,
       nextStatus: 'active',
     });
+    fixture.database.prepare(`
+      INSERT INTO classroom_assessment_runs (
+        run_id, lesson_run_id, session_id, node_id, game_id, status,
+        started_at, expires_at, revision
+      ) VALUES (
+        'assessment-before-reset', ?, 'demo-class', 'P1T1-N02',
+        'P1T1-N02-server-assessment', 'closed',
+        '2026-07-19T01:00:00.000Z', '2026-07-19T01:10:00.000Z', 0
+      )
+    `).run(oldRun.lessonRunId);
     resetDemo(fixture.database);
     const freshRun = ensureDemoClassroomReady(fixture.database);
 
     assert.notEqual(freshRun.lessonRunId, oldRun.lessonRunId);
     assert.equal(freshRun.status, 'paused');
     assert.equal(repository.readLessonRun(oldRun.lessonRunId), undefined);
+    assert.equal(fixture.database.prepare(`
+      SELECT COUNT(*) FROM classroom_assessment_runs WHERE session_id = 'demo-class'
+    `).pluck().get(), 0);
   } finally {
     fixture.cleanup();
   }
