@@ -111,6 +111,18 @@ test('the workbench stores the conflict revision for the next user click', () =>
   assert.match(source, /状态已刷新，请再次点击/);
 });
 
+test('the clean workbench renders P01 lesson 1 as the primary two-click path', () => {
+  const client = readFileSync(new URL('./teacher-start-lesson-client.tsx', import.meta.url), 'utf8');
+  const workbench = readFileSync(new URL('./teacher-workbench.tsx', import.meta.url), 'utf8');
+
+  assert.match(client, /data-start-lesson-primary/);
+  assert.match(client, /data-primary-action=\{primary \? 'true' : undefined\}/);
+  assert.match(client, /recommendedNodeId/);
+  assert.match(workbench, /primary=\{model\.newLesson\.trigger\.primary\}/);
+  assert.match(workbench, /recommendedNodeId=\{model\.newLesson\.recommendedNodeId\}/);
+  assert.doesNotMatch(workbench, /className="role-home-primary is-disabled"/);
+});
+
 async function clientModule() {
   try {
     return await import('./teacher-start-lesson-client.tsx');

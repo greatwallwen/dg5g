@@ -38,7 +38,7 @@ test('new lesson uses one trigger click and a second click reaches P1T1-N02', as
 
   assert.equal(model.kind, 'ready');
   if (model.kind !== 'ready') return;
-  assert.deepEqual(model.newLesson.trigger, { label: '开始新课', clickStep: 1 });
+  assert.deepEqual(model.newLesson.trigger, { label: '开始新课', clickStep: 1, primary: false });
   assert.equal(model.newLesson.sessionId, 'demo-class');
   assert.equal(model.newLesson.expectedRevision, 0);
   assert.deepEqual(
@@ -91,7 +91,27 @@ test('missing last teaching position disables continue instead of inventing an N
     href: undefined,
     disabled: true,
   });
+  assert.deepEqual(model.newLesson.trigger, {
+    label: '开始 P01 第一课时',
+    clickStep: 1,
+    primary: true,
+  });
+  assert.equal(model.newLesson.recommendedNodeId, 'P1T1-N01');
   assert.doesNotMatch(JSON.stringify(model.continueAction), /P1T1-N01/);
+});
+
+test('an open lesson keeps continue primary and demotes the new-lesson chooser', async () => {
+  const { buildTeacherWorkbenchViewModel } = await workbenchModel();
+  const model = buildTeacherWorkbenchViewModel(teacherSnapshot());
+
+  assert.equal(model.kind, 'ready');
+  if (model.kind !== 'ready') return;
+  assert.deepEqual(model.newLesson.trigger, {
+    label: '开始新课',
+    clickStep: 1,
+    primary: false,
+  });
+  assert.equal(model.newLesson.recommendedNodeId, undefined);
 });
 
 test('a closed classroom never exposes continue even when a stale last position remains', async () => {

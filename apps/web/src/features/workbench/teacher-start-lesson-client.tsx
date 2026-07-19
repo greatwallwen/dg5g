@@ -96,17 +96,26 @@ export function TeacherStartLessonClient({
   sessionId,
   expectedRevision,
   options,
+  primary,
+  recommendedNodeId,
   triggerLabel,
 }: {
   sessionId: string;
   expectedRevision: number;
   options: Array<{ nodeId: string; title: string }>;
+  primary: boolean;
+  recommendedNodeId?: string;
   triggerLabel: string;
 }) {
   const router = useRouter();
   const [revision, setRevision] = useState(expectedRevision);
   const [pendingNodeId, setPendingNodeId] = useState<string>();
   const [message, setMessage] = useState('');
+  const orderedOptions = recommendedNodeId
+    ? [...options].sort((left, right) => (
+        Number(right.nodeId === recommendedNodeId) - Number(left.nodeId === recommendedNodeId)
+      ))
+    : options;
 
   async function chooseLesson(nodeId: string) {
     setPendingNodeId(nodeId);
@@ -130,13 +139,17 @@ export function TeacherStartLessonClient({
   }
 
   return (
-    <details aria-busy={pendingNodeId ? 'true' : 'false'} className="teacher-new-lesson">
-      <summary aria-label="开始新课">
-        <Icon name="layers" size={19} />{triggerLabel}<Icon name="arrow" size={17} />
+    <details
+      aria-busy={pendingNodeId ? 'true' : 'false'}
+      className={`teacher-new-lesson${primary ? ' is-primary' : ''}`}
+      data-start-lesson-primary={primary ? 'true' : undefined}
+    >
+      <summary aria-label={triggerLabel} data-primary-action={primary ? 'true' : undefined}>
+        <Icon name={primary ? 'play' : 'layers'} size={19} />{triggerLabel}<Icon name="arrow" size={17} />
       </summary>
       <div>
         <span>第二次点击后先写入课堂状态，再进入授课节点</span>
-        {options.map((option) => (
+        {orderedOptions.map((option) => (
           <button
             data-start-lesson-node={option.nodeId}
             disabled={Boolean(pendingNodeId)}
@@ -144,7 +157,7 @@ export function TeacherStartLessonClient({
             onClick={() => void chooseLesson(option.nodeId)}
             type="button"
           >
-            <strong>{option.nodeId}</strong>
+            <strong>{option.nodeId}{option.nodeId === recommendedNodeId ? ' · 推荐' : ''}</strong>
             <small>{pendingNodeId === option.nodeId ? '正在开始课堂…' : option.title}</small>
             <Icon name="arrow" size={16} />
           </button>

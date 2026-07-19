@@ -2,88 +2,53 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ClassroomLessonRunRepository } from './classroom-lesson-run-repository.ts';
 import { ensureDemoClassroomReady } from './demo-classroom-ready.ts';
-import { resetDemo, seedDemo } from './db/demo-seed.ts';
+import { seedDemo } from './db/demo-seed.ts';
 import { migrateDatabase } from './db/migrations.ts';
 import { createTestDatabase } from './db/test-database.ts';
 
-test('provisions one idempotent paused P01 second-period run for the demo workbench', () => {
+test('normalizes a fresh demo seed to the clean first-lesson workbench', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
+    ensureDemoClassroomReady(fixture.database);
+    const firstRevision = fixture.database.prepare(`
+      SELECT revision FROM classroom_sessions WHERE session_id = 'demo-class'
+    `).pluck().get();
+    ensureDemoClassroomReady(fixture.database);
 
-    const first = ensureDemoClassroomReady(
-      fixture.database,
-      new Date('2026-07-19T01:00:00.000Z'),
-    );
-    const second = ensureDemoClassroomReady(
-      fixture.database,
-      new Date('2026-07-19T02:00:00.000Z'),
-    );
-
-    assert.equal(first.lessonRunId, second.lessonRunId);
-    assert.equal(first.lessonId, 'P01-L2');
-    assert.equal(first.nodeId, 'P1T1-N02');
-    assert.equal(first.status, 'paused');
-    assert.equal(first.teachingCursor.unitId, 'P01-ku-02');
-    assert.equal(first.teachingCursor.pageId, 'P01-L2-P01');
-    assert.equal(first.teachingCursor.playbackStatus, 'paused');
+    assert.deepEqual(fixture.database.prepare(`
+      SELECT status, active_node_id AS activeNodeId, active_unit_id AS activeUnitId,
+        active_lesson_run_id AS activeLessonRunId
+      FROM classroom_sessions WHERE session_id = 'demo-class'
+    `).get(), {
+      status: 'preparing', activeNodeId: null, activeUnitId: null, activeLessonRunId: null,
+    });
     assert.equal(fixture.database.prepare(`
       SELECT COUNT(*) FROM classroom_lesson_runs
       WHERE session_id = 'demo-class' AND status IN ('preparing', 'active', 'paused')
-    `).pluck().get(), 1);
-    assert.deepEqual(fixture.database.prepare(`
-      SELECT status, active_node_id AS activeNodeId, active_unit_id AS activeUnitId,
-        active_lesson_run_id AS activeLessonRunId, revision
-      FROM classroom_sessions WHERE session_id = 'demo-class'
-    `).get(), {
-      status: 'paused',
-      activeNodeId: 'P1T1-N02',
-      activeUnitId: 'P01-ku-02',
-      activeLessonRunId: first.lessonRunId,
-      revision: first.revision,
-    });
-    assert.equal(fixture.database.prepare(
-      "SELECT COUNT(*) FROM classroom_participation WHERE session_id = 'demo-class'",
-    ).pluck().get(), 0);
+    `).pluck().get(), 0);
+    assert.equal(fixture.database.prepare(`
+      SELECT revision FROM classroom_sessions WHERE session_id = 'demo-class'
+    `).pluck().get(), firstRevision);
   } finally {
     fixture.cleanup();
   }
 });
 
-test('demo reset removes the old classroom run before a fresh resumable run is provisioned', () => {
+test('never replaces an existing open lesson run', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
     seedDemo(fixture.database);
-    const oldRun = ensureDemoClassroomReady(fixture.database);
-
     const repository = new ClassroomLessonRunRepository(fixture.database);
-    repository.transitionLessonRun({
-      sessionId: 'demo-class',
-      lessonRunId: oldRun.lessonRunId,
-      expectedRevision: oldRun.revision,
-      nextStatus: 'active',
-    });
-    fixture.database.prepare(`
-      INSERT INTO classroom_assessment_runs (
-        run_id, lesson_run_id, session_id, node_id, game_id, status,
-        started_at, expires_at, revision
-      ) VALUES (
-        'assessment-before-reset', ?, 'demo-class', 'P1T1-N02',
-        'P1T1-N02-server-assessment', 'closed',
-        '2026-07-19T01:00:00.000Z', '2026-07-19T01:10:00.000Z', 0
-      )
-    `).run(oldRun.lessonRunId);
-    resetDemo(fixture.database);
-    const freshRun = ensureDemoClassroomReady(fixture.database);
+    const run = repository.startLessonRun({
+      sessionId: 'demo-class', lessonId: 'P01-L1', expectedRevision: 0,
+    }).run;
 
-    assert.notEqual(freshRun.lessonRunId, oldRun.lessonRunId);
-    assert.equal(freshRun.status, 'paused');
-    assert.equal(repository.readLessonRun(oldRun.lessonRunId), undefined);
-    assert.equal(fixture.database.prepare(`
-      SELECT COUNT(*) FROM classroom_assessment_runs WHERE session_id = 'demo-class'
-    `).pluck().get(), 0);
+    ensureDemoClassroomReady(fixture.database);
+
+    assert.equal(repository.readOpenLessonRun('demo-class')?.lessonRunId, run.lessonRunId);
   } finally {
     fixture.cleanup();
   }

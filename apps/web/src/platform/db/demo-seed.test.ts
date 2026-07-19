@@ -75,6 +75,16 @@ test('base and demo seeding are deterministic and keep one teacher with exactly 
     assert.equal(fixture.database.prepare("SELECT COUNT(*) FROM users WHERE role = 'teacher'").pluck().get(), 1);
     assert.equal(fixture.database.prepare("SELECT COUNT(*) FROM users WHERE role = 'student'").pluck().get(), 3);
     assert.equal(fixture.database.prepare('SELECT COUNT(*) FROM classroom_members').pluck().get(), 3);
+    assert.deepEqual(fixture.database.prepare(`
+      SELECT status, active_node_id AS activeNodeId, active_unit_id AS activeUnitId,
+        active_lesson_run_id AS activeLessonRunId
+      FROM classroom_sessions WHERE session_id = 'demo-class'
+    `).get(), {
+      status: 'paused',
+      activeNodeId: 'P1T1-N02',
+      activeUnitId: 'P01-ku-02',
+      activeLessonRunId: null,
+    });
     const passwordRows = fixture.database.prepare(`
       SELECT password_hash AS passwordHash FROM users
     `).all() as Array<{ passwordHash: string }>;

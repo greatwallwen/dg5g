@@ -662,15 +662,15 @@ export function resetDemo(database: AppDatabase, seed = readDemoSeed()): void {
     database.prepare('DELETE FROM classroom_assessment_runs WHERE session_id = ?').run(DEMO_CLASS_ID);
     database.prepare('DELETE FROM classroom_lesson_runs WHERE session_id = ?').run(DEMO_CLASS_ID);
     const classroom = seed.base.classrooms.find(({ sessionId }) => sessionId === DEMO_CLASS_ID)!;
+    seedDemo(database, seed);
     database.prepare(`
       UPDATE classroom_sessions
-      SET name = @name, teacher_id = @teacherId, status = @status,
-        active_node_id = @activeNodeId, active_unit_id = @activeUnitId,
+      SET name = @name, teacher_id = @teacherId, status = 'preparing',
+        active_node_id = NULL, active_unit_id = NULL,
         active_lesson_run_id = NULL, state_json = '{}', revision = revision + 1, updated_at = CURRENT_TIMESTAMP,
         closed_at = NULL
       WHERE session_id = @sessionId
     `).run(classroom);
-    seedDemo(database, seed);
     validateSeededPersonas(database);
     new SnapshotClock(database).advance([
       ...DEMO_STUDENT_IDS.map((studentId) => `learning:${studentId}` as const),

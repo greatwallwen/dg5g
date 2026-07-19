@@ -70,10 +70,12 @@ function TeacherReady({ model }: { model: Extract<TeacherWorkbenchViewModel, { k
             </span>
             <Icon name="arrow" size={19} />
           </Link>
-        ) : <span className="role-home-primary is-disabled"><Icon name="lock" size={20} />{model.continueAction.label}</span>}
+        ) : null}
         <TeacherStartLessonClient
           expectedRevision={model.newLesson.expectedRevision}
           options={model.newLesson.options}
+          primary={model.newLesson.trigger.primary}
+          recommendedNodeId={model.newLesson.recommendedNodeId}
           sessionId={model.newLesson.sessionId}
           triggerLabel={model.newLesson.trigger.label}
         />

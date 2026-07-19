@@ -52,6 +52,23 @@ test('demo reset requires owning teacher and exact confirmation then preserves s
     });
     assert.equal(fixture.database.prepare("SELECT COUNT(*) FROM users").pluck().get(), 4);
     assert.equal(fixture.database.prepare("SELECT COUNT(*) FROM classroom_members").pluck().get(), 3);
+    assert.deepEqual(fixture.database.prepare(`
+      SELECT status, active_node_id AS activeNodeId, active_unit_id AS activeUnitId,
+        active_lesson_run_id AS activeLessonRunId
+      FROM classroom_sessions WHERE session_id = 'demo-class'
+    `).get(), {
+      status: 'preparing',
+      activeNodeId: null,
+      activeUnitId: null,
+      activeLessonRunId: null,
+    });
+    assert.equal(fixture.database.prepare(`
+      SELECT COUNT(*) FROM classroom_lesson_runs
+      WHERE session_id = 'demo-class' AND status IN ('preparing', 'active', 'paused')
+    `).pluck().get(), 0);
+    assert.equal(fixture.database.prepare(
+      "SELECT COUNT(*) FROM classroom_participation WHERE session_id = 'demo-class'",
+    ).pluck().get(), 0);
     assert.equal(fixture.database.prepare("SELECT COUNT(*) FROM evidence_library").pluck().get() as number > 0, true);
     assert.equal(fixture.database.prepare(
       "SELECT COUNT(*) FROM formal_assessment_instances WHERE assessment_id = 'user-transient-assessment'",

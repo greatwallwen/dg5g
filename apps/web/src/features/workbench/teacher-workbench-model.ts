@@ -12,7 +12,8 @@ export interface TeacherWorkbenchReadyViewModel {
   newLesson: {
     sessionId: string;
     expectedRevision: number;
-    trigger: { label: '开始新课'; clickStep: 1 };
+    trigger: { label: '开始新课' | '开始 P01 第一课时'; clickStep: 1; primary: boolean };
+    recommendedNodeId?: string;
     options: Array<{ nodeId: string; title: string; clickStep: 2 }>;
   };
   classSummary: TeacherWorkbenchSnapshot['classSummary'];
@@ -35,6 +36,10 @@ export function buildTeacherWorkbenchViewModel(snapshot: TeacherWorkbenchSnapsho
     };
   }
   const canContinue = Boolean(snapshot.lastPosition?.nodeId) && snapshot.classroom.status !== 'closed';
+  const lessonOptions = snapshot.lessonOptions.map((option) => ({
+    ...option,
+    clickStep: 2 as const,
+  }));
   return {
     kind: 'ready',
     displayName: snapshot.displayName,
@@ -49,11 +54,15 @@ export function buildTeacherWorkbenchViewModel(snapshot: TeacherWorkbenchSnapsho
     newLesson: {
       sessionId: snapshot.classroom.id,
       expectedRevision: snapshot.classroom.revision,
-      trigger: { label: '开始新课', clickStep: 1 },
-      options: snapshot.lessonOptions.map((option) => ({
-        ...option,
-        clickStep: 2,
-      })),
+      trigger: {
+        label: canContinue ? '开始新课' : '开始 P01 第一课时',
+        clickStep: 1,
+        primary: !canContinue,
+      },
+      ...(!canContinue && lessonOptions.some(({ nodeId }) => nodeId === 'P1T1-N01')
+        ? { recommendedNodeId: 'P1T1-N01' }
+        : {}),
+      options: lessonOptions,
     },
     classSummary: snapshot.classSummary,
     scoreCards: [

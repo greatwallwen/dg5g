@@ -182,6 +182,9 @@
 .teacher-continue-action > span small { color: #0a4050; font-size: 11px; font-weight: 850; }
 .teacher-new-lesson { position: relative; }
 .teacher-new-lesson summary { list-style: none; color: #dceafb; background: #102b4d; cursor: pointer; }
+.teacher-new-lesson.is-primary summary { min-height: 52px; border-color: var(--rh-cyan); color: #04152b; background: var(--rh-cyan); }
+.teacher-new-lesson.is-primary summary:hover,
+.teacher-new-lesson.is-primary summary:focus-visible { color: #020d1a; background: #65e5e1; outline: 2px solid #d6ffff; outline-offset: 2px; }
 .teacher-new-lesson summary::-webkit-details-marker { display: none; }
 .teacher-new-lesson[open] summary { border-color: var(--rh-cyan); color: #fff; }
 .teacher-new-lesson > div { position: absolute; z-index: 30; top: 52px; right: 0; left: 0; max-height: 330px; overflow-y: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; border: 1px solid var(--rh-cyan); border-radius: 7px; padding: 10px; background: #071d39; }
