@@ -120,7 +120,7 @@ export function SelfStudyRenderer({
   async function completeReadingSection(sectionId: ReadingSectionId) {
     setReadingSaving(true);
     try {
-      await flushSection(sectionId);
+      await persistSection(sectionId);
       await onReadingComplete?.(sectionId);
       moveSection(1);
     } finally {
