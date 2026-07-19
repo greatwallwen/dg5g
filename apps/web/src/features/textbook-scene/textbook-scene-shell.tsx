@@ -45,7 +45,6 @@ function SupportedTextbookSceneShell({ displayName, focusedActivityId, graph, in
   const contextButtonRef = useRef<HTMLButtonElement>(null);
   const restoreContextFocusRef = useRef(false);
   const autoFocusTimer = useRef<number | null>(null);
-  const snapshotRef = useRef(initialSnapshot);
   const [mode, setMode] = useState<TextbookSceneMode>(initialMode);
   const [taskId, setTaskId] = useState<DemoTaskId>(initialTaskId);
   const [selectedNodeId, setSelectedNodeId] = useState(initialNodeId);
@@ -72,7 +71,6 @@ function SupportedTextbookSceneShell({ displayName, focusedActivityId, graph, in
     return skillGameForNode(node, task);
   }, [graph.nodes, graph.tasks, selectedNodeId, taskId]);
 
-  const commitSnapshot = (nextSnapshot: LearningProgressSnapshot) => { snapshotRef.current = nextSnapshot; setSnapshot(nextSnapshot); };
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
     if (reduced.matches) setMotionEnabled(false);
@@ -89,7 +87,7 @@ function SupportedTextbookSceneShell({ displayName, focusedActivityId, graph, in
   }, [autoFocus, initialMode]);
   useEffect(() => {
     if (mode !== 'challenge') return;
-    const pollProgress = () => fetchStudentCut(sessionId).then(commitSnapshot).catch(() => undefined);
+    const pollProgress = () => fetchStudentCut(sessionId).then(setSnapshot).catch(() => undefined);
     const timer = window.setInterval(pollProgress, 5000);
     return () => window.clearInterval(timer);
   }, [mode, sessionId]);
@@ -144,7 +142,7 @@ function SupportedTextbookSceneShell({ displayName, focusedActivityId, graph, in
     setSaving(true);
     try {
       const nextSnapshot = await fetchStudentCut(sessionId);
-      commitSnapshot(nextSnapshot);
+      setSnapshot(nextSnapshot);
       const refreshedNode = nextSnapshot.progress.find(({ nodeId }) => nodeId === selectedNodeId);
       const policy = nodeLearningPolicies.find(({ nodeId }) => nodeId === selectedNodeId);
       const requiredMilestone = policy?.requiresProfessionalOutput
@@ -170,7 +168,7 @@ function SupportedTextbookSceneShell({ displayName, focusedActivityId, graph, in
 
   async function refreshAfterGame() {
     const next = await fetchStudentCut(sessionId).catch(() => null);
-    if (next) commitSnapshot(next);
+    if (next) setSnapshot(next);
   }
 
   function continueAfterTest() {
@@ -220,8 +218,7 @@ function SupportedTextbookSceneShell({ displayName, focusedActivityId, graph, in
               initialSection={selectedNodeId === initialNodeId ? initialSection : undefined}
               onComplete={completeNode}
               onReadingComplete={(sectionId) => persistReadingSection({
-                sectionId, selectedNodeId, setSaving, setSnapshot: commitSnapshot,
-                snapshot: snapshotRef.current, taskId,
+                sectionId, selectedNodeId, setSaving, setSnapshot, taskId,
               })}
               saving={saving}
               serverNow={serverNow}

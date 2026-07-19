@@ -2,12 +2,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const source = readFileSync(new URL('./textbook-scene-shell.tsx', import.meta.url), 'utf8');
+const facts = readFileSync(new URL('./textbook-scene-learning-facts.ts', import.meta.url), 'utf8');
+const renderer = readFileSync(new URL('./self-study-renderer.tsx', import.meta.url), 'utf8');
 
 test('sequential reading writes consume the latest committed learning revision', () => {
-  assert.match(source, /const snapshotRef = useRef\(initialSnapshot\)/);
-  assert.match(source, /snapshotRef\.current = nextSnapshot;\s*setSnapshot\(nextSnapshot\)/);
-  assert.match(source, /snapshot: snapshotRef\.current/);
-  assert.match(source, /setSnapshot: commitSnapshot/);
-  assert.doesNotMatch(source, /setSnapshot, snapshot, taskId/);
+  assert.match(renderer, /await flushSection\(sectionId\);\s*await onReadingComplete/);
+  assert.match(facts, /const latest = await fetchLearningProgress\(\)/);
+  assert.match(facts, /latest\.version/);
+  assert.doesNotMatch(facts, /input\.snapshot\.version/);
 });
