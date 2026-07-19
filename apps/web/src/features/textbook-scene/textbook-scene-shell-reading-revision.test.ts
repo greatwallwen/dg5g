@@ -10,4 +10,5 @@ test('sequential reading writes consume the latest committed learning revision',
   assert.match(facts, /const latest = await fetchLearningProgress\(\)/);
   assert.match(facts, /latest\.version/);
   assert.doesNotMatch(facts, /input\.snapshot\.version/);
+  assert.doesNotMatch(renderer, /removeEventListener\('beforeunload'[\s\S]{0,120}flushSection/);
 });

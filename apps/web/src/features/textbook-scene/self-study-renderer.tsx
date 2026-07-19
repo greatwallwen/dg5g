@@ -83,7 +83,6 @@ export function SelfStudyRenderer({
     window.addEventListener('beforeunload', saveBeforeUnload);
     return () => {
       window.removeEventListener('beforeunload', saveBeforeUnload);
-      void flushSection(activeSectionRef.current);
     };
   }, [document.nodeId, document.sourceKnowledgeUnitId]);
 
