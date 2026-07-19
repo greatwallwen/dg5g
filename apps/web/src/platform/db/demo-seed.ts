@@ -704,7 +704,7 @@ export function resolveDemoSeedPath(): string {
   const candidates = [
     join(process.cwd(), 'database', 'demo-seed.json'),
     join(process.cwd(), 'apps', 'web', 'database', 'demo-seed.json'),
-    fileURLToPath(new URL('../../../database/demo-seed.json', import.meta.url)),
+    fileURLToPath(new URL('../../../database/demo-seed.json', import.meta.url).href),
   ];
   const seedPath = candidates.find((candidate) => existsSync(candidate));
   if (!seedPath) throw new Error('Unable to locate apps/web/database/demo-seed.json.');
