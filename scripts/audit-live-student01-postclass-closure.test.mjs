@@ -29,6 +29,7 @@ test('closure proves formal assessment, output revision, teacher verification, a
   for (const evidence of [
     'data-assessment-result="passed"',
     'candidate-a', 'far-end-label-mismatch', 'PWR-DC-17',
+    'data-evidence-gap', 'evidenceGapFields: 1',
     'data-output-workflow', 'returned', 'resubmitted', 'verified',
     'data-portfolio-delivery', 'verified-deliverable',
     'data-graph-node-id="P1T1-N04"',

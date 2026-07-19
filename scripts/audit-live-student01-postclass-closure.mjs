@@ -89,7 +89,7 @@ try {
   await startTeacherReviewLesson(teacher.page);
   const firstReview = await openReviewPanel(teacher.page);
   const outputId = firstReview.outputId;
-  report.output.initial = { outputId, workflow: 'submitted', version: 1, evidenceFields: 10 };
+  report.output.initial = { outputId, workflow: 'submitted', version: 1, evidenceFields: 9, evidenceGapFields: 1 };
   await returnOutput(teacher.page, outputId);
   report.output.returned = { workflow: 'returned', annotation: 'connectionDirection', feedback: true };
 
@@ -246,19 +246,24 @@ async function createAndSubmitOutput(page) {
     'siteRoom', 'collectionScope', 'locationEvidence', 'deviceIdentity', 'endpointA',
     'endpointB', 'connectionDirection', 'photoIndex', 'evidenceGap', 'riskAndReviewConclusion',
   ];
+  const gapFieldKey = 'riskAndReviewConclusion';
   for (const key of keys) {
     const field = form.locator(`[data-output-field="${key}"]`);
     const textarea = field.locator(`textarea[name="${key}"]`);
     const current = (await textarea.inputValue()).trim();
     await textarea.fill(current || `HY-01室内采集成果：${key}已由现场证据复核，可回查对应照片与活动记录。`);
-    if (await field.locator('[data-evidence-id]').count() === 0) {
+    if (key === gapFieldKey) {
+      await field.locator(`textarea[name="${key}.gapText"]`).fill('当前风险结论缺少整改后复拍照片，不能作为最终关闭依据。');
+      await field.locator(`textarea[name="${key}.nextActionText"]`).fill('完成整改后补拍同角度照片，由复核人对照 V1 与 V2 再确认。');
+    } else if (await field.locator('[data-evidence-id]').count() === 0) {
       await field.locator(`[data-evidence-picker="${key}"] select`).selectOption({ index: 1 });
     }
   }
   assert.equal(await form.locator('[data-output-source^="P1T1-N01:"]').count() > 0, true);
   assert.equal(await form.locator('[data-output-source^="P1T1-N02:"]').count() > 0, true);
   assert.equal(await form.locator('[data-output-source^="P1T1-N03:"]').count() > 0, true);
-  assert.equal(await form.locator('[data-evidence-id]').count(), 10);
+  assert.equal(await form.locator('[data-evidence-id]').count(), 9);
+  assert.equal(await form.locator(`[data-evidence-gap="${gapFieldKey}"]`).getAttribute('data-gap-complete'), 'true');
   await form.getByRole('button', { name: '保存草稿', exact: true }).click();
   await form.locator('[role="status"]').filter({ hasText: '草稿已保存' }).waitFor({ state: 'visible', timeout: 20_000 });
   await form.getByRole('button', { name: '提交教师复核', exact: true }).click();
