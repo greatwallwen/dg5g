@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
 import { Icon } from '@/ui/foundation/icons';
 import '../../app/platform-overview.css';
@@ -13,7 +12,6 @@ type LoginPageProps = {
 const DEFAULT_ACCOUNT = 'student01';
 
 export function LoginPage({ nextPath }: LoginPageProps) {
-  const router = useRouter();
   const [username, setUsername] = useState(DEFAULT_ACCOUNT);
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -43,8 +41,7 @@ export function LoginPage({ nextPath }: LoginPageProps) {
         setError(typeof payload?.error === 'string' ? payload.error : '登录失败，请稍后重试。');
         return;
       }
-      router.replace(payload.home);
-      router.refresh();
+      window.location.replace(payload.home);
     } catch {
       setError('登录服务暂时不可用，请稍后重试。');
     } finally {

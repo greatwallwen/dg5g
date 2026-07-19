@@ -54,7 +54,8 @@ test('login explains demo credentials without client-side role or account shortc
   assert.doesNotMatch(loginPage, /chooseRole|data-login-role-option|data-login-role=\{/);
   assert.doesNotMatch(loginPage, /demoAccountShortcuts|roleLabel|WebRole/);
   assert.doesNotMatch(loginPage, /body:\s*JSON\.stringify\(\{[\s\S]*?\brole\s*:/);
-  assert.match(loginPage, /router\.replace\(payload\.home\)/, 'the server response selects the destination role home');
+  assert.match(loginPage, /window\.location\.replace\(payload\.home\)/, 'the server response selects the destination role home after the auth cookie commits');
+  assert.doesNotMatch(loginPage, /useRouter|router\.replace|router\.refresh/, 'login must not race the auth cookie with an RSC navigation');
 });
 
 test('every protected server page authorizes before loading protected data', () => {

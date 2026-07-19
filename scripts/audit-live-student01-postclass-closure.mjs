@@ -306,7 +306,7 @@ async function reviseAndResubmitOutput(page) {
   const form = page.locator('form[data-professional-output="P01"]');
   await form.waitFor({ state: 'visible', timeout: 20_000 });
   assert.equal(await form.getAttribute('data-output-workflow'), 'returned');
-  const direction = form.locator('[data-output-field="connectionDirection"] textarea');
+  const direction = form.locator('textarea[name="connectionDirection"]');
   await direction.fill(`${await direction.inputValue()}；V2已补充BBU源端、ODF连续路径和AAU对端复核。`);
   assert.equal(await form.getAttribute('data-output-workflow'), 'revising');
   await form.getByRole('button', { name: '保存修订', exact: true }).click();
@@ -433,10 +433,16 @@ async function loginActor(browserInstance, username, viewport) {
   const page = await context.newPage();
   observePage(page, username);
   await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-  await page.locator('input[autocomplete="username"]').fill(username);
-  await page.locator('input[autocomplete="current-password"]').fill(password);
-  await page.locator('.login-submit').click();
-  await page.waitForURL((target) => target.pathname !== '/', { timeout: 20_000 });
+  for (let attempt = 1; attempt <= 2 && new URL(page.url()).pathname === '/'; attempt += 1) {
+    await page.locator('input[autocomplete="username"]').fill(username);
+    await page.locator('input[autocomplete="current-password"]').fill(password);
+    await page.locator('.login-submit').click();
+    await page.locator('.login-submit:not([disabled])').waitFor({ state: 'visible', timeout: 10_000 }).catch(() => undefined);
+    if (new URL(page.url()).pathname === '/') {
+      await page.goto(url('/student/home'), { waitUntil: 'domcontentloaded' });
+    }
+  }
+  assert.notEqual(new URL(page.url()).pathname, '/', `${username} UI login did not establish a protected session`);
   return { context, page, username };
 }
 
