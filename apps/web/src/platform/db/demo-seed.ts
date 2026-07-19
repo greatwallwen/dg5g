@@ -1,6 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { readActivityDefinition } from '../../features/learning-activities/activity-catalog.ts';
 import { evaluateActivity } from '../../features/learning-activities/activity-evaluator.ts';
 import {
@@ -704,7 +703,8 @@ export function resolveDemoSeedPath(): string {
   const candidates = [
     join(process.cwd(), 'database', 'demo-seed.json'),
     join(process.cwd(), 'apps', 'web', 'database', 'demo-seed.json'),
-    fileURLToPath(new URL('../../../database/demo-seed.json', import.meta.url).href),
+    join(process.cwd(), 'runtime', 'apps', 'web', 'database', 'demo-seed.json'),
+    join(process.cwd(), 'source', 'apps', 'web', 'database', 'demo-seed.json'),
   ];
   const seedPath = candidates.find((candidate) => existsSync(candidate));
   if (!seedPath) throw new Error('Unable to locate apps/web/database/demo-seed.json.');
