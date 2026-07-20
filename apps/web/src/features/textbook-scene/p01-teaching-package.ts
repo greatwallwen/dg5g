@@ -42,7 +42,7 @@ const lessonOnePages: P01TeachingPage[] = [
     segmentId: 'learning-case',
     title: '先别急着认设备：一张近照为什么不够？',
     projectorContent: {
-      title: '三问法：在哪里、是谁、连到哪',
+      title: 'P1T1-N02 三问法：在哪里、是谁、连到哪',
       material: '工单要求复核 B1 西区机房、机柜 02、BBU 槽位 3 到 AAU5619 的连接关系。现场交回了多张清晰近照，但缺少能证明位置、身份和连接方向的连续证据。',
       visualCallouts: ['在哪里：站点、机房、机柜、槽位', '是谁：型号、序列号、铭牌、现场回指', '连到哪：源端口、路径、跳接、对端端口'],
       prompt: '如果只能补拍三张照片，你会分别证明哪三个问题？',

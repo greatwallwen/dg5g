@@ -85,7 +85,7 @@ test('the two-lesson package explicitly teaches location, identity, direction, e
     '反例一',
     '反例二',
     '室内设备与链路证据表',
-    'P01T1-N02',
+    'P1T1-N02',
   ]) assert.match(copy, new RegExp(required), required);
   assert.doesNotMatch(copy, /答案需包含对象、证据、判断依据和下一步动作/);
 });
