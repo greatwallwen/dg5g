@@ -98,11 +98,26 @@ type P1WrittenPractice = P1PracticeBase & {
 
 export type P1SelfStudyPractice = P1WrittenPractice | P1ActivityPractice;
 
+export interface P1BeginnerScaffold {
+  simpleMission: string;
+  analogy: string;
+  threeQuestions: Array<{
+    id: 'where' | 'who' | 'connects-to';
+    question: string;
+    evidenceType: string;
+    proves: string;
+    cannotProve: string;
+    outputFields: string[];
+  }>;
+  completionStandard: string[];
+}
+
 export interface P1DeepNodeContent {
   kind: 'deep';
   nodeId: 'P1T1-N02' | 'P1T2-N02' | 'P1T3-N02';
   caseBackground: string[];
   taskQuestion: string;
+  beginnerScaffold?: P1BeginnerScaffold;
   prerequisites: string[];
   glossary: Array<{ term: string; definition: string }>;
   annotatedFigures: Array<{
@@ -396,16 +411,21 @@ function validateDeepSelfStudy(
   nodeId: P1NodeId,
   path: string,
 ): void {
-  exactKeys(content, [
+  const deepKeys = [
     'kind', 'nodeId', 'caseBackground', 'taskQuestion', 'prerequisites', 'glossary',
     'annotatedFigures', 'evidenceRules', 'reasoningSteps', 'examples', 'counterexamples',
     'practices', 'transferTask', 'outputTemplate', 'rubric',
-  ], path);
+  ];
+  if ('beginnerScaffold' in content) deepKeys.push('beginnerScaffold');
+  exactKeys(content, deepKeys, path);
   exactValue(content.kind, 'deep', `${path}.kind`);
   nonEmptyString(content.taskQuestion, `${path}.taskQuestion`);
   stringArray(content.caseBackground, `${path}.caseBackground`, 1);
   stringArray(content.prerequisites, `${path}.prerequisites`, 1);
   glossary(content.glossary, `${path}.glossary`);
+  if ('beginnerScaffold' in content) {
+    validateBeginnerScaffold(content.beginnerScaffold, `${path}.beginnerScaffold`);
+  }
 
   const expectedFigureKinds: Record<string, string> = {
     'P1T1-N02': 'topology',
@@ -622,6 +642,28 @@ function glossary(value: unknown, path: string): void {
     exactKeys(entry, ['term', 'definition'], entryPath);
     nonEmptyString(entry.term, `${entryPath}.term`);
     nonEmptyString(entry.definition, `${entryPath}.definition`);
+  });
+}
+
+function validateBeginnerScaffold(value: unknown, path: string): void {
+  const scaffold = objectValue(value, path);
+  exactKeys(scaffold, ['simpleMission', 'analogy', 'threeQuestions', 'completionStandard'], path);
+  nonEmptyString(scaffold.simpleMission, `${path}.simpleMission`);
+  nonEmptyString(scaffold.analogy, `${path}.analogy`);
+  stringArray(scaffold.completionStandard, `${path}.completionStandard`, 2);
+  const questions = arrayValue(scaffold.threeQuestions, `${path}.threeQuestions`);
+  if (questions.length !== 3) invalid(`${path}.threeQuestions`, 'expected exactly three beginner questions');
+  const expectedIds = ['where', 'who', 'connects-to'];
+  questions.forEach((questionValue, index) => {
+    const questionPath = `${path}.threeQuestions[${index}]`;
+    const question = objectValue(questionValue, questionPath);
+    exactKeys(question, ['id', 'question', 'evidenceType', 'proves', 'cannotProve', 'outputFields'], questionPath);
+    exactValue(question.id, expectedIds[index]!, `${questionPath}.id`);
+    nonEmptyString(question.question, `${questionPath}.question`);
+    nonEmptyString(question.evidenceType, `${questionPath}.evidenceType`);
+    nonEmptyString(question.proves, `${questionPath}.proves`);
+    nonEmptyString(question.cannotProve, `${questionPath}.cannotProve`);
+    stringArray(question.outputFields, `${questionPath}.outputFields`, 1);
   });
 }
 

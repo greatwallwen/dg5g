@@ -86,6 +86,24 @@ test('the server loader exposes one 80-point N02 test and one teacher-certified 
   }
 });
 
+test('P1T1-N02 provides a beginner three-question scaffold without changing authority flow', async () => {
+  const { loadP1DemoContent } = await importLoader();
+  const content = loadP1DemoContent();
+  const node = content.tasks[0].nodes.find((item) => item.id === 'P1T1-N02');
+  assert.equal(node?.selfStudy.kind, 'deep');
+  if (!node || node.selfStudy.kind !== 'deep') throw new Error('P1T1-N02 deep content missing');
+
+  assert.deepEqual(
+    node.selfStudy.beginnerScaffold?.threeQuestions.map((item) => item.id),
+    ['where', 'who', 'connects-to'],
+  );
+  assert.match(node.selfStudy.beginnerScaffold?.simpleMission ?? '', /在哪里|是谁|连到哪/);
+  assert.match(node.selfStudy.beginnerScaffold?.analogy ?? '', /快递|包裹|编号|送到/);
+  assert.match(node.selfStudy.beginnerScaffold?.completionStandard.join('') ?? '', /成果字段|证据|缺口/);
+  assert.equal(node.requiresFormalTest, true);
+  assert.equal(node.requiresProfessionalOutput, false);
+});
+
 test('the server loader resolves runtime content from only the repository or apps/web working directory', async () => {
   const loaderSource = await readFile(loaderModuleUrl, 'utf8');
   assert.doesNotMatch(

@@ -42,7 +42,7 @@ test('shared P01 stage renders the exact second-lesson page selected by authorit
   assert.match(html, /第2课时/);
   assert.match(html, /2 \/ 6/);
   assert.match(html, /8分钟/);
-  assert.match(html, /经过ODF跳接的链路重建/);
+  assert.match(html, /带 ODF 的链路重建/);
   assert.match(html, /BBU P2—ODF-07—AAU5619 CPRI-2/);
 });
 
@@ -89,6 +89,31 @@ test('teacher console binds its private teaching inspector to the current comple
   assert.match(view, /data-teaching-lesson=/);
   assert.match(view, /data-teaching-page=/);
   assert.match(view, /suggestedMinutes/);
+});
+
+test('P01 teaching package keeps two six-page lessons with beginner-friendly classroom actions', () => {
+  assert.equal(p01TeachingPackage.length, 2);
+  for (const lesson of p01TeachingPackage) {
+    assert.equal(lesson.pages.length, 6);
+    for (const page of lesson.pages) {
+      const combined = [
+        page.title,
+        page.projectorContent.prompt,
+        page.teacherExplanation,
+        page.caseQuestion,
+        page.typicalAnswer,
+        page.commonErrors.join(' '),
+        page.followUpPrompts.join(' '),
+        page.studentAction,
+        page.transition,
+      ].join(' ');
+      assert.match(combined, /在哪里|是谁|连到哪|证据|缺口|成果|复核/);
+      assert.ok(page.studentAction.length >= 20, `${page.id} student action too short`);
+      assert.ok(page.typicalAnswer.length >= 40, `${page.id} typical answer too short`);
+      assert.ok(page.commonErrors.length >= 2, `${page.id} common errors missing`);
+      assert.ok(page.followUpPrompts.length >= 2, `${page.id} follow-up prompts missing`);
+    }
+  }
 });
 
 function source(relativePath: string): string {
