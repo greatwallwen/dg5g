@@ -86,7 +86,7 @@ export function SelfStudyRenderer({ document, completed, saving, onComplete, ini
             </button>
           ))}
         </nav>
-        <div className="learning-unit-output"><small>本节点记录</small><strong>汇入 {document.taskOutputTitle}</strong></div>
+        <div className="learning-unit-output"><small>本节点记录</small><strong>整理到 {document.taskOutputTitle}</strong></div>
       </header>
 
       <div className="self-study-workspace">

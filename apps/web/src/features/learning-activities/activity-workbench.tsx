@@ -79,7 +79,7 @@ export function ActivityWorkbench({ activity, level, levelLabel, passed, onPass,
 
   return (
     <article
-      className={practiceCardClassName(activityPracticeCardState({ persistedPassed: passed, result }))}
+      className={`${practiceCardClassName(activityPracticeCardState({ persistedPassed: passed, result }))}${activityOwnsMaterials(activity) ? ' is-wide-activity' : ''}`}
       data-activity-id={activity.id}
       data-activity-kind={activity.kind}
       data-practice-level={level}
@@ -87,18 +87,18 @@ export function ActivityWorkbench({ activity, level, levelLabel, passed, onPass,
       ref={cardRef}
     >
       <header><span>{levelLabel}</span><strong>{activity.prompt}</strong></header>
-      <div className="activity-materials">
+      {!activityOwnsMaterials(activity) ? <div className="activity-materials">
         {activity.materials.map((material) => (
           <section data-activity-material={material.id} key={material.id}>
             <strong>{material.label}</strong><p>{material.detail}</p>
           </section>
         ))}
-      </div>
+      </div> : null}
       <ActivityControl activity={activity} onOrderChange={setOrder} onValueChange={(key, value) => (
         setValues((current) => ({ ...current, [key]: value }))
       )} order={order} values={values} />
       <button className="activity-submit" disabled={saving} onClick={submitAttempt} type="button">
-        {saving ? '正在评估' : '提交岗位作答'}
+        {saving ? '正在检查' : '提交练习'}
       </button>
       <div className="self-study-practice-feedback" hidden={!result && !requestError} role="status">
         <span>{result?.passed ? '判断通过' : '错误反馈'}</span>
@@ -116,9 +116,25 @@ export function ActivityWorkbench({ activity, level, levelLabel, passed, onPass,
       >
         重新作答
       </button>
-      <small>服务端按本活动规则评估，作答记录可汇入：{activity.transferTarget}</small>
+      <small>提交后会给出提示；本题记录会整理到学习档案：{studentFacingTransferTarget(activity.transferTarget)}</small>
     </article>
   );
+}
+
+function activityOwnsMaterials(activity: ActivityPublicDto): boolean {
+  return activity.id === 'P1T1-N02-foundation-01'
+    || activity.id === 'P1T1-N02-application-01'
+    || activity.id === 'P1T1-N02-transfer-01';
+}
+
+function studentFacingTransferTarget(value: string): string {
+  return value
+    .replaceAll('汇入', '整理到')
+    .replaceAll('专业成果', '证据表')
+    .replaceAll('成果表', '证据表')
+    .replaceAll('成果记录', '证据记录')
+    .replaceAll('形成可直接', '整理成可')
+    .replaceAll('生成可', '整理出可');
 }
 
 function responseFor(

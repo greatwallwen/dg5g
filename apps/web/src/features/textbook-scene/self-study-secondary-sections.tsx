@@ -27,15 +27,15 @@ export function OutputSection({ document }: { document: SelfStudyDocument }) {
   return (
     <div className="self-study-output-layout">
       <div className="self-study-output-template" data-self-study-output-template>
-        <span>{content.kind === 'deep' ? '节点学习记录模板' : '结构化节点记录'}</span>
+        <span>{content.kind === 'deep' ? '节点整理记录模板' : '结构化节点记录'}</span>
         <h2 id={`${document.nodeId}-output-title`}>{document.nodeTitle} · 可复核记录</h2>
-        <p>本页形成节点学习记录；任务级专业产出在 {document.taskId} 的 N04 节点统一形成。</p>
+        <p>本页用于整理这一节点的学习证据；任务级证据表在 {document.taskId} 的 N04 节点统一填写并提交复核。</p>
         <dl>{Object.entries(template).map(([field, value]) => <div key={field}><dt>{field}</dt><dd>{templateValue(value)}</dd></div>)}</dl>
       </div>
       {content.kind === 'deep' ? (
         <div className="self-study-output-support">
           <article data-self-study-transfer>
-            <span><Icon name="arrow" size={17} />迁移任务</span>
+            <span><Icon name="arrow" size={17} />迁移练习</span>
             <p><strong>场景：</strong>{content.transferTask.scenario}</p>
             <p><strong>交付物：</strong>{content.transferTask.deliverable}</p>
             <ul>{content.transferTask.successCriteria.map((criterion) => <li key={criterion}>{criterion}</li>)}</ul>

@@ -21,7 +21,7 @@ test('resolves all self-study text through validated P1 generated content', () =
     ['steps', '步骤'],
     ['correction', '纠偏'],
     ['practice', '练习'],
-    ['output', '产出'],
+    ['output', '记录'],
   ]);
 
   const source = readFileSync(new URL('./self-study-content.ts', import.meta.url), 'utf8');
@@ -47,10 +47,10 @@ test('renders the P03 deep textbook with six navigable sections and no N02 outpu
   assert.match(html, /data-practice-level="transfer"/);
   assert.match(html, /错误反馈/);
   assert.match(html, /重新作答/);
-  assert.match(html, /迁移任务/);
-  assert.match(html, /节点学习记录模板/);
+  assert.match(html, /迁移练习/);
+  assert.match(html, /节点整理记录模板/);
   assert.match(html, /评价标准/);
-  assert.doesNotMatch(html, /提交专业产出|evidence_submitted/);
+  assert.doesNotMatch(html, /提交专业产出|evidence_submitted|服务端规则|可汇入/);
 });
 
 test('the self-study surface exposes one primary continuation and a bounded textbook scroller', () => {
