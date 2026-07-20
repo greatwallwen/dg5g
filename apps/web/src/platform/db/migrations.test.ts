@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import type { AppDatabase } from './database.ts';
 import { migrateDatabase, readMigrations } from './migrations.ts';
 import { createTestDatabase } from './test-database.ts';
 
@@ -13,10 +14,10 @@ test('applies ordered migrations once and replays idempotently', () => {
       'SELECT version FROM schema_migrations ORDER BY version',
     ).all() as Array<{ version: number }>;
 
-    assert.deepEqual(first.appliedVersions, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    assert.deepEqual(first.appliedVersions, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
     assert.deepEqual(replay.appliedVersions, []);
-    assert.equal(replay.currentVersion, 11);
-    assert.deepEqual(recorded.map(({ version }) => version), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    assert.equal(replay.currentVersion, 13);
+    assert.deepEqual(recorded.map(({ version }) => version), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
   } finally {
     testDatabase.cleanup();
   }
@@ -26,10 +27,10 @@ test('rejects a database whose schema version is newer than this runtime', () =>
   const testDatabase = createTestDatabase();
 
   try {
-    testDatabase.database.pragma('user_version = 12');
+    testDatabase.database.pragma('user_version = 14');
     assert.throws(
       () => migrateDatabase(testDatabase.database),
-      /schema version 12 is newer than supported version 11/i,
+      /schema version 14 is newer than supported version 13/i,
     );
   } finally {
     testDatabase.cleanup();
@@ -44,7 +45,7 @@ test('rejects migration history ahead of PRAGMA user_version', () => {
     testDatabase.database.pragma('user_version = 10');
     assert.throws(
       () => migrateDatabase(testDatabase.database),
-      /migration history version 11 does not match PRAGMA user_version 10/i,
+      /migration history version 13 does not match PRAGMA user_version 10/i,
     );
   } finally {
     testDatabase.cleanup();
@@ -56,10 +57,10 @@ test('rejects PRAGMA user_version ahead of migration history', () => {
 
   try {
     migrateDatabase(testDatabase.database);
-    testDatabase.database.prepare('DELETE FROM schema_migrations WHERE version = 11').run();
+    testDatabase.database.prepare('DELETE FROM schema_migrations WHERE version = 13').run();
     assert.throws(
       () => migrateDatabase(testDatabase.database),
-      /migration history version 10 does not match PRAGMA user_version 11/i,
+      /migration history version 12 does not match PRAGMA user_version 13/i,
     );
   } finally {
     testDatabase.cleanup();
@@ -73,11 +74,11 @@ test('rejects migration history versions unsupported by this runtime', () => {
     migrateDatabase(testDatabase.database);
     testDatabase.database.prepare(`
       INSERT INTO schema_migrations (version, name, checksum)
-        VALUES (12, 'unexpected', 'unexpected')
+        VALUES (14, 'unexpected', 'unexpected')
     `).run();
     assert.throws(
       () => migrateDatabase(testDatabase.database),
-      /migration history contains unsupported version 12/i,
+      /migration history contains unsupported version 14/i,
     );
   } finally {
     testDatabase.cleanup();
@@ -139,11 +140,15 @@ test('creates the exact versioned domain tables without superseded storage model
       'output_evidence_links',
       'output_field_sources',
       'output_review_annotations',
+      'output_evidence_gaps',
       'self_study_cursors',
       'frozen_task_scores',
       'classroom_sessions',
       'classroom_members',
       'classroom_participation',
+      'classroom_lesson_runs',
+      'classroom_assessment_runs',
+      'formal_assessment_drafts',
       'classroom_commands',
       'device_presence',
       'command_acks',
@@ -161,6 +166,11 @@ test('creates the exact versioned domain tables without superseded storage model
 
     for (const table of requiredTables) assert.equal(tables.has(table), true, table);
     for (const table of supersededTables) assert.equal(tables.has(table), false, table);
+    assert.equal(hasColumn(testDatabase.database, 'practice_attempts', 'delivery_channel'), true);
+    assert.equal(hasColumn(testDatabase.database, 'practice_attempts', 'classroom_run_id'), true);
+    assert.equal(hasColumn(testDatabase.database, 'classroom_sessions', 'active_lesson_run_id'), true);
+    assert.equal(hasColumn(testDatabase.database, 'formal_assessment_instances', 'closure_reason'), true);
+    assert.equal(hasColumn(testDatabase.database, 'device_presence', 'client_kind'), true);
   } finally {
     testDatabase.cleanup();
   }
@@ -301,7 +311,7 @@ test('migration 005 promotes legacy content to immutable canonical output v1', (
     `);
 
     const result = migrateDatabase(testDatabase.database);
-    assert.deepEqual(result.appliedVersions, [5, 6, 7, 8, 9, 10, 11]);
+    assert.deepEqual(result.appliedVersions, [5, 6, 7, 8, 9, 10, 11, 12, 13]);
     assert.deepEqual(testDatabase.database.prepare(`
       SELECT
         task_id AS taskId,
@@ -398,7 +408,7 @@ test('migration 006 backfills classroom revision topics without rolling a newer 
     `);
 
     const result = migrateDatabase(testDatabase.database);
-    assert.deepEqual(result.appliedVersions, [6, 7, 8, 9, 10, 11]);
+    assert.deepEqual(result.appliedVersions, [6, 7, 8, 9, 10, 11, 12, 13]);
     assert.deepEqual(testDatabase.database.prepare(`
       SELECT version, updated_at AS updatedAt
       FROM snapshot_versions WHERE topic = 'classroom:session-revision-7'
@@ -436,8 +446,8 @@ test('migration 008 upgrades a v5 cursor row to the per-student per-node key wit
     `);
 
     const result = migrateDatabase(testDatabase.database);
-    assert.deepEqual(result.appliedVersions, [6, 7, 8, 9, 10, 11]);
-    assert.equal(result.currentVersion, 11);
+    assert.deepEqual(result.appliedVersions, [6, 7, 8, 9, 10, 11, 12, 13]);
+    assert.equal(result.currentVersion, 13);
     const columns = testDatabase.database.prepare(`
       PRAGMA table_info(self_study_cursors)
     `).all() as Array<{ name: string; pk: number }>;
@@ -666,4 +676,9 @@ function applyMigrationsThrough(
       database.pragma(`user_version = ${migration.version}`);
     })();
   }
+}
+
+function hasColumn(database: AppDatabase, table: string, column: string): boolean {
+  return (database.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>)
+    .some((entry) => entry.name === column);
 }
