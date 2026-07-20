@@ -71,6 +71,24 @@ test('the self-study surface exposes one primary continuation and a bounded text
   assert.match(source, /scrollIntoView\(\{ block: 'nearest'/);
 });
 
+test('P1T1-N02 renders the beginner three-question scaffold inside the problem section', () => {
+  const document = requireSelfStudyDocument('P1T1-N02');
+  const html = renderToStaticMarkup(
+    <SelfStudyRenderer completed={false} document={document} onComplete={() => undefined} saving={false} />,
+  );
+
+  assert.equal((html.match(/data-beginner-scaffold="three-question"/g) ?? []).length, 1);
+  assert.equal((html.match(/data-beginner-question=/g) ?? []).length, 3);
+  assert.match(html, /data-beginner-question="where"/);
+  assert.match(html, /data-beginner-question="who"/);
+  assert.match(html, /data-beginner-question="connects-to"/);
+  assert.match(html, /在哪里/);
+  assert.match(html, /是谁/);
+  assert.match(html, /连到哪/);
+  assert.match(html, /做到什么算完成/);
+  assert.equal((html.match(/data-self-study-section-tab=/g) ?? []).length, 6);
+});
+
 test('the renderer owns one persistent terminology lookup across all six sections', () => {
   const document = requireSelfStudyDocument('P1T1-N02');
   const html = renderToStaticMarkup(

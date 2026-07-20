@@ -39,6 +39,114 @@
   background: #0c2b40;
 }
 
+.activity-three-question-board {
+  display: grid;
+  gap: 12px;
+}
+
+.activity-three-question-board > header {
+  border: 1px solid rgba(84, 223, 215, .35);
+  border-radius: 10px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(10, 41, 61, .96), rgba(7, 22, 36, .98));
+}
+
+.activity-three-question-board > header span {
+  color: #54dfd7;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.activity-three-question-board > header strong {
+  display: block;
+  margin-top: 4px;
+  color: #f1fbfd;
+}
+
+.activity-three-question-board > header p {
+  margin: 6px 0 0;
+  color: #a8c0ca;
+}
+
+.activity-evidence-card-pool,
+.activity-three-question-zones {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.activity-evidence-card-pool article,
+.activity-three-question-zones article {
+  min-width: 0;
+  border: 1px solid #29495e;
+  border-radius: 10px;
+  padding: 12px;
+  background: #0a1f31;
+}
+
+.activity-evidence-card-pool article {
+  border-color: rgba(248, 196, 99, .38);
+  background: linear-gradient(180deg, rgba(248, 196, 99, .08), rgba(10, 31, 49, .98));
+}
+
+.activity-evidence-card-pool article > span {
+  color: #f8c463;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.activity-evidence-card-pool p,
+.activity-three-question-zones p {
+  color: #a8c0ca;
+  line-height: 1.55;
+}
+
+.activity-evidence-card-pool article > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.activity-evidence-card-pool button,
+.activity-three-question-zones button {
+  min-height: 32px;
+  border: 1px solid #365a6e;
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: #d8e8ed;
+  background: #0c2b40;
+}
+
+.activity-evidence-card-pool button[aria-pressed='true'] {
+  border-color: #54dfd7;
+  color: #06212b;
+  background: #54dfd7;
+}
+
+.activity-three-question-zones h4 {
+  margin: 0 0 8px;
+  color: #f1fbfd;
+}
+
+.activity-three-question-zones ul {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.activity-three-question-zones li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-radius: 8px;
+  padding: 8px;
+  background: rgba(84, 223, 215, .08);
+}
+
 .activity-sequence-builder {
   display: grid;
   gap: 9px;
@@ -123,4 +231,11 @@
 
 .activity-revision-table input {
   width: 100%;
+}
+
+@media (max-width: 760px) {
+  .activity-evidence-card-pool,
+  .activity-three-question-zones {
+    grid-template-columns: 1fr;
+  }
 }

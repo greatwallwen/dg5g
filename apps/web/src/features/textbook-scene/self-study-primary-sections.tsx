@@ -1,5 +1,5 @@
 import { Icon, type IconName } from '../../ui/foundation/icons.tsx';
-import type { SelfStudyDocument } from './self-study-types.ts';
+import type { DeepSelfStudyContent, SelfStudyDocument } from './self-study-types.ts';
 import { AnnotatedEngineeringFigure } from './annotated-engineering-figure.tsx';
 
 export function ProblemSection({ document }: { document: SelfStudyDocument }) {
@@ -10,12 +10,45 @@ export function ProblemSection({ document }: { document: SelfStudyDocument }) {
       <div className="self-study-copy-block">
         <span>案例背景</span>
         <h2 id={`${document.nodeId}-problem-title`}>{question}</h2>
+        {content.kind === 'deep' && content.beginnerScaffold ? (
+          <BeginnerScaffold scaffold={content.beginnerScaffold} />
+        ) : null}
         {content.caseBackground.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
         {content.kind === 'deep' ? (
           <aside><strong>必要前置知识</strong><ul>{content.prerequisites.map((item) => <li key={item}>{item}</li>)}</ul></aside>
         ) : null}
       </div>
     </div>
+  );
+}
+
+function BeginnerScaffold({ scaffold }: { scaffold: NonNullable<DeepSelfStudyContent['beginnerScaffold']> }) {
+  return (
+    <aside className="self-study-beginner-scaffold" data-beginner-scaffold="three-question">
+      <header>
+        <Icon name="spark" size={18} />
+        <div>
+          <span>新手先看这里</span>
+          <strong>{scaffold.simpleMission}</strong>
+        </div>
+      </header>
+      <p className="self-study-beginner-analogy">{scaffold.analogy}</p>
+      <div className="self-study-beginner-questions">
+        {scaffold.threeQuestions.map((question, index) => (
+          <article data-beginner-question={question.id} key={question.id}>
+            <span>{index + 1}</span>
+            <h3>{question.question}</h3>
+            <p><b>{question.evidenceType}</b>：{question.proves}</p>
+            <small>不能证明：{question.cannotProve}</small>
+            <ul>{question.outputFields.map((field) => <li key={field}>{field}</li>)}</ul>
+          </article>
+        ))}
+      </div>
+      <footer>
+        <strong>做到什么算完成</strong>
+        <ul>{scaffold.completionStandard.map((item) => <li key={item}>{item}</li>)}</ul>
+      </footer>
+    </aside>
   );
 }
 

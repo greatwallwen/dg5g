@@ -156,6 +156,92 @@
   color: #e6f1f4;
 }
 
+.self-study-beginner-scaffold {
+  display: grid;
+  gap: 14px;
+  margin: 18px 0;
+  border: 1px solid rgba(84, 223, 215, .42);
+  border-radius: 16px;
+  padding: 16px;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(84, 223, 215, .18), transparent 34%),
+    linear-gradient(135deg, rgba(12, 43, 64, .96), rgba(7, 22, 36, .98));
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .22);
+}
+
+.self-study-beginner-scaffold > header {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: #54dfd7;
+}
+
+.self-study-beginner-scaffold > header span,
+.self-study-beginner-scaffold footer strong {
+  display: block;
+  color: #9df2ed;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.self-study-beginner-scaffold > header strong {
+  display: block;
+  margin-top: 4px;
+  color: #f2fbfd;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.self-study-beginner-analogy {
+  margin: 0;
+  border-left: 3px solid #f8c463;
+  padding: 10px 12px;
+  color: #dbecef;
+  background: rgba(248, 196, 99, .08);
+}
+
+.self-study-beginner-questions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.self-study-beginner-questions article {
+  min-width: 0;
+  border: 1px solid rgba(84, 223, 215, .24);
+  border-radius: 12px;
+  padding: 13px;
+  background: rgba(8, 27, 43, .8);
+}
+
+.self-study-beginner-questions article > span {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  color: #061521;
+  background: #54dfd7;
+  font-weight: 950;
+}
+
+.self-study-beginner-questions h3 {
+  margin: 10px 0 7px;
+  color: #fff;
+}
+
+.self-study-beginner-questions p,
+.self-study-beginner-questions small {
+  color: #bcd3dc;
+  line-height: 1.6;
+}
+
+.self-study-beginner-questions ul,
+.self-study-beginner-scaffold footer ul {
+  margin-bottom: 0;
+}
+
 .self-study-glossary {
   align-self: start;
   overflow: hidden;
@@ -655,6 +741,10 @@
 
   .self-study-section h2 {
     font-size: 20px;
+  }
+
+  .self-study-beginner-questions {
+    grid-template-columns: 1fr;
   }
 
   .self-study-correction-layout > div,
