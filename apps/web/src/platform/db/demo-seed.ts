@@ -22,6 +22,7 @@ import { upgradeLegacyDemoV8Facts } from './legacy-demo-v8-upgrade.ts';
 export const DEMO_TEACHER_ID = 'teacher-01';
 export const DEMO_STUDENT_IDS = ['stu-01', 'stu-02', 'stu-03'] as const;
 export const DEMO_CLASS_ID = 'demo-class';
+const DEMO_CURSOR_UPDATED_AT = '2026-07-16T00:00:00.000Z';
 
 type UserRole = 'teacher' | 'student';
 type LearningChannel = 'self-study' | 'classroom' | 'game';
@@ -330,7 +331,7 @@ export function seedDemo(database: AppDatabase, seed = readDemoSeed()): void {
         SELECT 1 FROM self_study_cursors
         WHERE student_id = @studentId AND is_active = 1
       ) THEN 0 ELSE 1 END,
-      CURRENT_TIMESTAMP
+      @updatedAt
     )
     ON CONFLICT(student_id, node_id) DO NOTHING
   `);
@@ -424,7 +425,7 @@ export function seedDemo(database: AppDatabase, seed = readDemoSeed()): void {
       }
     }
     for (const cursor of seed.demo.cursors) {
-      upsertCursor.run({ unitId: null, actionId: null, ...cursor });
+      upsertCursor.run({ unitId: null, actionId: null, updatedAt: DEMO_CURSOR_UPDATED_AT, ...cursor });
     }
     const requiredSnapshotVersion = seed.demo.frozenTaskScores.reduce(
       (maximum, frozenScore) => Math.max(maximum, frozenScore.snapshotVersion),
