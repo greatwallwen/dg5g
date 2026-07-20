@@ -39,12 +39,17 @@ test('desktop semantic graph uses projected access instead of fixture locked fla
   assert.match(fixtures, /graphNode\('P03',[\s\S]*?\{ taskId: 'P03' \}\)/);
 });
 
-test('graph callers preserve loading while self-study starts from its server student cut', () => {
+test('graph callers start from a server graph cut while self-study starts from its server student cut', () => {
   const overview = readFileSync(new URL('./course-overview.tsx', import.meta.url), 'utf8');
+  const page = readFileSync(new URL('../../app/course/page.tsx', import.meta.url), 'utf8');
   const shell = readFileSync(new URL('./textbook-scene-shell.tsx', import.meta.url), 'utf8');
 
-  assert.match(overview, /useState<GraphSnapshotModel>\(\)/);
-  assert.match(overview, /progress=\{snapshot\?\.nodes\}/);
+  assert.match(page, /new AuthoritativeSnapshotReader\(getDatabase\(\)\)\.read\(actor, 'graph'\)/);
+  assert.match(page, /projectGraphSnapshot/);
+  assert.match(overview, /initialSnapshot: GraphSnapshotModel/);
+  assert.match(overview, /useState<GraphSnapshotModel>\(initialSnapshot\)/);
+  assert.match(overview, /progress=\{snapshot\.nodes\}/);
+  assert.doesNotMatch(overview, /data-snapshot-version=\{facts\?\.snapshotVersion \?\? 0\}/);
   assert.match(shell, /useState\(initialSnapshot\)/);
   assert.match(shell, /progress=\{snapshot\.progress\}/);
   assert.doesNotMatch(overview, /emptyLearning/);

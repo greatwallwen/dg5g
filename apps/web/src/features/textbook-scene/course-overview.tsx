@@ -24,14 +24,15 @@ function ignoreGraphInteraction() {
   // The course overview owns navigation; graph interaction telemetry is optional here.
 }
 
-export function CourseOverview({ displayName, graph, role }: {
+export function CourseOverview({ displayName, graph, initialSnapshot, role }: {
   displayName: string;
   graph: GraphData;
+  initialSnapshot: GraphSnapshotModel;
   role: WebRole;
 }) {
   const router = useRouter();
   const [motionState, setMotionState] = useState<CourseMotionState>('active');
-  const [snapshot, setSnapshot] = useState<GraphSnapshotModel>();
+  const [snapshot, setSnapshot] = useState<GraphSnapshotModel>(initialSnapshot);
 
   useEffect(() => {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -58,7 +59,7 @@ export function CourseOverview({ displayName, graph, role }: {
   }, []);
 
   function openNode(nodeId: string, action: CourseGraphNodeAction = 'learn') {
-    if (snapshot?.mode === 'teacher') {
+    if (snapshot.mode === 'teacher') {
       router.push(`/teacher/sessions/${snapshot.sessionId}`);
       return;
     }
@@ -69,20 +70,20 @@ export function CourseOverview({ displayName, graph, role }: {
     openNode(({ P01: 'P1T1-N01', P02: 'P1T2-N01', P03: 'P1T3-N01' } as const)[taskId]);
   }
 
-  const actorMode = snapshot?.mode ?? role;
-  const selectedNodeId = snapshot?.selectedNodeId ?? '';
+  const actorMode = snapshot.mode;
+  const selectedNodeId = snapshot.selectedNodeId ?? '';
   const selectedTaskId = getNodeLearningPolicy(selectedNodeId)?.taskId ?? 'P01';
-  const facts = snapshot?.authoritativeFacts;
+  const facts = snapshot.authoritativeFacts;
 
   return (
     <main className="course-overview" data-course-home data-motion={motionState}
-      data-class-size={facts?.classSize ?? 0}
-      data-classroom-revision={facts?.classroomRevision ?? 0}
-      data-formal-passed={facts?.formalPassed ?? 0}
-      data-formal-submitted={facts?.formalSubmitted ?? 0}
-      data-graph-progress={snapshot?.nodes.length ?? 0}
+      data-class-size={facts.classSize}
+      data-classroom-revision={facts.classroomRevision}
+      data-formal-passed={facts.formalPassed}
+      data-formal-submitted={facts.formalSubmitted}
+      data-graph-progress={snapshot.nodes.length}
       data-role-overlay={actorMode}
-      data-snapshot-version={facts?.snapshotVersion ?? 0}
+      data-snapshot-version={facts.snapshotVersion}
       data-ui-surface="dark">
       <header className="overview-topbar">
         <div className="scene-brand"><span>DG</span><strong>5G网络优化（高级）</strong><small>课程能力图谱</small></div>
@@ -96,18 +97,18 @@ export function CourseOverview({ displayName, graph, role }: {
         <CourseGraphStage
           actorMode={actorMode}
           graph={graph}
-          heatmap={snapshot?.nodeHeatmap ?? []}
+          heatmap={snapshot.nodeHeatmap}
           mode="course-map"
           motionEnabled={motionState === 'active'}
           motionState={motionState}
           onInteraction={ignoreGraphInteraction}
           onNodeSelect={openNode}
           onTaskSelect={openTask}
-          progress={snapshot?.nodes}
-          projectCompositeScore={snapshot?.projectCompositeScore}
+          progress={snapshot.nodes}
+          projectCompositeScore={snapshot.projectCompositeScore}
           selectedNodeId={selectedNodeId}
           taskId={selectedTaskId}
-          taskProgress={snapshot?.tasks ?? []}
+          taskProgress={snapshot.tasks}
         />
       </section>
     </main>
