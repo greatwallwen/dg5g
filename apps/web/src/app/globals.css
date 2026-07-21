@@ -36,6 +36,46 @@ svg { display: inline-block; vertical-align: middle; }
 
 .dgbook-skip-link:focus-visible { transform: translateY(0); }
 
+.chunk-load-recovery {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 1000;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  max-width: min(460px, calc(100vw - 32px));
+  padding: 14px 16px;
+  border: 1px solid rgba(251, 146, 60, 0.45);
+  border-radius: 18px;
+  color: #ffedd5;
+  background: rgba(67, 34, 12, 0.94);
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.35);
+}
+
+.chunk-load-recovery strong {
+  color: #fed7aa;
+}
+
+.chunk-load-recovery span {
+  grid-column: 1;
+  color: rgba(255, 237, 213, 0.86);
+  font-size: 13px;
+}
+
+.chunk-load-recovery button {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  align-self: center;
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: #431407;
+  background: #fdba74;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 :where(a[href], button, input, select, textarea, [role="button"], [tabindex]):focus-visible {
   outline: 3px solid #62ded4;
   outline-offset: 3px;

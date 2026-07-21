@@ -21,6 +21,7 @@ import './self-study-scope-map.css';
 import './learning-activities.css';
 import './professional-output.css';
 import './formal-assessment.css';
+import { ChunkLoadRecovery } from './chunk-load-recovery';
 
 export const metadata: Metadata = {
   title: 'DGBook 5G网络优化（高级）数字教材',
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="zh-CN">
       <body>
         <a className="dgbook-skip-link" href="#dgbook-main-content">跳到主要内容</a>
+        <ChunkLoadRecovery />
         <div id="dgbook-main-content" tabIndex={-1}>{children}</div>
       </body>
     </html>

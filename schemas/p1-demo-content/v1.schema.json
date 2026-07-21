@@ -299,6 +299,33 @@
       "properties": {
         "kind": { "const": "deep" },
         "nodeId": { "enum": ["P1T1-N02", "P1T2-N02", "P1T3-N02"] },
+        "beginnerScaffold": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["simpleMission", "analogy", "threeQuestions", "completionStandard"],
+          "properties": {
+            "simpleMission": { "type": "string", "minLength": 1 },
+            "analogy": { "type": "string", "minLength": 1 },
+            "threeQuestions": {
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "question", "evidenceType", "proves", "cannotProve", "outputFields"],
+                "properties": {
+                  "id": { "type": "string", "minLength": 1 },
+                  "question": { "type": "string", "minLength": 1 },
+                  "evidenceType": { "type": "string", "minLength": 1 },
+                  "proves": { "type": "string", "minLength": 1 },
+                  "cannotProve": { "type": "string", "minLength": 1 },
+                  "outputFields": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+                }
+              }
+            },
+            "completionStandard": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+          }
+        },
         "caseBackground": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
         "taskQuestion": { "type": "string", "minLength": 1 },
         "prerequisites": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },

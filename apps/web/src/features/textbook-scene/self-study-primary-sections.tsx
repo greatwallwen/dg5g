@@ -107,12 +107,62 @@ function RelationshipEvidenceFigure({ figureKind, evidenceLabels }: { figureKind
       >
         <figcaption><Icon name={descriptor.icon} size={20} /><span>{descriptor.title}</span></figcaption>
         <div className="self-study-scope-map" aria-label="室内采集范围工程关系图">
-          <article className="is-source"><span>1</span><strong>任务单</strong><p>{evidenceLabels[0]}</p></article>
-          <Icon name="arrow" size={18} />
-          <article className="is-room"><span>2</span><strong>机房入口</strong><p>{evidenceLabels[1]}</p></article>
-          <Icon name="arrow" size={18} />
-          <article className="is-cabinet"><span>3</span><strong>机柜范围</strong><p>{evidenceLabels[2]}</p></article>
-          <article className="is-excluded"><span>×</span><strong>排除对象</strong><p>{evidenceLabels[3]}</p></article>
+          <svg data-scope-engineering-map="true" role="img" viewBox="0 0 920 430">
+            <title>HY-01室内采集范围关系图</title>
+            <desc>任务单要求采集01号机房K01到K04，本图同时标出共享他网机柜和02号机房排除区。</desc>
+            <defs>
+              <marker id="scope-arrow" markerHeight="8" markerWidth="8" orient="auto" refX="7" refY="4">
+                <path d="M0 0 8 4 0 8Z" />
+              </marker>
+            </defs>
+            <rect className="scope-site" height="340" rx="22" width="545" x="270" y="58" />
+            <text className="scope-site-label" x="294" y="92">HY-01 站点现场</text>
+            <rect className="scope-room is-in-scope" height="220" rx="18" width="345" x="315" y="120" />
+            <text className="scope-room-label" x="338" y="154">01号机房 · 本次进入</text>
+            <rect className="scope-room is-out-scope" height="220" rx="18" width="125" x="675" y="120" />
+            <text className="scope-room-label" x="695" y="154">02号机房</text>
+            {['K01', 'K02', 'K03', 'K04'].map((rack, index) => (
+              <g data-scope-rack={rack} key={rack} transform={`translate(${340 + index * 74} 196)`}>
+                <rect className="scope-rack is-target" height="76" rx="10" width="52" />
+                <text x="26" y="45">{rack}</text>
+              </g>
+            ))}
+            <g data-scope-rack="other-operator" transform="translate(594 196)">
+              <rect className="scope-rack is-excluded" height="76" rx="10" width="52" />
+              <text x="26" y="35">他网</text>
+              <text x="26" y="54">柜</text>
+            </g>
+            <path className="scope-collection-boundary" d="M328 182H634V292H328Z" />
+            <path className="scope-flow" d="M120 132C180 132 206 132 260 132" markerEnd="url(#scope-arrow)" />
+            <path className="scope-flow" d="M492 112V178" markerEnd="url(#scope-arrow)" />
+            <path className="scope-reject-flow" d="M642 250C686 292 720 312 772 350" markerEnd="url(#scope-arrow)" />
+            <path className="scope-reject-flow" d="M736 238V330" markerEnd="url(#scope-arrow)" />
+            <g className="scope-callout" transform="translate(30 72)">
+              <rect height="96" rx="14" width="210" />
+              <text className="scope-callout-title" x="18" y="32">任务单</text>
+              <text x="18" y="59">{evidenceLabels[0]}</text>
+            </g>
+            <g className="scope-callout" transform="translate(268 18)">
+              <rect height="76" rx="14" width="270" />
+              <text className="scope-callout-title" x="18" y="30">现场身份</text>
+              <text x="18" y="56">{evidenceLabels[1]}</text>
+            </g>
+            <g className="scope-callout is-ok" transform="translate(310 326)">
+              <rect height="78" rx="14" width="330" />
+              <text className="scope-callout-title" x="18" y="31">采集框</text>
+              <text x="18" y="57">{evidenceLabels[2]}</text>
+            </g>
+            <g className="scope-callout is-warn" transform="translate(610 24)">
+              <rect height="88" rx="14" width="280" />
+              <text className="scope-callout-title" x="18" y="32">排除区</text>
+              <text x="18" y="59">{evidenceLabels[3]}</text>
+            </g>
+          </svg>
+          <ol className="self-study-scope-map-legend">
+            <li><strong>采集</strong><span>只进入任务单和现场门牌都能证明的01号机房K01—K04。</span></li>
+            <li><strong>排除</strong><span>他网机柜、02号机房不属于本次范围，必须写出排除证据。</span></li>
+            <li><strong>复核</strong><span>任何照片都要能回到站点、机房、柜号三层关系。</span></li>
+          </ol>
         </div>
       </figure>
     );
