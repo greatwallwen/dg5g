@@ -23,7 +23,7 @@ export function RoleGate({ requiredRole, children, title, description }: RoleGat
   const pathname = usePathname();
   const { checked, actor } = useAuthoritativeActor();
 
-  if (!checked) return <AuthLoading label="正在确认服务端身份" />;
+  if (!checked) return <AuthLoading label="正在确认系统身份" />;
 
   if (actor?.role !== requiredRole) {
     const loginHref = `/?next=${encodeURIComponent(pathname)}`;
@@ -33,7 +33,7 @@ export function RoleGate({ requiredRole, children, title, description }: RoleGat
           <span className="role-auth-icon"><Icon name={requiredRole === 'teacher' ? 'teacher' : 'user'} size={34} /></span>
           <p className="role-auth-kicker">{roleLabel[requiredRole]}登录</p>
           <h1>{title ?? `请先进入${roleLabel[requiredRole]}端`}</h1>
-          <p>{description ?? `此页面属于${roleLabel[requiredRole]}流程，身份与班级权限由服务端会话确认。`}</p>
+          <p>{description ?? `此页面属于${roleLabel[requiredRole]}流程，身份与班级权限由系统会话确认。`}</p>
           {actor ? <small>当前已登录：{roleLabel[actor.role]} · {actor.displayName}</small> : null}
           <div className="role-auth-actions">
             {actor
@@ -70,7 +70,7 @@ export function AuthenticatedGate({ children }: { children: ReactNode }) {
           <span className="role-auth-icon"><Icon name="lock" size={34} /></span>
           <p className="role-auth-kicker">教材登录</p>
           <h1>请先使用演示账号登录</h1>
-          <p>服务端将根据账号确认学生或教师身份，并进入对应的默认工作入口。</p>
+          <p>系统会根据账号确认学生或教师身份，并进入对应的默认工作入口。</p>
           <div className="role-auth-actions">
             <Link className="primary-button" href={`/?next=${encodeURIComponent(pathname)}`} prefetch={false}>返回登录</Link>
           </div>

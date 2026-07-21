@@ -45,7 +45,7 @@ export function SharedClassroomScene({ profile, unit, surface, pageIndex, action
       </section>
       <footer>
         <div><Icon name="message" size={18} /><span><small>当前问题</small><strong>{unit.question}</strong></span></div>
-        <div><Icon name="file" size={18} /><span><small>学习产出</small><strong>{unit.output}</strong></span></div>
+        <div><Icon name="file" size={18} /><span><small>学习成果</small><strong>{unit.output}</strong></span></div>
       </footer>
     </article>
   );

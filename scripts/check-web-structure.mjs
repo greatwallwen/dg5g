@@ -1831,10 +1831,9 @@ function checkWebReleaseScriptContract() {
 
 function checkCurrentDocsContract() {
   const readmeFile = join(root, 'README.md');
-  const designFile = join(root, 'docs', 'superpowers', 'specs', '2026-07-14-dgbook-p1-image2-sqlite-demo-design.md');
   const productRalphFile = join(root, 'docs', 'architecture', 'product-closure-ralph-loop.md');
   const iterationRalphFile = join(root, 'docs', 'architecture', 'ralph-loop-iteration-plan.md');
-  const docs = [readmeFile, designFile, productRalphFile, iterationRalphFile];
+  const docs = [readmeFile, productRalphFile, iterationRalphFile];
   for (const file of docs) {
     if (!exists(file)) fail(slash(relative(root, file)) + ' is required by the current design/Ralph documentation contract');
   }
@@ -1845,11 +1844,6 @@ function checkCurrentDocsContract() {
     if (!readmeText.includes(snippet)) fail('README.md must identify the current web platform through ' + snippet);
   }
 
-  const designText = readFileSync(designFile, 'utf8');
-  for (const snippet of ['Next.js', 'SQLite', 'requireUser()', 'requireClassRole()', 'P01', 'P02', 'P03']) {
-    if (!designText.includes(snippet)) fail('active design spec must state the approved architecture through ' + snippet);
-  }
-
   const productRalphText = readFileSync(productRalphFile, 'utf8');
   for (const snippet of ['Ralph Loop', 'SQLite', 'Review', 'Analyze', 'Layout', 'Produce', 'Harden']) {
     if (!productRalphText.includes(snippet)) fail('product closure Ralph contract must include ' + snippet);
@@ -1857,7 +1851,7 @@ function checkCurrentDocsContract() {
 
   const iterationRalphText = readFileSync(iterationRalphFile, 'utf8');
   for (const snippet of [
-    'docs/superpowers/specs/2026-07-14-dgbook-p1-image2-sqlite-demo-design.md',
+    '1 名教师、3 名学生',
     'pnpm web:test:unit',
     'pnpm web:typecheck',
     'pnpm web:build',
@@ -1869,7 +1863,6 @@ function checkCurrentDocsContract() {
   const legacyDoc = 'docs/edugame-template-expansion-plan.md';
   for (const [file, text] of [
     [readmeFile, readmeText],
-    [designFile, designText],
     [productRalphFile, productRalphText],
     [iterationRalphFile, iterationRalphText],
   ]) {

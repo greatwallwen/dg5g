@@ -253,7 +253,7 @@ function teachingPosition(content: P1DemoContent, nodeId: string, unitId: string
 function completionStandard(policy: NodeLearningPolicy, goal: string): string {
   const requirements = policy.requiresMicroPractice ? ['完成微练习'] : [];
   if (policy.requiresFormalTest) requirements.push(`正式测试达到 ${policy.formalPassScore ?? 80} 分`);
-  if (policy.requiresProfessionalOutput) requirements.push(`提交《${policy.professionalOutputTitle ?? '专业产出'}》`);
+  if (policy.requiresProfessionalOutput) requirements.push(`提交《${policy.professionalOutputTitle ?? '任务成果'}》`);
   if (policy.requiresTeacherVerification) requirements.push('通过教师复核');
   const evidence = policy.nodeId === 'P1T1-N02'
     ? '能够分别说明设备位置、设备身份和连接方向的证据依据'

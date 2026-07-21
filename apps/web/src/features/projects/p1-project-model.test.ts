@@ -44,7 +44,7 @@ test('labels verified task evidence with its current immutable version', () => {
     seedDemo(fixture.database);
     const model = buildP1ProjectViewModel(readP1ProjectProjection('stu-02', fixture.database));
 
-    assert.equal(model.tasks[0].stateLabel, '产出处理中');
+    assert.equal(model.tasks[0].stateLabel, '成果处理中');
     assert.equal(model.tasks[0].output.statusLabel, '退回修订 · 演示数据');
     assert.equal(model.tasks[0].output.versionLabel, 'v1');
     assert.equal(model.currentAction?.nodeId, 'P1T1-N04');

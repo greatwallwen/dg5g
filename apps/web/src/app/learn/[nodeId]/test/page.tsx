@@ -105,7 +105,7 @@ export default async function FormalAssessmentPage({
       return (
         <main className="formal-assessment-page is-unavailable" data-formal-assessment="unavailable">
           <AccountMenu displayName={actor.displayName} role="student" />
-          <section><h1>该节点未配置服务端正式测试</h1><Link href={`/learn/${params.nodeId}`}>返回节点学习</Link></section>
+          <section><h1>该节点未配置系统正式测试</h1><Link href={`/learn/${params.nodeId}`}>返回节点学习</Link></section>
         </main>
       );
     }

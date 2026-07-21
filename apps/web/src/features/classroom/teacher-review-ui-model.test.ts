@@ -38,7 +38,7 @@ test('teacher review controls stay disabled until the server actor resolver is w
 
   assert.equal(model.canReturn, false);
   assert.equal(model.canVerify, false);
-  assert.equal(model.authorizationMessage, '服务端登录身份尚未接入，当前不能执行教师复核。');
+  assert.equal(model.authorizationMessage, '系统登录身份尚未接入，当前不能执行教师复核。');
 });
 
 test('N02 evidence-shaped data cannot create a teacher review target', () => {

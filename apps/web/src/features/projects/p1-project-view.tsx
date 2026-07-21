@@ -98,9 +98,9 @@ export function P1ProjectView({
             data-p1-portfolio-status={model.portfolioStatus}
           >
             <div className="p1-portfolio-icon"><Icon name="briefcase" size={28} /></div>
-            <span>项目最终产出</span>
+            <span>项目最终成果</span>
             <h2>{model.project.finalOutputTitle}</h2>
-            <p>由 P01、P02、P03 三份任务专业产出自动汇总。</p>
+            <p>由 P01、P02、P03 三份任务成果自动汇总。</p>
             <dl>
               <div><dt>任务完成</dt><dd>{model.completedTaskCount}/{model.taskCount}</dd></div>
               <div><dt>成果包状态</dt><dd>{model.portfolioStatusLabel}</dd></div>
@@ -129,7 +129,7 @@ export function P1ProjectView({
               <span className="p1-project-kicker">职业任务链</span>
               <h2 id="p1-task-chain-title">P01 → P02 → P03</h2>
             </div>
-            <p>前一任务完成并形成专业产出后，下一任务才会解锁。</p>
+            <p>前一任务完成并形成任务成果后，下一任务才会解锁。</p>
           </header>
           <div className="p1-task-grid" data-p1-task-detail-flow="full-width">
             {model.tasks.map((task, index) => (

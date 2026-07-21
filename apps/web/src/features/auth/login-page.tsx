@@ -67,7 +67,7 @@ export function LoginPage({ nextPath }: LoginPageProps) {
         </div>
         <div className="login-message">
           <h1>从真实任务进入5G网络优化学习</h1>
-          <p>教师授课与学生学习，共用同一套课程、能力状态与专业产出。</p>
+          <p>教师授课与学生学习，共用同一套课程、能力状态与任务成果。</p>
         </div>
         <LoginSignalField />
         <div className="login-capabilities" aria-label="教材能力">

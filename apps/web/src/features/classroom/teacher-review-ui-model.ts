@@ -39,6 +39,6 @@ export function projectTeacherReviewUi(activeNodeId: string, progress?: SkillPro
     canReturn: Boolean(reviewTarget) && options.serverActorReady === true,
     canVerify: Boolean(reviewTarget) && options.serverActorReady === true,
     reviewTarget,
-    authorizationMessage: options.serverActorReady === true ? undefined : '服务端登录身份尚未接入，当前不能执行教师复核。',
+    authorizationMessage: options.serverActorReady === true ? undefined : '系统登录身份尚未接入，当前不能执行教师复核。',
   };
 }

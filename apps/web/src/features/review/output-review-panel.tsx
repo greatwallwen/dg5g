@@ -110,11 +110,11 @@ export function OutputReviewPanel() {
   return (
     <section className="teacher-review-panel output-review-panel" data-output-review-panel>
       <header>
-        <span>待批阅专业产出</span>
-        <strong>{loading ? '正在同步…' : `${outputs.length} 份已提交产出`}</strong>
+        <span>待批阅任务成果</span>
+        <strong>{loading ? '正在同步…' : `${outputs.length} 份已提交成果`}</strong>
       </header>
       {outputs.length > 0 ? (
-        <nav aria-label="待批阅产出" className="output-review-queue">
+        <nav aria-label="待批阅成果" className="output-review-queue">
           {outputs.map((output) => (
             <button
               aria-pressed={selected?.outputId === output.outputId}
@@ -129,17 +129,17 @@ export function OutputReviewPanel() {
             </button>
           ))}
         </nav>
-      ) : !loading ? <p><b>队列状态</b>当前没有待批阅产出</p> : null}
+      ) : !loading ? <p><b>队列状态</b>当前没有待批阅成果</p> : null}
       {selected ? (
         <>
-          <p><b>当前产出</b>{selected.studentName} · {selected.taskId} · 版本 {selected.currentVersion}</p>
+          <p><b>当前成果</b>{selected.studentName} · {selected.taskId} · 版本 {selected.currentVersion}</p>
           <div className="output-review-fields">
             {selected.fieldSchema.map(({ key, label }) => (
               <p key={key}><b>{label}</b><span>{formatOutputFieldValue(selected.fields[key])}</span></p>
             ))}
           </div>
           <fieldset className="output-review-rubric">
-            <legend>专业产出评价（总分 {totalScore}/100）</legend>
+            <legend>任务成果评价（总分 {totalScore}/100）</legend>
             {selected.rubric.map((criterion) => (
               <label key={criterion.key}>
                 <span>{criterion.label} / {criterion.maxScore}</span>

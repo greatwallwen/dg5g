@@ -21,7 +21,7 @@ export function FormalAssessmentResult({ result }: { result: AssessmentDiagnosis
     >
       <header>
         <div>
-          <span>{result.nodeId} · 服务端判分完成</span>
+          <span>{result.nodeId} · 系统判分完成</span>
           <h2>{result.passed ? '正式测试达标' : '完成定向再学后可重试'}</h2>
           <p>{result.passed ? '本次成绩已写入学习档案。' : '以下诊断来自本次实际作答，历史成绩会继续保留。'}</p>
         </div>

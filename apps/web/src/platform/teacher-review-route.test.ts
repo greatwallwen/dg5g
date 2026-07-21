@@ -36,7 +36,7 @@ test('legacy teacher review route is permanently retired without processing spoo
   assert.equal(response.status, 410);
   assert.deepEqual(await response.json(), {
     error: 'REVIEW_ENDPOINT_RETIRED',
-    message: '旧批阅接口已停用，请从专业产出队列发起批阅。',
+    message: '旧批阅接口已停用，请从任务成果队列发起批阅。',
     replacement: '/api/teacher/outputs/{outputId}/reviews',
   });
   const source = readFileSync(resolve(

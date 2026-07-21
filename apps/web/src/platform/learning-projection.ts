@@ -78,7 +78,7 @@ export function deriveNodeLearningProjection(
 
   if (policy.requiresProfessionalOutput) {
     if (facts.evidenceReviewStatus === 'not-submitted') {
-      return projection(states, `提交《${policy.professionalOutputTitle ?? '专业产出'}》`);
+      return projection(states, `提交《${policy.professionalOutputTitle ?? '任务成果'}》`);
     }
     states.push('evidence-submitted', 'awaiting-review');
     if (facts.evidenceReviewStatus === 'returned') {

@@ -94,7 +94,7 @@
       <rect class="node-teal" x="0" y="0" width="140" height="96" />
       <text class="node-title" x="70" y="28">学生学习</text>
       <text class="node-text" x="70" y="54">自学/跟学</text>
-      <text class="node-text" x="70" y="74">可评价产出</text>
+      <text class="node-text" x="70" y="74">可评价成果</text>
     </g>
     <path class="flow" d="M1222 136 H1290" />
 
@@ -164,7 +164,7 @@
 
   <g id="deep-sample" transform="translate(1140 430)">
     <rect class="panel" x="0" y="0" width="370" height="235" />
-    <text class="section-label" x="20" y="34">P4T2-N04 教材深度样板</text>
+    <text class="section-label" x="20" y="34">P4T2-N04 教材完整样例</text>
     <text class="small" x="20" y="58">只读样板，不进入 P1 学习链</text>
     <rect class="screen" x="24" y="78" width="322" height="128" />
     <rect class="metric" x="44" y="100" width="76" height="12" />
@@ -181,7 +181,7 @@
       <rect class="screen" x="0" y="0" width="300" height="120" />
       <text class="section-label" x="20" y="30">学生端</text>
       <text class="small" x="20" y="56">教材正文 + 课堂跟随</text>
-      <text class="small" x="20" y="82">提交选择/判断/产出证据</text>
+      <text class="small" x="20" y="82">提交选择/判断/成果证据</text>
     </g>
     <path class="flow" d="M350 130 H430" />
     <g transform="translate(430 70)">

@@ -74,9 +74,9 @@ function EvidenceCards({ unit, onResult }: { unit: DemoUnit; onResult: (correct:
   const allRevealed = revealed.length === cards.length;
   return (
     <div className="micro-cards">
-      <header><span>证据翻卡</span><strong>依次检查一份专业产出必须具备的三层证据</strong></header>
+      <header><span>证据翻卡</span><strong>依次检查一份任务成果必须具备的三层证据</strong></header>
       <div>{cards.map(([label, value], index) => { const open = revealed.includes(index); return <button aria-pressed={open} className={open ? 'is-open' : ''} key={label} onClick={() => setRevealed((current) => current.includes(index) ? current : [...current, index])} type="button"><span className="card-front"><Icon name="file" size={22} /><strong>{label}</strong><small>点击核验</small></span><span className="card-back"><Icon name="check" size={20} /><strong>{value}</strong></span></button>; })}</div>
-      <footer><span>{allRevealed ? '三层证据已核验，可以形成节点产出' : `${revealed.length} / ${cards.length} 已核验`}</span><button disabled={!allRevealed} onClick={() => onResult(true)} type="button">确认闭环<Icon name="arrow" size={16} /></button></footer>
+      <footer><span>{allRevealed ? '三层证据已核验，可以形成节点成果' : `${revealed.length} / ${cards.length} 已核验`}</span><button disabled={!allRevealed} onClick={() => onResult(true)} type="button">确认闭环<Icon name="arrow" size={16} /></button></footer>
     </div>
   );
 }

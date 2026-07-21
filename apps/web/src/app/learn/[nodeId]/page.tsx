@@ -69,7 +69,7 @@ export default async function StudentSelfPage({ params, searchParams }: {
       : 'learning';
   return (
     <RoleGate
-      description="登录后进入单知识点全屏学习，完成正文、练习、正式测试与所需专业产出后确认能力状态。"
+      description="登录后进入单知识点全屏学习，完成正文、练习、正式测试与所需任务成果后确认能力状态。"
       requiredRole="student"
       title="请先登录学生端"
     >

@@ -102,9 +102,9 @@ function TeacherReady({ model }: { model: Extract<TeacherWorkbenchViewModel, { k
 
       <section className="role-home-card teacher-insight-card">
         <div className="teacher-review-count">
-          <span><Icon name="file" size={20} />待批阅专业产出</span>
+          <span><Icon name="file" size={20} />待批阅任务成果</span>
           <strong>{professionalOutputs.submittedAwaitingReviewCount}</strong>
-          <small>仅统计“已提交、待教师复核”的专业产出</small>
+          <small>仅统计“已提交、待教师复核”的任务成果</small>
         </div>
         <div className="teacher-weak-points">
           <span><Icon name="target" size={20} />班级薄弱点</span>

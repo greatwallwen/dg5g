@@ -118,7 +118,7 @@ const taskStateLabels: Record<TaskLearningState, string> = {
   locked: '待解锁',
   available: '可学习',
   learning: '学习中',
-  'output-pending': '产出处理中',
+  'output-pending': '成果处理中',
   verified: '教师已认证',
   complete: '任务完成',
 };

@@ -33,7 +33,7 @@ export function ClassroomEvidenceDetail({ task }: { task: Task }) {
     <div className="collection-detail-table">
       <div><strong>输入证据</strong><span>{task.evidenceFrom}</span></div>
       <div><strong>复核标准</strong><span>{task.standards.join('、')}</span></div>
-      <div><strong>交付产出</strong><span>{task.output.join('、')}</span></div>
+      <div><strong>交付成果</strong><span>{task.output.join('、')}</span></div>
     </div>
   );
 }

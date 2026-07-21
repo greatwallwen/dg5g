@@ -37,7 +37,7 @@ export function skillGameForNode(node: AbilityNode, task: Task): GameConfig {
     item(`${node.nodeId}-i1`, node.title, node.goal, knowledgePoints[0].id, `先明确本节点处理的对象：${node.title}。`),
     item(`${node.nodeId}-i2`, task.evidenceFrom.split('、')[0] ?? '现场记录', '这是本节点可以直接读取的输入证据。', knowledgePoints[1].id, `判断必须回到${task.evidenceFrom}。`),
     item(`${node.nodeId}-i3`, task.standards[0] ?? '记录完整', '用明确口径检查结果是否可以进入下一步。', knowledgePoints[2].id, `复核时重点检查${task.standards.join('、')}。`),
-    item(`${node.nodeId}-i4`, node.output, '把对象、证据和判断写成可交付结果。', knowledgePoints[2].id, `本节点产出是${node.output}。`),
+    item(`${node.nodeId}-i4`, node.output, '把对象、证据和判断写成可交付结果。', knowledgePoints[2].id, `本节点成果是${node.output}。`),
     distractor(`${node.nodeId}-d1`, '只写“已完成”', '没有对象和证据，不能进入复核。', knowledgePoints[1].id),
     distractor(`${node.nodeId}-d2`, '先给经验结论', '跳过证据与标准会放大误判。', knowledgePoints[2].id),
   ];

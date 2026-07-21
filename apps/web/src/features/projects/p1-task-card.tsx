@@ -62,7 +62,7 @@ export function P1TaskCard({ task, isCurrent = false }: { task: P1TaskCardViewMo
 
         <footer className="p1-task-card-foot">
           <div className="p1-task-output" data-p1-output-status={task.output.status}>
-            <span><Icon name="file" size={18} />任务专业产出</span>
+            <span><Icon name="file" size={18} />任务成果</span>
             <strong>{task.taskOutputTitle}</strong>
             <small>{task.output.statusLabel} · {task.output.versionLabel}</small>
           </div>

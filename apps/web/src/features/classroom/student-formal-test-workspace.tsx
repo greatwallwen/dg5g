@@ -61,7 +61,7 @@ export function StudentFormalTestWorkspace({
       <div className="student-test-main">
         <span>教师已启动正式测试</span>
         <h1>{title}</h1>
-        <p>{nodeId} · 四项诊断 · 服务端判分</p>
+        <p>{nodeId} · 四项诊断 · 系统判分</p>
         <section className="formal-assessment-entry" data-classroom-assessment-entry={nodeId}>
           <span><Icon name="target" size={26} /></span>
           <div><small>独立正式测试</small><h2>进入安全测试页完成实际作答</h2><p>课堂状态继续同步；题面、一次性凭证与成绩由测试服务管理。</p></div>
@@ -69,7 +69,7 @@ export function StudentFormalTestWorkspace({
         </section>
       </div>
       {challenge.requiresProfessionalOutput ? <aside className="student-evidence-workspace">
-        <small>专业产出</small>
+        <small>任务成果</small>
         <strong>对象、证据、判断、下一步动作</strong>
         <textarea
           disabled={evidenceReadOnly}
@@ -83,7 +83,7 @@ export function StudentFormalTestWorkspace({
         {evidenceReviewStatus === 'verified' ? (
           <div className="evidence-certified"><Icon name="check" size={16} />教师已认证</div>
         ) : evidenceReviewStatus === 'submitted' ? (
-          <div className="evidence-waiting"><Icon name="link" size={16} />专业产出已提交，等待教师复核</div>
+          <div className="evidence-waiting"><Icon name="link" size={16} />任务成果已提交，等待教师复核</div>
         ) : (
           <button
             data-evidence-resubmit={evidenceReviewStatus === 'returned' ? 'true' : 'false'}
@@ -96,23 +96,23 @@ export function StudentFormalTestWorkspace({
               : evidenceReviewStatus === 'returned'
                 ? '根据反馈重新提交'
                 : evidenceState === 'error'
-                  ? '重新提交专业产出'
-                  : '提交专业产出'}
+                  ? '重新提交任务成果'
+                  : '提交任务成果'}
           </button>
         )}
-      </aside> : <aside className="student-evidence-workspace is-not-required"><small>本节点完成标准</small><strong>正式测试达到 {challenge.formalPassScore} 分</strong><p>N02 不提交专业产出，也不进入教师认证。</p></aside>}
+      </aside> : <aside className="student-evidence-workspace is-not-required"><small>本节点完成标准</small><strong>正式测试达到 {challenge.formalPassScore} 分</strong><p>N02 不提交任务成果，也不进入教师认证。</p></aside>}
       <footer>
         <i />
         <span>已与教师课堂状态同步</span>
         <strong>{!challenge.requiresProfessionalOutput
           ? passed ? '正式测试达标，继续下一能力节点' : `正式测试达到 ${challenge.formalPassScore} 分后继续`
           : evidenceReviewStatus === 'verified'
-          ? '专业产出已认证'
+          ? '任务成果已认证'
           : evidenceReviewStatus === 'submitted'
             ? '等待教师复核'
             : evidenceReviewStatus === 'returned'
               ? '请根据反馈修订后重新提交'
-              : '完成测试后提交专业产出'}</strong>
+              : '完成测试后提交任务成果'}</strong>
       </footer>
     </section>
   );

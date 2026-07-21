@@ -16,7 +16,7 @@ export const nodeLearningStateLabel: Record<NodeLearningState, string> = {
   learning: '学习中',
   'micro-practice-passed': '微练习通过',
   'formal-test-passed': '正式测试达标',
-  'evidence-submitted': '专业产出已提交',
+  'evidence-submitted': '任务成果已提交',
   'awaiting-review': '待教师复核',
   returned: '退回修订',
   'teacher-verified': '教师认证',

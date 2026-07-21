@@ -33,7 +33,7 @@ export const courseCapabilityMap: CapabilityMapModel = {
     { id: 'course-projects', label: '项目主线', summary: '按信息采集、网络测试、信息管理、端到端优化、性能提升和信令分析推进。' },
     { id: 'course-knowledge', label: '知识模型', summary: '把DT/CQT、KPI、网管、参数、信令和闭环判断串成可复用模型。' },
     { id: 'course-evidence', label: '工程证据', summary: '用照片、日志、指标、表单和报告支撑每个判断。' },
-    { id: 'course-assessment', label: '成果评价', summary: '用可提交、可复核、可讲评的产出确认能力达成。' },
+    { id: 'course-assessment', label: '成果评价', summary: '用可提交、可复核、可讲评的成果确认能力达成。' },
   ],
   taskNodes: projects.map((item) => ({ id: item.projectId, label: item.role, status: item.status })),
   resources,
@@ -63,7 +63,7 @@ function capabilityMap(chapterId: string, title: string, svgSrc: string, summary
       { id: `${chapterId}-task`, label: '岗位任务', summary },
       { id: `${chapterId}-model`, label: '知识模型', summary: '把操作动作归纳为可复用的判断模型。' },
       { id: `${chapterId}-evidence`, label: '工程证据', summary: '用现场数据、图表和记录支撑结论。' },
-      { id: `${chapterId}-assessment`, label: '成果评价', summary: '形成可提交、可复核、可讲评的产出。' },
+      { id: `${chapterId}-assessment`, label: '成果评价', summary: '形成可提交、可复核、可讲评的成果。' },
     ],
     taskNodes: isOpenChapter
       ? nodes.slice(0, 4).map((item) => ({ id: item.nodeId, label: item.shortTitle, status: item.status }))

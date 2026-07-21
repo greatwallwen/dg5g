@@ -72,7 +72,7 @@ export const p01n02LessonSegments: ClassroomLessonSegment[] = [
   },
   {
     id: 'learning-output',
-    label: '产出',
+    label: '成果整理',
     eyebrow: '节点证据',
     title: '整理一条可复核的设备拓扑节点证据记录',
     lead: '本节点把对象、位置、链路和影像索引整理为节点证据记录，后面会放到P01 N04成果表；它用于支撑后续任务归档，不在N02单独形成任务级成果表。',

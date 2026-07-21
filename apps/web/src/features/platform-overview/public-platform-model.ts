@@ -36,7 +36,7 @@ export function buildPublicPlatformModel(): PublicPlatformModel {
     stages: [
       card('input', '输入材料', 'source', 'ready', `权威教材源与固定 P1 样例进入生产链，覆盖 ${taskCount} 个任务。`),
       card('diagnosis', '内容诊断与检索补强', 'source', 'ready', '识别章节结构、知识单元与资源缺口，形成可追踪的内容基线。'),
-      card('capability-map', '课程能力图谱', 'resource', 'ready', `${nodeCount} 个能力节点将岗位任务、学习内容与专业产出建立关联。`),
+      card('capability-map', '课程能力图谱', 'resource', 'ready', `${nodeCount} 个能力节点将岗位任务、学习内容与任务成果建立关联。`),
       card('generation', '资源生成', 'resource', 'ready', `当前生成摘要包含 ${generation.widgets} 项交互资源与 ${generation.media} 项媒体引用。`),
       card('governance', '审核治理', 'gate', 'review', '按内容完整性、资源可用性与视觉一致性执行脱敏质量门禁。'),
       card('textbook', '数字教材', 'delivery', 'ready', '通过门禁的内容按能力节点挂接为可直接呈现的数字教材页面。'),
@@ -45,7 +45,7 @@ export function buildPublicPlatformModel(): PublicPlatformModel {
     ],
     resources: buildResourceCards(manifest, generation),
     governance: [
-      card('gate-content', '内容完整性门禁', 'gate', 'ready', '检查任务、知识单元、教学资源与专业产出的公开关联是否完整。'),
+      card('gate-content', '内容完整性门禁', 'gate', 'ready', '检查任务、知识单元、教学资源与任务成果的公开关联是否完整。'),
       card('gate-media', '资源可用性门禁', 'gate', 'ready', '核对公开缩略图和媒体引用，缺失项在发布前进入修订。'),
       card('gate-visual', 'Image2 视觉门禁', 'gate', 'ready', '检查深色工程界面、单一主行动点、暂停动效与移动端覆盖。'),
       card('gate-version', '版本流摘要', 'gate', 'review', '版本按生成、复核与可交付三个阶段流转，匿名区不公开内部日志。'),

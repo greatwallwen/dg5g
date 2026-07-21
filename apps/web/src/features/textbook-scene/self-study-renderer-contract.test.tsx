@@ -50,7 +50,7 @@ test('renders the P03 deep textbook with six navigable sections and no N02 outpu
   assert.match(html, /迁移练习/);
   assert.match(html, /节点整理记录模板/);
   assert.match(html, /评价标准/);
-  assert.doesNotMatch(html, /提交专业产出|evidence_submitted|服务端规则|可汇入/);
+  assert.doesNotMatch(html, /提交任务成果|evidence_submitted|服务端规则|可汇入/);
 });
 
 test('the self-study surface exposes one primary continuation and a bounded textbook scroller', () => {

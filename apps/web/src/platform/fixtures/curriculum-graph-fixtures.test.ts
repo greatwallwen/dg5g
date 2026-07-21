@@ -75,7 +75,7 @@ test('P01 P02 and P03 each close formal-test, professional-output and task-score
     const scoreReturn = edgesById.get(`${loop.formal}->${loop.achievement}`);
     const outputReturn = edgesById.get(`${loop.output}->${loop.achievement}`);
     assert.deepEqual([formal?.label, formal?.kind], ['正式测试', 'assessment'], `${nodePrefix} formal test`);
-    assert.deepEqual([output?.label, output?.kind], ['形成产出', 'output'], `${nodePrefix} output`);
+    assert.deepEqual([output?.label, output?.kind], ['形成成果', 'output'], `${nodePrefix} output`);
     assert.deepEqual([scoreReturn?.label, scoreReturn?.kind], ['成绩回流', 'assessment'], `${nodePrefix} score return`);
     assert.deepEqual([outputReturn?.label, outputReturn?.kind], ['任务综合分', 'output'], `${nodePrefix} output return`);
     assert.equal(nodesById.get(loop.achievement)?.taskId, `P0${loop.task}`);
@@ -89,6 +89,6 @@ test('P01 P02 and P03 each close formal-test, professional-output and task-score
 
 test('N04 legacy activity links are professional outputs rather than formal tests', () => {
   const edge = (edgeId: string) => curriculumSemanticEdges.find((item) => item.edgeId === edgeId);
-  assert.deepEqual([edge('P1T1-N04->game-evidence')?.label, edge('P1T1-N04->game-evidence')?.kind], ['形成产出', 'output']);
-  assert.deepEqual([edge('P1T2-N04->game-route')?.label, edge('P1T2-N04->game-route')?.kind], ['形成产出', 'output']);
+  assert.deepEqual([edge('P1T1-N04->game-evidence')?.label, edge('P1T1-N04->game-evidence')?.kind], ['形成成果', 'output']);
+  assert.deepEqual([edge('P1T2-N04->game-route')?.label, edge('P1T2-N04->game-route')?.kind], ['形成成果', 'output']);
 });

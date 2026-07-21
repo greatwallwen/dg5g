@@ -36,7 +36,7 @@ test('teacher workbench labels dynamic SQLite counts and exposes one-click conti
     'data-teacher-workbench-actions',
     '继续授课',
     '开始新课',
-    '待批阅专业产出',
+    '待批阅任务成果',
     '班级薄弱点',
     '课堂活动已提交',
     '本轮正式测试已提交',

@@ -223,10 +223,10 @@ function describeLastAction(
   latestAttempt: FormalAttemptRow | undefined,
   latestEvent: LearningEventRow | undefined,
 ): string {
-  if (output?.status === 'verified') return `${nodeId} 专业产出已通过教师认证。`;
-  if (output?.status === 'returned') return `${nodeId} 专业产出已退回修订。`;
-  if (output?.status === 'submitted') return `${nodeId} 专业产出已提交。`;
-  if (output?.status === 'draft') return `${nodeId} 专业产出草稿已保存。`;
+  if (output?.status === 'verified') return `${nodeId} 任务成果已通过教师认证。`;
+  if (output?.status === 'returned') return `${nodeId} 任务成果已退回修订。`;
+  if (output?.status === 'submitted') return `${nodeId} 任务成果已提交。`;
+  if (output?.status === 'draft') return `${nodeId} 任务成果草稿已保存。`;
   if (latestAttempt) return `已完成 ${nodeId} 正式测试，最新 ${latestAttempt.score} 分。`;
   if (latestEvent?.eventType === 'classroom_activity_submitted') {
     return `已提交 ${submittedAnswerCount(latestEvent)} 条 ${nodeId} 课堂证据。`;

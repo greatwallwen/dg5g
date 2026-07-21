@@ -36,7 +36,7 @@ export function playbackSceneForLearningUnit(unit: DemoUnit, taskId: DemoTaskId)
       speech(`${prefix}-procedure`, 'learning-procedure', '按工程顺序完成判断', `判断分三步：${unit.steps.join('；')}。顺序不能颠倒。`),
       speech(`${prefix}-correction`, 'learning-correction', '对照反例完成纠偏', `常见错误是：${unit.counterexample} 正确做法是：${unit.correction}`),
       speech(`${prefix}-practice`, 'learning-practice', '完成当前微练习', `现在完成一个短练习，检验你能否独立完成“${unit.action}”。`),
-      speech(`${prefix}-output`, 'learning-output', '形成可复核学习产出', `本节点最终要形成“${unit.output}”，提交证据是：${unit.requiredEvidence}。`),
+      speech(`${prefix}-output`, 'learning-output', '形成可复核学习成果', `本节点最终要形成“${unit.output}”，提交证据是：${unit.requiredEvidence}。`),
     ],
   };
 }

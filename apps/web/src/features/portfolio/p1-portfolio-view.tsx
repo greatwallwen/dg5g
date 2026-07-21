@@ -30,11 +30,11 @@ export function P1PortfolioView({
 
         <section className={`p1-portfolio-hero is-${model.packageStatus}`}>
           <div>
-            <span className="p1-project-kicker">{model.projectId} · 项目最终产出</span>
+            <span className="p1-project-kicker">{model.projectId} · 项目最终成果</span>
             <h1>{model.packageTitle}</h1>
             <p>{model.packageStatus === 'demo-complete'
-              ? '以下内容用于展示完整交付形态，均为预置演示数据；学生真实完成三项产出后才形成可交付成果包。'
-              : '由 P01、P02、P03 当前职业产出组成；只有三份真实产出均经教师认证，才形成可交付成果包。'}</p>
+              ? '以下内容用于展示完整交付形态，均为预置演示数据；学生真实完成三项成果后才形成可交付成果包。'
+              : '由 P01、P02、P03 当前职业成果组成；只有三份真实成果均经教师认证，才形成可交付成果包。'}</p>
           </div>
           <aside>
             <span>{model.packageStatusLabel}</span>
@@ -67,14 +67,14 @@ export function P1PortfolioView({
             <Icon name="clock" size={22} />
             <div>
               <strong>成果包尚未形成</strong>
-              <p>继续完成退回修订、待复核或尚未提交的任务产出。系统不会用草稿、旧版本或模拟分数拼接成果包。</p>
+              <p>继续完成退回修订、待复核或尚未提交的任务成果。系统不会用草稿、旧版本或模拟分数拼接成果包。</p>
             </div>
           </section>
         )}
 
         <section className="p1-portfolio-list" aria-labelledby="p1-portfolio-list-title">
           <header>
-            <div><span className="p1-project-kicker">三项职业产出</span><h2 id="p1-portfolio-list-title">当前版本与认证状态</h2></div>
+            <div><span className="p1-project-kicker">三项职业成果</span><h2 id="p1-portfolio-list-title">当前版本与认证状态</h2></div>
             <small>数据快照 · {model.snapshotVersion}</small>
           </header>
           <div>

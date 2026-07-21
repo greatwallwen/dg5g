@@ -38,7 +38,7 @@ export function ChallengeScene({
   if (policy?.requiresProfessionalOutput) {
     const taskOutputTitle = policy.professionalOutputTitle ?? '任务成果表';
     if (!outputSchema || outputSchema.taskId !== profile.taskId) {
-      return <UnavailableChallenge message="该节点的职业产出模板未加载" onReturnToMap={onReturnToMap} />;
+      return <UnavailableChallenge message="该节点的职业成果模板未加载" onReturnToMap={onReturnToMap} />;
     }
     return (
       <section className="challenge-scene is-professional-output" data-task-challenge={`${profile.taskId}-output`}>
@@ -76,9 +76,9 @@ export function ChallengeScene({
           <section className="formal-assessment-entry" data-assessment-entry={unit.capabilityNodeId}>
             <span><Icon name="target" size={28} /></span>
             <div>
-              <small>独立正式测试 · 服务端判分</small>
+              <small>独立正式测试 · 系统判分</small>
               <h2>题面与学习场景分离</h2>
-              <p>进入后将生成一次性测试凭证。页面只提交实际作答，四项诊断与成绩由服务端形成。</p>
+              <p>进入后将生成一次性测试凭证。页面只提交实际作答，四项诊断与成绩由系统形成。</p>
             </div>
             <Link data-primary-action={!passed ? 'true' : undefined} href={`/learn/${unit.capabilityNodeId}/test`}>
               {passed ? '查看并再次测试' : '进入正式测试'}

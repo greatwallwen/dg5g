@@ -42,7 +42,7 @@ function LegacyLearningStage({ profile, unit, completed, saving, onComplete }: {
     <article className="learning-scene learning-stage-panel" data-image2-learning-stage="true" data-learning-unit={unit.id}>
       <header className="learning-scene-head">
         <div><span>{profile.taskId} · {unit.capabilityNodeId}</span><h1>{unit.title}</h1><p>{unit.question}</p></div>
-        <div className="learning-unit-output"><small>节点产出</small><strong>{unit.output}</strong></div>
+        <div className="learning-unit-output"><small>节点成果</small><strong>{unit.output}</strong></div>
       </header>
       <div className="learning-stage-body">
         <section className="learning-case-visual"><SceneVisual visualId={unit.visualId} activeStep={2} /></section>

@@ -82,7 +82,7 @@ export function ProfessionalOutputForm({
         : validateProfessionalOutputSubmission(schema, state.fields);
       if (Object.keys(fields).length === 0) throw new Error('请至少填写一项证据后再保存草稿。');
       if (schema.taskId !== 'P01' && upstreamRefs.length !== 1) {
-        throw new Error('上游任务产出尚未形成，暂不能保存本任务表单。');
+        throw new Error('上游任务成果尚未形成，暂不能保存本任务表单。');
       }
       const command: ProfessionalOutputClientCommand = {
         ...(state.outputId ? { outputId: state.outputId } : {}),

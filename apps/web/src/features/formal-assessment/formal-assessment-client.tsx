@@ -55,7 +55,7 @@ export function FormalAssessmentClient({ issued }: { issued: IssuedAssessmentPap
         <div>
           <span>{issued.paper.nodeId} · 独立正式测试</span>
           <h1>{issued.paper.title}</h1>
-          <p>共四个分项，满分 100，达到 {issued.paper.passScore} 分即测试达标。提交后由服务端统一判分。</p>
+          <p>共四个分项，满分 100，达到 {issued.paper.passScore} 分即测试达标。提交后由系统统一判分。</p>
         </div>
         <div className="formal-assessment-meta">
           <strong>{issued.paper.durationMinutes} 分钟</strong>

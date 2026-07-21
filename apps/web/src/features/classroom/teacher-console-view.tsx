@@ -55,7 +55,7 @@ export function TeacherConsoleView(p: TeacherConsoleViewProps) {
       data-teaching-page={p.teachingPage?.id ?? p.unit.capabilityNodeId}
     >
       <RoleGate requiredRole="teacher" title="请先登录教师端"
-        description="教师端用于组织共同课堂、推送任务、复核证据和认证专业产出。">
+        description="教师端用于组织共同课堂、推送任务、复核证据和认证任务成果。">
         <header className="teacher-topbar scene-classroom-topbar">
           <a className="scene-classroom-brand" href="/">
             <span>DG</span><strong>5G网络优化（高级）</strong><small>教师授课</small>

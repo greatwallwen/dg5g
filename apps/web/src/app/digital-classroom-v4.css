@@ -1,4 +1,4 @@
-/* OpenMAIC-style narration: fixed reservation, synchronized lecturer and caption. */
+/* Classroom narration layout: fixed reservation, synchronized lecturer and caption. */
 .scene-playback-dock.scene-narration-dock,
 .scene-teacher-playback {
   position: relative;
