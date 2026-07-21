@@ -178,7 +178,6 @@ export function SemanticCourseGraph({
           <span>{Math.round(transform.k * 100)}%</span>
           <button aria-label="放大图谱" onClick={() => zoomBy(1.2)} type="button">+</button>
           <button onClick={resetOverview} type="button">返回全景</button>
-          <a className="graph-expert-reference" href="/media/home/capability-map-expert-readable-v2.svg" rel="noreferrer" target="_blank">专家图谱</a>
         </div>
         <svg aria-label="5G网络优化课程能力图谱" className="semantic-graph-svg" ref={svgRef} role="img">
           <title>5G网络优化课程能力图谱</title>

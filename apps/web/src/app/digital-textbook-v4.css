@@ -211,19 +211,9 @@ textarea:focus-visible {
 
 .graph-search button,
 .graph-zoom-controls button,
-.graph-zoom-controls span,
-.graph-expert-reference {
+.graph-zoom-controls span {
   min-height: var(--dg-control-height);
   font-size: var(--dg-font-control);
-}
-
-.graph-expert-reference {
-  display: inline-flex;
-  align-items: center;
-  border-left: 1px solid var(--dg-line-strong);
-  padding: 0 14px;
-  color: var(--dg-verified);
-  white-space: nowrap;
 }
 
 .graph-detail-panel {
@@ -788,7 +778,7 @@ textarea:focus-visible {
 }
 
 @media (max-width: 760px) {
-  .semantic-graph-shell { width: 100%; max-width: 100%; min-width: 0; grid-template-columns: minmax(0, 1fr); } .graph-expert-reference { display: none; } .graph-detail-panel { width: 100%; max-width: 100%; min-width: 0; } .graph-detail-panel > button { max-width: 100%; }
+  .semantic-graph-shell { width: 100%; max-width: 100%; min-width: 0; grid-template-columns: minmax(0, 1fr); } .graph-detail-panel { width: 100%; max-width: 100%; min-width: 0; } .graph-detail-panel > button { max-width: 100%; }
   .challenge-layout { grid-template-columns: minmax(0, 1fr); }
   .challenge-game-stage { min-width: 0; }
 }

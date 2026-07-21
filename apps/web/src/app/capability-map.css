@@ -203,7 +203,7 @@
   .graph-search { top: 8px; left: 8px; width: calc(100% - 16px); }
   .graph-zoom-controls { bottom: 8px; left: 8px; max-width: calc(100% - 16px); }
   .graph-zoom-controls button:last-of-type { min-width: 76px; }
-  .graph-expert-reference, .graph-minimap, .graph-legend { display: none; }
+  .graph-minimap, .graph-legend { display: none; }
   .graph-detail-panel { min-height: 310px; overflow: visible; border-top: 1px solid #24485f; border-left: 0; padding: 16px 14px 24px; }
   .graph-detail-panel dl { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
   .graph-detail-panel > button { position: sticky; bottom: 10px; z-index: 3; }
