@@ -65,10 +65,16 @@ export function SelfStudyGlossary({ terms }: { terms: Array<{ term: string; defi
 
 export function FigureSection({ document }: { document: SelfStudyDocument }) {
   const { content } = document;
+  const figureKind = content.kind === 'deep'
+    ? content.annotatedFigures[0]?.kind
+    : content.relationshipFigure.kind;
+  const figureLabel = figureKind === 'indoor-scope-boundary'
+    ? '采集边界工程图'
+    : '带标注的工程关系图';
   return (
     <div className="self-study-figure-layout">
       <div>
-        <span>带标注的工程关系图</span>
+        <span>{figureLabel}</span>
         <h2 id={`${document.nodeId}-figure-title`}>{content.kind === 'deep' ? '从图中找到判断所需证据' : '关系图与证据位置'}</h2>
         {content.kind === 'deep'
           ? content.annotatedFigures.map((figure, index) => (
