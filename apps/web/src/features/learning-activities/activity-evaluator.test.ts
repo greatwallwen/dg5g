@@ -48,9 +48,17 @@ test('scope classification fails an incomplete answer and passes the corrected a
       'room-02-cabinets': 'out-of-scope',
     },
   };
+  const correctedWithReasons = {
+    ...correctedResponse,
+    reasons: {
+      'shared-operator-cabinet': '柜门标识属于其他运营商，不能混入本次任务台账。',
+      'room-02-cabinets': '02号机房不在任务单的01号机房范围内，本次先排除。',
+    },
+  };
 
   assert.equal(evaluateActivity(scopeActivity, wrongResponse).passed, false);
-  const corrected = evaluateActivity(scopeActivity, correctedResponse);
+  assert.equal(evaluateActivity(scopeActivity, correctedResponse).passed, false, '排除对象必须写出可复核理由');
+  const corrected = evaluateActivity(scopeActivity, correctedWithReasons);
   assert.equal(corrected.passed, true);
   assert.equal(corrected.correctionPath.length, 0);
   assert.equal(corrected.artifact.activityId, scopeActivity.activity.id);
@@ -58,7 +66,13 @@ test('scope classification fails an incomplete answer and passes the corrected a
 
 test('each activity kind uses its own answer model', () => {
   const correctResponses = [
-    { assignments: { 'room-01-cabinets': 'in-scope', 'shared-operator-cabinet': 'out-of-scope', 'room-02-cabinets': 'out-of-scope' } },
+    {
+      assignments: { 'room-01-cabinets': 'in-scope', 'shared-operator-cabinet': 'out-of-scope', 'room-02-cabinets': 'out-of-scope' },
+      reasons: {
+        'shared-operator-cabinet': '柜门标识属于其他运营商，不能混入本次采集范围。',
+        'room-02-cabinets': '任务单只列入01号机房，02号机房本次排除。',
+      },
+    },
     { assignments: { 'room-overview': 'location', 'device-nameplate': 'identity', 'two-ended-port-trace': 'link' } },
     { order: ['bbu-port', 'odf-in', 'odf-out', 'aau-port'] },
     { fields: { siteId: 'HY-01', roomId: '01', cabinetId: 'K02', deviceId: 'BBU-01', nearPort: 'BBU-1/0', farPort: 'AAU-1' } },
@@ -87,6 +101,10 @@ test('repository persists the server-evaluated attempt in migration 009 practice
           'room-01-cabinets': 'in-scope',
           'shared-operator-cabinet': 'out-of-scope',
           'room-02-cabinets': 'out-of-scope',
+        },
+        reasons: {
+          'shared-operator-cabinet': '柜门标识属于其他运营商，不能混入本次采集范围。',
+          'room-02-cabinets': '任务单只列入01号机房，02号机房本次排除。',
         },
       },
       expectedVersion: 0,

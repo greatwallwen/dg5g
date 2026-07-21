@@ -144,6 +144,12 @@ function responseFor(
 ): Record<string, unknown> {
   switch (activity.kind) {
     case 'scope-classification':
+      return {
+        assignments: Object.fromEntries(Object.entries(values).filter(([key]) => !key.startsWith('reason:'))),
+        reasons: Object.fromEntries(Object.entries(values)
+          .filter(([key, value]) => key.startsWith('reason:') && value.trim())
+          .map(([key, value]) => [key.slice('reason:'.length), value])),
+      };
     case 'evidence-classification':
       return { assignments: values };
     case 'link-reconstruction':

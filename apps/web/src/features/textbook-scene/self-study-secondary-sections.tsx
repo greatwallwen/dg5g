@@ -24,12 +24,17 @@ export function CorrectionSection({ document }: { document: SelfStudyDocument })
 export function OutputSection({ document }: { document: SelfStudyDocument }) {
   const { content } = document;
   const template = content.kind === 'deep' ? content.outputTemplate : content.nodeRecordTemplate;
+  const isTaskOutputNode = document.nodeId.endsWith('-N04');
   return (
     <div className="self-study-output-layout">
       <div className="self-study-output-template" data-self-study-output-template>
-        <span>{content.kind === 'deep' ? '节点整理记录模板' : '结构化节点记录'}</span>
+        <span>{isTaskOutputNode ? '任务成果表准备记录' : content.kind === 'deep' ? '节点整理记录模板' : '结构化节点记录'}</span>
         <h2 id={`${document.nodeId}-output-title`}>{document.nodeTitle} · 可复核记录</h2>
-        <p>本页用于整理这一节点的学习证据；任务级证据表在 {document.taskId} 的 N04 节点统一填写并提交复核。</p>
+        {isTaskOutputNode ? (
+          <p>当前就是{document.taskId}的任务成果页：先把前面节点的记录归集到表格，再进入成果表完成填写、保存、提交、退回修订和教师确认。</p>
+        ) : (
+          <p>本页用于整理这一节点的学习证据；任务成果表会在 {document.taskId} 的 N04 节点统一填写并提交复核。</p>
+        )}
         <dl>{Object.entries(template).map(([field, value]) => <div key={field}><dt>{field}</dt><dd>{templateValue(value)}</dd></div>)}</dl>
       </div>
       {content.kind === 'deep' ? (

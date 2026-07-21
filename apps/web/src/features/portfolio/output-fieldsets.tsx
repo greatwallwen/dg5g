@@ -27,7 +27,7 @@ export function OutputFieldsets({
   const evidenceById = new Map(evidenceLibrary.map((evidence) => [evidence.evidenceId, evidence]));
   return (
     <fieldset className="professional-output-fields" disabled={readOnly}>
-      <legend>职业证据字段 · {schema.fields.length} 项必填</legend>
+      <legend>任务证据表 · {schema.fields.length} 项必填</legend>
       <div>
         {schema.fields.map((field, index) => {
           const id = `${schema.taskId}-output-${field.key}`;
@@ -44,19 +44,19 @@ export function OutputFieldsets({
             <article data-output-field={field.key} key={field.key}>
               <label htmlFor={id}><b>{String(index + 1).padStart(2, '0')}</b><strong>{field.label}</strong><em>必填</em></label>
               {sources.length > 0 ? <ul aria-label={`${field.label}字段来源`} className="professional-output-sources">
-                {sources.map((source) => <li data-output-source={`${source.sourceNodeId}:${source.sourceAttemptId}`} key={`${source.sourceNodeId}:${source.sourceAttemptId}`}><span>{source.sourceNodeId}</span><small>活动结果</small></li>)}
+                {sources.map((source) => <li data-output-source={`${source.sourceNodeId}:${source.sourceAttemptId}`} key={`${source.sourceNodeId}:${source.sourceAttemptId}`}><span>{source.sourceNodeId}</span><small>来自前面练习</small></li>)}
               </ul> : null}
               <textarea
                 id={id}
                 name={field.key}
                 onChange={(event) => onFieldChange(field.key, event.target.value)}
-                placeholder={`请填写并注明可回查证据：${field.label}`}
+                placeholder={`请填写清楚，并注明照片编号或记录来源：${field.label}`}
                 readOnly={readOnly}
                 required={field.required}
                 value={displayValue(values[field.key])}
               />
               {(selectedEvidence.length > 0 || availableEvidence.length > 0) ? <section className="professional-output-evidence" data-evidence-picker={field.key}>
-                <header><strong>字段证据</strong><small>{selectedEvidence.length} 项已挂接</small></header>
+                <header><strong>挂接证据</strong><small>{selectedEvidence.length} 项已选择</small></header>
                 {selectedEvidence.length > 0 ? <ul>
                   {selectedEvidence.map((evidence) => <li data-evidence-id={evidence.evidenceId} key={evidence.evidenceId}>
                     <a aria-label={`预览证据：${evidence.title}`} href={evidence.assetUrl} rel="noreferrer" target="_blank">
@@ -67,17 +67,17 @@ export function OutputFieldsets({
                   </li>)}
                 </ul> : null}
                 {!readOnly && availableEvidence.length > 0 ? <label>
-                  <span>挂接内置证据</span>
+                  <span>选择可用证据</span>
                   <select aria-label={`${field.label}挂接内置证据`} defaultValue="" onChange={(event) => {
                     if (!event.target.value) return;
                     onEvidenceChange(field.key, [...selectedIds, event.target.value]);
                   }}>
-                    <option disabled value="">选择可用于本字段的证据</option>
+                    <option disabled value="">选择能支撑本项填写的照片或记录</option>
                     {availableEvidence.map((evidence) => <option key={evidence.evidenceId} value={evidence.evidenceId}>{evidence.title}</option>)}
                   </select>
                 </label> : null}
               </section> : null}
-              <small>字段标识 · {field.key}</small>
+              <small>填写提示：先写结论，再写能回查的照片编号或记录来源。</small>
             </article>
           );
         })}

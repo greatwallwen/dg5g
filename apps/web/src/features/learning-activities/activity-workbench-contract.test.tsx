@@ -19,6 +19,8 @@ test('six activity kinds render purpose-built control contracts', () => {
   ));
 
   assert.match(markup[0]!, /data-classification-board="scope-classification"/);
+  assert.match(markup[0]!, /data-scope-reason-board="P1T1-N01-micro-01"/);
+  assert.match(markup[0]!, /排除理由/);
   assert.match(markup[1]!, /data-evidence-match-board="P1T1-N02-foundation-01"/);
   assert.equal((markup[1]!.match(/data-evidence-match-card=/g) ?? []).length, 3);
   assert.equal((markup[1]!.match(/data-evidence-match-target=/g) ?? []).length, 3);

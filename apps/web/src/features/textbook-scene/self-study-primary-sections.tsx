@@ -98,6 +98,25 @@ export function FigureSection({ document }: { document: SelfStudyDocument }) {
 
 function RelationshipEvidenceFigure({ figureKind, evidenceLabels }: { figureKind: string; evidenceLabels: string[] }) {
   const descriptor = figureDescriptor(figureKind);
+  if (descriptor.kind === 'indoor-scope-boundary') {
+    return (
+      <figure
+        className="self-study-engineering-figure is-indoor-scope-boundary"
+        data-indoor-scope-boundary-figure="true"
+        data-self-study-figure={descriptor.kind}
+      >
+        <figcaption><Icon name={descriptor.icon} size={20} /><span>{descriptor.title}</span></figcaption>
+        <div className="self-study-scope-map" aria-label="室内采集范围工程关系图">
+          <article className="is-source"><span>1</span><strong>任务单</strong><p>{evidenceLabels[0]}</p></article>
+          <Icon name="arrow" size={18} />
+          <article className="is-room"><span>2</span><strong>机房入口</strong><p>{evidenceLabels[1]}</p></article>
+          <Icon name="arrow" size={18} />
+          <article className="is-cabinet"><span>3</span><strong>机柜范围</strong><p>{evidenceLabels[2]}</p></article>
+          <article className="is-excluded"><span>×</span><strong>排除对象</strong><p>{evidenceLabels[3]}</p></article>
+        </div>
+      </figure>
+    );
+  }
   return (
     <figure className={`self-study-engineering-figure is-${descriptor.kind}`} data-self-study-figure={descriptor.kind}>
       <figcaption><Icon name={descriptor.icon} size={20} /><span>{descriptor.title}</span></figcaption>
@@ -147,5 +166,6 @@ function figureDescriptor(kind: string): { kind: string; title: string; icon: Ic
   if (kind === 'topology') return { kind, title: '设备位置—身份—连接方向证据链', icon: 'bbu', stepIcons: ['room', 'bbu', 'link'] };
   if (kind === 'antenna') return { kind, title: '天线方位角—下倾角—挂高证据链', icon: 'aau', stepIcons: ['radio', 'target', 'gps'] };
   if (kind === 'complaint') return { kind, title: '投诉条件—复现动作—网络留痕证据链', icon: 'complaint', stepIcons: ['gps', 'complaint', 'log', 'signaling'] };
+  if (kind === 'indoor-scope-boundary') return { kind, title: '任务单—机房入口—机柜范围—排除对象关系图', icon: 'room', stepIcons: ['file', 'room', 'bbu', 'close'] };
   return { kind, title: '节点对象与证据关系图', icon: 'layers', stepIcons: ['target', 'link', 'file'] };
 }

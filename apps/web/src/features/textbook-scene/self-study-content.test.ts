@@ -34,6 +34,54 @@ test('the other nine P1 nodes meet the standard self-study content contract', ()
   assert.deepEqual(violations, []);
 });
 
+test('student-facing P1 copy avoids internal field names and unsupported engineering conclusions', () => {
+  const p1 = JSON.stringify(generated);
+  for (const forbidden of [
+    '服务端规则',
+    '字段标识',
+    'objectId',
+    'fieldName',
+    'photoIds',
+    '对象主键',
+    'siteCoordinate',
+    'sectorIds',
+    'rootCauseHypothesis',
+    '当前运行条件可交付',
+    '允许范围内',
+    '按安全规程记录供电值',
+    '汇入',
+    '专业成果',
+  ]) {
+    assert.doesNotMatch(p1, new RegExp(forbidden), forbidden);
+  }
+
+  const n03 = JSON.stringify(contentRecord('P1T1-N03'));
+  assert.match(n03, /授权/);
+  assert.match(n03, /阈值|设备手册|现场规程/);
+  assert.match(n03, /待复核/);
+
+  const n04TemplateKeys = Object.keys(record(contentRecord('P1T1-N04').nodeRecordTemplate));
+  assert.ok(n04TemplateKeys.length > 0);
+  for (const key of n04TemplateKeys) assert.doesNotMatch(key, /objectId|fieldName|photoIds/);
+});
+
+test('P1 standard nodes carry the new safety and figure constraints from the walkthrough audit', () => {
+  const n01Figure = record(contentRecord('P1T1-N01').relationshipFigure);
+  assert.equal(n01Figure.kind, 'indoor-scope-boundary');
+
+  const n02 = JSON.stringify(contentRecord('P1T1-N02'));
+  assert.match(n02, /前传接口/);
+  assert.doesNotMatch(n02, /eCPRI\/CPRI/);
+
+  for (const nodeId of ['P1T2-N01', 'P1T2-N02', 'P1T2-N03', 'P1T2-N04', 'P1T3-N01', 'P1T3-N02', 'P1T3-N03', 'P1T3-N04']) {
+    const node = JSON.stringify(contentRecord(nodeId));
+    assert.match(node, /授权|允许采集|现场负责人/, `${nodeId} must explain authorization boundary`);
+    assert.match(node, /安全|不拆|不进入|不接触/, `${nodeId} must explain test safety`);
+    assert.match(node, /隐私|脱敏|测试SIM|测试 SIM/, `${nodeId} must explain privacy or test SIM boundary`);
+    assert.match(node, /案例数据不等于行业统一阈值|教师给定阈值|现场规程/, `${nodeId} must explain threshold source`);
+  }
+});
+
 function deepContentViolations(nodeId: string, content: JsonRecord): string[] {
   const violations: string[] = [];
   atLeast(violations, nodeId, 'caseBackground', nonEmptyStrings(content.caseBackground).length, 1);

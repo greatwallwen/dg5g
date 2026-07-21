@@ -10,6 +10,7 @@ import { AuthoritativeSnapshotReader } from '@/platform/authoritative-snapshot';
 import { getDatabase } from '@/platform/db/database';
 import { projectStudentLearningSnapshot } from '@/platform/learning-compatibility-projection';
 import { createLearningCommandService } from '@/platform/learning-command-service';
+import { getNodeLearningPolicy } from '@/platform/learning-policy';
 import { getCapabilityGraph } from '@/platform/mock-api';
 
 export default async function StudentSelfPage({ params, searchParams }: {
@@ -60,6 +61,12 @@ export default async function StudentSelfPage({ params, searchParams }: {
     );
   }
   const graph = await getCapabilityGraph(params.nodeId);
+  const policy = getNodeLearningPolicy(params.nodeId);
+  const initialMode = searchParams?.mode === 'learning'
+    ? 'learning'
+    : searchParams?.mode === 'challenge' || policy?.requiresProfessionalOutput
+      ? 'challenge'
+      : 'learning';
   return (
     <RoleGate
       description="登录后进入单知识点全屏学习，完成正文、练习、正式测试与所需专业产出后确认能力状态。"
@@ -71,7 +78,7 @@ export default async function StudentSelfPage({ params, searchParams }: {
         displayName={actor.displayName}
         focusedActivityId={navigationTarget.kind === 'target' ? navigationTarget.activityId : undefined}
         graph={graph}
-        initialMode={searchParams?.mode === 'challenge' ? 'challenge' : 'learning'}
+        initialMode={initialMode}
         initialNodeId={params.nodeId}
         initialSection={navigationTarget.kind === 'target' ? navigationTarget.sectionId : undefined}
         initialSnapshot={initialSnapshot}

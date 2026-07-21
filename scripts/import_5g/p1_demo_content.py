@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from pathlib import Path, PurePosixPath
 from typing import Any
 from zipfile import ZipFile
@@ -12,6 +13,11 @@ from jsonschema import Draft202012Validator
 
 
 SCHEMA_ID = "dgbook.p1-demo-content/v1"
+P23_SAFETY_BOUNDARY_NOTE = (
+    "边界提示：本样张只训练记录和判断方法，现场测量必须取得教师或现场负责人授权；"
+    "不拆设备、不进入危险区域、不接触带电端子，终端测试使用测试SIM并对用户信息脱敏。"
+    "案例数据不等于行业统一阈值，是否达标以现场规程、设备手册或教师给定阈值为准。"
+)
 P1_TASK_STRUCTURE = (
     {
         "taskId": "P01",
@@ -100,13 +106,13 @@ P01_ACTIVITY_SPECS: dict[str, dict[str, Any]] = {
             "passed": "三类材料分别回答了在哪里、是谁、从哪里到哪里。",
             "failed": "请按材料能直接证明的问题分类，不要让设备近照替代位置或链路证据。",
         },
-        "transferTarget": "把三类证据分别汇入成果表的位置、设备身份和连接字段。",
+        "transferTarget": "把三类证据分别整理到任务成果表的位置、设备身份和连接字段。",
     },
     "P1T1-N02-application-01": {
         "activityKind": "link-reconstruction",
         "materials": [
-            {"id": "bbu-port", "label": "BBU CPRI-1", "detail": "线缆标签 FO-17，方向 ODF-A/12。"},
-            {"id": "odf-in", "label": "ODF-A/12 入端", "detail": "来自 BBU CPRI-1，跳纤 JP-08。"},
+            {"id": "bbu-port", "label": "BBU CPRI-1（前传端口，现场标签）", "detail": "线缆标签 FO-17，方向 ODF-A/12。"},
+            {"id": "odf-in", "label": "ODF-A/12 入端", "detail": "来自 BBU 前传端口 CPRI-1，跳纤 JP-08。"},
             {"id": "odf-out", "label": "ODF-B/04 出端", "detail": "JP-08 对接 FO-22。"},
             {"id": "aau-port", "label": "AAU-01 OPT-1", "detail": "线缆标签 FO-22。"},
         ],
@@ -137,7 +143,7 @@ P01_ACTIVITY_SPECS: dict[str, dict[str, Any]] = {
             "passed": "结构化记录已把设备、位置和双端端口汇成可回查条目。",
             "failed": "记录仍有字段与证据包不一致；请逐项核对站点、机柜、设备和双端端口。",
         },
-        "transferTarget": "形成可直接汇入 P01 专业成果的设备链路记录。",
+        "transferTarget": "整理成可写入 P01 任务成果表的设备链路记录。",
     },
     "P1T1-N02-remediation-revision-01": {
         "activityKind": "defective-sheet-revision",
@@ -146,7 +152,7 @@ P01_ACTIVITY_SPECS: dict[str, dict[str, Any]] = {
                 "id": "missing-field-source",
                 "label": "设备与端口字段缺少来源",
                 "detail": "IMG-031 是设备铭牌，IMG-032 是源端口；修订必须先指出字段无来源，再补入两张来源照片。",
-                "sourceValue": "设备字段：BBU-01；源端口：CPRI-1；字段来源：（空）",
+                "sourceValue": "设备字段：BBU-01；源端口：现场标签 CPRI-1；字段来源：（空）",
             },
             {
                 "id": "missing-photo-index",
@@ -157,7 +163,7 @@ P01_ACTIVITY_SPECS: dict[str, dict[str, Any]] = {
             {
                 "id": "missing-link-direction",
                 "label": "连接结论缺少方向",
-                "detail": "源端为 BBU-01 CPRI-1，对端为 AAU-01 OPT-1；修订必须明确两端及连接方向。",
+                "detail": "源端为 BBU-01 前传端口 CPRI-1，对端为 AAU-01 OPT-1；修订必须明确两端及连接方向。",
                 "sourceValue": "链路结论：已连接；源端、对端与方向：（空）",
             },
         ],
@@ -202,7 +208,7 @@ P01_ACTIVITY_SPECS: dict[str, dict[str, Any]] = {
     "P1T1-N03-micro-01": {
         "activityKind": "four-state-judgement",
         "materials": [
-            {"id": "power", "label": "直流供电", "detail": "同一时间窗读数 -48.6V，波动在允许范围内。"},
+            {"id": "power", "label": "直流供电", "detail": "同一时间窗记录 -48.6V；本题只要求登记读数，是否合格要看教师给定阈值、设备手册或现场规程。"},
             {"id": "grounding", "label": "保护接地", "detail": "照片未拍到接地线与接地排标识。"},
             {"id": "transport", "label": "传输状态", "detail": "PTN 端口在线且无当前告警。"},
             {"id": "environment", "label": "温控环境", "detail": "温度计为 26℃，同一时刻空调面板显示高温告警。"},
@@ -220,7 +226,7 @@ P01_ACTIVITY_SPECS: dict[str, dict[str, Any]] = {
             "passed": "四类条件已按证据充分性区分确认、缺证与冲突。",
             "failed": "不要把有记录等同于已确认；缺失和互相矛盾的材料必须单独标记。",
         },
-        "transferTarget": "把四态判断迁移到成果表的运行条件、缺口和复核结论。",
+        "transferTarget": "把四态判断整理到任务成果表的运行条件、缺口和复核结论。",
     },
     "P1T1-N04-micro-01": {
         "activityKind": "defective-sheet-revision",
@@ -296,7 +302,7 @@ P23_ACTIVITY_SPECS: dict[str, dict[str, Any]] = {
         "底图给出站点坐标、0/120/240度三个扇区、道路热点H1与H2、邻区边界；任务要求圈定本次采样范围。",
         "站点、扇区、热点和采样边界已落在同一坐标口径中。",
         "记录尚不能指导到哪里、采哪个扇区；请补齐坐标、扇区方向、热点与边界。",
-        "把空间边界记录汇入 P02 室外站点与覆盖采集表。",
+        "把空间边界记录写入 P02 室外站点与覆盖采集表。",
     ),
     "P1T2-N02-foundation-01": _structured_record_activity(
         "sector-parameter-pack",
@@ -336,7 +342,7 @@ P23_ACTIVITY_SPECS: dict[str, dict[str, Any]] = {
         "路线A绕开风险区；路线B穿越遮挡边界并经过热点H2，楼体两侧可设对照点；路线C只有热点、没有对照点。",
         "所选路线能够穿越风险边界，并包含CQT热点、对照点、时间窗和指标。",
         "路线尚不能验证风险假设；请明确路线、风险边界、CQT点、对照点和验收指标。",
-        "把路线和CQT点写入 P02 专业成果。",
+        "把路线和CQT点写入 P02 任务成果表。",
     ),
     "P1T3-N01-micro-01": _structured_record_activity(
         "complaint-narrative",
@@ -360,7 +366,7 @@ P23_ACTIVITY_SPECS: dict[str, dict[str, Any]] = {
         "任务要求固定投诉地点、终端和视频会议业务，把用户操作、业务日志、服务小区、RSRP、SINR和现象时刻对齐。",
         "脚本具有分钟级步骤，并能把业务现象与网络采样放到同一时间轴。",
         "脚本仍不可重复执行；请补齐时间、操作、服务小区、无线指标、业务日志和复核步骤。",
-        "生成可直接执行的15分钟复测脚本。",
+        "整理出可执行的15分钟复测脚本。",
     ),
     "P1T3-N02-transfer-01": _structured_record_activity(
         "rail-call-drop-case",
@@ -399,6 +405,41 @@ DEEP_SELF_STUDY: dict[str, dict[str, Any]] = {
     "P1T1-N02": {
         "kind": "deep",
         "nodeId": "P1T1-N02",
+        "beginnerScaffold": {
+            "simpleMission": "先别急着看设备名，先回答：在哪里、是谁、连到哪。",
+            "analogy": "它像核对一个快递包裹：地址证明送到哪里，面单编号证明是谁的包，签收路线证明从哪里送到哪里。",
+            "threeQuestions": [
+                {
+                    "id": "where",
+                    "question": "在哪里？",
+                    "evidenceType": "位置证据",
+                    "proves": "证明设备属于哪个站点、机房、机柜和槽位。",
+                    "cannotProve": "不能单独证明设备身份，也不能证明线缆对端。",
+                    "outputFields": ["站点编号", "机房编号", "机柜/槽位"],
+                },
+                {
+                    "id": "who",
+                    "question": "是谁？",
+                    "evidenceType": "身份数据",
+                    "proves": "证明设备型号、序列号、网元标识或板卡端口身份。",
+                    "cannotProve": "不能说明设备安装在哪里，也不能说明线缆真实去向。",
+                    "outputFields": ["设备标识", "型号/序列号", "本端端口"],
+                },
+                {
+                    "id": "connects-to",
+                    "question": "连到哪？",
+                    "evidenceType": "双端链路",
+                    "proves": "证明本端、经过节点和对端之间的连接方向。",
+                    "cannotProve": "不能替代设备铭牌；缺少一端时只能写待复核。",
+                    "outputFields": ["本端端口", "对端端口", "线缆/照片证据"],
+                },
+            ],
+            "completionStandard": [
+                "每个成果字段都能回到至少一张证据照片或现场记录。",
+                "位置、身份、连接方向三类证据不互相替代。",
+                "缺口要写清楚补拍或复核动作，不能用猜测补全。",
+            ],
+        },
         "caseBackground": [
             "海岳路站点准备扩容。现场人员交回了机柜全景、BBU近景、AAU照片和若干端口照片，但照片编号没有说明它们是否属于同一站点、同一机柜和同一条链路。复核人员不能只凭设备外形或亮灯状态下结论。",
             "本节点要把零散照片整理成可回查的设备证据链：先证明设备在哪里，再证明设备是谁，最后证明信号或传输从哪个端口流向哪个端口。三类证据回答不同问题，缺少任何一类都不能形成可交付拓扑。",
@@ -413,7 +454,7 @@ DEEP_SELF_STUDY: dict[str, dict[str, Any]] = {
             {"term": "BBU", "definition": "基带处理单元，通常安装在机柜或插箱内；确认它时既要看设备铭牌，也要记录所在机柜和槽位。"},
             {"term": "AAU/RRU", "definition": "有源天线单元或射频拉远单元，承担射频处理；与BBU之间通常通过标记明确的光纤链路连接。"},
             {"term": "ODF", "definition": "光纤配线架，用于光缆成端、跳接和编号管理；端口标签是追踪链路方向的重要中间证据。"},
-            {"term": "eCPRI/CPRI", "definition": "BBU与射频侧之间的前传接口关系；判断链路时必须核对两端端口和连续走线，不能只看单端插头。"},
+            {"term": "前传接口（CPRI/eCPRI）", "definition": "教材中把BBU与射频侧之间的接口关系称为前传。现场记录时以端口标签为准；如果标签写着CPRI-1，就如实记录，不把CPRI和eCPRI混作同一个确定端口。"},
         ],
         "annotatedFigures": [{
             "kind": "topology",
@@ -455,9 +496,9 @@ DEEP_SELF_STUDY: dict[str, dict[str, Any]] = {
         "examples": [
             {
                 "title": "正例一：确认BBU到AAU的前传链路",
-                "evidence": ["01号机房入口与K02柜全景", "K02柜第6U设备铭牌：BBU5900，网元标识HY-01", "BBU槽位3端口CPRI-1标签F-017", "F-017连续走线及AAU-1光口标签"],
+                "evidence": ["01号机房入口与K02柜全景", "K02柜第6U设备铭牌：BBU5900，网元标识HY-01", "BBU槽位3前传端口标签CPRI-1，线缆编号F-017", "F-017连续走线及AAU-1光口标签"],
                 "reasoning": ["入口和柜号把设备定位到唯一空间", "铭牌与网元标识排除同柜其他BBU", "本端和对端都出现F-017且走线连续，排除仅凭单端端口猜测"],
-                "conclusion": "可确认HY-01站K02柜BBU槽位3的CPRI-1，经F-017连接到AAU-1光口；位置、身份和方向均可复核。",
+                "conclusion": "可确认HY-01站K02柜BBU槽位3的前传端口（现场标签CPRI-1），经F-017连接到AAU-1光口；位置、身份和方向均可复核。",
             },
             {
                 "title": "正例二：确认BBU到PTN的回传路径",
@@ -474,7 +515,7 @@ DEEP_SELF_STUDY: dict[str, dict[str, Any]] = {
             },
             {
                 "title": "反例二：只有BBU单端端口",
-                "error": "端口CPRI-1插有光纤，只能说明端口被占用；看不到线缆编号、连续路径和AAU对端，不能判断实际连接对象。",
+                "error": "端口标签CPRI-1插有光纤，只能说明端口被占用；看不到线缆编号、连续路径和AAU对端，不能判断实际连接对象。",
                 "correctionPath": ["记录本端端口与线缆标签", "沿线缆或同一编号追踪经过的ODF", "记录AAU/RRU对端身份和端口并核对编号"],
             },
         ],
@@ -807,8 +848,8 @@ STANDARD_NODE_SPECS: dict[str, dict[str, Any]] = {
     "P1T1-N01": {
         "case": "新到海岳路站点时，任务单写有两个机房和三排机柜。采集人员必须先圈定本次站点、机房和机柜边界，避免把共享机房中的其他运营商设备混入台账。",
         "glossary": [("资源边界", "本次任务允许采集的站点、机房、机柜和配套对象范围。"), ("站点编码", "运营商用于唯一识别物理站点的编号。"), ("机柜编号", "机房内定位设备安装位置的柜体标识。")],
-        "figureKind": "indoor-boundary",
-        "labels": ["任务单站点编码", "机房入口编号", "机柜排号与柜号", "不在本次范围的共享设备"],
+        "figureKind": "indoor-scope-boundary",
+        "labels": ["任务单站点编码", "机房入口编号", "K01—K04机柜范围", "他网机柜与02号机房排除对象"],
         "steps": ["核对任务单中的站点与机房", "用入口标识确认现场身份", "按排号和柜号圈定采集对象"],
         "exampleEvidence": ["任务单HY-01", "入口HY-01/01号机房", "K01—K04柜全景"],
         "conclusion": "本次采集边界为HY-01站01号机房K01—K04柜，其他共享设备不进入台账。",
@@ -817,37 +858,37 @@ STANDARD_NODE_SPECS: dict[str, dict[str, Any]] = {
         "prompt": "给定任务单和两张机房平面图，圈出本次采集对象并排除共享设备。",
         "practiceEvidence": ["站点/机房编号一致", "柜号范围明确", "排除对象有理由"],
         "feedback": "答案必须先证明现场身份，再圈定柜号范围。",
-        "recordFields": ["stationId", "roomId", "cabinetRange", "excludedObjects", "photoIndex"],
+        "recordFields": ["站点编号", "机房编号", "机柜范围", "排除对象及理由", "照片编号"],
     },
     "P1T1-N03": {
-        "case": "BBU和AAU均已安装并亮灯，但机房直流电压波动、接地标识缺失且空调告警。仅确认主设备在位不能说明站点具备稳定运行条件。",
-        "glossary": [("直流供电", "基站设备常用的-48V直流供电及允许波动范围。"), ("保护接地", "将设备外壳和接地系统连接以降低故障风险。"), ("传输可用性", "业务回传链路容量、端口和告警状态是否满足运行要求。")],
+        "case": "BBU和AAU均已安装并亮灯，但机房直流读数、接地标识和空调告警还没有放到同一套证据里。学生在样张中只做观察和记录；涉及开柜、带电测量或阈值判定，必须由教师或现场负责人授权后才能操作。",
+        "glossary": [("直流供电", "基站设备常见-48V直流供电。本样张中的读数只用于练习记录方法，是否合格要以设备手册、现场规程或教师给定阈值为准。"), ("保护接地", "将设备外壳和接地系统连接以降低故障风险；看不到接地线和接地排标识时，只能登记缺证。"), ("传输可用性", "业务回传链路容量、端口和告警状态是否满足运行要求；学生只记录证据，不替代现场运维结论。")],
         "figureKind": "operating-conditions",
         "labels": ["直流配电端子", "接地排与线缆", "PTN/光纤端口", "温湿度与空调告警"],
-        "steps": ["按安全规程记录供电值", "核对接地与传输状态", "把温控告警与设备状态放到同一时间窗"],
-        "exampleEvidence": ["-48.6V读数", "接地线与接地排标签", "PTN端口无告警", "室温26℃"],
-        "conclusion": "供电、接地、传输和温控证据齐全，当前运行条件可交付。",
+        "steps": ["先判断自己能观察什么，哪些读数必须由授权人员测量", "记录供电、接地、传输、温控证据的来源和时间", "遇到缺证或互相矛盾的材料时写待复核，不写正常结论"],
+        "exampleEvidence": ["授权人员记录的-48.6V读数", "接地线与接地排标签", "PTN端口无当前告警", "室温26℃且空调面板无告警"],
+        "conclusion": "四类记录来源清楚；接地缺证和温控冲突已登记，需授权复核后再下结论。",
         "error": "只拍设备绿灯就写‘站点运行正常’，没有配套条件证据。",
-        "correction": ["补齐供电和接地记录", "核对传输告警", "记录同一时刻温控状态"],
+        "correction": ["补齐供电记录来源和接地证据", "核对传输告警截图或端口记录", "把同一时刻温控读数、空调面板和冲突情况写清楚"],
         "prompt": "从六条现场记录中选出能够证明站点运行条件的证据组合。",
         "practiceEvidence": ["供电", "接地", "传输", "温控"],
-        "feedback": "四类条件缺一项都只能标记待核验，不能直接判定正常。",
-        "recordFields": ["powerReading", "grounding", "transport", "temperature", "alarms"],
+        "feedback": "四类条件缺一项或证据互相矛盾时，只能写待复核，不能替代现场人员下正常或可交付结论。",
+        "recordFields": ["供电记录来源", "接地证据", "传输状态记录", "温控记录", "告警与待复核项"],
     },
     "P1T1-N04": {
         "case": "现场采集结束后共有42张照片、18条设备记录和3项缺口。交付前需要让每条字段都能回到照片、位置和采集时间，并把缺口写入复核结论。",
         "glossary": [("影像索引", "用照片编号关联站点、对象和字段的清单。"), ("可追溯性", "结论可以沿字段、照片和现场对象逐级回查。"), ("缺口清单", "尚未取得的证据、影响和补采动作记录。")],
         "figureKind": "evidence-archive",
-        "labels": ["对象主键", "字段记录", "照片编号", "采集时间", "缺口与复核结论"],
-        "steps": ["统一照片与对象编号", "核对字段—照片一一对应", "汇总缺口并形成交付结论"],
+        "labels": ["设备对象", "字段记录", "照片编号", "采集时间", "缺口与复核结论"],
+        "steps": ["统一设备对象与照片编号", "核对字段—照片一一对应", "汇总缺口并写出复核结论"],
         "exampleEvidence": ["K02-BBU01对象记录", "IMG-021铭牌照片", "IMG-024双端端口照片", "缺口GAP-03"],
         "conclusion": "对象、证据和缺口均可追溯，可形成室内设备与链路证据表。",
         "error": "结论只写‘现场正常，照片见附件’，无法知道哪张照片证明哪个字段。",
-        "correction": ["建立对象主键", "逐字段绑定照片", "给缺口分配补采责任和时限"],
+        "correction": ["建立设备对象编号", "逐字段绑定照片", "给缺口分配补采责任和时限"],
         "prompt": "修复一份照片编号重复、字段无来源的归档表。",
         "practiceEvidence": ["对象唯一", "照片可回查", "缺口有动作"],
         "feedback": "归档不是堆附件，而是让对象、字段、照片和结论互相索引。",
-        "recordFields": ["objectId", "fieldName", "value", "photoIds", "gap", "reviewConclusion"],
+        "recordFields": ["设备对象", "填写项目", "记录内容", "照片编号", "证据缺口", "复核结论"],
     },
     "P1T2-N01": {
         "case": "室外采集范围同时包含站点、三个扇区、主干道、校园热点和邻区边界。若只拍站点外观，后续无法把覆盖风险放回具体空间。",
@@ -862,7 +903,7 @@ STANDARD_NODE_SPECS: dict[str, dict[str, Any]] = {
         "prompt": "在底图上标出三个扇区、两类热点和本次采样边界。",
         "practiceEvidence": ["坐标一致", "方向明确", "热点和邻区可见"],
         "feedback": "空间边界必须能指导下一步到哪里采、采哪个扇区。",
-        "recordFields": ["siteCoordinate", "sectorIds", "hotspots", "neighborBoundary", "surveyExtent"],
+        "recordFields": ["站点坐标", "扇区编号", "道路与热点", "邻区边界", "采样范围"],
     },
     "P1T2-N03": {
         "case": "扇区东南侧有一栋高楼，现场人员怀疑它造成弱覆盖。单张楼体照片只是观察，必须把遮挡方向、坐标、道路热点和后续采样点组合成可验证假设。",
@@ -877,7 +918,7 @@ STANDARD_NODE_SPECS: dict[str, dict[str, Any]] = {
         "prompt": "判断三张遮挡照片中哪一张足以支持可验证的风险假设。",
         "practiceEvidence": ["方向关系", "空间位置", "验证采样点"],
         "feedback": "风险结论必须能转成下一步采样动作，而不是停留在目测。",
-        "recordFields": ["sectorDirection", "obstacle", "hotspot", "riskPoints", "controlPoints", "hypothesis"],
+        "recordFields": ["扇区方向", "遮挡对象", "业务热点", "风险采样点", "对照采样点", "待验证假设"],
     },
     "P1T2-N04": {
         "case": "完成站点、姿态和遮挡采集后，需要把风险假设转成DT/CQT路线。路线既要穿过风险边界，也要保留对照点、时间窗和判断指标。",
@@ -892,7 +933,7 @@ STANDARD_NODE_SPECS: dict[str, dict[str, Any]] = {
         "prompt": "从三条候选路线中选择能验证风险假设的一条并补齐CQT点。",
         "practiceEvidence": ["穿越风险区", "包含对照点", "指标可判定"],
         "feedback": "测试路线由风险问题驱动，而不是由道路便利性驱动。",
-        "recordFields": ["riskLayer", "dtRoute", "cqtPoints", "timeWindow", "metrics", "acceptanceRule"],
+        "recordFields": ["风险图层", "DT路线", "CQT点位", "时间窗", "指标", "判断依据"],
     },
     "P1T3-N01": {
         "case": "工单只写‘用户反映网络很差’。受理人员需要把口述拆成可复测事实：何时、何地、做什么业务、使用什么终端、出现什么现象以及发生频次。",
@@ -907,7 +948,7 @@ STANDARD_NODE_SPECS: dict[str, dict[str, Any]] = {
         "prompt": "把一段用户口述拆成事实字段，标出仍需追问的缺项。",
         "practiceEvidence": ["事实无归因", "六字段完整", "复测边界明确"],
         "feedback": "先把现象说清楚，原因判断必须留到证据交叉之后。",
-        "recordFields": ["timeWindow", "location", "service", "terminal", "symptom", "frequency", "missingFacts"],
+        "recordFields": ["时间窗", "地点", "业务", "终端", "现象", "频次", "待追问缺项"],
     },
     "P1T3-N03": {
         "case": "等价场景下出现一次低速率，但同一时间小区没有告警。调查人员需要把投诉、复测日志、告警、KPI、工参和覆盖图层按同一时间与空间口径交叉，而不是用单条日志直接定因。",
@@ -922,7 +963,7 @@ STANDARD_NODE_SPECS: dict[str, dict[str, Any]] = {
         "prompt": "把六条不同时间的证据放到统一时间轴，选出能够支持同一判断的组合。",
         "practiceEvidence": ["时间同窗", "对象同小区", "至少两个独立来源", "冲突被记录"],
         "feedback": "交叉验证既要找支持证据，也要主动寻找会推翻结论的线索。",
-        "recordFields": ["timeWindow", "location", "servingCell", "terminalEvidence", "networkEvidence", "conflicts", "hypotheses"],
+        "recordFields": ["时间窗", "地点", "服务小区", "终端侧证据", "网络侧证据", "冲突线索", "根因假设"],
     },
     "P1T3-N04": {
         "case": "投诉调查结束后不能只写‘建议优化’。调查单需要说明事实、证据、根因假设、责任边界、处理动作、时限、复测条件和回访结果，才能派单和闭环。",
@@ -937,7 +978,7 @@ STANDARD_NODE_SPECS: dict[str, dict[str, Any]] = {
         "prompt": "把一条模糊处理建议改写成可派单、可验收的投诉闭环记录。",
         "practiceEvidence": ["证据支撑", "责任动作明确", "闭环可验收"],
         "feedback": "专业结论必须回答为什么这样判断、谁做什么、何时以及怎样确认完成。",
-        "recordFields": ["facts", "evidenceChain", "rootCauseHypothesis", "owner", "action", "deadline", "retest", "callback", "closureStatus"],
+        "recordFields": ["事实", "证据链", "根因假设", "责任人", "处理动作", "时限", "复测条件", "回访结果", "闭环状态"],
     },
 }
 
@@ -980,11 +1021,11 @@ def _build_standard_self_study(node_id: str) -> dict[str, Any]:
 
 
 def _self_study_content(node_id: str) -> dict[str, Any]:
-    if node_id in DEEP_SELF_STUDY:
-        return DEEP_SELF_STUDY[node_id]
-    return _build_standard_self_study(node_id)
-
-
+    content = DEEP_SELF_STUDY[node_id] if node_id in DEEP_SELF_STUDY else _build_standard_self_study(node_id)
+    if node_id.startswith(("P1T2-", "P1T3-")):
+        content = deepcopy(content)
+        content.setdefault("caseBackground", []).append(P23_SAFETY_BOUNDARY_NOTE)
+    return content
 def build_p1_demo_content(
     source_artifacts: dict[str, dict[str, Any]],
     widget_manifest: dict[str, Any],

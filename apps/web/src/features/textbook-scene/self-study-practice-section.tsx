@@ -113,8 +113,8 @@ function practiceRowsFor(document: SelfStudyDocument): PracticeRow[] {
     return content.microPractice.map((practice) => ({ level: 'foundation', levelLabel: '节点微练习', practice }));
   }
   return [
-    ...content.practices.foundation.map((practice) => ({ level: 'foundation' as const, levelLabel: '基础练习', practice })),
-    ...content.practices.application.map((practice) => ({ level: 'application' as const, levelLabel: '应用练习', practice })),
-    ...content.practices.transfer.map((practice) => ({ level: 'transfer' as const, levelLabel: '迁移练习', practice })),
+    ...content.practices.foundation.map((practice) => ({ level: 'foundation' as const, levelLabel: '必做练习', practice })),
+    ...content.practices.application.map((practice) => ({ level: 'application' as const, levelLabel: '选做练习', practice })),
+    ...content.practices.transfer.map((practice) => ({ level: 'transfer' as const, levelLabel: '挑战练习', practice })),
   ];
 }

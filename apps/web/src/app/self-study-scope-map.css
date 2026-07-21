@@ -1,0 +1,45 @@
+.self-study-engineering-figure.is-indoor-scope-boundary {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(59, 207, 200, 0.18), transparent 24%),
+    linear-gradient(145deg, #071d31 0%, #0b2d44 100%);
+}
+
+.self-study-scope-map {
+  grid-template-columns: minmax(130px, 1fr) 24px minmax(130px, 1fr) 24px minmax(130px, 1fr);
+  align-items: stretch;
+}
+
+.self-study-scope-map article {
+  grid-template-columns: 28px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  border-color: rgba(73, 214, 205, 0.42);
+}
+
+.self-study-scope-map article span {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  color: #051923;
+  background: #61f0dc;
+  font-weight: 800;
+}
+
+.self-study-scope-map article p {
+  margin: 0;
+  color: #b7d6df;
+  font-size: 12px;
+}
+
+.self-study-scope-map .is-excluded {
+  grid-column: 3 / 6;
+  border-color: rgba(255, 184, 107, 0.48);
+  background: rgba(79, 42, 22, 0.5);
+}
+
+.self-study-scope-map .is-excluded span {
+  color: #2b1206;
+  background: #ffb86b;
+}

@@ -35,6 +35,9 @@ function matchesRule(rule: ActivityEvaluationRule, response: Record<string, unkn
   switch (rule.type) {
     case 'exact-map':
       return exactStringMap(response[rule.responseKey], rule.expected);
+    case 'exact-map-with-reasons':
+      return exactStringMap(response[rule.responseKey], rule.expected)
+        && matchesTextCriteriaMap(response[rule.reasonsKey], rule.reasonConstraints);
     case 'exact-sequence':
       return exactStringArray(response[rule.responseKey], rule.expected);
     case 'revision-constraints':

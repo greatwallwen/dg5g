@@ -127,6 +127,8 @@ test('the exact ten P01 fields show source chips and whitelisted built-in eviden
   assert.match(html, /data-evidence-remove="P01-EV-ROOM-OVERVIEW"/);
   assert.doesNotMatch(html, /type="file"|上传证据/);
   assert.doesNotMatch(html, /P01-EV-BBU-NAMEPLATE[^]*data-evidence-picker="siteRoom"/);
+  assert.doesNotMatch(html, /字段标识|服务端/);
+  assert.match(html, /填写提示|挂接证据/);
 });
 
 test('returned edits project revising immediately and evidence edits are included as semantic revision', () => {

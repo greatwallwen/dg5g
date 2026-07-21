@@ -16,6 +16,15 @@ test('locked routes never load textbook body and open routes inject a validated 
   assert.match(page, /selfStudyCatalog=\{selfStudyCatalog\}/);
 });
 
+test('professional output nodes default to the evidence-sheet workspace without hiding explicit self-study links', async () => {
+  const page = await readFile(new URL('../../app/learn/[nodeId]/page.tsx', import.meta.url), 'utf8');
+  assert.match(page, /getNodeLearningPolicy\(params\.nodeId\)/);
+  assert.match(page, /policy\?\.requiresProfessionalOutput/);
+  assert.match(page, /const initialMode =/);
+  assert.match(page, /searchParams\?\.mode === 'learning'/);
+  assert.match(page, /initialMode=\{initialMode\}/);
+});
+
 test('client modules consume props and never import the server filesystem loader', async () => {
   const [shell, adapter] = await Promise.all([
     readFile(new URL('./textbook-scene-shell.tsx', import.meta.url), 'utf8'),

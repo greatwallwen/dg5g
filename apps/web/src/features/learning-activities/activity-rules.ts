@@ -7,6 +7,13 @@ export type ActivityEvaluationRule =
       expected: Record<string, string>;
     }
   | {
+      type: 'exact-map-with-reasons';
+      responseKey: 'assignments';
+      expected: Record<string, string>;
+      reasonsKey: 'reasons';
+      reasonConstraints: Record<string, TextFieldConstraint>;
+    }
+  | {
       type: 'exact-sequence';
       responseKey: 'order';
       expected: string[];
@@ -39,12 +46,23 @@ export interface ServerActivityDefinition {
 
 export const p01ActivityRules: Record<string, ActivityEvaluationRule> = {
   'P1T1-N01-micro-01': {
-    type: 'exact-map',
+    type: 'exact-map-with-reasons',
     responseKey: 'assignments',
     expected: {
       'room-01-cabinets': 'in-scope',
       'shared-operator-cabinet': 'out-of-scope',
       'room-02-cabinets': 'out-of-scope',
+    },
+    reasonsKey: 'reasons',
+    reasonConstraints: {
+      'shared-operator-cabinet': {
+        groups: [['其他运营商', '他网', '不属于本运营商'], ['排除', '不混入', '不能混入', '不进入']],
+        minimumCharacters: 8,
+      },
+      'room-02-cabinets': {
+        groups: [['02号机房', '02 号机房'], ['任务单', '01号机房', '01 号机房'], ['排除', '不在范围']],
+        minimumCharacters: 8,
+      },
     },
   },
   'P1T1-N02-foundation-01': {

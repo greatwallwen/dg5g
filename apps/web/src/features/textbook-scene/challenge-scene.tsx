@@ -36,11 +36,23 @@ export function ChallengeScene({
   const challenge = projectChallengeScene(unit.capabilityNodeId, nodeProgress);
   const policy = getNodeLearningPolicy(unit.capabilityNodeId);
   if (policy?.requiresProfessionalOutput) {
+    const taskOutputTitle = policy.professionalOutputTitle ?? '任务成果表';
     if (!outputSchema || outputSchema.taskId !== profile.taskId) {
       return <UnavailableChallenge message="该节点的职业产出模板未加载" onReturnToMap={onReturnToMap} />;
     }
     return (
       <section className="challenge-scene is-professional-output" data-task-challenge={`${profile.taskId}-output`}>
+        <section className="professional-output-lesson-intro">
+          <span>{profile.taskId} · N04</span>
+          <h1>{taskOutputTitle}</h1>
+          <p>这一页不是再学一个新概念，而是把前面几个节点留下的记录整理成一张能交给教师复核的任务成果表。</p>
+          <ul>
+            <li><strong>N01</strong> 用来确认采集范围和排除对象。</li>
+            <li><strong>N02</strong> 用来确认设备身份、位置和链路方向。</li>
+            <li><strong>N03</strong> 用来登记供电、接地、传输、温控等运行条件和证据缺口。</li>
+          </ul>
+          <p>先保存草稿不算提交；点“提交教师复核”后，教师才能退回、确认或给出修改意见。</p>
+        </section>
         <ProfessionalOutputForm schema={outputSchema} teacherFeedback={nodeProgress?.teacherFeedback} />
         <button className="is-secondary challenge-map-return" onClick={onReturnToMap} type="button"><Icon name="map" size={17} />返回能力图谱</button>
       </section>

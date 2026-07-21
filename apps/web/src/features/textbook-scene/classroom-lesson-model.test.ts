@@ -38,7 +38,7 @@ test('P01-N02 output is a node evidence record feeding N04, not a teacher-certif
   const copy = [output.title, output.lead, ...output.points, output.checkpoint, output.evidence].join(' ');
 
   assert.match(copy, /节点证据记录/);
-  assert.match(copy, /汇入P01 N04成果表/);
+  assert.match(copy, /放到P01 N04成果表/);
   assert.doesNotMatch(copy, /教师(审核|复核|认证)|获得认证|能力达成/);
 });
 

@@ -112,3 +112,39 @@ test('the same renderer adapts a standard node without falling back to summary-o
   assert.match(html, /结构化节点记录/);
   assert.match(html, /重新作答/);
 });
+
+test('P1T1-N01 renders an engineering scope relation figure instead of plain text cards', () => {
+  const document = requireSelfStudyDocument('P1T1-N01');
+  const html = renderToStaticMarkup(
+    <SelfStudyRenderer completed={false} document={document} onComplete={() => undefined} saving={false} />,
+  );
+
+  assert.match(html, /data-self-study-figure="indoor-scope-boundary"/);
+  assert.match(html, /data-indoor-scope-boundary-figure="true"/);
+  assert.match(html, /任务单/);
+  assert.match(html, /机房入口/);
+  assert.match(html, /机柜范围/);
+  assert.match(html, /排除对象/);
+});
+
+test('P1T1-N02 practice cards are labelled as must-do optional and challenge layers', () => {
+  const document = requireSelfStudyDocument('P1T1-N02');
+  const html = renderToStaticMarkup(
+    <SelfStudyRenderer completed={false} document={document} onComplete={() => undefined} saving={false} />,
+  );
+
+  assert.match(html, /必做练习/);
+  assert.match(html, /选做练习/);
+  assert.match(html, /挑战练习/);
+});
+
+test('P1T1-N04 output copy treats the current page as the task result page', () => {
+  const document = requireSelfStudyDocument('P1T1-N04');
+  const html = renderToStaticMarkup(
+    <SelfStudyRenderer completed={false} document={document} onComplete={() => undefined} saving={false} />,
+  );
+
+  assert.doesNotMatch(html, /任务级证据表在 P01 的 N04 节点/);
+  assert.match(html, /当前就是P01的任务成果页/);
+  assert.match(html, /填写、保存、提交、退回修订/);
+});

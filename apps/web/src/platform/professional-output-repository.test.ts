@@ -675,6 +675,9 @@ function seedPassedP01Activities(
     'P1T1-N01-micro-01': { assignments: {
       'room-01-cabinets': 'in-scope', 'shared-operator-cabinet': 'out-of-scope',
       'room-02-cabinets': 'out-of-scope',
+    }, reasons: {
+      'shared-operator-cabinet': '柜门标识属于其他运营商，不能混入本次任务台账。',
+      'room-02-cabinets': '02号机房不在任务单的01号机房范围内，本次先排除。',
     } },
     'P1T1-N02-foundation-01': { assignments: {
       'room-overview': 'location', 'device-nameplate': 'identity', 'two-ended-port-trace': 'link',

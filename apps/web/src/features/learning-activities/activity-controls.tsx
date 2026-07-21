@@ -112,24 +112,44 @@ export function ActivityControl({ activity, values, order, onValueChange, onOrde
   }
 
   return (
-    <div className="activity-classification-board" data-classification-board={activity.kind}>
-      {activity.materials.map((material) => (
-        <fieldset key={material.id}>
-          <legend><strong>{material.label}</strong><small>{material.detail}</small></legend>
-          {activity.interaction.categories.map((category) => (
-            <label key={category.id}>
-              <input
-                checked={values[material.id] === category.id}
-                name={`${activity.id}-${material.id}`}
-                onChange={() => onValueChange(material.id, category.id)}
-                type="radio"
-                value={category.id}
+    <>
+      <div className="activity-classification-board" data-classification-board={activity.kind}>
+        {activity.materials.map((material) => (
+          <fieldset key={material.id}>
+            <legend><strong>{material.label}</strong><small>{material.detail}</small></legend>
+            {activity.interaction.categories.map((category) => (
+              <label key={category.id}>
+                <input
+                  checked={values[material.id] === category.id}
+                  name={`${activity.id}-${material.id}`}
+                  onChange={() => onValueChange(material.id, category.id)}
+                  type="radio"
+                  value={category.id}
+                />
+                <span>{category.label}</span>
+              </label>
+            ))}
+          </fieldset>
+        ))}
+      </div>
+      {activity.kind === 'scope-classification' ? (
+        <section className="activity-scope-reason-board" data-scope-reason-board={activity.id}>
+          <strong>排除理由</strong>
+          <p>把没有选入本次采集范围的对象各写一句理由，例如“不在任务单机房范围内”或“柜门标识属于其他运营商”。</p>
+          {activity.materials.map((material) => (
+            <label data-scope-reason-field={material.id} key={material.id}>
+              <span>{material.label}</span>
+              <textarea
+                aria-label={`${material.label}排除理由`}
+                disabled={values[material.id] !== 'out-of-scope'}
+                onChange={(event) => onValueChange(`reason:${material.id}`, event.target.value)}
+                placeholder={values[material.id] === 'out-of-scope' ? '写出排除依据，必须能回到任务单、机房或运营商边界。' : '选为“排除并说明”后填写'}
+                value={values[`reason:${material.id}`] ?? ''}
               />
-              <span>{category.label}</span>
             </label>
           ))}
-        </fieldset>
-      ))}
-    </div>
+        </section>
+      ) : null}
+    </>
   );
 }

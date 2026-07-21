@@ -141,12 +141,12 @@ export function professionalOutputStatusCopy(state: OutputWorkflowState) {
   if (state === 'returned') return { title: '教师退回 · 等待实质修订', description: '历史版本保持不变；修改字段或证据后才能再次提交。' };
   if (state === 'revising') return { title: '修订中 · 正在补齐证据', description: '本次修改将形成新版本，原退回版本仍可追溯。' };
   if (state === 'resubmitted') return { title: '再次提交 · 等待教师复核', description: '修订版本已锁定并重新进入教师复核队列。' };
-  if (state === 'verified') return { title: '教师确认 · 成果已认证', description: '当前职业成果已由教师确认并进入项目成果包。' };
-  return { title: '编辑中 · 室内设备与链路证据表', description: '核对活动预填，挂接可回查证据，完成十项职业字段。' };
+  if (state === 'verified') return { title: '教师确认 · 任务成果完成', description: '当前证据表已由教师确认，并进入项目成果包。' };
+  return { title: '编辑中 · 室内设备与链路证据表', description: '核对前面练习带来的预填内容，挂接可回查证据，完成十项任务字段。' };
 }
 
 export function professionalOutputErrorMessage(reason: unknown): string {
-  return reason instanceof Error ? reason.message : '专业产出请求失败，请稍后重试。';
+  return reason instanceof Error ? reason.message : '任务成果表请求失败，请稍后重试。';
 }
 
 async function requestJson<T>(request: ProfessionalOutputFetch, input: string, init?: RequestInit) {
