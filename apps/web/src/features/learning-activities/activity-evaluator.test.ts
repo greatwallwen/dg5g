@@ -76,7 +76,7 @@ test('each activity kind uses its own answer model', () => {
     { assignments: { 'room-overview': 'location', 'device-nameplate': 'identity', 'two-ended-port-trace': 'link' } },
     { order: ['bbu-port', 'odf-in', 'odf-out', 'aau-port'] },
     { fields: { siteId: 'HY-01', roomId: '01', cabinetId: 'K02', deviceId: 'BBU-01', nearPort: 'BBU-1/0', farPort: 'AAU-1' } },
-    { states: { power: 'confirmed', grounding: 'missing', transport: 'confirmed', environment: 'conflicting' } },
+    { states: { power: 'satisfied', grounding: 'pendingReview', transport: 'satisfied', environment: 'abnormal', unauthorizedOperation: 'noAuthority' } },
     { revisions: { duplicatePhotoId: 'IMG-024B', missingSource: 'IMG-021', openGap: 'GAP-03: reshoot grounding label' } },
   ];
 

@@ -150,25 +150,28 @@ export function projectP01OutputPrefill(
             ? definition.activity.interaction.categories.map(({ id, label }) => [id, label])
             : [],
         );
-        const confirmed: string[] = [];
-        const missing: string[] = [];
-        const conflicting: string[] = [];
+        const satisfied: string[] = [];
+        const pendingReview: string[] = [];
+        const abnormal: string[] = [];
+        const noAuthority: string[] = [];
         const other: string[] = [];
         for (const [materialId, state] of Object.entries(states)) {
           const material = materialById.get(materialId);
           if (!material) continue;
           const entry = `${material.label}：${categoryLabels.get(state) ?? state}（${material.detail}）`;
-          if (state === 'confirmed') confirmed.push(entry);
-          else if (state === 'missing') missing.push(entry);
-          else if (state === 'conflicting') conflicting.push(entry);
+          if (state === 'satisfied' || state === 'confirmed') satisfied.push(entry);
+          else if (state === 'pendingReview' || state === 'missing' || state === 'provisional') pendingReview.push(entry);
+          else if (state === 'abnormal' || state === 'conflicting') abnormal.push(entry);
+          else if (state === 'noAuthority') noAuthority.push(entry);
           else other.push(entry);
         }
-        const gaps = [...missing, ...conflicting, ...other];
+        const gaps = [...pendingReview, ...abnormal, ...noAuthority, ...other];
         if (gaps.length > 0) appendProjected(result, 'evidenceGap', gaps.join('；'), source);
         const conclusionParts = [
-          confirmed.length > 0 ? `已确认：${confirmed.join('；')}` : undefined,
-          missing.length > 0 ? `缺证：${missing.join('；')}` : undefined,
-          conflicting.length > 0 ? `冲突：${conflicting.join('；')}` : undefined,
+          satisfied.length > 0 ? `满足：${satisfied.join('；')}` : undefined,
+          abnormal.length > 0 ? `异常：${abnormal.join('；')}` : undefined,
+          pendingReview.length > 0 ? `待复核：${pendingReview.join('；')}` : undefined,
+          noAuthority.length > 0 ? `无权操作：${noAuthority.join('；')}` : undefined,
           other.length > 0 ? `待复核：${other.join('；')}` : undefined,
         ].filter(isString);
         if (conclusionParts.length > 0) {

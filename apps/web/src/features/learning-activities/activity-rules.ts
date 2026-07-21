@@ -160,10 +160,11 @@ export const p01ActivityRules: Record<string, ActivityEvaluationRule> = {
     type: 'exact-map',
     responseKey: 'states',
     expected: {
-      power: 'confirmed',
-      grounding: 'missing',
-      transport: 'confirmed',
-      environment: 'conflicting',
+      power: 'satisfied',
+      grounding: 'pendingReview',
+      transport: 'satisfied',
+      environment: 'abnormal',
+      unauthorizedOperation: 'noAuthority',
     },
   },
   'P1T1-N04-micro-01': {

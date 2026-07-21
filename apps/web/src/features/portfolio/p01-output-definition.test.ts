@@ -35,8 +35,9 @@ const responses: Record<string, Record<string, unknown>> = {
   },
   'P1T1-N03-micro-01': {
     states: {
-      power: 'confirmed', grounding: 'missing',
-      transport: 'confirmed', environment: 'conflicting',
+      power: 'satisfied', grounding: 'pendingReview',
+      transport: 'satisfied', environment: 'abnormal',
+      unauthorizedOperation: 'noAuthority',
     },
   },
 };
@@ -56,9 +57,11 @@ test('passed N01-N03 artifacts project every P01 field with server-derived attem
   assert.match(prefill.siteRoom!.value, /HY-01.*01.*K02/);
   assert.match(prefill.collectionScope!.value, /01.*K01-K04/);
   assert.match(prefill.connectionDirection!.value, /BBU CPRI-1.*ODF-A\/12.*ODF-B\/04.*AAU-01 OPT-1/);
-  assert.match(prefill.evidenceGap!.value, /保护接地.*缺证|缺证.*保护接地/);
-  assert.match(prefill.riskAndReviewConclusion!.value, /缺证/);
-  assert.match(prefill.riskAndReviewConclusion!.value, /冲突/);
+  assert.match(prefill.evidenceGap!.value, /保护接地.*待复核|待复核.*保护接地/);
+  assert.match(prefill.evidenceGap!.value, /自行开柜测量.*无权操作|无权操作.*自行开柜测量/);
+  assert.match(prefill.riskAndReviewConclusion!.value, /待复核/);
+  assert.match(prefill.riskAndReviewConclusion!.value, /异常/);
+  assert.match(prefill.riskAndReviewConclusion!.value, /无权操作/);
   assert.doesNotMatch(prefill.riskAndReviewConclusion!.value, /整体正常/);
 });
 

@@ -688,7 +688,8 @@ function seedPassedP01Activities(
       nearPort: 'BBU-1/0', farPort: 'AAU-1',
     } },
     'P1T1-N03-micro-01': { states: {
-      power: 'confirmed', grounding: 'missing', transport: 'confirmed', environment: 'conflicting',
+      power: 'satisfied', grounding: 'pendingReview', transport: 'satisfied',
+      environment: 'abnormal', unauthorizedOperation: 'noAuthority',
     } },
   };
   for (const [activityId, response] of Object.entries(responseByActivity)) {

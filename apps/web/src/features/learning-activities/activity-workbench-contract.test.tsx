@@ -33,7 +33,7 @@ test('six activity kinds render purpose-built control contracts', () => {
   assert.match(markup[3]!, /data-record-flip-card="P1T1-N02-transfer-01"/);
   assert.match(markup[3]!, /data-record-evidence-form="true"/);
   assert.match(markup[4]!, /<table[^>]*data-four-state-matrix="true"/);
-  assert.equal((markup[4]!.match(/type="radio"/g) ?? []).length, 16);
+  assert.equal((markup[4]!.match(/type="radio"/g) ?? []).length, 20);
   assert.match(markup[5]!, /<table[^>]*data-defective-sheet-revision="true"/);
   assert.match(markup[5]!, /缺陷原值/);
   assert.match(markup[5]!, /修订值/);

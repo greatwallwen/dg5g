@@ -225,25 +225,26 @@ P01_ACTIVITY_SPECS: dict[str, dict[str, Any]] = {
     "P1T1-N03-micro-01": {
         "activityKind": "four-state-judgement",
         "materials": [
-            {"id": "power", "label": "直流供电", "detail": "授权人员在同一时间窗记录 -48.6V；学生只登记读数、测量人和阈值来源，是否合格要看教师给定阈值、设备手册或现场规程。"},
-            {"id": "grounding", "label": "保护接地", "detail": "照片未拍到接地线与接地排标识；不能因为设备亮灯就写接地已确认。"},
-            {"id": "transport", "label": "传输状态", "detail": "PTN 端口在线且无当前告警；只能说明当前截图支持传输在线，不能替代长时间稳定性结论。"},
-            {"id": "environment", "label": "温控环境", "detail": "温度计为 26℃，同一时刻空调面板显示高温告警；两条材料冲突，应登记待授权复核。"},
+            {"id": "power", "label": "直流供电", "detail": "授权人员在同一时间窗记录 -48.6V；教师给出的本次练习阈值为 -48V±4V。学生只登记读数、测量人和阈值来源，不自行带电测量。"},
+            {"id": "grounding", "label": "保护接地", "detail": "照片未拍到接地线与接地排标识；不能因为设备亮灯就写接地满足，应登记待复核并补拍远端连接。"},
+            {"id": "transport", "label": "传输状态", "detail": "PTN 端口在线且无当前告警；在本次截图时间窗内可写满足，但不能扩大成长期稳定结论。"},
+            {"id": "environment", "label": "温控环境", "detail": "温度计为 26℃，同一时刻空调面板显示高温告警；两条材料冲突，应登记异常并保留待复核动作。"},
+            {"id": "unauthorizedOperation", "label": "自行开柜测量", "detail": "学生想打开配电柜触碰端子复测电压。该动作超出学生权限，应写无权操作并请求授权人员处理。"},
         ],
         "interaction": {
             "type": "state-matrix",
             "categories": [
-                {"id": "confirmed", "label": "已确认"},
-                {"id": "provisional", "label": "暂定"},
-                {"id": "missing", "label": "缺证"},
-                {"id": "conflicting", "label": "冲突"},
+                {"id": "satisfied", "label": "满足"},
+                {"id": "abnormal", "label": "异常"},
+                {"id": "pendingReview", "label": "待复核"},
+                {"id": "noAuthority", "label": "无权操作"},
             ],
         },
         "targetedFeedback": {
-            "passed": "四类条件已按证据充分性区分确认、缺证与冲突。",
-            "failed": "不要把有记录等同于已确认；缺失和互相矛盾的材料必须单独标记。",
+            "passed": "四类结论已按证据、权限和冲突关系区分为满足、异常、待复核和无权操作。",
+            "failed": "不要把有读数、有亮灯或想自己测量都写成满足；缺证写待复核，材料冲突写异常，超出权限写无权操作。",
         },
-        "transferTarget": "把四态判断整理到任务成果表的运行条件、缺口和复核结论。",
+        "transferTarget": "把满足、异常、待复核、无权操作四态整理到任务成果表的运行条件、缺口和复核结论。",
     },
     "P1T1-N04-micro-01": {
         "activityKind": "defective-sheet-revision",
