@@ -115,10 +115,10 @@ export function SelfStudyRenderer({ document, completed, saving, onComplete, ini
           <span>{activeIndex + 1} / {selfStudySectionDefinitions.length}</span>
           <button aria-label="下一学习段" disabled={activeIndex === selfStudySectionDefinitions.length - 1} onClick={() => moveSection(1)} type="button"><Icon name="arrow" size={16} /></button>
         </div>
-        <span><Icon name={completed ? 'check' : practiceComplete ? 'spark' : 'target'} size={17} />{isTaskEvidenceNode && !completed ? '本节点以成果表提交和教师复核为准' : completed ? '该能力节点已记录完成' : practiceComplete ? '分层练习已完成，可记录本节点学习' : '可自由阅读；完成练习后记录学习进度'}</span>
+        <span><Icon name={completed ? 'check' : practiceComplete ? 'spark' : 'target'} size={17} />{isTaskEvidenceNode && !completed ? '本节点以成果表提交和教师复核为准' : completed ? '本节点学习记录已保存' : practiceComplete ? '分层练习已通过，可保存学习记录' : '可自由阅读；通过练习后保存学习记录'}</span>
         {activeSection === 'output' ? (
           <button data-primary-action="true" disabled={!practiceComplete || saving} onClick={onComplete} type="button">
-            {saving ? '正在记录' : completed ? '继续下一节点' : isTaskEvidenceNode ? '去填写成果表' : '记录本节点学习完成'}<Icon name="arrow" size={17} />
+            {saving ? '正在保存' : completed ? '继续下一节点' : isTaskEvidenceNode ? '去填写成果表' : '保存本节点学习记录'}<Icon name="arrow" size={17} />
           </button>
         ) : (
           <button className="is-next" data-primary-action="true" disabled={activeIndex === selfStudySectionDefinitions.length - 1} onClick={() => moveSection(1)} type="button">下一段<Icon name="arrow" size={17} /></button>
