@@ -84,6 +84,8 @@ test('helper authenticates each browser with the HttpOnly actor Cookie and has n
   const core = readFileSync(new URL('./classroom-helper-core.mjs', import.meta.url), 'utf8');
 
   assert.match(helper, /\/api\/auth\/login/);
+  assert.match(helper, /launchChromium/);
+  assert.doesNotMatch(helper, /chromium\.launch/);
   assert.match(core, /DGBOOK_DEMO_PASSWORD/);
   assert.doesNotMatch(helper, /localStorage|addInitScript|studentIdentityStorage/);
   assert.doesNotMatch(core, /searchParams\.set\(['"]student/);

@@ -491,13 +491,16 @@ function projectHelper(
   const liveStudentDevices = device.devices.filter(({ actorRole, helperState }) => (
     actorRole === 'student' && helperState !== 'offline'
   ));
+  const onlineStudentIds = new Set(liveStudentDevices.flatMap(({ studentId }) => (
+    studentId ? [studentId] : []
+  )));
   const degraded = liveStudentDevices.some(({ helperState }) => helperState === 'degraded');
   const managedDemoHelper = usesManagedDemoClassroomHelper(sessionId) && liveStudentDevices.length === 0;
   const status = managedDemoHelper ? 'online' : liveStudentDevices.length === 0 ? 'offline' : degraded ? 'degraded' : 'online';
   return {
     status,
     observedAt: observedAt.toISOString(),
-    onlineStudentDeviceCount: managedDemoHelper ? demoStudentCount : liveStudentDevices.length,
+    onlineStudentDeviceCount: managedDemoHelper ? demoStudentCount : onlineStudentIds.size,
     commandDelivery: {
       applied: device.acks.filter(({ state }) => state === 'applied').length,
       pending: device.acks.filter(({ state }) => state === 'queued' || state === 'delivered').length,

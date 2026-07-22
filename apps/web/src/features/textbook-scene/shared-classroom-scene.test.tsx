@@ -43,3 +43,23 @@ test('P1T1-N01 classroom scene renders an indoor scope relation map without outd
   }
   assert.doesNotMatch(html, /道路热点|采样路线|覆盖路线|map-road|coverage-map-visual/);
 });
+
+test('P1T1-N01 classroom scene renders the selected teaching page and real page controls', () => {
+  const html = renderToStaticMarkup(
+    <SharedClassroomScene
+      actionIndex={1}
+      onTeachingPageChange={() => undefined}
+      pageIndex={2}
+      profile={profile}
+      surface="teacher"
+      unit={unit}
+    />,
+  );
+
+  assert.match(html, /data-teaching-page="P1T1-N01-S02"/);
+  assert.match(html, /入口证据确认现场/);
+  assert.match(html, /任务单与机房入口门牌/);
+  assert.match(html, /data-session-action="previous-teaching-page"/);
+  assert.match(html, /data-session-action="next-teaching-page"/);
+  assert.match(html, /授课包页 2 \/ 5/);
+});

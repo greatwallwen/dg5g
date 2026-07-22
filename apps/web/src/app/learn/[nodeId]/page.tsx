@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { AccountMenu } from '@/features/auth/account-menu';
 import { RoleGate } from '@/features/auth/role-gate';
 import { TextbookSceneShell } from '@/features/textbook-scene/textbook-scene-shell';
+import { UnavailableNodeNotice } from '@/features/textbook-scene/textbook-scene-support';
 import { loadSelfStudyCatalog, requireSelfStudyDocument } from '@/features/textbook-scene/self-study-content';
 import { resolveSelfStudyNavigationTarget } from '@/features/textbook-scene/self-study-remediation';
 import { NodeRouteAccessError, type NodeRouteClassification } from '@/platform/access-control';
@@ -30,15 +31,20 @@ export default async function StudentSelfPage({ params, searchParams }: {
     const title = destination.kind === 'not-found' ? '节点不存在' : destination.kind === 'locked' ? '节点尚未解锁' : '内容尚未开放';
     const prerequisites = destination.kind === 'locked' ? destination.prerequisiteNodeIds : [];
     return (
-      <main className="textbook-scene-unavailable" data-node-route-state={destination.kind} data-node-unavailable={params.nodeId}>
-        <AccountMenu displayName={actor.displayName} role="student" />
-        <span>{title}</span>
-        <h1>{params.nodeId}</h1>
-        {prerequisites.length
-          ? <p>需要先完成：{prerequisites.join('、')}</p>
-          : <p>该节点没有可加载的教材、练习或提交功能，系统不会跳转到其他节点。</p>}
-        <Link href="/course">返回课程能力图谱</Link>
-      </main>
+      <UnavailableNodeNotice
+        access={{
+          nodeId: params.nodeId,
+          kind: destination.kind === 'locked' ? 'locked' : 'unavailable',
+          label: title,
+          disabled: true,
+          canNavigate: destination.kind === 'locked',
+          prerequisiteNodeIds: prerequisites,
+          ...(destination.kind === 'locked' ? { state: 'locked' as const } : {}),
+        }}
+        account={<AccountMenu displayName={actor.displayName} role="student" />}
+        nodeId={params.nodeId}
+        routeState={destination.kind}
+      />
     );
   }
   const studentCut = new AuthoritativeSnapshotReader(getDatabase()).read(actor, 'student');

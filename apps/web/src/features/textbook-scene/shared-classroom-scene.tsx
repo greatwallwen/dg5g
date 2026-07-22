@@ -6,6 +6,7 @@ import { Icon } from '@/ui/foundation/icons';
 import type { LessonPhase } from '@/platform/models';
 import { SceneVisual } from './learning-scene';
 import { P01N02LessonStage } from './p01-n02-lesson-stage';
+import { classroomTeachingPageAt, classroomTeachingPagesForNode } from './classroom-lesson-model';
 
 export type ClassroomSceneSurface = 'teacher' | 'student' | 'projector';
 
@@ -51,11 +52,23 @@ export function SharedClassroomScene({
       />
     );
   }
+  const teachingPages = classroomTeachingPagesForNode(unit.capabilityNodeId);
+  const activeIndex = Math.max(0, Math.min(
+    teachingPages.length - 1,
+    Math.trunc(actionIndex ?? pageIndex - 1),
+  ));
+  const teachingPage = classroomTeachingPageAt(unit.capabilityNodeId, activeIndex);
   return (
-    <article className={`shared-classroom-scene is-${surface}`} data-shared-classroom-scene={unit.capabilityNodeId} data-scene-role={surface}>
+    <article className={`shared-classroom-scene is-${surface}`} data-shared-classroom-scene={unit.capabilityNodeId} data-scene-role={surface} data-teaching-page={teachingPage.id}>
       <header>
-        <div><span>{profile.taskId} · {unit.capabilityNodeId}</span><h1>{unit.title}</h1><p>{unit.question}</p></div>
-        <strong><small>任务节点</small>{Math.max(1, profile.units.findIndex((item) => item.capabilityNodeId === unit.capabilityNodeId) + 1)} / {profile.units.length}</strong>
+        <div><span>{profile.taskId} · {unit.capabilityNodeId} · 第{teachingPage.lessonNumber}课时</span><h1>{teachingPage.title}</h1><p>{teachingPage.projectorContent.material}</p></div>
+        <div className="shared-classroom-page-meta">
+          <strong><small>授课包页 {activeIndex + 1} / {teachingPages.length}</small>{teachingPage.suggestedMinutes} 分钟</strong>
+          {surface === 'teacher' && onTeachingPageChange ? <nav aria-label="教师授课包翻页" className="shared-classroom-page-controls">
+            <button data-session-action="previous-teaching-page" disabled={teachingPageControlsDisabled || activeIndex === 0} onClick={() => onTeachingPageChange(activeIndex - 1)} type="button">← 上一页</button>
+            <button data-session-action="next-teaching-page" disabled={teachingPageControlsDisabled || activeIndex === teachingPages.length - 1} onClick={() => onTeachingPageChange(activeIndex + 1)} type="button">下一页 →</button>
+          </nav> : null}
+        </div>
       </header>
       <div className="shared-classroom-visual">
         {unit.capabilityNodeId === 'P1T1-N01'
@@ -63,12 +76,12 @@ export function SharedClassroomScene({
           : <SceneVisual activeStep={Math.min(3, Math.max(0, pageIndex - 1))} visualId={unit.visualId} />}
       </div>
       <section className="shared-classroom-focus">
-        <div><span>本页判断</span><strong>{unit.summary}</strong></div>
-        <ol>{unit.points.map((point, index) => <li key={point}><span>{index + 1}</span>{point}</li>)}</ol>
+        <div><span>{teachingPage.projectorContent.title}</span><strong>{teachingPage.projectorContent.prompt}</strong></div>
+        <ol>{teachingPage.projectorContent.visualCallouts.map((point, index) => <li key={point}><span>{index + 1}</span>{point}</li>)}</ol>
       </section>
       <footer>
-        <div><Icon name="message" size={18} /><span><small>当前问题</small><strong>{unit.question}</strong></span></div>
-        <div><Icon name="file" size={18} /><span><small>学习成果</small><strong>{unit.output}</strong></span></div>
+        <div><Icon name="message" size={18} /><span><small>课堂任务</small><strong>{teachingPage.projectorContent.prompt}</strong></span></div>
+        <div><Icon name="file" size={18} /><span><small>学生动作</small><strong>{teachingPage.studentAction}</strong></span></div>
       </footer>
     </article>
   );

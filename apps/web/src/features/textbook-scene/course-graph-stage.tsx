@@ -33,19 +33,19 @@ type CourseGraphStageProps = {
 };
 
 export function CourseGraphStage(p: CourseGraphStageProps) {
-  function chooseWhenOpen(access: NodeAccessProjection, choose: () => void) {
-    if (access.disabled) return;
+  function chooseWhenNavigable(access: NodeAccessProjection, choose: () => void) {
+    if (!access.canNavigate) return;
     choose();
   }
 
   function selectNode(nodeId: string, action: CourseGraphNodeAction) {
     const access = projectNodeAccess(nodeId, p.progress);
-    chooseWhenOpen(access, () => p.onNodeSelect(nodeId, action));
+    chooseWhenNavigable(access, () => p.onNodeSelect(nodeId, action));
   }
 
   function selectTask(taskId: P1TaskId) {
     const access = projectTaskAccess(taskId, p.progress);
-    chooseWhenOpen(access, () => p.onTaskSelect(taskId));
+    chooseWhenNavigable(access, () => p.onTaskSelect(taskId));
   }
 
   return <SemanticCourseGraph

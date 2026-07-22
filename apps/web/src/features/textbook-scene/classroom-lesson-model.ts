@@ -1,4 +1,15 @@
 import type { LessonPhase } from '@/platform/models';
+import { sessionProfiles } from '@/platform/fixtures/session-profiles';
+import {
+  p01TeachingPackage,
+  teachingPageAt,
+  type P01TeachingLesson,
+  type P01TeachingPage,
+} from './p01-teaching-package.ts';
+import {
+  classroomTeachingGuides,
+  type ClassroomTeachingGuide,
+} from './classroom-teaching-guides.ts';
 
 export type LessonSegmentId =
   | 'learning-case'
@@ -100,9 +111,71 @@ export function phaseLabel(phase: LessonPhase | undefined): string {
   return labels[phase ?? 'prepare'];
 }
 
+const genericPageSegments: readonly LessonSegmentId[] = [
+  'learning-case',
+  'learning-visual',
+  'learning-procedure',
+  'learning-correction',
+  'learning-output',
+];
+
+const genericPageMinutes = [6, 9, 10, 10, 10] as const;
+
+type SessionProfile = {
+  slides: readonly (readonly [title: string, subtitle: string, focus: string])[];
+};
+
+export function classroomTeachingPagesForNode(nodeId: string): P01TeachingPage[] {
+  if (nodeId === 'P1T1-N02') return p01TeachingPackage.flatMap(({ pages }) => pages);
+  const profile = (sessionProfiles as Record<string, SessionProfile | undefined>)[nodeId];
+  const guide = (classroomTeachingGuides as Record<string, ClassroomTeachingGuide | undefined>)[nodeId];
+  if (!profile || !guide) return [];
+  return profile.slides.map(([title, subtitle, focus], index) => {
+    const nextTitle = profile.slides[index + 1]?.[0];
+    const pageNumber = index + 1;
+    return {
+      id: `${nodeId}-S${String(pageNumber).padStart(2, '0')}`,
+      lessonNumber: 1,
+      pageNumber,
+      globalPageNumber: pageNumber,
+      suggestedMinutes: genericPageMinutes[index] ?? 9,
+      segmentId: genericPageSegments[index] ?? 'learning-output',
+      title,
+      projectorContent: {
+        title,
+        material: `${subtitle}。${focus}`,
+        visualCallouts: [subtitle, focus],
+        prompt: `请从当前材料中指出能够证明“${subtitle}”的依据；不能证明的部分怎样登记？`,
+      },
+      teacherExplanation: `${guide.context}本页讲“${title}”：${focus}${guide.teachingMove}投屏中的检查线索是“${subtitle}”，讲完要让学生说出本页能确认到哪一步。`,
+      caseQuestion: `围绕“${title}”，${guide.caseQuestion}请结合“${subtitle}”作答。`,
+      typicalAnswer: `“${title}”应这样处理：${guide.answerRule}本页的具体依据是“${subtitle}”。${focus}`,
+      commonErrors: [
+        `讲到“${title}”时，${guide.commonErrors[0]}`,
+        guide.commonErrors[1],
+      ],
+      followUpPrompts: [
+        `“${subtitle}”已经包含哪些${guide.evidenceLabel}，还缺哪一项？`,
+        `${guide.followUp}请结合“${title}”说明。`,
+      ],
+      studentAction: `完成“${title}”：${guide.studentAction}以“${subtitle}”为本页检查条件。`,
+      transition: nextTitle
+        ? `完成“${title}”的记录后，转到“${nextTitle}”，继续完成${guide.closing}。`
+        : `五页讲解结束。请回到完整自学完成练习与记录，最终${guide.closing}。`,
+    };
+  });
+}
+
+export function classroomTeachingPageAt(nodeId: string, pageIndex: number | undefined): P01TeachingPage {
+  const pages = classroomTeachingPagesForNode(nodeId);
+  if (pages.length === 0) throw new Error(`No classroom teaching package for ${nodeId}`);
+  const index = Math.max(0, Math.min(pages.length - 1, Math.trunc(pageIndex ?? 0)));
+  return pages[index]!;
+}
+
 export {
   p01TeachingPackage,
   teachingPageAt,
   type P01TeachingLesson,
   type P01TeachingPage,
-} from './p01-teaching-package.ts';
+};

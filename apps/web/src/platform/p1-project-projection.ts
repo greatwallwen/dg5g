@@ -96,7 +96,7 @@ export function projectP1Project(
         title: definition.title,
         goal: definition.goal,
         state: snapshot.state,
-        ...(snapshot.state === 'locked' ? {} : { href: `/learn/${definition.id}` }),
+        href: `/learn/${definition.id}`,
       };
     });
     const outputNode = requiredNode(nodesById, task.nodes[3].id);

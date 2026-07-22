@@ -1,5 +1,4 @@
 'use client';
-
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
@@ -22,8 +21,7 @@ import { playbackSceneForLearningUnit } from './learning-playback';
 import { LearningScene } from './learning-scene';
 import { classifyCompletedLearningNode } from './textbook-scene-policy';
 import { profileForTask, SceneContext, SceneRail, UnavailableNodeNotice } from './textbook-scene-support';
-import { selfStudySectionDefinitions } from './self-study-types';
-import type { SelfStudyDocument } from './self-study-types';
+import { selfStudySectionDefinitions, type SelfStudyDocument } from './self-study-types';
 import type { TextbookSceneShellProps } from './textbook-scene-shell-types';
 import { fetchStudentLearningCut, syncLearningUrl } from './textbook-scene-client';
 type DemoTaskId = P1TaskId;
@@ -69,12 +67,10 @@ function SupportedTextbookSceneShell({ displayName, focusedActivityId, graph, in
     if (!node || !task) throw new Error(`Missing graph binding for ${selectedNodeId} in ${taskId}`);
     return skillGameForNode(node, task);
   }, [graph.nodes, graph.tasks, selectedNodeId, taskId]);
-
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
     if (reduced.matches) setMotionEnabled(false);
   }, []);
-
   useEffect(() => {
     if (!autoFocus || initialMode !== 'course-map') return;
     autoFocusTimer.current = window.setTimeout(() => {
@@ -84,14 +80,12 @@ function SupportedTextbookSceneShell({ displayName, focusedActivityId, graph, in
     }, 2500);
     return cancelAutoFocus;
   }, [autoFocus, initialMode]);
-
   useEffect(() => {
     if (mode !== 'challenge') return;
     const pollProgress = () => fetchStudentLearningCut(sessionId).then(setSnapshot).catch(() => undefined);
     const timer = window.setInterval(pollProgress, 5000);
     return () => window.clearInterval(timer);
   }, [mode, sessionId]);
-
   useLayoutEffect(() => {
     if (contextOpen || !restoreContextFocusRef.current) return;
     restoreContextFocusRef.current = false;
@@ -106,21 +100,30 @@ function SupportedTextbookSceneShell({ displayName, focusedActivityId, graph, in
   function chooseTask(nextTaskId: DemoTaskId) {
     cancelAutoFocus();
     const access = projectTaskAccess(nextTaskId, snapshot.progress);
-    if (access.disabled) return;
+    if (!access.canNavigate) return;
     const nextProfile = profileForTask(profiles, nextTaskId);
     if (!nextProfile) {
       setUnavailableNodeId(`${nextTaskId}-profile`);
       return;
     }
+    const firstNodeId = nextProfile.units[0].capabilityNodeId;
+    if (access.kind === 'locked') {
+      router.push(`/learn/${firstNodeId}`);
+      return;
+    }
     setTaskId(nextTaskId);
-    setSelectedNodeId(nextProfile.units[0].capabilityNodeId);
+    setSelectedNodeId(firstNodeId);
     setMode('task-map');
   }
 
   function chooseNode(nodeId: string, accessProgress = snapshot.progress) {
     cancelAutoFocus();
     const access = projectNodeAccess(nodeId, accessProgress);
-    if (access.disabled) return;
+    if (!access.canNavigate) return;
+    if (access.kind === 'locked') {
+      router.push(`/learn/${nodeId}`);
+      return;
+    }
     const destination = classifyCompletedLearningNode(nodeId);
     const nextProfile = getDemoTaskProfileForNode(nodeId, profiles);
     if (destination.kind === 'unavailable' || !nextProfile || nextProfile.taskId !== destination.taskId) {

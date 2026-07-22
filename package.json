@@ -87,6 +87,7 @@
     "audit:web:remote": "node scripts/audit-web-remote.mjs",
     "audit:class-session-sync": "node scripts/audit-class-session-sync.mjs",
     "audit:class-session-cross-context": "node scripts/audit-class-session-cross-context.mjs",
+    "audit:teaching-package-navigation": "node scripts/audit-teaching-package-navigation.mjs",
     "audit:p1-three-terminal-consistency": "node scripts/audit-p1-three-terminal-consistency.mjs",
     "audit:self-study-closure": "node scripts/audit-self-study-closure.mjs",
     "audit:p0-phase1-truth-closure": "node scripts/audit-p0-phase1-truth-closure.mjs",

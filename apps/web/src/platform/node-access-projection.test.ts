@@ -18,6 +18,7 @@ test('future course outline uses an explicit non-clickable publication projectio
     kind: 'unavailable',
     label: '后续开放',
     disabled: true,
+    canNavigate: false,
     prerequisiteNodeIds: [],
   });
 });
@@ -28,6 +29,7 @@ test('missing node progress is never interpreted as an available node', () => {
     kind: 'loading',
     label: '正在读取学习状态',
     disabled: true,
+    canNavigate: false,
     prerequisiteNodeIds: ['P1T1-N04'],
   });
   assert.deepEqual(projectNodeAccess('P1T2-N01', []), {
@@ -35,6 +37,7 @@ test('missing node progress is never interpreted as an available node', () => {
     kind: 'unavailable',
     label: '学习状态不可用',
     disabled: true,
+    canNavigate: false,
     prerequisiteNodeIds: ['P1T1-N04'],
   });
 });
@@ -51,6 +54,7 @@ test('P02 and P03 entries stay disabled until their upstream projected facts unl
     kind: 'open',
     label: '可学习',
     disabled: false,
+    canNavigate: true,
     prerequisiteNodeIds: [],
     state: 'available',
   });
@@ -59,6 +63,7 @@ test('P02 and P03 entries stay disabled until their upstream projected facts unl
     assert.equal(access.kind, 'locked');
     assert.equal(access.label, '未解锁');
     assert.equal(access.disabled, true);
+    assert.equal(access.canNavigate, true);
     assert.equal(access.state, 'locked');
   }
 });

@@ -44,7 +44,7 @@ export function TeacherConsoleView(p: TeacherConsoleViewProps) {
       data-motion={p.playbackOpen ? 'active' : 'paused'}
       data-primary-action-policy="exactly-one"
       data-ui-surface="dark"
-      data-slide-index={p.unitIndex + 1}
+      data-slide-index={p.teachingPage?.globalPageNumber ?? 1}
       data-teacher-control-mode={p.controlMode}
       data-snapshot-version={p.authoritativeFacts.snapshotVersion}
       data-classroom-revision={p.authoritativeFacts.classroomRevision}
@@ -108,7 +108,7 @@ export function TeacherConsoleView(p: TeacherConsoleViewProps) {
               actionIndex={p.session.lessonState?.playback.actionIndex
                 ?? p.session.playbackCursor?.actionIndex}
               onTeachingPageChange={p.changeTeachingPage}
-              pageIndex={p.unitIndex + 1}
+              pageIndex={p.teachingPage?.globalPageNumber ?? 1}
               phase={p.session.lessonState?.phase}
               profile={p.profile}
               surface="teacher"

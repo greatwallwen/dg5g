@@ -6,6 +6,7 @@ import './feature-polish.css';
 import './graphic-system.css';
 import './skill-learning.css';
 import './textbook-scene.css';
+import './node-route-gate.css';
 import './capability-map.css';
 import './auth.css';
 import './digital-textbook-v4.css';

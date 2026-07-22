@@ -1,0 +1,165 @@
+/* Locked and unavailable learning routes: no textbook content is mounted here. */
+.textbook-scene-unavailable.is-node-route-gate {
+  --scene-navy: #061a35;
+  --scene-panel: #0b2444;
+  --scene-line: #2a4666;
+  --scene-line-strong: #3b6287;
+  --scene-cyan: #32d3cf;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: 64px minmax(0, 1fr);
+  color: #ecf5ff;
+  background: var(--scene-navy);
+}
+
+.node-route-gate-topbar {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) auto minmax(260px, 1fr);
+  align-items: center;
+  gap: 20px;
+  border-bottom: 1px solid var(--scene-line);
+  padding: 0 24px;
+  background: #071d39;
+}
+
+.node-route-gate-topbar > strong {
+  color: #dceafb;
+  font-size: 13px;
+}
+
+.node-route-gate-topbar > div { justify-self: end; }
+
+.node-route-gate-stage {
+  display: grid;
+  place-items: center;
+  padding: clamp(24px, 5vw, 72px);
+}
+
+.node-route-gate-card {
+  width: min(760px, 100%);
+  border: 1px solid var(--scene-line-strong);
+  border-radius: 8px;
+  padding: clamp(24px, 4vw, 42px);
+  background: var(--scene-panel);
+  box-shadow: 0 24px 64px rgba(0, 8, 22, .34);
+}
+
+.node-route-gate-heading {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+
+.node-route-gate-heading > span {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #55728f;
+  border-radius: 7px;
+  color: #f2aa4c;
+  background: #102b4d;
+}
+
+.node-route-gate-heading small,
+.node-route-gate-prerequisites > span {
+  color: var(--scene-cyan);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .05em;
+}
+
+.node-route-gate-heading h1 {
+  margin: 6px 0 0;
+  color: #fff;
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.14;
+}
+
+.node-route-gate-copy {
+  margin: 22px 0 0;
+  color: #b9cce2;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.node-route-gate-prerequisites {
+  display: grid;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.node-route-prerequisite {
+  min-height: 72px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--scene-line-strong);
+  border-radius: 7px;
+  padding: 10px 14px;
+  color: #eaf5ff;
+  background: #0a203d;
+}
+
+.node-route-prerequisite > span {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  color: #04152b;
+  background: var(--scene-cyan);
+}
+
+.node-route-prerequisite p {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+
+.node-route-prerequisite small { color: #8fa9c4; font-size: 11px; }
+.node-route-prerequisite strong { font-size: 15px; }
+.node-route-prerequisite em { color: var(--scene-cyan); font-size: 12px; font-style: normal; font-weight: 900; }
+.node-route-prerequisite:hover,
+.node-route-prerequisite:focus-visible { border-color: var(--scene-cyan); background: #0c3152; outline: 2px solid var(--scene-cyan); outline-offset: 2px; }
+
+.node-route-gate-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+  border-top: 1px solid var(--scene-line);
+  padding-top: 20px;
+}
+
+.node-route-gate-actions a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--scene-line-strong);
+  border-radius: 6px;
+  padding: 0 16px;
+  color: #dceafb;
+  background: #102b4d;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.node-route-gate-actions a:hover,
+.node-route-gate-actions a:focus-visible { border-color: var(--scene-cyan); color: #fff; outline: 2px solid var(--scene-cyan); outline-offset: 2px; }
+
+@media (max-width: 700px) {
+  .textbook-scene-unavailable.is-node-route-gate { grid-template-rows: auto minmax(0, 1fr); }
+  .node-route-gate-topbar { min-height: 64px; grid-template-columns: minmax(0, 1fr) auto; padding: 10px 16px; }
+  .node-route-gate-topbar > strong { display: none; }
+  .node-route-gate-stage { place-items: start stretch; padding: 18px 14px 28px; }
+  .node-route-gate-card { padding: 22px 18px; }
+  .node-route-prerequisite { grid-template-columns: 38px minmax(0, 1fr); }
+  .node-route-prerequisite em { grid-column: 2; }
+  .node-route-gate-actions { justify-content: stretch; }
+  .node-route-gate-actions a { width: 100%; }
+}

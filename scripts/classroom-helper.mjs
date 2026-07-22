@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import http from 'node:http';
+import { launchChromium } from './utils/playwright-browser.mjs';
 import {
   helperHealth,
   parseHelperArgs,
@@ -16,8 +17,7 @@ if (process.argv.includes('--help')) {
 
 const config = parseHelperArgs(process.argv.slice(2));
 const helperApiUrl = `${config.baseUrl}/api/class-sessions/${encodeURIComponent(config.sessionId)}/helper`;
-const { chromium } = await import('playwright');
-const browser = await chromium.launch({ headless: config.headless });
+const browser = await launchChromium({ headless: config.headless });
 const clients = new Map();
 let stopping = false;
 

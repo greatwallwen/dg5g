@@ -68,7 +68,7 @@ export function SemanticCourseGraph({
   const selected = nodesById.get(selectedId) ?? graph.curriculumNodes.find((node) => node.nodeId === selectedNodeId);
   const selectedAccess = selected
     ? accessById.get(selected.id)!
-    : { nodeId: selectedNodeId, kind: 'unavailable' as const, label: '学习状态不可用', disabled: true, prerequisiteNodeIds: [] };
+    : { nodeId: selectedNodeId, kind: 'unavailable' as const, label: '学习状态不可用', disabled: true, canNavigate: false, prerequisiteNodeIds: [] };
   const zoomLevel = semanticZoomLevel(transform.k);
   const visibleNodes = useMemo(() => graph.curriculumNodes.filter((node) => {
     if (node.id === selected?.id || pathSet.has(node.id)) return true;
@@ -144,7 +144,7 @@ export function SemanticCourseGraph({
 
   function chooseNode(node: CurriculumGraphNode) {
     const access = accessById.get(node.id);
-    if (!access || access.disabled) return;
+    if (!access || !access.canNavigate) return;
     focusNode(node);
     dispatchCurriculumGraphNode(node, { onNodeSelect, onTaskSelect });
   }
@@ -160,7 +160,7 @@ export function SemanticCourseGraph({
   const detail = selected ? detailForNode(selected, selectedAccess, graph, progress, taskProgress, heatmap, projectCompositeScore) : null;
   return (
     <section className={`semantic-graph-shell is-${mode} is-${actorMode}`} data-graph-density={mode}
-      data-primary-action-policy={detail && (detail.node.nodeId || detail.node.taskId) && !selectedAccess.disabled ? 'exactly-one' : 'none'}
+      data-primary-action-policy={detail && (detail.node.nodeId || detail.node.taskId) && selectedAccess.canNavigate ? 'exactly-one' : 'none'}
       data-semantic-course-graph data-motion={motionState} ref={shellRef}>
       <aside className="graph-mode-rail" aria-label="图谱视图">
         <strong>课程能力图谱</strong>
@@ -221,7 +221,7 @@ export function SemanticCourseGraph({
           <header><span>{graphKindLabel[detail.node.kind]}</span><h2>{detail.title}</h2><small>{detail.node.id}</small></header>
           <dl>{detail.rows.map((row) => <div key={row.label}><dt>{row.label}</dt><dd>{row.value}</dd></div>)}</dl>
           <div className="graph-detail-score"><span>当前状态</span><strong>{detail.status}</strong><i><b style={{ width: `${detail.percent}%` }} /></i></div>
-          {(detail.node.nodeId || detail.node.taskId) ? <button data-primary-action={selectedAccess.disabled ? undefined : ''} disabled={selectedAccess.disabled} onClick={() => { if (!selectedAccess.disabled) chooseNode(detail.node); }} title={selectedAccess.label} type="button">{actorMode === 'teacher' ? '进入授课' : detail.node.action === 'formal-test' ? '进入正式测试' : '继续学习'}<Icon name="arrow" size={18} /></button> : null}
+          {(detail.node.nodeId || detail.node.taskId) ? <button data-primary-action={selectedAccess.canNavigate ? '' : undefined} disabled={!selectedAccess.canNavigate} onClick={() => { if (selectedAccess.canNavigate) chooseNode(detail.node); }} title={selectedAccess.label} type="button">{actorMode === 'teacher' ? '进入授课' : selectedAccess.kind === 'locked' ? '查看解锁条件' : detail.node.action === 'formal-test' ? '进入正式测试' : '继续学习'}<Icon name="arrow" size={18} /></button> : null}
         </> : null}
       </aside>
     </section>

@@ -1,4 +1,5 @@
 import { Icon } from '../../ui/foundation/icons.tsx';
+import { studentRecordFieldLabel } from './student-record-field-label.ts';
 import type { SelfStudyDocument } from './self-study-types.ts';
 
 export function CorrectionSection({ document }: { document: SelfStudyDocument }) {
@@ -35,7 +36,7 @@ export function OutputSection({ document }: { document: SelfStudyDocument }) {
         ) : (
           <p>本页用于整理这一节点的学习证据；任务成果表会在 {document.taskId} 的 N04 节点统一填写并提交复核。</p>
         )}
-        <dl>{Object.entries(template).map(([field, value]) => <div key={field}><dt>{field}</dt><dd>{templateValue(value)}</dd></div>)}</dl>
+        <dl>{Object.entries(template).map(([field, value]) => <div key={field}><dt>{studentRecordFieldLabel(field)}</dt><dd>{templateValue(value)}</dd></div>)}</dl>
       </div>
       {content.kind === 'deep' ? (
         <div className="self-study-output-support">

@@ -31,7 +31,7 @@ test('turns the student project projection into a clear current task and next ac
     assert.equal(model.tasks[0].completionStandard, '完成 4 个能力节点，正式测试达到 80 分，提交《室内设备与链路证据表》并通过教师复核。');
     assert.equal(model.tasks[1].stateLabel, '待解锁');
     assert.equal(model.tasks[1].nextAction, undefined);
-    assert.ok(model.tasks[1].nodes.every(({ href }) => href === undefined));
+    assert.ok(model.tasks[1].nodes.every(({ nodeId, href }) => href === `/learn/${nodeId}`));
   } finally {
     fixture.cleanup();
   }

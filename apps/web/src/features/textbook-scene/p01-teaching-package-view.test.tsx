@@ -102,7 +102,7 @@ test('teacher console binds its private teaching inspector to the current comple
   const inspector = source('../classroom/teacher-console-inspector.tsx');
   const view = source('../classroom/teacher-console-view.tsx');
 
-  assert.match(client, /teachingPageAt/);
+  assert.match(client, /classroomTeachingPageAt/);
   assert.match(inspector, /teacherExplanation/);
   assert.match(inspector, /<p><b>讲<\/b><span>\{p\.teachingPage\.teacherExplanation\}<\/span><\/p>/);
   assert.match(inspector, /typicalAnswer/);

@@ -104,7 +104,7 @@ export function GraphNode({ node, selected, current, path, achievement, access, 
   function finishPointer(event: React.PointerEvent<SVGGElement>) {
     const start = pointerStart.current;
     pointerStart.current = undefined;
-    if (!start || access.disabled) return;
+    if (!start || !access.canNavigate) return;
     if (isGraphNodePointerActivation(start, {
       id: event.pointerId,
       x: event.clientX,
@@ -112,12 +112,12 @@ export function GraphNode({ node, selected, current, path, achievement, access, 
     })) onChoose(node);
   }
   function finishSyntheticClick(event: React.MouseEvent<SVGGElement>) {
-    if (!access.disabled && isGraphNodeSyntheticClick(event.detail)) onChoose(node);
+    if (access.canNavigate && isGraphNodeSyntheticClick(event.detail)) onChoose(node);
   }
   return (
     <g
       aria-label={`${graphKindLabel[node.kind]}：${title}`}
-      aria-disabled={access.disabled}
+      aria-disabled={!access.canNavigate}
       className={`curriculum-node is-${node.kind}${selected ? ' is-selected' : ''}${current ? ' is-current' : ''}${path ? ' is-path' : ''} is-${achievement}${access.disabled ? ' is-locked' : ''}`}
       data-graph-node-id={node.id}
       data-graph-node-label={access.label}
@@ -126,9 +126,9 @@ export function GraphNode({ node, selected, current, path, achievement, access, 
       onPointerCancel={() => { pointerStart.current = undefined; }}
       onPointerDownCapture={startPointer}
       onPointerUpCapture={finishPointer}
-      onKeyDown={(event) => { if (!access.disabled && isGraphNodeKeyboardActivation(event.key)) { event.preventDefault(); onChoose(node); } }}
+      onKeyDown={(event) => { if (access.canNavigate && isGraphNodeKeyboardActivation(event.key)) { event.preventDefault(); onChoose(node); } }}
       role="button"
-      tabIndex={access.disabled ? -1 : 0}
+      tabIndex={access.canNavigate ? 0 : -1}
       transform={`translate(${node.x} ${node.y})`}
     >
       {achievement === 'verified' ? <rect className="node-verified-ring" height={node.height + 10} rx="10" width={node.width + 10} x="-5" y="-5" /> : null}
@@ -164,7 +164,7 @@ export function accessForCurriculumNode(
   if (node.nodeId) return projectNodeAccess(node.nodeId, progress);
   if (node.taskId) return projectTaskAccess(node.taskId, progress);
   if (node.projectId) return projectFutureContentAccess(node.id);
-  return { nodeId: node.id, kind: 'open', label: '可查看', disabled: false, prerequisiteNodeIds: [] };
+  return { nodeId: node.id, kind: 'open', label: '可查看', disabled: false, canNavigate: true, prerequisiteNodeIds: [] };
 }
 
 export function taskIdForAchievementNode(node: CurriculumGraphNode): 'P01' | 'P02' | 'P03' | undefined {

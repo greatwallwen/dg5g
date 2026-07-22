@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { SceneVisual } from '../textbook-scene/learning-scene';
-import { teachingPageAt } from '../textbook-scene/classroom-lesson-model';
+import { classroomTeachingPageAt } from '../textbook-scene/classroom-lesson-model';
+import { IndoorScopeClassroomVisual } from '../textbook-scene/shared-classroom-scene';
 import type { ClassroomFollowViewModel, ClassroomStudentScreen } from './classroom-follow-model';
 import { getNodeLearningPolicy } from '@/platform/learning-policy';
 
@@ -19,9 +20,7 @@ export function ClassroomFollowRenderer({ model, onReturn, busy = false }: {
   const formalTestAvailable = model.phase === 'challenge'
     && policy?.requiresFormalTest === true
     && policy.assessmentRole === 'node-test';
-  const teachingPage = model.currentUnit.nodeId === 'P1T1-N02'
-    ? teachingPageAt(model.actionIndex)
-    : undefined;
+  const teachingPage = classroomTeachingPageAt(model.currentUnit.nodeId, model.actionIndex);
   const pageTitle = teachingPage?.title ?? model.currentUnit.title;
   const pageMaterial = teachingPage?.projectorContent.material ?? model.currentUnit.question;
   const pageTask = teachingPage?.projectorContent.prompt ?? model.teacherTask.instruction;
@@ -32,6 +31,7 @@ export function ClassroomFollowRenderer({ model, onReturn, busy = false }: {
         className="classroom-follow-current"
         data-classroom-current-unit={model.currentUnit.nodeId}
         data-playback-action-index={model.actionIndex}
+        data-teaching-page={teachingPage.id}
       >
         <header>
           <span>
@@ -42,7 +42,9 @@ export function ClassroomFollowRenderer({ model, onReturn, busy = false }: {
           <p>{pageMaterial}</p>
         </header>
         <div className="classroom-follow-visual" data-classroom-visual={model.currentUnit.visualId}>
-          <SceneVisual activeStep={Math.min(3, Math.max(0, model.actionIndex % 4))} visualId={model.currentUnit.visualId} />
+          {model.currentUnit.nodeId === 'P1T1-N01'
+            ? <IndoorScopeClassroomVisual />
+            : <SceneVisual activeStep={Math.min(3, Math.max(0, model.actionIndex))} visualId={model.currentUnit.visualId} />}
         </div>
         <p>{pageTask}</p>
       </article>

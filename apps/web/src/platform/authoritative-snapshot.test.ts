@@ -410,6 +410,43 @@ test('classroom lifecycle, participation, and helper availability remain separat
   }
 });
 
+test('classroom helper counts one online student once across multiple devices', () => {
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    const sessions = new ClassroomSessionRepository(fixture.database);
+    sessions.recordHeartbeat('demo-class', {
+      deviceId: 'stu-01-tablet',
+      actorRole: 'student',
+      studentId: 'stu-01',
+      pageState: 'ready',
+      lastAppliedRevision: 0,
+    }, new Date('2026-07-16T01:19:57.000Z'));
+    sessions.recordHeartbeat('demo-class', {
+      deviceId: 'stu-01-browser',
+      actorRole: 'student',
+      studentId: 'stu-01',
+      pageState: 'ready',
+      lastAppliedRevision: 0,
+    }, new Date('2026-07-16T01:19:58.000Z'));
+    sessions.recordHeartbeat('demo-class', {
+      deviceId: 'stu-02-browser',
+      actorRole: 'student',
+      studentId: 'stu-02',
+      pageState: 'ready',
+      lastAppliedRevision: 0,
+    }, new Date('2026-07-16T01:19:59.000Z'));
+
+    const snapshot = new AuthoritativeSnapshotReader(fixture.database)
+      .read(teacherActor(), 'teacher', { now });
+
+    assert.equal(snapshot.helper.onlineStudentDeviceCount, 2);
+  } finally {
+    fixture.cleanup();
+  }
+});
+
 test('teacher snapshot naturally expands from three to twenty-four active members', () => {
   const fixture = createTestDatabase();
   try {

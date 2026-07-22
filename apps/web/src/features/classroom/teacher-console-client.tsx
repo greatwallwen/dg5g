@@ -1,4 +1,5 @@
 'use client';
+import { useRouter } from 'next/navigation';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { TeacherAuthoritativeSnapshot } from '@/platform/authoritative-snapshot';
 import type { ClassSession, PlaybackScene, Task, TeacherSlide } from '@/platform/models';
@@ -12,9 +13,11 @@ import type { DemoTaskProfiles } from '@/features/platform/deep-textbook-demo-da
 import { useAuthoritativeSnapshot } from '@/features/snapshot/authoritative-snapshot-client';
 import { projectTeacherConsoleSnapshot, projectTeacherSkillPulse } from './teacher-console-snapshot-model';
 import { authoritativeDomFacts } from '@/features/snapshot/snapshot-dom-facts';
-import { teachingPageAt } from '@/features/textbook-scene/classroom-lesson-model';
+import { classroomTeachingPageAt } from '@/features/textbook-scene/classroom-lesson-model';
+import { startTeacherLesson } from '@/features/workbench/teacher-start-lesson-client';
 type TeacherInspectorTab = 'script' | 'learning' | 'review';
 export function TeacherConsoleClient({ displayName, slides, initialSession, initialSnapshot, task, playback, profiles }: { displayName: string; slides: TeacherSlide[]; initialSession: ClassSession; initialSnapshot: TeacherAuthoritativeSnapshot; task: Task; playback: PlaybackScene; profiles: DemoTaskProfiles }) {
+  const router = useRouter();
   const [session, update, connection, submitIntent] = useClassSession(initialSession, { role: 'teacher' });
   const snapshot = useAuthoritativeSnapshot(initialSnapshot, 'teacher', initialSession.sessionId);
   const inspectorButtonRef = useRef<HTMLButtonElement>(null);
@@ -22,15 +25,19 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
   const [inspectorOpen, setInspectorOpen] = useState(true);
   const [inspectorTab, setInspectorTab] = useState<TeacherInspectorTab>('script');
   const [playbackOpen, setPlaybackOpen] = useState(false);
+  const [lessonNavigationPending, setLessonNavigationPending] = useState(false);
+  const [lessonNavigationMessage, setLessonNavigationMessage] = useState('');
   const initialNodeId = slides[0]?.nodeId ?? initialSession.activeNodeId ?? 'P1T1-N01';
   const activeNodeId = session.activeNodeId ?? initialNodeId;
   const activePolicy = getNodeLearningPolicy(activeNodeId);
   const profile = profileForNodeId(activeNodeId, profiles);
   const unitIndex = Math.max(0, profile.units.findIndex((unit) => unit.capabilityNodeId === activeNodeId));
   const unit = profile.units[unitIndex] ?? profile.units[0];
-  const teachingPage = unit.capabilityNodeId === 'P1T1-N02'
-    ? teachingPageAt(session.lessonState?.playback.actionIndex)
-    : undefined;
+  const classroomUnitId = session.activeUnitId ?? `${profile.taskId}-ku-${unit.capabilityNodeId.slice(-2)}`;
+  const teachingPage = classroomTeachingPageAt(
+    unit.capabilityNodeId,
+    session.lessonState?.playback.actionIndex ?? session.playbackCursor?.actionIndex,
+  );
   const snapshotModel = projectTeacherConsoleSnapshot(snapshot, session.studentSyncState);
   const rosterStats = snapshotModel.rosterStats;
   const controlMode = snapshotModel.controlMode;
@@ -89,21 +96,32 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
     `纠正常见错误：${unit.counterexample}`,
   ], [unit]);
   const activePlayback = useMemo(() => ({ ...playbackSceneForLearningUnit(unit, profile.taskId), presenterId: playback.presenterId }), [playback.presenterId, profile.taskId, unit]);
-  function go(index: number) {
-    if (!helperReady) return;
+  async function go(index: number) {
+    if (!helperReady || lessonNavigationPending) return;
     const nextIndex = Math.max(0, Math.min(profile.units.length - 1, index));
     const next = profile.units[nextIndex];
-    const slideId = `${session.sessionId}-S0${nextIndex + 1}`;
-    update({
-      currentPageId: 'P1-TEACH-CONSOLE-N01',
-      teacherSlideIndex: nextIndex + 1,
-      teacherSlideId: slideId,
-      currentSlideId: slideId,
-      sceneMode: 'learning',
-      activeTaskId: profile.taskId,
-      activeNodeId: next.capabilityNodeId,
-      activeUnitId: next.id,
-    });
+    if (!next || next.capabilityNodeId === activeNodeId) return;
+    setLessonNavigationPending(true);
+    setLessonNavigationMessage('');
+    try {
+      const result = await startTeacherLesson({
+        sessionId: session.sessionId,
+        nodeId: next.capabilityNodeId,
+        expectedRevision: session.lessonState?.revision ?? 0,
+        navigate: (href) => {
+          router.replace(href);
+          router.refresh();
+        },
+      });
+      if (result.status === 'conflict') {
+        setLessonNavigationMessage('课堂状态已刷新，请再选择一次授课节点。');
+        router.refresh();
+      }
+    } catch (error) {
+      setLessonNavigationMessage(error instanceof Error ? error.message : '授课节点切换失败，请重试。');
+    } finally {
+      setLessonNavigationPending(false);
+    }
   }
   async function changeTeachingPage(pageIndex: number) {
     if (!helperReady) return;
@@ -116,22 +134,22 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
       sceneMode: 'learning',
       activeTaskId: profile.taskId,
       activeNodeId: unit.capabilityNodeId,
-      activeUnitId: unit.id,
+      activeUnitId: classroomUnitId,
       activityState: 'pushed',
       studentSyncState: 'requested',
-      syncRequestId: `${unit.id}-${Date.now()}`,
+      syncRequestId: `${classroomUnitId}-${Date.now()}`,
     });
     await submitIntent({ type: 'playback_seeked', positionMs: session.lessonState?.playback.positionMs ?? 0 });
   }
   async function forceFollow() {
     if (!helperReady) return;
-    const syncRequestId = `${unit.id}-force-${Date.now()}`;
+    const syncRequestId = `${classroomUnitId}-force-${Date.now()}`;
     update({
       currentPageId: 'P1-STUDENT-FOLLOW-N01',
       sceneMode: 'learning',
       activeTaskId: profile.taskId,
       activeNodeId: unit.capabilityNodeId,
-      activeUnitId: unit.id,
+      activeUnitId: classroomUnitId,
       activityState: 'pushed',
       studentMode: 'follow',
       studentSyncState: 'forced',
@@ -140,7 +158,7 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
     await submitIntent({ type: 'playback_seeked', positionMs: session.lessonState?.playback.positionMs ?? 0 });
   }
   function releaseFollowLock() {
-    update({ studentMode: 'follow', studentSyncState: 'idle', syncRequestId: `${unit.id}-release-${Date.now()}` });
+    update({ studentMode: 'follow', studentSyncState: 'idle', syncRequestId: `${classroomUnitId}-release-${Date.now()}` });
   }
   async function startFormalTest() {
     if (!helperReady || !activePolicy?.requiresFormalTest) return;
@@ -214,6 +232,6 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
     forceFollow={forceFollow}
     releaseFollowLock={releaseFollowLock}
     beginReview={beginReview}
-    verificationMessage=""
+    verificationMessage={lessonNavigationMessage}
   /></TeacherSkillPulseProvider>;
 }

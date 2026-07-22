@@ -48,6 +48,7 @@ try {
   report.cursors.beforeClassroomMutation = await saveAndReadTwoCursors(contexts.studentSelf);
   await refreshAuditHelper(contexts.teacher);
   report.classroom.pageSynchronization = await auditPageSynchronization({
+    teacher: contexts.teacher,
     projector: contexts.projector,
     studentFollow: contexts.studentFollow,
     studentSelf: contexts.studentSelf,
@@ -116,71 +117,211 @@ async function ensureClassroomActive(context) {
   };
 }
 
-async function auditPageSynchronization({ projector, studentFollow, studentSelf }) {
+async function auditPageSynchronization({ teacher, projector, studentFollow, studentSelf }) {
+  const teacherPage = await teacher.newPage();
   const [projectorPage, followPage, selfPage] = await Promise.all([
     projector.newPage(),
     studentFollow.newPage(),
     studentSelf.newPage(),
   ]);
+  const diagnostics = [];
+  for (const [role, page] of [
+    ['teacher', teacherPage],
+    ['projector', projectorPage],
+    ['student-follow', followPage],
+    ['student-self', selfPage],
+  ]) attachPageDiagnostics(page, role, diagnostics);
   try {
     await Promise.all([
+      teacherPage.goto(url(`/teacher/sessions/${sessionId}`), { waitUntil: 'networkidle' }),
       projectorPage.goto(url(`/present/${sessionId}`), { waitUntil: 'networkidle' }),
       followPage.goto(url(`/classroom/${sessionId}`), { waitUntil: 'networkidle' }),
       selfPage.goto(url(`/classroom/${sessionId}`), { waitUntil: 'networkidle' }),
     ]);
+    const teacherRoot = teacherPage.locator('.teacher-console').first();
     const projectorRoot = projectorPage.locator('.projector-app').first();
     const followRoot = followPage.locator('.follow-app[data-student-mode="follow"]').first();
     const selfRoot = selfPage.locator('.follow-app[data-student-mode="self"]').first();
     await Promise.all([
+      teacherRoot.waitFor({ state: 'visible', timeout: 15_000 }),
       projectorRoot.waitFor({ state: 'visible', timeout: 15_000 }),
       followRoot.waitFor({ state: 'visible', timeout: 15_000 }),
       selfRoot.waitFor({ state: 'visible', timeout: 15_000 }),
     ]);
 
-    const before = await readTeacherSession(projector);
-    assert(before.lessonState.activeNodeId === 'P1T1-N02', 'cross-context page audit requires the P1T1-N02 reference lesson');
-    const beforeRevision = before.lessonState.revision;
-    const beforePageIndex = before.lessonState.playback.actionIndex;
-    const targetPageIndex = beforePageIndex < 11 ? beforePageIndex + 1 : beforePageIndex - 1;
-    const action = targetPageIndex > beforePageIndex ? 'next-page' : 'previous-page';
-    const control = projectorPage.locator(`[data-session-action="${action}"]`).first();
-    await control.waitFor({ state: 'visible', timeout: 15_000 });
-    assert(await control.isEnabled(), `projector ${action} control is disabled with a live helper`);
-    await control.click();
-
-    await projectorPage.waitForFunction(
-      (pageIndex) => Number(document.querySelector('.scene-projector-topbar')?.getAttribute('data-slide-index')) === pageIndex + 1,
-      targetPageIndex,
-      { timeout: 15_000 },
-    );
-    await followPage.waitForFunction(
-      (revision) => Number(document.querySelector('.follow-app')?.getAttribute('data-classroom-revision')) === revision,
-      beforeRevision + 1,
-      { timeout: 20_000 },
-    );
-    await selfPage.waitForFunction(
-      (revision) => Number(document.querySelector('.classroom-self-status')?.getAttribute('data-teacher-revision')) === revision,
-      beforeRevision + 1,
-      { timeout: 25_000 },
-    );
-
-    const after = await readTeacherSession(projector);
-    assert(after.lessonState.revision === beforeRevision + 1, 'projector page intent did not advance exactly one server revision');
-    assert(after.lessonState.playback.actionIndex === targetPageIndex, 'projector page intent did not persist the target page');
-    assert(after.lessonState.playback.actionId === `P1T1-N02-S${String(targetPageIndex + 1).padStart(2, '0')}`, 'projector page intent left a stale action identity');
+    const before = await readTeacherSession(teacher);
+    const originPageIndex = before.lessonState.playback.actionIndex;
+    let current = before;
+    let direction = 1;
+    const transitions = [];
+    for (let operation = 1; operation <= 10; operation += 1) {
+      if (operation === 1 || operation === 6) await refreshAuditHelper(teacher);
+      await teacherPage.locator('[data-helper-state="online"]').waitFor({ state: 'visible', timeout: 15_000 });
+      const previous = teacherPage.locator('[data-session-action="previous-teaching-page"]').first();
+      const next = teacherPage.locator('[data-session-action="next-teaching-page"]').first();
+      await Promise.all([
+        previous.waitFor({ state: 'visible', timeout: 15_000 }),
+        next.waitFor({ state: 'visible', timeout: 15_000 }),
+      ]);
+      if (direction > 0 && !await next.isEnabled()) direction = -1;
+      if (direction < 0 && !await previous.isEnabled()) direction = 1;
+      const control = direction > 0 ? next : previous;
+      assert(await control.isEnabled(), `teacher page control is disabled at operation ${operation}`);
+      const targetPageIndex = current.lessonState.playback.actionIndex + direction;
+      const expectedRevision = current.lessonState.revision + 1;
+      await control.click();
+      current = await waitForTeacherPosition(teacher, expectedRevision, targetPageIndex);
+      await waitForTeacherFrame(teacherPage, expectedRevision, targetPageIndex);
+      const expectedPageId = await teacherRoot.getAttribute('data-teaching-page');
+      assert(expectedPageId, `teacher did not expose a teaching page at operation ${operation}`);
+      await Promise.all([
+        waitForTeachingFrame(projectorPage, 'projector', expectedRevision, expectedPageId),
+        waitForTeachingFrame(followPage, 'student-follow', expectedRevision, expectedPageId),
+        selfPage.waitForFunction(
+          (revision) => Number(document.querySelector('.classroom-self-status')?.getAttribute('data-teacher-revision')) === revision,
+          expectedRevision,
+          { timeout: 25_000 },
+        ),
+      ]);
+      const [teacherFrame, projectorFrame, followFrame] = await Promise.all([
+        readPublicTeachingFrame(teacherPage, 'teacher'),
+        readPublicTeachingFrame(projectorPage, 'projector'),
+        readPublicTeachingFrame(followPage, 'student-follow'),
+      ]);
+      assertDeepEqual(projectorFrame, teacherFrame, `projector content diverged at operation ${operation}`);
+      assertDeepEqual(followFrame, teacherFrame, `student follow content diverged at operation ${operation}`);
+      transitions.push({
+        operation,
+        revision: expectedRevision,
+        nodeId: current.lessonState.activeNodeId,
+        pageIndex: targetPageIndex,
+        pageId: expectedPageId,
+        serverActionId: current.lessonState.playback.actionId,
+        title: teacherFrame.title,
+      });
+    }
+    const testedFinalPageIndex = current.lessonState.playback.actionIndex;
+    current = await restoreTeachingPage({
+      current,
+      originPageIndex,
+      teacher,
+      teacherPage,
+    });
+    const restoredPageId = await teacherRoot.getAttribute('data-teaching-page');
+    assert(restoredPageId, 'teacher did not expose the restored teaching page');
+    await Promise.all([
+      waitForTeachingFrame(projectorPage, 'projector', current.lessonState.revision, restoredPageId),
+      waitForTeachingFrame(followPage, 'student-follow', current.lessonState.revision, restoredPageId),
+      selfPage.waitForFunction(
+        (revision) => Number(document.querySelector('.classroom-self-status')?.getAttribute('data-teacher-revision')) === revision,
+        current.lessonState.revision,
+        { timeout: 25_000 },
+      ),
+    ]);
+    assert(diagnostics.length === 0, `classroom pages emitted errors: ${JSON.stringify(diagnostics)}`);
     return {
-      action,
-      fromPageIndex: beforePageIndex,
-      toPageIndex: targetPageIndex,
-      fromRevision: beforeRevision,
-      toRevision: after.lessonState.revision,
+      nodeId: before.lessonState.activeNodeId,
+      operations: transitions.length,
+      transitions,
+      fromPageIndex: originPageIndex,
+      testedFinalPageIndex,
+      restoredPageIndex: current.lessonState.playback.actionIndex,
+      fromRevision: before.lessonState.revision,
+      finalRevision: current.lessonState.revision,
       followRevision: Number(await followRoot.getAttribute('data-classroom-revision')),
       selfTeacherRevision: Number(await selfPage.locator('.classroom-self-status').getAttribute('data-teacher-revision')),
       selfCursorPolicy: 'teacher update prompt only; personal cursor unchanged',
     };
   } finally {
-    await Promise.all([projectorPage.close(), followPage.close(), selfPage.close()]);
+    await Promise.all([teacherPage.close(), projectorPage.close(), followPage.close(), selfPage.close()]);
   }
+}
+
+function attachPageDiagnostics(page, role, diagnostics) {
+  page.on('pageerror', (error) => diagnostics.push({ role, kind: 'pageerror', message: error.message }));
+  page.on('console', (message) => {
+    if (message.type() === 'error') diagnostics.push({ role, kind: 'console', message: message.text() });
+  });
+  page.on('response', (response) => {
+    if (response.status() >= 400) diagnostics.push({ role, kind: 'http', status: response.status(), url: response.url() });
+  });
+}
+
+async function waitForTeacherPosition(context, expectedRevision, expectedPageIndex) {
+  const deadline = Date.now() + 15_000;
+  while (Date.now() < deadline) {
+    const session = await readTeacherSession(context);
+    if (session.lessonState.revision === expectedRevision
+      && session.lessonState.playback.actionIndex === expectedPageIndex) return session;
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+  throw new Error(`teacher position did not reach revision ${expectedRevision}, page ${expectedPageIndex}`);
+}
+
+async function waitForTeachingFrame(page, role, revision, pageId) {
+  await page.waitForFunction(({ role: targetRole, revision: targetRevision, pageId: targetPageId }) => {
+    const rootSelector = targetRole === 'projector'
+        ? '.projector-app'
+        : '.follow-app[data-student-mode="follow"]';
+    const root = document.querySelector(rootSelector);
+    const frame = targetRole === 'projector'
+        ? root?.querySelector('[data-teaching-page]')
+        : root?.querySelector('.classroom-follow-current[data-teaching-page]');
+    return Number(root?.getAttribute('data-classroom-revision')) === targetRevision
+      && frame?.getAttribute('data-teaching-page') === targetPageId;
+  }, { role, revision, pageId }, { timeout: 25_000 });
+}
+
+async function waitForTeacherFrame(page, revision, pageIndex) {
+  await page.waitForFunction(({ revision: targetRevision, pageIndex: targetPageIndex }) => {
+    const root = document.querySelector('.teacher-console');
+    return Number(root?.getAttribute('data-classroom-revision')) === targetRevision
+      && Number(root?.getAttribute('data-slide-index')) === targetPageIndex + 1
+      && Boolean(root?.getAttribute('data-teaching-page'));
+  }, { revision, pageIndex }, { timeout: 25_000 });
+}
+
+async function readPublicTeachingFrame(page, role) {
+  return page.evaluate((targetRole) => {
+    if (targetRole === 'student-follow') {
+      const frame = document.querySelector('.classroom-follow-current[data-teaching-page]');
+      return {
+        pageId: frame?.getAttribute('data-teaching-page') ?? '',
+        title: frame?.querySelector('header h1')?.textContent?.trim() ?? '',
+        material: frame?.querySelector('header p')?.textContent?.trim() ?? '',
+        prompt: frame?.querySelector(':scope > p')?.textContent?.trim() ?? '',
+      };
+    }
+    const frame = document.querySelector(targetRole === 'teacher'
+      ? '.teacher-console [data-teaching-page]'
+      : '.projector-app [data-teaching-page]');
+    const n02 = frame?.classList.contains('p01n02-lesson-stage');
+    const privatePanel = targetRole === 'teacher' ? '.p01n02-reading-panel' : '.p01n02-projector-caption';
+    return {
+      pageId: frame?.getAttribute('data-teaching-page') ?? '',
+      title: frame?.querySelector(n02 ? `${privatePanel} ${targetRole === 'teacher' ? 'header strong' : 'strong'}` : ':scope > header h1')?.textContent?.trim() ?? '',
+      material: frame?.querySelector(n02 ? `${privatePanel} > p` : ':scope > header p')?.textContent?.trim() ?? '',
+      prompt: frame?.querySelector(n02 ? `${privatePanel} ${targetRole === 'teacher' ? '.p01n02-reading-check strong' : 'small'}` : '.shared-classroom-focus > div strong')?.textContent?.trim() ?? '',
+    };
+  }, role);
+}
+
+async function restoreTeachingPage({ current, originPageIndex, teacher, teacherPage }) {
+  let session = current;
+  while (session.lessonState.playback.actionIndex !== originPageIndex) {
+    await refreshAuditHelper(teacher);
+    const direction = session.lessonState.playback.actionIndex > originPageIndex ? -1 : 1;
+    const targetPageIndex = session.lessonState.playback.actionIndex + direction;
+    const expectedRevision = session.lessonState.revision + 1;
+    const action = direction > 0 ? 'next-teaching-page' : 'previous-teaching-page';
+    const control = teacherPage.locator(`[data-session-action="${action}"]`).first();
+    await control.waitFor({ state: 'visible', timeout: 15_000 });
+    assert(await control.isEnabled(), `cannot restore classroom page with ${action}`);
+    await control.click();
+    session = await waitForTeacherPosition(teacher, expectedRevision, targetPageIndex);
+    await waitForTeacherFrame(teacherPage, expectedRevision, targetPageIndex);
+  }
+  return session;
 }
 
 async function refreshAuditHelper(context) {

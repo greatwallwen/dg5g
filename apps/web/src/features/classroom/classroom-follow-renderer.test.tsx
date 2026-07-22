@@ -71,6 +71,50 @@ test('renders explicit waiting and submitted activity states', async () => {
   assert.match(submitted, /课堂活动已提交/);
 });
 
+test('non-N02 follow mode renders the teacher selected teaching page instead of one repeated node summary', async () => {
+  const renderer = await loadRenderer();
+  const html = renderToStaticMarkup(createElement(renderer.ClassroomFollowRenderer, {
+    model: {
+      ...followModel,
+      actionIndex: 1,
+      currentUnit: {
+        ...followModel.currentUnit,
+        nodeId: 'P1T1-N01',
+        title: '室内资源边界',
+        visualId: 'indoor-scope-boundary',
+      },
+      classroomActivity: { ...followModel.classroomActivity, nodeId: 'P1T1-N01' },
+    },
+  }));
+
+  assert.match(html, /第1课时 · 第2页/);
+  assert.match(html, /data-teaching-page="P1T1-N01-S02"/);
+  assert.match(html, /入口证据确认现场/);
+  assert.match(html, /任务单与机房入口门牌/);
+  assert.match(html, /data-classroom-scope-map="true"/);
+  assert.doesNotMatch(html, /道路热点|采样路线/);
+});
+
+test('the fifth generic teaching page keeps the visual sequence complete instead of wrapping to step one', async () => {
+  const renderer = await loadRenderer();
+  const html = renderToStaticMarkup(createElement(renderer.ClassroomFollowRenderer, {
+    model: {
+      ...followModel,
+      actionIndex: 4,
+      currentUnit: {
+        ...followModel.currentUnit,
+        nodeId: 'P1T1-N04',
+        title: '资料归档',
+        visualId: 'indoor-evidence',
+      },
+      classroomActivity: { ...followModel.classroomActivity, nodeId: 'P1T1-N04' },
+    },
+  }));
+
+  assert.match(html, /data-teaching-page="P1T1-N04-S05"/);
+  assert.equal((html.match(/<article class="is-active"/g) ?? []).length, 4);
+});
+
 test('live challenge follow renders the independent test CTA and preserves self-study return', async () => {
   const renderer = await loadRenderer();
   const html = renderToStaticMarkup(createElement(renderer.ClassroomFollowRenderer, {

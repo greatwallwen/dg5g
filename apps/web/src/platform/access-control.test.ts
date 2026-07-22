@@ -65,9 +65,11 @@ test('learning authority is derived only from the authenticated actor and class 
 
 test('the real student learning page uses the same actor-scoped SQLite gate before loading graph content', () => {
   const page = readFileSync(new URL('../app/learn/[nodeId]/page.tsx', import.meta.url), 'utf8');
+  const notice = readFileSync(new URL('../features/textbook-scene/textbook-scene-support.tsx', import.meta.url), 'utf8');
 
   assert.match(page, /requireNodeAccess\(actor, params\.nodeId\)/);
-  assert.match(page, /data-node-route-state=/);
+  assert.match(page, /routeState=\{destination\.kind\}/);
+  assert.match(notice, /data-node-route-state=\{routeState\}/);
   assert.doesNotMatch(page, /redirect\(['"]\/learn\/P1T1-N01['"]\)/);
   assert.ok(page.indexOf('requireNodeAccess(actor, params.nodeId)') < page.indexOf('getCapabilityGraph(params.nodeId)'));
 });

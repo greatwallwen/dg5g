@@ -2,12 +2,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-test('SceneRail binds label, disabled state, and clickability to NodeAccessProjection', () => {
+test('SceneRail separates learning access from navigation to prerequisite notices', () => {
   const source = readFileSync(new URL('./textbook-scene-support.tsx', import.meta.url), 'utf8');
 
   assert.match(source, /projectNodeAccess\(unit\.capabilityNodeId, progress\)/);
-  assert.match(source, /disabled=\{access\.disabled\}/);
-  assert.match(source, /<small>\{access\.label\}<\/small>/);
+  assert.match(source, /disabled=\{!access\.canNavigate\}/);
+  assert.match(source, /access\.kind === 'locked'/);
   assert.doesNotMatch(source, /index === 0 \? ['"]available['"]/);
 });
 
@@ -16,13 +16,24 @@ test('unified course graph uses one canonical access DTO for rendering and click
   const graph = readFileSync(new URL('../capability-map/semantic-course-graph.tsx', import.meta.url), 'utf8');
 
   assert.match(stage, /return <SemanticCourseGraph/);
+  assert.match(stage, /if \(!access\.canNavigate\) return;/);
+  assert.doesNotMatch(stage, /if \(access\.disabled\) return;/);
   assert.match(graph, /accessForCurriculumNode\(node, progress\)/);
   assert.match(graph, /const access = accessById\.get\(node\.id\)!/);
   assert.match(graph, /const access = accessById\.get\(node\.id\);/);
-  assert.match(graph, /if \(!access \|\| access\.disabled\) return/);
-  assert.match(graph, /disabled=\{selectedAccess\.disabled\}/);
+  assert.match(graph, /if \(!access \|\| !access\.canNavigate\) return/);
+  assert.match(graph, /disabled=\{!selectedAccess\.canNavigate\}/);
   assert.doesNotMatch(graph, /\.startsWith\(prefix\)/);
   assert.doesNotMatch(graph, /\? ['"]learning['"] : ['"]available['"]/);
+});
+
+test('task selection opens the first prerequisite notice for locked tasks but rejects unavailable tasks', () => {
+  const shell = readFileSync(new URL('./textbook-scene-shell.tsx', import.meta.url), 'utf8');
+
+  assert.match(shell, /const access = projectTaskAccess\(nextTaskId, snapshot\.progress\);/);
+  assert.match(shell, /if \(!access\.canNavigate\) return;/);
+  assert.match(shell, /const firstNodeId = nextProfile\.units\[0\]\.capabilityNodeId;/);
+  assert.match(shell, /if \(access\.kind === 'locked'\) \{[\s\S]*?router\.push\(`\/learn\/\$\{firstNodeId\}`\);[\s\S]*?return;[\s\S]*?\}/);
 });
 
 test('desktop semantic graph uses projected access instead of fixture locked flags', () => {
@@ -31,9 +42,9 @@ test('desktop semantic graph uses projected access instead of fixture locked fla
   const fixtures = readFileSync(new URL('../../platform/fixtures/curriculum-graph-fixtures.ts', import.meta.url), 'utf8');
 
   assert.match(graph, /accessForCurriculumNode\(node, progress\)/);
-  assert.match(graph, /disabled=\{selectedAccess\.disabled\}/);
-  assert.match(elements, /aria-disabled=\{access\.disabled\}/);
-  assert.match(elements, /if \(!access\.disabled/);
+  assert.match(graph, /disabled=\{!selectedAccess\.canNavigate\}/);
+  assert.match(elements, /aria-disabled=\{!access\.canNavigate\}/);
+  assert.match(elements, /if \(access\.canNavigate/);
   assert.doesNotMatch(graph, /\.locked/);
   assert.doesNotMatch(elements, /node\.locked/);
   assert.match(fixtures, /graphNode\('P03',[\s\S]*?\{ taskId: 'P03' \}\)/);

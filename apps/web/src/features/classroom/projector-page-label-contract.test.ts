@@ -13,7 +13,7 @@ test('projector names each independent page counter in learner-facing Chinese', 
 
   assert.match(projector, /授课包页/);
   assert.match(projector, /讲解动作/);
-  assert.match(sharedScene, /任务节点/);
+  assert.match(sharedScene, /授课包页/);
   assert.match(n02Stage, /课时页/);
   assert.match(projector, /data-session-action="previous-page"/);
   assert.match(projector, /data-session-action="next-page"/);

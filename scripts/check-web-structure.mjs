@@ -591,7 +591,7 @@ function checkStudentRailAndCourseAvailabilityContract() {
   }
 
   const elementsText = readFileSync(graphElements, 'utf8');
-  for (const snippet of ['projectNodeAccess', 'projectTaskAccess', 'NodeAccessProjection', 'access.disabled']) {
+  for (const snippet of ['projectNodeAccess', 'projectTaskAccess', 'NodeAccessProjection', 'access.canNavigate']) {
     if (!elementsText.includes(snippet)) fail(`semantic graph must consume canonical node access through ${snippet}`);
   }
   if (elementsText.includes("tasks.find((item) => item.taskId === 'P01')")) {
@@ -1430,8 +1430,8 @@ function checkCanonicalLearningPolicyContract() {
 
   const consumerContracts = [
     [sceneFile, ['projectNodeAccess', 'projectTaskAccess']],
-    [mobileGraphFile, ['projectNodeAccess', 'projectTaskAccess', 'access.disabled']],
-    [desktopGraphFile, ['projectNodeAccess', 'projectTaskAccess', 'NodeAccessProjection', 'access.disabled']],
+    [mobileGraphFile, ['projectNodeAccess', 'projectTaskAccess', 'access.canNavigate']],
+    [desktopGraphFile, ['projectNodeAccess', 'projectTaskAccess', 'NodeAccessProjection', 'access.canNavigate']],
   ];
   for (const [file, snippets] of consumerContracts) {
     const text = readFileSync(file, 'utf8');
@@ -1458,6 +1458,7 @@ function checkCanonicalLearningPolicyContract() {
     ['fixture node.locked authority', /node\.locked/],
     ['prefix-derived task authority', /startsWith\(\s*prefix/],
     ['first-index availability', /index\s*===\s*0[^\n]{0,80}available/],
+    ['disabled navigation gate', /if\s*\([^\n]{0,120}\baccess\.disabled\b/],
   ];
   for (const [file, text] of forbiddenSources) {
     for (const [label, pattern] of forbiddenPatterns) {

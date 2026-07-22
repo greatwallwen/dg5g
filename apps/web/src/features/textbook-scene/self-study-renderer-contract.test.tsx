@@ -167,3 +167,64 @@ test('P1T1-N04 output copy treats the current page as the task result page', () 
   assert.match(html, /当前就是P01的任务成果页/);
   assert.match(html, /填写、保存、提交、退回修订/);
 });
+
+test('all twelve node record templates expose student-facing Chinese field labels', () => {
+  const nodeIds = [
+    'P1T1-N01', 'P1T1-N02', 'P1T1-N03', 'P1T1-N04',
+    'P1T2-N01', 'P1T2-N02', 'P1T2-N03', 'P1T2-N04',
+    'P1T3-N01', 'P1T3-N02', 'P1T3-N03', 'P1T3-N04',
+  ] as const;
+
+  for (const nodeId of nodeIds) {
+    const html = renderToStaticMarkup(
+      <SelfStudyRenderer
+        completed={false}
+        document={requireSelfStudyDocument(nodeId)}
+        onComplete={() => undefined}
+        saving={false}
+      />,
+    );
+    const labels = [...html.matchAll(/<dt>([^<]+)<\/dt>/g)].map((match) => match[1]);
+
+    assert.ok(labels.length > 0, `${nodeId} should render record fields`);
+    assert.ok(labels.every((label) => /[\u3400-\u9fff]/u.test(label)), `${nodeId} leaked an internal field key: ${labels.join(', ')}`);
+  }
+
+  const expectedN02Labels = {
+    'P1T1-N02': ['站点与机房', '位置证据', '设备身份依据', '连接方向依据', '复核结论'],
+    'P1T2-N02': ['扇区标识', '方位角记录', '下倾角记录', '挂高记录', '现场环境', '复核结论'],
+    'P1T3-N02': ['投诉基本信息', '复现条件', '业务侧证据', '网络侧证据', '对照分析', '复核结论'],
+  } as const;
+
+  for (const [nodeId, expectedLabels] of Object.entries(expectedN02Labels)) {
+    const html = renderToStaticMarkup(
+      <SelfStudyRenderer
+        completed={false}
+        document={requireSelfStudyDocument(nodeId)}
+        onComplete={() => undefined}
+        saving={false}
+      />,
+    );
+    for (const label of expectedLabels) assert.match(html, new RegExp(`<dt>${label}</dt>`));
+  }
+});
+
+test('unknown internal record keys use a safe student-facing fallback', () => {
+  const source = requireSelfStudyDocument('P1T1-N01');
+  assert.equal(source.content.kind, 'standard');
+  if (source.content.kind !== 'standard') return;
+
+  const document = {
+    ...source,
+    content: {
+      ...source.content,
+      nodeRecordTemplate: { mysteryInternalField: '待填写' },
+    },
+  };
+  const html = renderToStaticMarkup(
+    <SelfStudyRenderer completed={false} document={document} onComplete={() => undefined} saving={false} />,
+  );
+
+  assert.match(html, /<dt>其他记录项<\/dt>/);
+  assert.doesNotMatch(html, /mysteryInternalField/);
+});

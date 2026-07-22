@@ -26,7 +26,7 @@ test('semantic edges use tested orthogonal routing and auditable endpoint marker
 test('graph nodes retain Enter and Space keyboard activation', () => {
   assert.match(elements, /isGraphNodeKeyboardActivation\(event\.key\)/);
   assert.match(elements, /event\.preventDefault\(\)/);
-  assert.match(elements, /tabIndex=\{access\.disabled \? -1 : 0\}/);
+  assert.match(elements, /tabIndex=\{access\.canNavigate \? 0 : -1\}/);
 });
 
 test('graph nodes distinguish a short pointer activation from D3 graph panning', () => {

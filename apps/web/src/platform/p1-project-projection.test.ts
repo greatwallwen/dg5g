@@ -37,8 +37,8 @@ test('projects the authoritative P01 to P03 chain for each seeded student', () =
 
     assert.equal(studentOne.tasks[1].state, 'locked');
     assert.equal(studentOne.tasks[1].nextNodeId, undefined);
-    assert.ok(studentOne.tasks[1].nodes.every((node) => node.href === undefined));
-    assert.ok(studentOne.tasks[2].nodes.every((node) => node.href === undefined));
+    assert.ok(studentOne.tasks[1].nodes.every((node) => node.href === `/learn/${node.nodeId}`));
+    assert.ok(studentOne.tasks[2].nodes.every((node) => node.href === `/learn/${node.nodeId}`));
     assert.deepEqual(studentOne.tasks[2].nodes.map(({ nodeId }) => nodeId), [
       'P1T3-N01',
       'P1T3-N02',

@@ -8,6 +8,7 @@ export interface NodeAccessProjection {
   kind: NodeAccessKind;
   label: string;
   disabled: boolean;
+  canNavigate: boolean;
   prerequisiteNodeIds: string[];
   state?: NodeLearningState;
 }
@@ -30,20 +31,21 @@ export function projectNodeAccess(
   const policy = getNodeLearningPolicy(nodeId);
   const prerequisiteNodeIds = policy?.prerequisiteNodeIds ?? [];
   if (!policy || policy.publicationStatus !== 'published') {
-    return { nodeId, kind: 'unavailable', label: '内容未开放', disabled: true, prerequisiteNodeIds };
+    return { nodeId, kind: 'unavailable', label: '内容未开放', disabled: true, canNavigate: false, prerequisiteNodeIds };
   }
   if (progress === undefined) {
-    return { nodeId, kind: 'loading', label: '正在读取学习状态', disabled: true, prerequisiteNodeIds };
+    return { nodeId, kind: 'loading', label: '正在读取学习状态', disabled: true, canNavigate: false, prerequisiteNodeIds };
   }
   const record = progress.find((item) => item.nodeId === nodeId);
   if (!record?.learningState) {
-    return { nodeId, kind: 'unavailable', label: '学习状态不可用', disabled: true, prerequisiteNodeIds };
+    return { nodeId, kind: 'unavailable', label: '学习状态不可用', disabled: true, canNavigate: false, prerequisiteNodeIds };
   }
   return {
     nodeId,
     kind: record.learningState === 'locked' ? 'locked' : 'open',
     label: nodeLearningStateLabel[record.learningState],
     disabled: record.learningState === 'locked',
+    canNavigate: true,
     prerequisiteNodeIds,
     state: record.learningState,
   };
@@ -62,6 +64,7 @@ export function projectFutureContentAccess(nodeId: string): NodeAccessProjection
     kind: 'unavailable',
     label: '后续开放',
     disabled: true,
+    canNavigate: false,
     prerequisiteNodeIds: [],
   };
 }

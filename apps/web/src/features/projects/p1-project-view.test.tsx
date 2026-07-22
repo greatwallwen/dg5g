@@ -12,7 +12,7 @@ import { P1ProjectView } from './p1-project-view.tsx';
 
 (globalThis as typeof globalThis & { React: typeof React }).React = React;
 
-test('renders the P1 project chain with stable audit selectors and no locked task links', () => {
+test('renders the P1 project chain with locked links leading to prerequisite notices', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
@@ -45,8 +45,8 @@ test('renders the P1 project chain with stable audit selectors and no locked tas
     assert.match(html, /data-p1-task-detail-summary="P03"/);
     assert.match(html, /href="\/student\/projects\/p1\/portfolio"/);
     assert.match(html, /href="\/learn\/P1T1-N01"/);
-    assert.doesNotMatch(html, /href="\/learn\/P1T2-/);
-    assert.doesNotMatch(html, /href="\/learn\/P1T3-/);
+    assert.match(html, /href="\/learn\/P1T2-N01"/);
+    assert.match(html, /href="\/learn\/P1T3-N04"/);
     assert.match(html, /当前任务/);
     assert.match(html, /下一步/);
     assert.match(html, /完成标准/);
