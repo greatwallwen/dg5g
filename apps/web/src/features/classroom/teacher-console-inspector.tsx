@@ -67,7 +67,7 @@ export function TeacherConsoleInspector({ p }: { p: TeacherConsoleViewProps }) {
       </div>
       <div className="teacher-inspector-panel is-learning" hidden={p.inspectorTab !== 'learning'}>
         <section className="teacher-formal-analytics" data-formal-test-analytics>
-          <span>正式测试学情</span>
+          <span>正式测试学情{p.classScores.demoData ? <small> · 演示数据</small> : null}</span>
           <div className="teacher-score-kpis">
             <div><small>已提交</small><strong>{p.formalAssessment.submittedCount}/{p.formalAssessment.eligibleCount}</strong></div>
             <div><small>节点测试均分</small><strong>{scoreLabel(p.classScores.activeNodeTestAverageScore)}</strong></div>

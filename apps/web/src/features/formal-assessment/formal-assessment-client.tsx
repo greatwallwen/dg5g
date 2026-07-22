@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useState } from 'react';
 import type { FormEvent } from 'react';
 import type {
@@ -8,6 +9,13 @@ import type {
   IssuedAssessmentPaper,
 } from '@/platform/formal-assessment-contract';
 import { FormalAssessmentResult } from './formal-assessment-result';
+
+const conclusionFields = [
+  { field: 'confirmedFact', label: '已确认事实' },
+  { field: 'evidenceGap', label: '证据缺口' },
+  { field: 'risk', label: '业务风险' },
+  { field: 'action', label: '复核动作' },
+] as const;
 
 export function FormalAssessmentClient({ issued }: { issued: IssuedAssessmentPaper }) {
   const [result, setResult] = useState<AssessmentDiagnosis | null>(null);
@@ -51,6 +59,9 @@ export function FormalAssessmentClient({ issued }: { issued: IssuedAssessmentPap
       data-assessment-paper={issued.paper.nodeId}
       onSubmit={submit}
     >
+      <Link className="formal-assessment-back" href={`/learn/${encodeURIComponent(issued.paper.nodeId)}`}>
+        返回节点学习
+      </Link>
       <header>
         <div>
           <span>{issued.paper.nodeId} · 独立正式测试</span>
@@ -109,22 +120,17 @@ export function FormalAssessmentClient({ issued }: { issued: IssuedAssessmentPap
             : null}
           {question.kind === 'structured-conclusion'
             ? <div className="formal-assessment-conclusion">
-              <label>
-                <span>已确认事实</span>
-                <textarea minLength={14} name="professionalConclusion.confirmedFact" required rows={3} />
-              </label>
-              <label>
-                <span>证据缺口</span>
-                <textarea minLength={14} name="professionalConclusion.evidenceGap" required rows={3} />
-              </label>
-              <label>
-                <span>业务风险</span>
-                <textarea minLength={14} name="professionalConclusion.risk" required rows={3} />
-              </label>
-              <label>
-                <span>复核动作</span>
-                <textarea minLength={14} name="professionalConclusion.action" required rows={3} />
-              </label>
+              {conclusionFields.map(({ field, label }) => (
+                <label key={field}>
+                  <span>{label}</span>
+                  <select defaultValue="" name={`professionalConclusion.${field}`} required>
+                    <option value="">请选择符合证据边界的表述</option>
+                    {question.conclusionOptions?.[field].map((option) => (
+                      <option key={option.id} value={option.label}>{option.label}</option>
+                    ))}
+                  </select>
+                </label>
+              ))}
             </div>
             : null}
         </fieldset>
@@ -132,7 +138,7 @@ export function FormalAssessmentClient({ issued }: { issued: IssuedAssessmentPap
 
       {error ? <p className="formal-assessment-error" role="alert">{error}</p> : null}
       <footer>
-        <p>提交后本 token 立即失效；页面不会接收或计算最终分数。</p>
+        <p>提交后不可修改，系统将自动判分并给出分项诊断。</p>
         <button data-primary-action="true" disabled={submitting} type="submit">
           {submitting ? '正在提交并判分' : '提交正式测试'}
         </button>

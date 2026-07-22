@@ -77,10 +77,11 @@ test('teacher console supports Escape close, focus return and a modal inspector 
   assert.match(inspector, /aria-modal="true"/);
 });
 
-test('offline helper entry is a real teacher-only reconnect and recheck page', () => {
+test('helper recovery stays teacher-only and never exposes deployment commands', () => {
   const page = source('../../app/teacher/classroom-helper/page.tsx');
   assert.match(page, /requireClassRole\('teacher'\)/);
   assert.match(page, /data-helper-reconnect-page/);
   assert.match(page, /data-helper-recheck/);
-  assert.match(page, /classroom-helper:start/);
+  assert.match(page, /课堂连接正在恢复/);
+  assert.doesNotMatch(page, /classroom-helper:start|pnpm|--session|--students|DGBook 工程目录/u);
 });

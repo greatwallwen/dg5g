@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": "20.20.2"
+    "node": "24.15.0"
   },
   "description": "DGBook 数字化教材生产工具链",
   "packageManager": "pnpm@9.15.0",

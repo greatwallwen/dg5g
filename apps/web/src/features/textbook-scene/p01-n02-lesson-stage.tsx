@@ -13,10 +13,18 @@ import {
 
 export type LessonStageSurface = 'teacher' | 'student' | 'projector';
 
-export function P01N02LessonStage({ surface, actionIndex = 0, phase = 'prepare' }: {
+export function P01N02LessonStage({
+  surface,
+  actionIndex = 0,
+  phase = 'prepare',
+  onPageChange,
+  controlsDisabled = false,
+}: {
   surface: LessonStageSurface;
   actionIndex?: number;
   phase?: LessonPhase;
+  onPageChange?: (pageIndex: number) => void;
+  controlsDisabled?: boolean;
 }) {
   const teachingPage = teachingPageAt(actionIndex);
   const segment = lessonSegmentAt(p01n02LessonSegments.findIndex(({ id }) => id === teachingPage.segmentId));
@@ -42,9 +50,27 @@ export function P01N02LessonStage({ surface, actionIndex = 0, phase = 'prepare' 
         </div>
         <strong>
           <i />{phaseLabel(phase)}
-          <small>第{teachingPage.lessonNumber}课时 · {teachingPage.pageNumber} / 6 · {teachingPage.suggestedMinutes}分钟</small>
+          <small>第{teachingPage.lessonNumber}课时 · 课时页 {teachingPage.pageNumber} / 6 · {teachingPage.suggestedMinutes}分钟</small>
         </strong>
       </header>
+
+      {surface === 'teacher' && onPageChange ? (
+        <div className="p01n02-teacher-page-controls" aria-label="教师课时翻页">
+          <button
+            data-session-action="previous-teaching-page"
+            disabled={controlsDisabled || activeIndex === 0}
+            onClick={() => onPageChange(activeIndex - 1)}
+            type="button"
+          >← 上一页</button>
+          <strong>{activeIndex + 1} / {teachingPages.length}</strong>
+          <button
+            data-session-action="next-teaching-page"
+            disabled={controlsDisabled || activeIndex === teachingPages.length - 1}
+            onClick={() => onPageChange(activeIndex + 1)}
+            type="button"
+          >下一页 →</button>
+        </div>
+      ) : null}
 
       <nav className="p01n02-segment-track" aria-label="本节教材结构">
         {teachingPages.map((page, index) => (

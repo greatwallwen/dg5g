@@ -74,7 +74,7 @@ export function ProjectorClient({ slides, initialSession, initialSnapshot, task,
           <div className="projector-page-controls">
             <Link data-session-action="back-to-teacher" href={`/teacher/sessions/${initialSession.sessionId}`}>返回教师端</Link>
             <button aria-label="上一页" data-session-action="previous-page" disabled={!helperReady || controlBusy || currentPageIndex === 0} onClick={() => void changePage(currentPageIndex - 1)} type="button">上一页</button>
-            <em>{pageIndex} / {pageCount}</em>
+            <em>授课包页 {pageIndex} / {pageCount}</em>
             <button aria-label="下一页" data-session-action="next-page" disabled={!helperReady || controlBusy || currentPageIndex === pageCount - 1} onClick={() => void changePage(currentPageIndex + 1)} type="button">下一页</button>
             <FullscreenToggle targetRef={rootRef} />
           </div>
@@ -90,7 +90,7 @@ export function ProjectorClient({ slides, initialSession, initialSnapshot, task,
         <footer className="projector-footer scene-projector-footer" data-formal-test-status={formalAssessment.status} data-playback-status={narrationFrame?.status ?? 'idle'} data-projector-control-source="teacher-display" data-projector-narration={narrationFrame?.actionId ?? 'waiting'}>
           <span className="projector-control-note"><i className={session.studentSyncState === 'forced' ? 'is-live' : ''} />教师同步</span>
           <strong>{narrationFrame?.caption ?? (session.reviewState === 'reviewing' ? '课堂讲评中' : `当前活动：${unit.action}`)}</strong>
-          <span className="projector-control-note"><Icon name="play" size={15} /> 播放 {Math.min(playbackIndex, playbackCount)} / {playbackCount}</span>
+          <span className="projector-control-note"><Icon name="play" size={15} /> 讲解动作 {Math.min(playbackIndex, playbackCount)} / {playbackCount}</span>
           <small>{formalAssessment.eligibleCount && formalPassScore !== undefined ? `正式测试 ${formalAssessment.submittedCount}/${formalAssessment.eligibleCount} 已提交 · ≥${formalPassScore}分 ${formalAssessment.passedCount}人` : task.output[0]}</small>
           {!helperReady ? <small className="projector-control-error">课堂助手离线，翻页同步已停用</small> : controlError ? <small className="projector-control-error" role="alert">{controlError}</small> : null}
         </footer>

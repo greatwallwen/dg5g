@@ -17,6 +17,7 @@ import {
 const now = new Date('2026-07-16T01:20:00.000Z');
 
 test('one authoritative transaction yields identical common facts and audience-safe cuts', () => {
+  const restoreHelperMode = setStrictClassroomHelper(false);
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
@@ -40,11 +41,11 @@ test('one authoritative transaction yields identical common facts and audience-s
     assert.equal(student.classroom.sessionId, 'demo-class');
     assert.equal(student.classroom.activeNodeId, 'P1T1-N02');
     assert.deepEqual(student.helper, {
-      status: 'offline',
+      status: 'online',
       observedAt: now.toISOString(),
-      onlineStudentDeviceCount: 0,
+      onlineStudentDeviceCount: 3,
       commandDelivery: { applied: 0, pending: 0, failed: 0 },
-      canPush: false,
+      canPush: true,
     });
 
     assert.equal(student.audience, 'student');
@@ -86,6 +87,30 @@ test('one authoritative transaction yields identical common facts and audience-s
     assertProjectorContainsNoPersonalData(projector);
   } finally {
     fixture.cleanup();
+    restoreHelperMode();
+  }
+});
+
+test('strict helper mode reports an offline demo classroom without a live student heartbeat', () => {
+  const restoreHelperMode = setStrictClassroomHelper(true);
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+
+    const snapshot = new AuthoritativeSnapshotReader(fixture.database)
+      .read(teacherActor(), 'teacher', { now });
+
+    assert.deepEqual(snapshot.helper, {
+      status: 'offline',
+      observedAt: now.toISOString(),
+      onlineStudentDeviceCount: 0,
+      commandDelivery: { applied: 0, pending: 0, failed: 0 },
+      canPush: false,
+    });
+  } finally {
+    fixture.cleanup();
+    restoreHelperMode();
   }
 });
 
@@ -483,6 +508,16 @@ function teacherActor(): AuthenticatedActor {
     displayName: '张老师',
     role: 'teacher',
     classId: 'demo-class',
+  };
+}
+
+function setStrictClassroomHelper(enabled: boolean): () => void {
+  const previous = process.env.DGBOOK_STRICT_CLASSROOM_HELPER;
+  if (enabled) process.env.DGBOOK_STRICT_CLASSROOM_HELPER = '1';
+  else delete process.env.DGBOOK_STRICT_CLASSROOM_HELPER;
+  return () => {
+    if (previous === undefined) delete process.env.DGBOOK_STRICT_CLASSROOM_HELPER;
+    else process.env.DGBOOK_STRICT_CLASSROOM_HELPER = previous;
   };
 }
 

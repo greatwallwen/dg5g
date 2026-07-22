@@ -107,10 +107,12 @@ export function TeacherConsoleView(p: TeacherConsoleViewProps) {
             <SharedClassroomScene
               actionIndex={p.session.lessonState?.playback.actionIndex
                 ?? p.session.playbackCursor?.actionIndex}
+              onTeachingPageChange={p.changeTeachingPage}
               pageIndex={p.unitIndex + 1}
               phase={p.session.lessonState?.phase}
               profile={p.profile}
               surface="teacher"
+              teachingPageControlsDisabled={!p.helperReady}
               unit={p.unit}
             />
           </section>

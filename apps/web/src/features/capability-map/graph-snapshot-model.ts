@@ -41,7 +41,7 @@ export interface GraphSnapshotModel {
 }
 
 export function projectGraphSnapshot(snapshot: GraphAuthoritativeSnapshot): GraphSnapshotModel {
-  const selectedNodeId = canonicalSelectedNode(snapshot.classroom.activeNodeId);
+  const preferredNodeId = canonicalSelectedNode(snapshot.classroom.activeNodeId);
   if (snapshot.mode === 'student') {
     const nodes = snapshot.me.nodes.map((node): CanonicalGraphNodeProgress => ({
       nodeId: node.nodeId,
@@ -53,6 +53,7 @@ export function projectGraphSnapshot(snapshot: GraphAuthoritativeSnapshot): Grap
       nextRequirement: node.nextRequirement,
       ...(node.origin ? { origin: node.origin } : {}),
     }));
+    const selectedNodeId = selectEnterableNode(preferredNodeId, nodes);
     return {
       mode: snapshot.mode,
       authoritativeFacts: authoritativeDomFacts(snapshot),
@@ -87,6 +88,7 @@ export function projectGraphSnapshot(snapshot: GraphAuthoritativeSnapshot): Grap
     stateCompletionPercent: nodeLearningStateCompletionPercent.available,
     nextRequirement: '选择节点进入授课',
   }));
+  const selectedNodeId = selectEnterableNode(preferredNodeId, nodes);
   return {
     mode: snapshot.mode,
     authoritativeFacts: authoritativeDomFacts(snapshot),
@@ -140,4 +142,13 @@ function canonicalSelectedNode(nodeId: string | undefined): P1NodeId | undefined
   return nodeLearningPolicies.some((policy) => policy.nodeId === nodeId)
     ? nodeId as P1NodeId
     : undefined;
+}
+
+function selectEnterableNode(
+  preferredNodeId: P1NodeId | undefined,
+  nodes: readonly CanonicalGraphNodeProgress[],
+): P1NodeId | undefined {
+  const preferred = nodes.find(({ nodeId }) => nodeId === preferredNodeId);
+  if (preferred && preferred.learningState !== 'locked') return preferred.nodeId;
+  return nodes.find(({ learningState }) => learningState !== 'locked')?.nodeId;
 }

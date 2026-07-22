@@ -691,7 +691,6 @@ textarea:focus-visible {
 }
 
 .challenge-evidence-panel textarea,
-.student-evidence-workspace textarea,
 .teacher-review-panel textarea {
   color: #142638;
   background: var(--dg-paper);
@@ -721,8 +720,7 @@ textarea:focus-visible {
   color: #bdf1d6;
 }
 
-.challenge-game-stage .dg-edugame-pixi,
-.student-formal-test-workspace .dg-edugame-pixi {
+.challenge-game-stage .dg-edugame-pixi {
   border: 0;
   border-radius: 0;
   color: var(--dg-text);
@@ -730,48 +728,32 @@ textarea:focus-visible {
 }
 
 .challenge-game-stage .eg-topbar h3,
-.student-formal-test-workspace .eg-topbar h3,
-.challenge-game-stage .eg-stat strong,
-.student-formal-test-workspace .eg-stat strong {
+.challenge-game-stage .eg-stat strong {
   color: var(--dg-text-strong);
 }
 
 .challenge-game-stage .eg-topbar p,
-.student-formal-test-workspace .eg-topbar p,
 .challenge-game-stage .eg-stat span,
-.student-formal-test-workspace .eg-stat span,
-.challenge-game-stage .eg-mission p,
-.student-formal-test-workspace .eg-mission p {
+.challenge-game-stage .eg-mission p {
   color: var(--dg-muted);
 }
 
 .challenge-game-stage .eg-stat,
-.student-formal-test-workspace .eg-stat,
 .challenge-game-stage .eg-mission,
-.student-formal-test-workspace .eg-mission,
 .challenge-game-stage .eg-guide,
-.student-formal-test-workspace .eg-guide,
 .challenge-game-stage .eg-feedback,
-.student-formal-test-workspace .eg-feedback,
 .challenge-game-stage .eg-stage-milestones li,
-.student-formal-test-workspace .eg-stage-milestones li,
 .challenge-game-stage .eg-badge-track li,
-.student-formal-test-workspace .eg-badge-track li,
 .challenge-game-stage .eg-card-grid button,
-.student-formal-test-workspace .eg-card-grid button,
 .challenge-game-stage .eg-memory button,
-.student-formal-test-workspace .eg-memory button,
 .challenge-game-stage .eg-quiz button,
-.student-formal-test-workspace .eg-quiz button,
-.challenge-game-stage .eg-drag button,
-.student-formal-test-workspace .eg-drag button {
+.challenge-game-stage .eg-drag button {
   border-color: var(--dg-line-strong);
   color: var(--dg-text);
   background: var(--dg-surface-raised);
 }
 
-.challenge-game-stage .eg-review,
-.student-formal-test-workspace .eg-review {
+.challenge-game-stage .eg-review {
   border-color: var(--dg-line-strong);
   color: var(--dg-text);
   background: rgba(7, 27, 47, .98);

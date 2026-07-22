@@ -757,26 +757,10 @@
 /* Game surfaces inherit the textbook palette while Pixi owns the visual stage. */
 .skill-game-panel,
 .skill-game-panel > header,
-.skill-game-panel > footer,
-.student-formal-test-workspace,
-.student-formal-test-workspace .skill-game-panel > header {
+.skill-game-panel > footer {
   border-color: var(--dg-line);
   color: var(--dg-text);
   background: var(--dg-surface);
-}
-
-.student-formal-test-workspace {
-  margin: 12px 16px;
-  border-radius: var(--dg-radius);
-}
-
-.student-evidence-workspace {
-  border-color: var(--dg-line);
-}
-
-.student-evidence-workspace button {
-  min-height: var(--dg-control-height);
-  font-size: var(--dg-font-control);
 }
 
 .eg-topology-stage,

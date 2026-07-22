@@ -105,6 +105,10 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
       activeUnitId: next.id,
     });
   }
+  async function changeTeachingPage(pageIndex: number) {
+    if (!helperReady) return;
+    await submitIntent({ type: 'page_changed', pageIndex });
+  }
   async function pushPage() {
     if (!helperReady) return;
     update({
@@ -204,6 +208,7 @@ export function TeacherConsoleClient({ displayName, slides, initialSession, init
     submitIntent={submitIntent}
     task={task}
     go={go}
+    changeTeachingPage={changeTeachingPage}
     startFormalTest={startFormalTest}
     pushPage={pushPage}
     forceFollow={forceFollow}

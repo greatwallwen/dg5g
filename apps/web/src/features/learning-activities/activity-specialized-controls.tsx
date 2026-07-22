@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { ActivityPublicDto } from './activity-definition.ts';
+import { ActivityChoiceField } from './activity-choice-field.tsx';
 
 export function LinkPathBoard({
   activity,
@@ -78,15 +79,14 @@ export function FlipRecordControl({
       </button>
       <div className="activity-record-form" data-record-evidence-form="true" data-structured-record-form="true">
         {activity.interaction.fields.map((field) => (
-          <label key={field.id}>
-            <span>{field.label}</span>
-            <input
-              onChange={(event) => onValueChange(field.id, event.target.value)}
-              placeholder={field.placeholder}
-              type="text"
-              value={values[field.id] ?? ''}
-            />
-          </label>
+          <ActivityChoiceField
+            activityId={activity.id}
+            compact={activity.interaction.fields.length > 1}
+            field={field}
+            key={field.id}
+            onValueChange={(value) => onValueChange(field.id, value)}
+            value={values[field.id] ?? ''}
+          />
         ))}
       </div>
     </div>

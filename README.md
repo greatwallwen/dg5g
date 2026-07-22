@@ -24,7 +24,7 @@ D:/Claude/dgbook
 
 ## 开发与验证
 
-使用 Node `20.20.2` 和 pnpm `9.15.0`：
+使用 Node `24.15.0` 和 pnpm `9.15.0`：
 
 ```powershell
 pnpm install --frozen-lockfile

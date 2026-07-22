@@ -1,0 +1,137 @@
+.classroom-scope-map {
+  position: relative;
+  min-height: 300px;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(75, 142, 174, .38);
+  border-radius: 10px;
+  background:
+    linear-gradient(rgba(73, 135, 170, .13) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(73, 135, 170, .13) 1px, transparent 1px),
+    radial-gradient(circle at 72% 28%, rgba(45, 212, 208, .09), transparent 30%),
+    #061d31;
+  background-size: 34px 34px, 34px 34px, auto, auto;
+}
+
+.classroom-scope-map > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+}
+
+.classroom-scope-map text {
+  fill: #d9edf8;
+  font-size: 17px;
+  font-weight: 760;
+}
+
+.classroom-scope-map .scope-map-eyebrow,
+.classroom-scope-map .scope-map-room-title {
+  fill: #63eee2;
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.classroom-scope-map .scope-map-note {
+  fill: #8eabc0;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.classroom-scope-map .scope-map-card > rect,
+.classroom-scope-map .scope-map-legend > rect {
+  fill: rgba(7, 31, 50, .94);
+  stroke: rgba(93, 161, 193, .58);
+  stroke-width: 2;
+}
+
+.classroom-scope-map .scope-map-card.is-task > rect,
+.classroom-scope-map .scope-map-card.is-entrance > rect {
+  stroke: rgba(99, 238, 226, .72);
+}
+
+.classroom-scope-map .scope-map-card.is-excluded > rect {
+  fill: rgba(77, 44, 33, .9);
+  stroke: rgba(251, 146, 60, .86);
+}
+
+.classroom-scope-map .scope-map-card.is-excluded .scope-map-eyebrow {
+  fill: #ffb36f;
+}
+
+.classroom-scope-map .scope-map-room > rect {
+  fill: rgba(9, 45, 69, .84);
+  stroke: rgba(94, 234, 212, .7);
+  stroke-width: 2;
+}
+
+.classroom-scope-map .scope-map-rack > rect:first-child {
+  stroke-width: 2;
+}
+
+.classroom-scope-map .scope-map-rack.is-target > rect:first-child {
+  fill: rgba(34, 197, 94, .15);
+  stroke: rgba(134, 239, 172, .85);
+}
+
+.classroom-scope-map .scope-map-rack.is-excluded > rect:first-child {
+  fill: rgba(251, 146, 60, .14);
+  stroke: rgba(251, 146, 60, .92);
+}
+
+.classroom-scope-map .scope-map-rack path {
+  fill: none;
+  stroke: rgba(183, 223, 229, .65);
+  stroke-width: 2;
+}
+
+.classroom-scope-map .scope-map-rack text {
+  fill: #f5fbff;
+  font-size: 13px;
+  font-weight: 900;
+  text-anchor: middle;
+}
+
+.classroom-scope-map .scope-map-stripes {
+  fill: url(#classroom-reject-stripes);
+  stroke: none;
+}
+
+.classroom-scope-map #classroom-reject-stripes line {
+  stroke: rgba(251, 146, 60, .28);
+  stroke-width: 4;
+}
+
+.classroom-scope-map .scope-map-flow,
+.classroom-scope-map .scope-map-reject-flow,
+.classroom-scope-map .scope-map-boundary {
+  fill: none;
+  stroke-width: 3;
+}
+
+.classroom-scope-map .scope-map-flow { stroke: #63eee2; }
+.classroom-scope-map .scope-map-reject-flow { stroke: #fb923c; stroke-dasharray: 9 7; }
+.classroom-scope-map .scope-map-boundary { stroke: rgba(99, 238, 226, .92); stroke-dasharray: 10 8; }
+.classroom-scope-map #classroom-scope-arrow path { fill: #63eee2; }
+.classroom-scope-map #classroom-reject-arrow path { fill: #fb923c; }
+
+.classroom-scope-map .scope-map-target-label {
+  fill: #88efb4;
+  font-size: 15px;
+  font-weight: 850;
+}
+
+.classroom-scope-map .scope-map-reject-label {
+  fill: #ffb36f;
+  font-size: 15px;
+  font-weight: 850;
+}
+
+.classroom-scope-map .scope-map-legend circle.is-target { fill: #86efac; }
+.classroom-scope-map .scope-map-legend circle.is-excluded { fill: #fb923c; }
+
+@media (max-width: 900px) {
+  .classroom-scope-map,
+  .classroom-scope-map > svg { min-height: 250px; }
+}

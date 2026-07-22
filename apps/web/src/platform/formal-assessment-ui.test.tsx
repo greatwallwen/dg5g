@@ -36,7 +36,15 @@ test('assessment client uses native uncontrolled selectors so real radio and che
   assert.match(client, /name="evidenceClassification"/);
   assert.match(client, /name="linkReconstruction"/);
   assert.match(client, /name="defectiveOutputRevision"/);
+  assert.match(client, /name=\{`professionalConclusion\.\$\{field\}`\}/);
+  assert.doesNotMatch(client, /<textarea\b/);
   assert.doesNotMatch(client, /checked=\{/);
+});
+
+test('assessment paper offers a clear return path and contains no implementation wording', () => {
+  const client = read('features/formal-assessment/formal-assessment-client.tsx');
+  assert.match(client, /href=\{`\/learn\/\$\{encodeURIComponent\(issued\.paper\.nodeId\)\}`\}/);
+  assert.doesNotMatch(client, /本 token|页面不会接收或计算最终分数/i);
 });
 
 test('assessment paper declares the Image2 motion and single-primary-action contract', () => {
@@ -146,10 +154,10 @@ test('the live classroom route owns the server-graded formal assessment handoff'
   assert.doesNotMatch(renderer, /<EduGamePracticePanel/);
 });
 
-test('classroom formal-test workspace carries only the session id, never a client-owned run id', () => {
-  const workspace = read('features/classroom/student-formal-test-workspace.tsx');
+test('classroom formal-test handoff carries only the authoritative session id, never a client-owned run id', () => {
+  const workspace = read('features/classroom/classroom-follow-renderer.tsx');
   const route = read('app/api/learning/nodes/[nodeId]/assessment/route.ts');
-  assert.match(workspace, /classroomSessionId=\$\{encodeURIComponent\(classroomSessionId\)\}/);
+  assert.match(workspace, /classroomSessionId=\$\{encodeURIComponent\(model\.sessionId\)\}/);
   assert.match(route, /key !== 'classroomSessionId'/);
   assert.doesNotMatch(`${workspace}\n${route}`, /[?&]runId=|searchParams\.get\('runId'\)/);
 });

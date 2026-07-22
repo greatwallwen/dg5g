@@ -48,6 +48,7 @@ export interface TeacherConsoleViewProps {
   submitIntent: (intent: ClassroomLessonIntent) => Promise<boolean>;
   task: Task;
   go: (index: number) => void;
+  changeTeachingPage: (pageIndex: number) => void;
   startFormalTest: () => void;
   pushPage: () => void;
   forceFollow: () => void;

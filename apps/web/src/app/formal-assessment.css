@@ -26,6 +26,8 @@
   background: rgba(9, 34, 54, .97);
   box-shadow: 0 28px 72px rgba(0, 8, 18, .42);
 }
+.formal-assessment-back { display: inline-flex; min-height: 40px; align-items: center; margin: 14px 32px 0; color: #9fc6d8; font-size: 13px; font-weight: 850; }
+.formal-assessment-back::before { content: '←'; margin-right: 7px; color: #55d1d2; }
 
 .formal-assessment-paper > header,
 .formal-assessment-result > header {
@@ -60,9 +62,9 @@
 .formal-assessment-ordering { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
 .formal-assessment-ordering label { display: grid; gap: 6px; color: #86a4b8; font-size: 12px; font-weight: 850; }
 .formal-assessment-ordering select,
-.formal-assessment-paper textarea { width: 100%; border: 1px solid #42647c; border-radius: 6px; color: #e8f2f8; background: #071f33; }
+.formal-assessment-conclusion select { width: 100%; border: 1px solid #42647c; border-radius: 6px; color: #e8f2f8; background: #071f33; }
 .formal-assessment-ordering select { min-height: 48px; padding: 0 9px; }
-.formal-assessment-paper textarea { resize: vertical; padding: 13px; line-height: 1.65; }
+.formal-assessment-conclusion select { min-height: 58px; padding: 8px 10px; line-height: 1.5; }
 .formal-assessment-conclusion { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .formal-assessment-conclusion label { display: grid; gap: 7px; color: #9bb3c4; font-size: 12px; font-weight: 850; }
 .formal-assessment-paper > footer { display: flex; align-items: center; justify-content: space-between; gap: 18px; border-top: 1px solid #294a63; padding: 20px 32px 24px; }

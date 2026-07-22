@@ -43,11 +43,6 @@ function checkV3ChapterMaps() {
     if (!texts.chapterFixtures.includes(`capabilityMap('${id}'`)) fail(`missing capability map fixture for ${id}`);
     if (!texts.chapterFixtures.includes(asset)) fail(`missing readable SVG asset reference ${asset}`);
   }
-  if (!texts.curriculumFixtures.includes("expertCapabilitySvgSrc = '/media/home/capability-map-expert-readable-v2.svg'")) {
-    fail('curriculum graph must retain the expert SVG as its reference source');
-  }
-  const expertAsset = join(root, 'site', 'public', 'media', 'home', 'capability-map-expert-readable-v2.svg');
-  if (!existsSync(expertAsset)) fail('expert capability SVG asset is missing');
 }
 
 function checkV3SemanticGraph() {
@@ -142,7 +137,7 @@ function checkRendererContract() {
 }
 
 function checkTextQuality() {
-  const badPattern = /缃|鑳|鍥|涓|瀛|璇|鎶|绾|褰|闈|€|�/u;
+  const badPattern = /\u7F03|\u9473|\u9365|\u6D93|\u701B|\u7487|\u93B6|\u7EFE|\u8930|\u95C8|\u20AC|\uFFFD/u;
   for (const [label, text] of Object.entries(texts)) {
     if (badPattern.test(text)) fail(`${label} contains mojibake`);
   }

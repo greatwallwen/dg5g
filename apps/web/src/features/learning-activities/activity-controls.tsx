@@ -1,5 +1,10 @@
 import type { ActivityPublicDto } from './activity-definition.ts';
 import {
+  ActivityChoiceField,
+  choicesForScopeReason,
+  rotateChoices,
+} from './activity-choice-field.tsx';
+import {
   EvidenceMatchBoard,
   FlipRecordControl,
   LinkPathBoard,
@@ -23,15 +28,14 @@ export function ActivityControl({ activity, values, order, onValueChange, onOrde
     return (
       <div className="activity-record-form" data-structured-record-form="true">
         {activity.interaction.fields.map((field) => (
-          <label key={field.id}>
-            <span>{field.label}</span>
-            <input
-              onChange={(event) => onValueChange(field.id, event.target.value)}
-              placeholder={field.placeholder}
-              type="text"
-              value={values[field.id] ?? ''}
-            />
-          </label>
+          <ActivityChoiceField
+            activityId={activity.id}
+            compact={activity.interaction.fields.length > 1}
+            field={field}
+            key={field.id}
+            onValueChange={(value) => onValueChange(field.id, value)}
+            value={values[field.id] ?? ''}
+          />
         ))}
       </div>
     );
@@ -89,15 +93,13 @@ export function ActivityControl({ activity, values, order, onValueChange, onOrde
                 <th scope="row">{material?.label ?? field.label}</th>
                 <td>{material?.sourceValue ?? material?.detail ?? '—'}</td>
                 <td>
-                  <label>
-                    <input
-                      aria-label={field.label}
-                      onChange={(event) => onValueChange(field.id, event.target.value)}
-                      placeholder={field.placeholder}
-                      type="text"
-                      value={values[field.id] ?? ''}
-                    />
-                  </label>
+                  <ActivityChoiceField
+                    activityId={activity.id}
+                    compact
+                    field={field}
+                    onValueChange={(value) => onValueChange(field.id, value)}
+                    value={values[field.id] ?? ''}
+                  />
                 </td>
               </tr>
             );
@@ -122,7 +124,12 @@ export function ActivityControl({ activity, values, order, onValueChange, onOrde
                 <input
                   checked={values[material.id] === category.id}
                   name={`${activity.id}-${material.id}`}
-                  onChange={() => onValueChange(material.id, category.id)}
+                  onChange={() => {
+                    onValueChange(material.id, category.id);
+                    if (activity.kind === 'scope-classification' && category.id !== 'out-of-scope') {
+                      onValueChange(`reason:${material.id}`, '');
+                    }
+                  }}
                   type="radio"
                   value={category.id}
                 />
@@ -135,19 +142,29 @@ export function ActivityControl({ activity, values, order, onValueChange, onOrde
       {activity.kind === 'scope-classification' ? (
         <section className="activity-scope-reason-board" data-scope-reason-board={activity.id}>
           <strong>排除理由</strong>
-          <p>把没有选入本次采集范围的对象各写一句理由，例如“不在任务单机房范围内”或“柜门标识属于其他运营商”。</p>
-          {activity.materials.map((material) => (
-            <label data-scope-reason-field={material.id} key={material.id}>
-              <span>{material.label}</span>
-              <textarea
-                aria-label={`${material.label}排除理由`}
-                disabled={values[material.id] !== 'out-of-scope'}
-                onChange={(event) => onValueChange(`reason:${material.id}`, event.target.value)}
-                placeholder={values[material.id] === 'out-of-scope' ? '写出排除依据，必须能回到任务单、机房或运营商边界。' : '选为“排除并说明”后填写'}
-                value={values[`reason:${material.id}`] ?? ''}
-              />
-            </label>
+          <p>先完成范围分类。被排除的对象还要选择一条能回查到任务单、机房或运营商边界的依据。</p>
+          {activity.materials.filter((material) => values[material.id] === 'out-of-scope').map((material) => (
+            <fieldset data-scope-reason-field={material.id} key={material.id}>
+              <legend>{material.label}：为什么排除？</legend>
+              <div>
+                {rotateChoices(choicesForScopeReason(material.id), `${activity.id}/${material.id}`).map((reason, index) => (
+                  <button
+                    aria-pressed={values[`reason:${material.id}`] === reason}
+                    data-scope-reason-option={`${material.id}-${index + 1}`}
+                    key={reason}
+                    onClick={() => onValueChange(`reason:${material.id}`, reason)}
+                    type="button"
+                  >
+                    <span>{String.fromCharCode(65 + index)}</span>
+                    {reason}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
           ))}
+          {!activity.materials.some((material) => values[material.id] === 'out-of-scope') ? (
+            <small>选择“排除并说明”后，这里会出现对应的理由选项。</small>
+          ) : null}
         </section>
       ) : null}
     </>

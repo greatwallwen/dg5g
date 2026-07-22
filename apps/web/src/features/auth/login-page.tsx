@@ -11,6 +11,7 @@ type LoginPageProps = {
 };
 
 const DEFAULT_ACCOUNT = 'student01';
+const TRANSIENT_LOGIN_STATUSES = [502, 503, 504] as const;
 
 export function LoginPage({ nextPath }: LoginPageProps) {
   const router = useRouter();
@@ -25,15 +26,10 @@ export function LoginPage({ nextPath }: LoginPageProps) {
     setSubmitting(true);
     setError('');
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          username: username.trim(),
-          password,
-          ...(nextPath ? { next: nextPath } : {}),
-        }),
+      const response = await requestLoginWithRetry({
+        username: username.trim(),
+        password,
+        ...(nextPath ? { next: nextPath } : {}),
       });
       const payload = await response.json().catch(() => null) as {
         home?: unknown;
@@ -118,6 +114,27 @@ export function LoginPage({ nextPath }: LoginPageProps) {
       </form>
     </main>
   );
+}
+
+async function requestLoginWithRetry(body: { username: string; password: string; next?: string }) {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!TRANSIENT_LOGIN_STATUSES.includes(response.status as 502 | 503 | 504) || attempt === 1) {
+        return response;
+      }
+    } catch (error) {
+      lastError = error;
+      if (attempt === 1) throw error;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error('登录服务暂时不可用');
 }
 
 function LoginSignalField() {

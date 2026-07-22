@@ -140,7 +140,52 @@ test('starts a formal assessment with a server-owned shared run identity and ser
   }
 });
 
-test('rejects synchronized page and follow mutations while every classroom helper is offline', () => {
+test('managed demo classroom accepts ten consecutive synchronized page changes without an external heartbeat', () => {
+  const restoreHelperMode = setStrictClassroomHelper(false);
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    const repository = new ClassroomSessionRepository(fixture.database);
+    const service = new ClassroomSessionService(
+      repository,
+      new ClassroomRosterRepository(fixture.database),
+    );
+    const now = new Date('2026-07-16T04:00:00.000Z');
+    service.applyTeacherIntent(
+      teacher,
+      'demo-class',
+      { type: 'phase_changed', phase: 'lecture' },
+      0,
+      now,
+    );
+
+    for (let operation = 1; operation <= 10; operation += 1) {
+      const result = service.applyTeacherIntent(
+        teacher,
+        'demo-class',
+        { type: 'page_changed', pageIndex: operation },
+        operation,
+        new Date(now.getTime() + operation * 1_000),
+      );
+      assert.equal(result.command.revision, operation + 1);
+      assert.equal(result.session.teacherSlideIndex, operation + 1);
+    }
+
+    assert.equal(fixture.database.prepare(`
+      SELECT revision FROM classroom_sessions WHERE session_id = 'demo-class'
+    `).pluck().get(), 11);
+    assert.equal(fixture.database.prepare(`
+      SELECT COUNT(*) FROM classroom_commands WHERE session_id = 'demo-class'
+    `).pluck().get(), 11);
+  } finally {
+    fixture.cleanup();
+    restoreHelperMode();
+  }
+});
+
+test('strict helper mode rejects synchronized mutations without a live student heartbeat', () => {
+  const restoreHelperMode = setStrictClassroomHelper(true);
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
@@ -149,6 +194,7 @@ test('rejects synchronized page and follow mutations while every classroom helpe
       new ClassroomSessionRepository(fixture.database),
       new ClassroomRosterRepository(fixture.database),
     );
+    const now = new Date('2026-07-16T04:00:00.000Z');
 
     assert.throws(
       () => service.patchTeacherState(teacher, 'demo-class', {
@@ -156,7 +202,7 @@ test('rejects synchronized page and follow mutations while every classroom helpe
         teacherSlideId: 'P1T1-N02-S02',
         teacherSlideIndex: 2,
         studentSyncState: 'requested',
-      }, 0, new Date('2026-07-16T04:00:00.000Z')),
+      }, 0, now),
       { name: 'ClassroomHelperUnavailableError' },
     );
     assert.throws(
@@ -165,7 +211,7 @@ test('rejects synchronized page and follow mutations while every classroom helpe
         'demo-class',
         { type: 'playback_seeked', positionMs: 1_500 },
         0,
-        new Date('2026-07-16T04:00:00.000Z'),
+        now,
       ),
       { name: 'ClassroomHelperUnavailableError' },
     );
@@ -177,6 +223,54 @@ test('rejects synchronized page and follow mutations while every classroom helpe
     `).pluck().get(), 0);
   } finally {
     fixture.cleanup();
+    restoreHelperMode();
+  }
+});
+
+test('non-demo classrooms remain fail-closed without a live student heartbeat', () => {
+  const restoreHelperMode = setStrictClassroomHelper(false);
+  const fixture = createTestDatabase();
+  try {
+    migrateDatabase(fixture.database);
+    seedDemo(fixture.database);
+    fixture.database.prepare(`
+      INSERT INTO classroom_sessions (
+        session_id, class_id, name, teacher_id, status, active_node_id,
+        active_unit_id, revision, state_json
+      )
+      SELECT 'practice-class', class_id, 'Practice class', teacher_id, status, active_node_id,
+        active_unit_id, revision, state_json
+      FROM classroom_sessions
+      WHERE session_id = 'demo-class'
+    `).run();
+    fixture.database.prepare(`
+      INSERT INTO classroom_members (session_id, student_id)
+      SELECT 'practice-class', student_id
+      FROM classroom_members
+      WHERE session_id = 'demo-class'
+    `).run();
+    const service = new ClassroomSessionService(
+      new ClassroomSessionRepository(fixture.database),
+      new ClassroomRosterRepository(fixture.database),
+    );
+
+    assert.throws(
+      () => service.patchTeacherState(teacher, 'practice-class', {
+        teacherSlideId: 'P1T1-N02-S02',
+        teacherSlideIndex: 2,
+        studentSyncState: 'requested',
+      }, 0, new Date('2026-07-16T04:00:00.000Z')),
+      { name: 'ClassroomHelperUnavailableError' },
+    );
+    assert.equal(fixture.database.prepare(`
+      SELECT revision FROM classroom_sessions WHERE session_id = 'practice-class'
+    `).pluck().get(), 0);
+    assert.equal(fixture.database.prepare(`
+      SELECT COUNT(*) FROM classroom_commands WHERE session_id = 'practice-class'
+    `).pluck().get(), 0);
+  } finally {
+    fixture.cleanup();
+    restoreHelperMode();
   }
 });
 
@@ -247,7 +341,7 @@ test('blocks review at zero real submissions and opens it after one valid submis
   }
 });
 
-test('applies projector page changes through one server revision and fails closed at page or helper boundaries', () => {
+test('applies projector page changes through one server revision and fails closed at the page boundary', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
@@ -290,17 +384,15 @@ test('applies projector page changes through one server revision and fails close
       { name: 'ClassroomIntentError' },
     );
     assert.equal(repository.readSession('demo-class')?.revision, 2);
-    assert.throws(
-      () => service.applyTeacherIntent(
-        teacher,
-        'demo-class',
-        { type: 'page_changed', pageIndex: 10 },
-        2,
-        new Date('2026-07-16T05:00:10.000Z'),
-      ),
-      { name: 'ClassroomHelperUnavailableError' },
+    const continued = service.applyTeacherIntent(
+      teacher,
+      'demo-class',
+      { type: 'page_changed', pageIndex: 10 },
+      2,
+      new Date('2026-07-16T05:00:10.000Z'),
     );
-    assert.equal(repository.readSession('demo-class')?.revision, 2);
+    assert.equal(continued.command.revision, 3);
+    assert.equal(repository.readSession('demo-class')?.revision, 3);
   } finally {
     fixture.cleanup();
   }
@@ -612,6 +704,16 @@ function readyForFormalAssessment(database: ReturnType<typeof createTestDatabase
     ['P1T1-N02-application-01', 'P1T1-N02'],
     ['P1T1-N02-transfer-01', 'P1T1-N02'],
   ] as const) insert.run(`ready-${studentId}-${activityId}`, studentId, activityId, nodeId);
+}
+
+function setStrictClassroomHelper(enabled: boolean): () => void {
+  const previous = process.env.DGBOOK_STRICT_CLASSROOM_HELPER;
+  if (enabled) process.env.DGBOOK_STRICT_CLASSROOM_HELPER = '1';
+  else delete process.env.DGBOOK_STRICT_CLASSROOM_HELPER;
+  return () => {
+    if (previous === undefined) delete process.env.DGBOOK_STRICT_CLASSROOM_HELPER;
+    else process.env.DGBOOK_STRICT_CLASSROOM_HELPER = previous;
+  };
 }
 
 function wrongAssessmentAnswers(): AssessmentAnswers {

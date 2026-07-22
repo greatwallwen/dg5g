@@ -23,7 +23,7 @@ test('student graph model keeps canonical state progress separate from named sco
     const task = model.tasks.find(({ taskId }) => taskId === 'P01');
 
     assert.equal(model.mode, 'student');
-    assert.equal(model.selectedNodeId, 'P1T1-N02');
+    assert.equal(model.selectedNodeId, 'P1T1-N01');
     assert.equal(node?.learningState, 'locked');
     assert.equal(node?.nodeTestHighestScore, undefined);
     assert.equal(node?.stateCompletionPercent, 0);
@@ -60,7 +60,7 @@ test('teacher graph model exposes only aggregate heatmap while keeping published
   }
 });
 
-test('graph model leaves selection empty when the authoritative classroom has no active node', () => {
+test('graph model selects the first enterable node when the classroom has no active node', () => {
   const fixture = createTestDatabase();
   try {
     migrateDatabase(fixture.database);
@@ -76,7 +76,7 @@ test('graph model leaves selection empty when the authoritative classroom has no
 
     const model = projectGraphSnapshot(snapshot);
 
-    assert.equal(model.selectedNodeId, undefined);
+    assert.equal(model.selectedNodeId, 'P1T1-N01');
   } finally {
     fixture.cleanup();
   }

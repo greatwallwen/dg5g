@@ -1,6 +1,9 @@
 import type {
   AssessmentDimensionKey,
+  AssessmentOption,
   AssessmentPaper,
+  ProfessionalConclusionAnswer,
+  ProfessionalConclusionField,
   RemediationTarget,
 } from './formal-assessment-contract.ts';
 import type { PersistedAssessmentValidationPolicy } from './persisted-assessment-diagnostic.ts';
@@ -26,11 +29,34 @@ export interface FormalAssessmentDefinition {
   grading: Record<AssessmentDimensionKey, AssessmentGradingRule>;
 }
 
+function conclusionChoices(
+  correct: ProfessionalConclusionAnswer,
+): Record<ProfessionalConclusionField, AssessmentOption[]> {
+  return {
+    confirmedFact: [
+      { id: 'fact-overreach', label: '现场现象已经足够，可以直接确认全部事实。' },
+      { id: 'fact-evidence-boundary', label: correct.confirmedFact },
+    ],
+    evidenceGap: [
+      { id: 'gap-retain', label: correct.evidenceGap },
+      { id: 'gap-hide', label: '暂时没有材料也不影响结论，不需要登记证据缺口。' },
+    ],
+    risk: [
+      { id: 'risk-none', label: '当前记录不存在误判风险，可以直接作为最终结论。' },
+      { id: 'risk-boundary', label: correct.risk },
+    ],
+    action: [
+      { id: 'action-review', label: correct.action },
+      { id: 'action-close', label: '保持现有记录不变，直接结束本次核验。' },
+    ],
+  };
+}
+
 const p01N02Definition: FormalAssessmentDefinition = {
   paper: {
     nodeId: 'P1T1-N02',
     title: '室内设备与链路证据正式测试',
-    questionVersion: 'p01-n02-v1',
+    questionVersion: 'p01-n02-v2',
     passScore: 80,
     durationMinutes: 15,
     questions: [
@@ -78,8 +104,14 @@ const p01N02Definition: FormalAssessmentDefinition = {
         id: 'professionalConclusion',
         dimension: 'professionalConclusion',
         kind: 'structured-conclusion',
-        prompt: '根据“设备铭牌可识别、源端口清晰、对端端口照片模糊”的情况，写出职业化复核结论。',
-        helpText: '结论应说明已确认事实、证据缺口、风险和下一步动作。',
+        prompt: '根据“设备铭牌可识别、源端口清晰、对端端口照片模糊”的情况，组成职业化复核结论。',
+        helpText: '依次选择已确认事实、证据缺口、风险和下一步动作。',
+        conclusionOptions: conclusionChoices({
+          confirmedFact: '设备铭牌可识别，已确认设备身份；源端口照片清晰，源端连接已确认。',
+          evidenceGap: '对端端口照片模糊，缺少可核验编号，对端连接仍待复核。',
+          risk: '若直接判定链路完整，可能造成端口关系误判并影响后续配置。',
+          action: '重新补拍对端端口与编号照片，完成核验后再更新证据表。',
+        }),
       },
     ],
   },
@@ -143,7 +175,7 @@ const p02N02Definition: FormalAssessmentDefinition = {
   paper: {
     nodeId: 'P1T2-N02',
     title: '室外站点与覆盖证据正式测试',
-    questionVersion: 'p02-n02-v1',
+    questionVersion: 'p02-n02-v2',
     passScore: 80,
     durationMinutes: 15,
     questions: [
@@ -191,8 +223,14 @@ const p02N02Definition: FormalAssessmentDefinition = {
         id: 'professionalConclusion',
         dimension: 'professionalConclusion',
         kind: 'structured-conclusion',
-        prompt: '根据“连续采样形成覆盖边界，但一个异常点缺少复测轨迹”的事实，提交职业化结论。',
-        helpText: '分别写明已确认事实、证据缺口、误判风险和下一步复测动作。',
+        prompt: '根据“连续采样形成覆盖边界，但一个异常点缺少复测轨迹”的事实，组成职业化结论。',
+        helpText: '依次选择已确认事实、证据缺口、误判风险和下一步复测动作。',
+        conclusionOptions: conclusionChoices({
+          confirmedFact: '已确认采样点坐标、采样时间和对应信号读数，连续数据形成覆盖边界。',
+          evidenceGap: '异常点尚缺复测轨迹，当前证据缺口需要保留并标记待复核。',
+          risk: '若忽略异常点，覆盖边界和优化结论存在误判风险。',
+          action: '按原时间窗补做异常点复测，保存轨迹并更新成果记录。',
+        }),
       },
     ],
   },
@@ -228,7 +266,7 @@ const p03N02Definition: FormalAssessmentDefinition = {
   paper: {
     nodeId: 'P1T3-N02',
     title: '投诉复现与原因边界正式测试',
-    questionVersion: 'p03-n02-v1',
+    questionVersion: 'p03-n02-v2',
     passScore: 80,
     durationMinutes: 15,
     questions: [
@@ -276,8 +314,14 @@ const p03N02Definition: FormalAssessmentDefinition = {
         id: 'professionalConclusion',
         dimension: 'professionalConclusion',
         kind: 'structured-conclusion',
-        prompt: '根据“投诉能够复现，但终端日志与无线测量不一致”的事实，提交职业化结论。',
-        helpText: '区分已确认事实、尚未闭合的原因证据、误归因风险和下一步动作。',
+        prompt: '根据“投诉能够复现，但终端日志与无线测量不一致”的事实，组成职业化结论。',
+        helpText: '依次选择已确认事实、尚未闭合的原因证据、误归因风险和下一步动作。',
+        conclusionOptions: conclusionChoices({
+          confirmedFact: '已核对投诉工单与投诉地址，现场可以复现用户描述的问题。',
+          evidenceGap: '终端日志与无线测量结果矛盾，原因边界仍待复核。',
+          risk: '直接归为网络故障会造成投诉结论误归因，并影响责任判断。',
+          action: '在相同时间窗重新复测，联合核验终端日志并更新调查记录。',
+        }),
       },
     ],
   },

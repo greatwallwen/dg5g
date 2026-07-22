@@ -17,7 +17,7 @@ The authoritative textbook source is `content/5g/5g.docx`; update `scripts/impor
 - `pnpm deploy:web:source`: create the verified source release archive.
 - `python scripts/import-5g-docx.py`: regenerate textbook-derived content when its authoritative source changes.
 
-Use Node `20.20.2` and pnpm `9.15.0` for reproducible builds.
+Use Node `24.15.0` and pnpm `9.15.0` for reproducible builds.
 
 ## Coding Style & Naming Conventions
 

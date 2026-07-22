@@ -9,6 +9,7 @@ import type { P1TaskId } from '@/platform/learning-policy';
 import { Icon } from '@/ui/foundation/icons';
 import { semanticZoomLevel } from './graph-geometry';
 import { GraphMinimap } from './graph-minimap';
+import { fitP1PathViewport } from './graph-viewport-fit';
 import {
   dispatchCurriculumGraphNode,
   type CourseGraphNodeAction,
@@ -25,7 +26,6 @@ type GraphMode = 'path' | 'overview' | 'achievement';
 export type GraphMotionState = 'active' | 'paused' | 'reduced';
 
 const world = { width: 1560, height: 1080 };
-const p1PathBounds = { x: 70, y: 430, width: 1260, height: 650 };
 const revealRank = { overview: 0, route: 1, detail: 2 } as const;
 export function SemanticCourseGraph({
   actorMode,
@@ -240,8 +240,6 @@ function fitGraphMode(behavior: ZoomBehavior<SVGSVGElement, unknown>, svg: SVGSV
     fitOverview(behavior, svg, width, height);
     return;
   }
-  const scale = Math.max(.62, Math.min(1.02, Math.min((width - 28) / p1PathBounds.width, (height - 28) / p1PathBounds.height)));
-  const x = (width - p1PathBounds.width * scale) / 2 - p1PathBounds.x * scale;
-  const y = (height - p1PathBounds.height * scale) / 2 - p1PathBounds.y * scale;
-  select(svg).call(behavior.transform, zoomIdentity.translate(x, y).scale(scale));
+  const transform = fitP1PathViewport(width, height);
+  select(svg).call(behavior.transform, zoomIdentity.translate(transform.x, transform.y).scale(transform.k));
 }

@@ -53,6 +53,7 @@ test('keeps the latest applied ACK summary visible after the command TTL ends', 
 test('teacher submitted-count denominator comes from the authoritative assessment snapshot', () => {
   const source = readFileSync(new URL('./teacher-console-inspector.tsx', import.meta.url), 'utf8');
   assert.match(source, /p\.formalAssessment\.submittedCount\}\/\{p\.formalAssessment\.eligibleCount/);
+  assert.match(source, /p\.classScores\.demoData[\s\S]*演示数据/);
   assert.doesNotMatch(source, /formalScores|\/24/);
 });
 

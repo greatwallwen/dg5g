@@ -101,7 +101,7 @@ export function TeacherStartLessonClient({
         <Icon name="layers" size={19} />{triggerLabel}<Icon name="arrow" size={17} />
       </summary>
       <div>
-        <span>第二次点击后先写入课堂状态，再进入授课节点</span>
+        <span>选择本节课的起始能力节点，系统会带学生和投屏进入同一课堂位置。</span>
         {options.map((option) => (
           <button
             data-start-lesson-node={option.nodeId}

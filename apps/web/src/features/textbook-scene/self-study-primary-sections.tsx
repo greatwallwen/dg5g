@@ -72,7 +72,7 @@ export function FigureSection({ document }: { document: SelfStudyDocument }) {
     ? '采集边界工程图'
     : '带标注的工程关系图';
   return (
-    <div className="self-study-figure-layout">
+    <div className={`self-study-figure-layout ${content.kind === 'deep' ? 'has-evidence-support' : 'is-full-width'}`}>
       <div>
         <span>{figureLabel}</span>
         <h2 id={`${document.nodeId}-figure-title`}>{content.kind === 'deep' ? '从图中找到判断所需证据' : '关系图与证据位置'}</h2>

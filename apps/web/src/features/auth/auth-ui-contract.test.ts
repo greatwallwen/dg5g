@@ -55,6 +55,8 @@ test('login explains demo credentials without client-side role or account shortc
   assert.doesNotMatch(loginPage, /demoAccountShortcuts|roleLabel|WebRole/);
   assert.doesNotMatch(loginPage, /body:\s*JSON\.stringify\(\{[\s\S]*?\brole\s*:/);
   assert.match(loginPage, /router\.replace\(payload\.home\)/, 'the server response selects the destination role home');
+  assert.match(loginPage, /requestLoginWithRetry/, 'login retries a transient gateway failure once');
+  assert.match(loginPage, /\[502, 503, 504\]/, 'only transient gateway failures are retried');
 });
 
 test('every protected server page authorizes before loading protected data', () => {

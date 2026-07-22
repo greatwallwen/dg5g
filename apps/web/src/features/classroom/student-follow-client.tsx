@@ -76,9 +76,10 @@ export function StudentFollowClient({
     sessionStatus: liveSessionStatus,
   });
   const followResult = screen.kind === 'follow' && session.lessonState
-    ? buildClassroomFollowViewModel({
+      ? buildClassroomFollowViewModel({
         sessionId: session.sessionId,
         revision,
+        actionIndex: session.lessonState.playback.actionIndex,
         phase: session.lessonState.phase,
         activeNodeId: session.lessonState.activeNodeId,
         activeUnitId: session.lessonState.activeUnitId,

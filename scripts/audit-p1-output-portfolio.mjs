@@ -25,7 +25,7 @@ const tsconfigPath = path.join(root, 'apps/web', 'tsconfig.json');
 const originalTsconfig = await readFile(tsconfigPath, 'utf8');
 const demoPassword = process.env.DGBOOK_DEMO_PASSWORD ?? '123456';
 
-assertNode20();
+assertNode24();
 assertWithin(outputRoot, outDir, 'Audit output must stay under output/playwright.');
 await rm(outDir, { recursive: true, force: true });
 await mkdir(outDir, { recursive: true });
@@ -658,9 +658,9 @@ function readArg(name, fallback) {
   return index >= 0 && process.argv[index + 1] ? process.argv[index + 1] : fallback;
 }
 
-function assertNode20() {
+function assertNode24() {
   const major = Number(process.versions.node.split('.')[0]);
-  if (major !== 20) throw new Error(`Task 5 browser audit requires Node 20; current runtime is ${process.version}.`);
+  if (major !== 24) throw new Error(`Task 5 browser audit requires Node 24; current runtime is ${process.version}.`);
 }
 
 function assertWithin(parent, candidate, message) {

@@ -131,6 +131,14 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
+.self-study-figure-layout.is-full-width {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.self-study-figure-layout > div {
+  min-width: 0;
+}
+
 .self-study-copy-block > p {
   max-width: 78ch;
   margin: 12px 0;
@@ -518,6 +526,7 @@
 }
 
 .self-study-output-template {
+  align-self: start;
   padding: 18px;
 }
 

@@ -8,7 +8,7 @@ import {
   type SelfStudySectionId,
 } from './self-study-types.ts';
 import { FigureSection, ProblemSection, SelfStudyGlossary, StepsSection } from './self-study-primary-sections.tsx';
-import { PracticeSection, practiceIdsFor } from './self-study-practice-section.tsx';
+import { PracticeSection, requiredPracticeIdsFor } from './self-study-practice-section.tsx';
 import { CorrectionSection, OutputSection } from './self-study-secondary-sections.tsx';
 
 export function SelfStudyRenderer({ document, completed, saving, onComplete, initialSection = 'problem', focusedActivityId }: {
@@ -23,8 +23,8 @@ export function SelfStudyRenderer({ document, completed, saving, onComplete, ini
   const [passedPracticeIds, setPassedPracticeIds] = useState<string[]>([]);
   const textbookBodyRef = useRef<HTMLDivElement>(null);
   const activeIndex = selfStudySectionDefinitions.findIndex(({ id }) => id === activeSection);
-  const practiceIds = useMemo(() => practiceIdsFor(document), [document]);
-  const practiceComplete = completed || practiceIds.every((id) => passedPracticeIds.includes(id));
+  const requiredPracticeIds = useMemo(() => requiredPracticeIdsFor(document), [document]);
+  const practiceComplete = completed || requiredPracticeIds.every((id) => passedPracticeIds.includes(id));
   const isTaskEvidenceNode = document.nodeId.endsWith('-N04');
 
   useEffect(() => {
@@ -43,11 +43,10 @@ export function SelfStudyRenderer({ document, completed, saving, onComplete, ini
   }, []);
 
   useEffect(() => {
-    const active = textbookBodyRef.current?.querySelector<HTMLElement>(
-      `[data-self-study-section="${activeSection}"]`,
-    );
-    active?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'auto' });
-  }, [activeSection]);
+    if (!textbookBodyRef.current) return;
+    textbookBodyRef.current.scrollTop = 0;
+    textbookBodyRef.current.scrollLeft = 0;
+  }, [activeSection, document.nodeId]);
 
   function moveSection(offset: number) {
     const nextIndex = Math.max(0, Math.min(selfStudySectionDefinitions.length - 1, activeIndex + offset));
@@ -115,7 +114,7 @@ export function SelfStudyRenderer({ document, completed, saving, onComplete, ini
           <span>{activeIndex + 1} / {selfStudySectionDefinitions.length}</span>
           <button aria-label="下一学习段" disabled={activeIndex === selfStudySectionDefinitions.length - 1} onClick={() => moveSection(1)} type="button"><Icon name="arrow" size={16} /></button>
         </div>
-        <span><Icon name={completed ? 'check' : practiceComplete ? 'spark' : 'target'} size={17} />{isTaskEvidenceNode && !completed ? '本节点以成果表提交和教师复核为准' : completed ? '本节点学习记录已保存' : practiceComplete ? '分层练习已通过，可保存学习记录' : '可自由阅读；通过练习后保存学习记录'}</span>
+        <span><Icon name={completed ? 'check' : practiceComplete ? 'spark' : 'target'} size={17} />{isTaskEvidenceNode && !completed ? '本节点以成果表提交和教师复核为准' : completed ? '本节点学习记录已保存' : practiceComplete ? '必做练习已通过，可保存学习记录' : '可自由阅读；通过必做练习后保存学习记录'}</span>
         {activeSection === 'output' ? (
           <button data-primary-action="true" disabled={!practiceComplete || saving} onClick={onComplete} type="button">
             {saving ? '正在保存' : completed ? '继续下一节点' : isTaskEvidenceNode ? '去填写成果表' : '保存本节点学习记录'}<Icon name="arrow" size={17} />

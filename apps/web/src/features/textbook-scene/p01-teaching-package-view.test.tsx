@@ -54,6 +54,31 @@ test('the active teaching page remains a measurable playback focus target', () =
   assert.match(html, /data-playback-target="P01-L2-P02"/);
 });
 
+test('teacher stage exposes real previous and next teaching-page controls', () => {
+  const InteractiveStage = P01N02LessonStage as React.ComponentType<Record<string, unknown>>;
+  const middle = renderToStaticMarkup(
+    <InteractiveStage actionIndex={4} onPageChange={() => undefined} phase="lecture" surface="teacher" />,
+  );
+  assert.match(middle, /data-session-action="previous-teaching-page"/);
+  assert.match(middle, /data-session-action="next-teaching-page"/);
+  assert.match(middle, />5 \/ 12</);
+  assert.doesNotMatch(middle, /data-session-action="previous-teaching-page"[^>]*disabled/);
+  assert.doesNotMatch(middle, /data-session-action="next-teaching-page"[^>]*disabled/);
+
+  const first = renderToStaticMarkup(
+    <InteractiveStage actionIndex={0} onPageChange={() => undefined} phase="lecture" surface="teacher" />,
+  );
+  assert.match(first, /data-session-action="previous-teaching-page"[^>]*disabled/);
+
+  const last = renderToStaticMarkup(
+    <InteractiveStage actionIndex={11} onPageChange={() => undefined} phase="lecture" surface="teacher" />,
+  );
+  assert.match(last, /data-session-action="next-teaching-page"[^>]*disabled/);
+
+  const css = source('../../app/p01-n02-lesson-stage.css');
+  assert.match(css, /\.p01n02-lesson-stage\.is-teacher\s*\{[^}]*grid-template-rows:\s*auto auto auto minmax\(0, 1fr\)/s);
+});
+
 test('projector markup exposes public material without teacher-private guidance', () => {
   const page = p01TeachingPackage[0]!.pages[0]!;
   const html = renderToStaticMarkup(

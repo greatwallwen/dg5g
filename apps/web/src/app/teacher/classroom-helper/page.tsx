@@ -23,11 +23,11 @@ export default async function ClassroomHelperPage({
       <h1>{snapshot.helper.canPush ? '课堂助手已连接' : '重连课堂助手'}</h1>
       <p>{snapshot.helper.canPush
         ? `已有 ${snapshot.helper.onlineStudentDeviceCount} 台学生设备在线，可以返回授课页继续同步。`
-        : '当前没有在线课堂助手。同步翻页、课堂跟随和正式测试启动已安全停用。'}</p>
+        : '课堂连接正在恢复。恢复前不会推送新的同步指令，已在后台保留当前授课位置。'}</p>
       {!snapshot.helper.canPush ? <ol>
-        <li>在部署主机打开 DGBook 工程目录。</li>
-        <li>使用已配置的课堂助手令牌启动：<code>pnpm classroom-helper:start -- --session {snapshot.classroom.sessionId} --students stu-01,stu-02,stu-03</code></li>
-        <li>助手显示在线后，点击“重新检测连接”。</li>
+        <li>请先保持本页打开，系统会重新检测课堂连接。</li>
+        <li>如连续检测仍未恢复，请联系现场技术支持处理。</li>
+        <li>恢复后点击“返回授课页面”，继续当前课堂位置。</li>
       </ol> : null}
       <div>
         <form method="get">

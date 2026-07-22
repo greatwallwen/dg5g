@@ -16,6 +16,7 @@ async function loadRenderer(): Promise<any> {
 const followModel = {
   sessionId: 'demo-class',
   revision: 9,
+  actionIndex: 7,
   phase: 'practice',
   currentUnit: {
     taskId: 'P01',
@@ -52,6 +53,9 @@ test('renders exactly the four classroom-follow regions without a mini self-stud
   assert.match(html, /data-return-self-study="true"[^>]*data-primary-action="true"|data-primary-action="true"[^>]*data-return-self-study="true"/);
   assert.match(html, /课堂活动进行中/);
   assert.match(html, /href="\/learn\/P1T3-N02"/);
+  assert.match(html, /data-playback-action-index="7"/);
+  assert.match(html, /第2课时 · 第2页/);
+  assert.match(html, /带 ODF 的链路重建/);
   assert.doesNotMatch(html, /scene-follow-path|data-student-self-control|上一节点|下一节点|教师讲稿/);
 });
 

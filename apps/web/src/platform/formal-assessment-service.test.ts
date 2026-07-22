@@ -117,6 +117,25 @@ test('each assessment dimension maps to a semantically matching real activity co
   assert.equal(new Set(targetIds).size, targetIds.length);
 });
 
+test('every selectable professional conclusion includes one fully gradable evidence-bound answer', () => {
+  for (const nodeId of ['P1T1-N02', 'P1T2-N02', 'P1T3-N02']) {
+    const definition = getFormalAssessmentDefinition(nodeId);
+    assert.ok(definition);
+    const question = definition.paper.questions.find(({ id }) => id === 'professionalConclusion');
+    const criteria = definition.grading.professionalConclusion.conclusionCriteria;
+    assert.ok(question?.conclusionOptions);
+    assert.ok(criteria);
+    for (const field of ['confirmedFact', 'evidenceGap', 'risk', 'action'] as const) {
+      const choices = question.conclusionOptions[field];
+      assert.ok(choices.length >= 2, `${nodeId}/${field} must provide a real decision`);
+      assert.ok(choices.some(({ label }) => (
+        Array.from(label.replace(/\s/g, '')).length >= criteria.minimumCharacters
+        && criteria[field].every((variants) => variants.some((term) => label.includes(term)))
+      )), `${nodeId}/${field} has no answer that can pass server grading`);
+    }
+  }
+});
+
 test('issues an answer-free paper and grades and persists only on the server', () => {
   const fixture = createTestDatabase();
   try {

@@ -27,6 +27,7 @@ export type ClassroomContentCatalog = Record<P1NodeId, ClassroomContentUnit>;
 export interface ClassroomSharedCursor {
   sessionId: string;
   revision: number;
+  actionIndex: number;
   phase: LessonPhase;
   activeNodeId: string;
   activeUnitId: string;
@@ -41,6 +42,7 @@ export interface SelfStudyReturnTarget {
 export interface ClassroomFollowViewModel {
   sessionId: string;
   revision: number;
+  actionIndex: number;
   phase: LessonPhase;
   currentUnit: Omit<ClassroomContentUnit, 'teacherInstruction' | 'activity'>;
   teacherTask: {
@@ -110,6 +112,7 @@ export function buildClassroomFollowViewModel(
     value: {
       sessionId: cursor.sessionId,
       revision: cursor.revision,
+      actionIndex: cursor.actionIndex,
       phase: cursor.phase,
       currentUnit,
       teacherTask: {

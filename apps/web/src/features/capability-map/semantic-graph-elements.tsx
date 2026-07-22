@@ -1,5 +1,5 @@
 import type { CurriculumGraphNode, GraphData, SemanticEdge } from '@/platform/models';
-import { useRef } from 'react';
+import React, { useRef } from 'react';
 import { nodeLearningStateLabel } from '@/platform/learning-status';
 import { getNodeLearningPolicy } from '@/platform/learning-policy';
 import { projectFutureContentAccess, projectNodeAccess, projectTaskAccess, type NodeAccessProgress, type NodeAccessProjection } from '@/platform/node-access-projection';
@@ -27,11 +27,25 @@ export const graphKindLabel: Record<CurriculumGraphNode['kind'], string> = {
   achievement: '成果回流',
 };
 
+const graphLayerLabelSafeRight = 82;
+const graphLayerGuides = [
+  { lines: ['岗位群'], y: 92 },
+  { lines: ['典型工作', '任务'], y: 220 },
+  { lines: ['核心能力'], y: 350 },
+  { lines: ['课程项目'], y: 496 },
+  { lines: ['教材任务', '与技能'], y: 640 },
+  { lines: ['学习活动', '与成绩'], y: 920 },
+] as const;
+
 export function GraphLayerLabels() {
-  return <g className="graph-layer-labels" aria-hidden="true">
-    {[
-      ['岗位群', 92], ['典型工作任务', 220], ['核心能力', 350], ['课程项目', 496], ['教材任务与技能', 640], ['学习活动与成绩', 920],
-    ].map(([label, y]) => <g key={label as string}><circle cx="26" cy={y as number} r="4" /><path d={`M32 ${y}H62`} /><text x="68" y={(y as number) + 5}>{label}</text></g>)}
+  return <g aria-hidden="true" className="graph-layer-labels" data-graph-layer-safe-right={graphLayerLabelSafeRight}>
+    {graphLayerGuides.map(({ lines, y }) => <g data-graph-layer-label={lines.join('')} key={lines.join('')}>
+      <circle cx="8" cy={y} r="4" />
+      <path d={`M14 ${y}H24`} />
+      <text fontSize="13" textAnchor="end" x={graphLayerLabelSafeRight}>
+        {lines.map((line, index) => <tspan key={line} x={graphLayerLabelSafeRight} y={lines.length === 1 ? y + 5 : y - 2 + index * 14}>{line}</tspan>)}
+      </text>
+    </g>)}
   </g>;
 }
 

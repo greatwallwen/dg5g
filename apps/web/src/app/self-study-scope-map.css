@@ -4,7 +4,7 @@
     linear-gradient(145deg, #071d31 0%, #0b2d44 100%);
 }
 
-.self-study-scope-map {
+.self-study-engineering-figure > .self-study-scope-map {
   grid-template-columns: minmax(0, 1fr);
   align-items: stretch;
   gap: 14px;

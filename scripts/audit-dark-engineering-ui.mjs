@@ -117,11 +117,17 @@ requireSnippets('apps/web/src/features/classroom/projector-client.tsx', [
 ]);
 requireSnippets('apps/web/src/features/capability-map/semantic-course-graph.tsx', [
   'data-graph-density',
-  '/media/home/capability-map-expert-readable-v2.svg',
+  'data-semantic-course-graph',
+  'graph.semanticEdges.filter',
+  'visibleEdges.map',
+  'GraphMinimap',
 ]);
-if (!exists('apps/web/public/media/home/capability-map-expert-readable-v2.svg')) {
-  fail('expert-capability-map-missing', 'apps/web/public/media/home/capability-map-expert-readable-v2.svg');
-}
+requireSnippets('apps/web/src/features/textbook-scene/shared-classroom-scene.tsx', [
+  'IndoorScopeClassroomVisual',
+  'data-classroom-scope-map="true"',
+  'data-graphic-system="engineering-line"',
+  'data-graphic-theme="dark-engineering"',
+]);
 
 const report = {
   tool: 'audit-dark-engineering-ui',

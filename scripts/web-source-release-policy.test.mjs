@@ -143,19 +143,19 @@ test('rejects hidden paths, credential payload names, and nested archives inside
   assert.equal(shouldPackageWebSourceFile('apps/web/src/features/archive/ArchivePanel.tsx'), true);
 });
 
-test('pins the production runtime and native SQLite ABI to the Node 20 deployment baseline', () => {
+test('pins the production runtime and native SQLite ABI to the Node 24 deployment baseline', () => {
   const rootPackage = JSON.parse(readFileSync('package.json', 'utf8'));
   const webPackage = JSON.parse(readFileSync('apps/web/package.json', 'utf8'));
   const lockfile = readFileSync('pnpm-lock.yaml', 'utf8');
 
   assert.equal(existsSync('.node-version'), true, '.node-version must pin the deployment runtime');
-  assert.equal(readFileSync('.node-version', 'utf8').trim(), '20.20.2');
-  assert.equal(rootPackage.engines?.node, '20.20.2');
-  assert.equal(webPackage.dependencies?.['better-sqlite3'], '11.10.0');
+  assert.equal(readFileSync('.node-version', 'utf8').trim(), '24.15.0');
+  assert.equal(rootPackage.engines?.node, '24.15.0');
+  assert.equal(webPackage.dependencies?.['better-sqlite3'], '12.10.0');
   assert.equal(shouldPackageWebSourceFile('.node-version'), true);
-  assert.match(lockfile, /better-sqlite3:\r?\n\s+specifier: 11\.10\.0\r?\n\s+version: 11\.10\.0/);
-  assert.match(lockfile, /^\s{2}better-sqlite3@11\.10\.0:/m);
-  assert.doesNotMatch(lockfile, /^\s{2}better-sqlite3@12\.11\.1:/m);
+  assert.match(lockfile, /better-sqlite3:\r?\n\s+specifier: 12\.10\.0\r?\n\s+version: 12\.10\.0/);
+  assert.match(lockfile, /^\s{2}better-sqlite3@12\.10\.0:/m);
+  assert.doesNotMatch(lockfile, /^\s{2}better-sqlite3@11\.10\.0:/m);
 });
 
 test('traces the complete better-sqlite3 dynamic runtime dependency closure', () => {

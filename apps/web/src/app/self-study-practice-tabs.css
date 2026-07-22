@@ -1,0 +1,38 @@
+.self-study-practice-level-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.self-study-practice-level-tabs button {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid #35586d;
+  border-radius: 7px;
+  padding: 8px 12px;
+  color: #a9c0ca;
+  background: #09253a;
+}
+
+.self-study-practice-level-tabs button[aria-selected='true'] {
+  border-color: #55ddd6;
+  color: #efffff;
+  background: #104158;
+  box-shadow: inset 3px 0 #55ddd6;
+}
+
+.self-study-practice-level-tabs small { color: #75aaa9; }
+
+.self-study-practice-layout > .self-study-practice-level-panels { display: block; }
+
+.self-study-practice-level-panels > section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px;
+}
+
+.self-study-practice-level-panels > section[hidden] { display: none; }

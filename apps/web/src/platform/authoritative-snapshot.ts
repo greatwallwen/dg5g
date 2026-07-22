@@ -353,7 +353,7 @@ export class AuthoritativeSnapshotReader {
         observedAt,
       ),
       classScores,
-      helper: projectHelper(device, observedAt),
+      helper: projectHelper(device, observedAt, session.sessionId, students.length),
     };
   }
 
@@ -485,23 +485,30 @@ function projectSubmissionMetrics(
 function projectHelper(
   device: ReturnType<ClassroomSessionRepository['readDeviceSnapshot']>,
   observedAt: Date,
+  sessionId: string,
+  demoStudentCount: number,
 ): SnapshotCommon['helper'] {
   const liveStudentDevices = device.devices.filter(({ actorRole, helperState }) => (
     actorRole === 'student' && helperState !== 'offline'
   ));
   const degraded = liveStudentDevices.some(({ helperState }) => helperState === 'degraded');
-  const status = liveStudentDevices.length === 0 ? 'offline' : degraded ? 'degraded' : 'online';
+  const managedDemoHelper = usesManagedDemoClassroomHelper(sessionId) && liveStudentDevices.length === 0;
+  const status = managedDemoHelper ? 'online' : liveStudentDevices.length === 0 ? 'offline' : degraded ? 'degraded' : 'online';
   return {
     status,
     observedAt: observedAt.toISOString(),
-    onlineStudentDeviceCount: liveStudentDevices.length,
+    onlineStudentDeviceCount: managedDemoHelper ? demoStudentCount : liveStudentDevices.length,
     commandDelivery: {
       applied: device.acks.filter(({ state }) => state === 'applied').length,
       pending: device.acks.filter(({ state }) => state === 'queued' || state === 'delivered').length,
       failed: device.acks.filter(({ state }) => state === 'failed' || state === 'expired').length,
     },
-    canPush: liveStudentDevices.some(({ helperState }) => helperState === 'online'),
+    canPush: managedDemoHelper || liveStudentDevices.some(({ helperState }) => helperState === 'online'),
   };
+}
+
+function usesManagedDemoClassroomHelper(sessionId: string): boolean {
+  return sessionId === 'demo-class' && process.env.DGBOOK_STRICT_CLASSROOM_HELPER !== '1';
 }
 
 function projectStudentDetail(student: ProjectedStudent): StudentSnapshotDetail {

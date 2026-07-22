@@ -87,7 +87,7 @@ test('activation and rollback verify exact build-info release and source SHA ide
   assert.doesNotMatch(plan.remote.switchAndHealth, /grep -Fq[^\n]+releaseId/);
 });
 
-test('the deploy runtime is pinned to Node 20.20.2, pnpm 9.15.0, and better-sqlite3 11.10.0 before native install', async () => {
+test('the deploy runtime is pinned to Node 24.15.0, pnpm 9.15.0, and a Node 24 SQLite build', async () => {
   const [rootPackageText, webPackageText, nodeVersionText, lockText] = await Promise.all([
     readFile(path.join(root, 'package.json'), 'utf8'),
     readFile(path.join(root, 'apps/web/package.json'), 'utf8'),
@@ -96,19 +96,25 @@ test('the deploy runtime is pinned to Node 20.20.2, pnpm 9.15.0, and better-sqli
   ]);
   const rootPackage = JSON.parse(rootPackageText);
   const webPackage = JSON.parse(webPackageText);
-  assert.equal(rootPackage.engines?.node, '20.20.2');
+  assert.equal(rootPackage.engines?.node, '24.15.0');
   assert.equal(rootPackage.packageManager, 'pnpm@9.15.0');
-  assert.equal(nodeVersionText.trim(), '20.20.2');
-  assert.equal(webPackage.dependencies?.['better-sqlite3'], '11.10.0');
-  assert.match(lockText, /better-sqlite3@11\.10\.0:/);
-  assert.doesNotMatch(lockText, /better-sqlite3@12\.11\.1:/);
+  assert.equal(nodeVersionText.trim(), '24.15.0');
+  assert.equal(webPackage.dependencies?.['better-sqlite3'], '12.10.0');
+  assert.match(lockText, /better-sqlite3@12\.10\.0:/);
+  assert.doesNotMatch(lockText, /better-sqlite3@11\.10\.0:/);
 
   const pre = fixturePlan().remote.preSwitch;
-  const nodeCheck = pre.indexOf(`test "$(node --version)" = 'v20.20.2'`);
+  const nodeCheck = pre.indexOf(`test "$(node --version)" = 'v24.15.0'`);
   const pnpmCheck = pre.indexOf(`test "$(pnpm --version)" = '9.15.0'`);
+  const rejectExistingModules = pre.indexOf('find . -type d -name node_modules');
   const install = pre.indexOf('pnpm install --frozen-lockfile');
+  const rebuild = pre.indexOf('pnpm --filter @dgbook/web rebuild better-sqlite3');
+  const sourceSmoke = pre.indexOf('source SQLite smoke query failed');
   assert.ok(nodeCheck >= 0 && nodeCheck < install, 'Node baseline must be checked before native dependency install');
   assert.ok(pnpmCheck >= 0 && pnpmCheck < install, 'pnpm baseline must be checked before native dependency install');
+  assert.ok(rejectExistingModules >= 0 && rejectExistingModules < install, 'source releases must reject inherited node_modules');
+  assert.ok(install < rebuild, 'the fresh install must precede the explicit native rebuild');
+  assert.ok(rebuild < sourceSmoke, 'the Node 24 native binding must pass a source-tree smoke query');
 });
 
 test('pre-switch verifies and builds the release before the locked phase prepares SQLite and changes current', () => {

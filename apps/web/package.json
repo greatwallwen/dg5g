@@ -24,7 +24,7 @@
     "@dgbook/widgets": "workspace:*",
     "@react-three/fiber": "8.18.0",
     "@xyflow/react": "^12.11.2",
-    "better-sqlite3": "11.10.0",
+    "better-sqlite3": "12.10.0",
     "bindings": "1.5.0",
     "d3-selection": "3.0.0",
     "d3-zoom": "3.0.0",

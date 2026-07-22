@@ -1,5 +1,32 @@
-import legacyDemoV8Facts from '../../../database/legacy-demo-v8-facts.json';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import type { AppDatabase } from './database.ts';
+
+interface LegacyDemoV8Facts {
+  learningEvents: string[];
+  formalAttempts: string[];
+  professionalOutputs: string[];
+  frozenTaskScores: string[];
+  cursors: Array<{
+    studentId: string;
+    nodeId: string;
+    actionId: string;
+  }>;
+}
+
+const legacyDemoV8Facts = JSON.parse(
+  readFileSync(resolveLegacyDemoV8FactsPath(), 'utf8'),
+) as LegacyDemoV8Facts;
+
+function resolveLegacyDemoV8FactsPath(): string {
+  const candidates = [
+    join(process.cwd(), 'database', 'legacy-demo-v8-facts.json'),
+    join(process.cwd(), 'apps', 'web', 'database', 'legacy-demo-v8-facts.json'),
+  ];
+  const factsPath = candidates.find((candidate) => existsSync(candidate));
+  if (!factsPath) throw new Error('Unable to locate apps/web/database/legacy-demo-v8-facts.json.');
+  return factsPath;
+}
 
 const legacyCursorByStudent = Object.fromEntries(
   legacyDemoV8Facts.cursors.map(({ studentId, nodeId, actionId }) => [

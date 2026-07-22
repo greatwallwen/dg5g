@@ -845,6 +845,7 @@ function checkHomeRoleGatewayContract() {
       course: join(appRoot, 'course', 'page.tsx'),
       overview: join(sourceRoot, 'features', 'textbook-scene', 'course-overview.tsx'),
       scene: join(sourceRoot, 'features', 'textbook-scene', 'textbook-scene-shell.tsx'),
+      sceneClient: join(sourceRoot, 'features', 'textbook-scene', 'textbook-scene-client.ts'),
       learnPage: join(appRoot, 'learn', '[nodeId]', 'page.tsx'),
       game: join(sourceRoot, 'features', 'learning', 'edugame-practice-panel.tsx'),
       store: join(platformRoot, 'skill-progress-store.ts'),
@@ -857,7 +858,8 @@ function checkHomeRoleGatewayContract() {
       [files.login, ['LoginPage', 'data-login-role="gateway"']],
       [files.course, ['AuthenticatedGate', 'CourseOverview', 'getCapabilityGraph']],
       [files.overview, ['CourseGraphStage', '/api/snapshot?audience=graph', 'projectGraphSnapshot', 'data-graph-progress', 'data-snapshot-version']],
-      [files.scene, ['WebPlaybackDock', 'playbackScenes', 'data-narration-track', "setMode('challenge')", "fetchAuthoritativeSnapshot('student', sessionId)", 'projectStudentLearningSnapshot(studentCut.me.learning)']],
+      [files.scene, ['WebPlaybackDock', 'playbackScenes', 'data-narration-track', "setMode('challenge')", 'fetchStudentLearningCut']],
+      [files.sceneClient, ["fetchAuthoritativeSnapshot('student', sessionId)", 'projectStudentLearningSnapshot(studentCut.me.learning)']],
       [files.learnPage, ['AuthoritativeSnapshotReader', "read(actor, 'student')", 'projectStudentLearningSnapshot(studentCut.me.learning)', 'initialSnapshot={initialSnapshot}', 'sessionId={studentCut.classroom.sessionId}']],
       [files.game, ['studentVersion: number', 'data-formal-test="retired"', '/test']],
       [files.store, ['LearningRepository', 'LearningReadModel', 'projectStudentLearningSnapshot']],
@@ -1003,13 +1005,12 @@ function checkP1LearningLoopContract() {
     const challengeFile = join(sourceRoot, 'features', 'textbook-scene', 'challenge-scene.tsx');
     const followFile = join(classroomRoot, 'student-follow-client.tsx');
     const projectorFile = join(classroomRoot, 'projector-client.tsx');
-    const followWorkspaceFile = join(classroomRoot, 'student-formal-test-workspace.tsx');
     const practicePanelFile = join(sourceRoot, 'features', 'learning', 'edugame-practice-panel.tsx');
     const sceneCssFile = join(appRoot, 'textbook-scene.css');
     const classroomV4CssFile = join(appRoot, 'digital-classroom-v4.css');
     const gameFile = join(platformRoot, 'fixtures', 'skill-game-fixtures.ts');
-    for (const file of [idsFile, textbookData, sceneFile, learningFile, challengeFile, followFile, projectorFile, followWorkspaceFile, practicePanelFile, sceneCssFile, classroomV4CssFile, gameFile]) if (!exists(file)) fail(`${slash(relative(root, file))} is required for the P01/P02/P03 loop`);
-    if (![idsFile, textbookData, sceneFile, learningFile, challengeFile, followFile, projectorFile, followWorkspaceFile, practicePanelFile, sceneCssFile, classroomV4CssFile, gameFile].every(exists)) return;
+    for (const file of [idsFile, textbookData, sceneFile, learningFile, challengeFile, followFile, projectorFile, practicePanelFile, sceneCssFile, classroomV4CssFile, gameFile]) if (!exists(file)) fail(`${slash(relative(root, file))} is required for the P01/P02/P03 loop`);
+    if (![idsFile, textbookData, sceneFile, learningFile, challengeFile, followFile, projectorFile, practicePanelFile, sceneCssFile, classroomV4CssFile, gameFile].every(exists)) return;
     const idsText = readFileSync(idsFile, 'utf8');
     const dataText = readFileSync(textbookData, 'utf8');
     const generatedNodeIds = generatedP1NodeIds();
@@ -1760,8 +1761,11 @@ function checkWebReleaseScriptContract() {
       'rollback_release',
       'assert_managed_child',
       'archive sha256',
-      'test "$(node --version)" = \'v20.20.2\'',
+      'test "$(node --version)" = \'v24.15.0\'',
       'test "$(pnpm --version)" = \'9.15.0\'',
+      'find . -type d -name node_modules',
+      'pnpm --filter @dgbook/web rebuild better-sqlite3',
+      'source SQLite smoke query failed',
       'flock 9',
       'assert_current_matches_snapshot',
       'buildLockedDatabasePreparation',
@@ -1794,16 +1798,16 @@ function checkWebReleaseScriptContract() {
     fail('package.json is required for the deployment runtime baseline');
   } else {
     const rootPackage = JSON.parse(readFileSync(rootPackageFile, 'utf8'));
-    if (rootPackage.engines?.node !== '20.20.2') fail('package.json engines.node must be exactly 20.20.2');
+    if (rootPackage.engines?.node !== '24.15.0') fail('package.json engines.node must be exactly 24.15.0');
     if (rootPackage.packageManager !== 'pnpm@9.15.0') fail('package.json packageManager must be exactly pnpm@9.15.0');
   }
-  if (!exists(nodeVersionFile) || readFileSync(nodeVersionFile, 'utf8').trim() !== '20.20.2') {
-    fail('.node-version must pin Node 20.20.2');
+  if (!exists(nodeVersionFile) || readFileSync(nodeVersionFile, 'utf8').trim() !== '24.15.0') {
+    fail('.node-version must pin Node 24.15.0');
   }
   if (!exists(lockFile)) {
     fail('pnpm-lock.yaml is required for the deployment dependency baseline');
-  } else if (readFileSync(lockFile, 'utf8').includes('better-sqlite3@12.11.1')) {
-    fail('pnpm-lock.yaml must not contain incompatible better-sqlite3 12.11.1');
+  } else if (!readFileSync(lockFile, 'utf8').includes('better-sqlite3@12.10.0')) {
+    fail('pnpm-lock.yaml must pin the Node 24-compatible better-sqlite3 12.10.0');
   }
 
   const webPackageFile = join(root, 'apps', 'web', 'package.json');
@@ -1812,11 +1816,11 @@ function checkWebReleaseScriptContract() {
     const scripts = webPackage.scripts ?? {};
     for (const name of ['db', 'db:migrate', 'db:seed:base', 'db:seed:demo', 'db:reset:demo', 'db:verify', 'db:backup']) {
       if (!String(scripts[name] ?? '').startsWith('tsx scripts/db-admin.mjs')) {
-        fail(`apps/web package script ${name} must use the Node 20-compatible tsx DB runner`);
+        fail(`apps/web package script ${name} must use the Node 24-compatible tsx DB runner`);
       }
     }
-    if (webPackage.dependencies?.['better-sqlite3'] !== '11.10.0') {
-      fail('apps/web better-sqlite3 must be pinned exactly to 11.10.0');
+    if (webPackage.dependencies?.['better-sqlite3'] !== '12.10.0') {
+      fail('apps/web better-sqlite3 must be pinned exactly to 12.10.0');
     }
   }
 

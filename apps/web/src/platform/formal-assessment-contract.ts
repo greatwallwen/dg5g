@@ -18,6 +18,8 @@ export interface AssessmentOption {
   label: string;
 }
 
+export type ProfessionalConclusionField = 'confirmedFact' | 'evidenceGap' | 'risk' | 'action';
+
 export type AssessmentQuestion = {
   id: AssessmentDimensionKey;
   dimension: AssessmentDimensionKey;
@@ -25,6 +27,7 @@ export type AssessmentQuestion = {
   helpText: string;
   kind: 'single-choice' | 'ordering' | 'multiple-choice' | 'structured-conclusion';
   options?: AssessmentOption[];
+  conclusionOptions?: Record<ProfessionalConclusionField, AssessmentOption[]>;
 };
 
 export interface AssessmentPaper {

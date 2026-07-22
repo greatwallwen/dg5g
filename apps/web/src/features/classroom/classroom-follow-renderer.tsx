@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { SceneVisual } from '../textbook-scene/learning-scene';
+import { teachingPageAt } from '../textbook-scene/classroom-lesson-model';
 import type { ClassroomFollowViewModel, ClassroomStudentScreen } from './classroom-follow-model';
 import { getNodeLearningPolicy } from '@/platform/learning-policy';
 
@@ -18,24 +19,38 @@ export function ClassroomFollowRenderer({ model, onReturn, busy = false }: {
   const formalTestAvailable = model.phase === 'challenge'
     && policy?.requiresFormalTest === true
     && policy.assessmentRole === 'node-test';
+  const teachingPage = model.currentUnit.nodeId === 'P1T1-N02'
+    ? teachingPageAt(model.actionIndex)
+    : undefined;
+  const pageTitle = teachingPage?.title ?? model.currentUnit.title;
+  const pageMaterial = teachingPage?.projectorContent.material ?? model.currentUnit.question;
+  const pageTask = teachingPage?.projectorContent.prompt ?? model.teacherTask.instruction;
+  const pagePoints = teachingPage?.projectorContent.visualCallouts ?? model.currentUnit.points;
   return (
     <section className="classroom-follow-renderer" data-classroom-follow-renderer data-motion="paused" data-primary-action-policy="exactly-one" data-revision={model.revision}>
-      <article className="classroom-follow-current" data-classroom-current-unit={model.currentUnit.nodeId}>
+      <article
+        className="classroom-follow-current"
+        data-classroom-current-unit={model.currentUnit.nodeId}
+        data-playback-action-index={model.actionIndex}
+      >
         <header>
-          <span>{model.currentUnit.taskId} · {model.currentUnit.nodeId}</span>
-          <h1>{model.currentUnit.title}</h1>
-          <p>{model.currentUnit.question}</p>
+          <span>
+            {model.currentUnit.taskId} · {model.currentUnit.nodeId}
+            {teachingPage ? ` · 第${teachingPage.lessonNumber}课时 · 第${teachingPage.pageNumber}页` : ''}
+          </span>
+          <h1>{pageTitle}</h1>
+          <p>{pageMaterial}</p>
         </header>
         <div className="classroom-follow-visual" data-classroom-visual={model.currentUnit.visualId}>
-          <SceneVisual activeStep={Math.min(3, Math.max(0, model.revision % 4))} visualId={model.currentUnit.visualId} />
+          <SceneVisual activeStep={Math.min(3, Math.max(0, model.actionIndex % 4))} visualId={model.currentUnit.visualId} />
         </div>
-        <p>{model.currentUnit.summary}</p>
+        <p>{pageTask}</p>
       </article>
 
       <article className="classroom-follow-task" data-teacher-task>
         <span>{model.teacherTask.label} · {model.teacherTask.phaseLabel}</span>
-        <h2>{model.teacherTask.instruction}</h2>
-        <ul>{model.currentUnit.points.map((point) => <li key={point}>{point}</li>)}</ul>
+        <h2>{pageTask}</h2>
+        <ul>{pagePoints.map((point) => <li key={point}>{point}</li>)}</ul>
       </article>
 
       <article className="classroom-follow-activity" data-classroom-activity={model.classroomActivity.id} data-state={model.classroomActivity.state}>

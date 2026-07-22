@@ -64,9 +64,20 @@ test('the student learning shell gates selected textbook content with the same a
   assert.ok(shell.indexOf('if (selectedAccess.disabled)') < shell.indexOf('<LearningScene'));
 });
 
+test('node selection updates the canonical URL and record saving covers all six textbook sections', () => {
+  const shell = readFileSync(new URL('./textbook-scene-shell.tsx', import.meta.url), 'utf8');
+  const client = readFileSync(new URL('./textbook-scene-client.ts', import.meta.url), 'utf8');
+
+  assert.match(shell, /syncLearningUrl\(nodeId\)/);
+  assert.match(client, /window\.history\.pushState\(\{ nodeId \}, '', nextPath\)/);
+  assert.match(shell, /for \(const \{ id: sectionId \} of selfStudySectionDefinitions\)/);
+  assert.doesNotMatch(shell, /\['understand', 'evidence', 'explain', 'practice'\]/);
+});
+
 test('self-study consumes the student cut while command clients remain actor scoped', () => {
   const client = readFileSync(new URL('../skill-tree/skill-progress-client.ts', import.meta.url), 'utf8');
   const shell = readFileSync(new URL('./textbook-scene-shell.tsx', import.meta.url), 'utf8');
+  const sceneClient = readFileSync(new URL('./textbook-scene-client.ts', import.meta.url), 'utf8');
   const game = readFileSync(new URL('../learning/edugame-practice-panel.tsx', import.meta.url), 'utf8');
   const teacherConsumers = [
     '../classroom/teacher-console-client.tsx',
@@ -76,8 +87,8 @@ test('self-study consumes the student cut while command clients remain actor sco
   assert.match(client, /fetch\(['"]\/api\/learning\/me['"]/);
   assert.match(client, /\/api\/learning\/class\/\$\{encodeURIComponent\(classId\)\}/);
   assert.doesNotMatch(client, /\/api\/skill-progress/);
-  assert.match(shell, /fetchAuthoritativeSnapshot\('student', sessionId\)/);
-  assert.match(shell, /projectStudentLearningSnapshot\(studentCut\.me\.learning\)/);
+  assert.match(sceneClient, /fetchAuthoritativeSnapshot\('student', sessionId\)/);
+  assert.match(sceneClient, /projectStudentLearningSnapshot\(studentCut\.me\.learning\)/);
   assert.doesNotMatch(shell, /fetchLearningProgress/);
   assert.match(game, /studentVersion: number/);
   assert.match(game, /\/learn\/\$\{nodeId\}\/test/);

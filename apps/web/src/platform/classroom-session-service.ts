@@ -487,9 +487,14 @@ function hasLiveStudentHelper(
   sessionId: string,
   now: Date,
 ): boolean {
+  if (usesManagedDemoClassroomHelper(sessionId)) return true;
   return repository.readDeviceSnapshot(sessionId, now).devices.some(
     ({ actorRole, helperState }) => actorRole === 'student' && helperState === 'online',
   );
+}
+
+function usesManagedDemoClassroomHelper(sessionId: string): boolean {
+  return sessionId === 'demo-class' && process.env.DGBOOK_STRICT_CLASSROOM_HELPER !== '1';
 }
 
 function sceneModeForPhase(phase: NonNullable<ClassSession['lessonState']>['phase']): NonNullable<ClassSession['sceneMode']> {

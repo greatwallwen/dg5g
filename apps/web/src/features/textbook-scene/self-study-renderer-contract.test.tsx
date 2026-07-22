@@ -68,7 +68,8 @@ test('the self-study surface exposes one primary continuation and a bounded text
   assert.equal((html.match(/aria-current="step"/g) ?? []).length, 1);
   assert.equal((html.match(/<button[^>]*data-self-study-section-tab=/g) ?? []).length, 6);
   assert.equal((source.match(/data-primary-action="true"/g) ?? []).length, 2, 'next and output branches each own their primary action');
-  assert.match(source, /scrollIntoView\(\{ block: 'nearest'/);
+  assert.match(source, /textbookBodyRef\.current\.scrollTop = 0/);
+  assert.doesNotMatch(source, /scrollIntoView/);
 });
 
 test('P1T1-N02 renders the beginner three-question scaffold inside the problem section', () => {
@@ -121,10 +122,15 @@ test('P1T1-N01 renders an engineering scope relation figure instead of plain tex
 
   assert.match(html, /data-self-study-figure="indoor-scope-boundary"/);
   assert.match(html, /data-indoor-scope-boundary-figure="true"/);
+  assert.match(html, /class="self-study-figure-layout is-full-width"/);
   assert.match(html, /任务单/);
   assert.match(html, /机房入口/);
   assert.match(html, /机柜范围/);
   assert.match(html, /排除对象/);
+  const css = readFileSync(new URL('../../app/self-study-textbook.css', import.meta.url), 'utf8');
+  assert.match(css, /\.self-study-figure-layout\.is-full-width\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0,\s*1fr\)/);
+  const scopeCss = readFileSync(new URL('../../app/self-study-scope-map.css', import.meta.url), 'utf8');
+  assert.match(scopeCss, /\.self-study-engineering-figure\s*>\s*\.self-study-scope-map\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0,\s*1fr\)/);
 });
 
 test('P1T1-N02 practice cards are labelled as must-do optional and challenge layers', () => {
@@ -136,6 +142,19 @@ test('P1T1-N02 practice cards are labelled as must-do optional and challenge lay
   assert.match(html, /必做练习/);
   assert.match(html, /选做练习/);
   assert.match(html, /挑战练习/);
+  assert.match(html, /data-practice-level-tab="foundation"/);
+  assert.match(html, /data-practice-level-tab="application"/);
+  assert.match(html, /data-practice-level-tab="transfer"/);
+  assert.equal((html.match(/role="tabpanel"/g) ?? []).length, 3);
+  const practiceSource = readFileSync(new URL('./self-study-practice-section.tsx', import.meta.url), 'utf8');
+  const rendererSource = readFileSync(new URL('./self-study-renderer.tsx', import.meta.url), 'utf8');
+  assert.match(practiceSource, /hidden=\{activeLevel !== level\}/);
+  assert.match(rendererSource, /requiredPracticeIdsFor\(document\)/);
+});
+
+test('record templates hug their content instead of stretching into an empty panel', () => {
+  const css = readFileSync(new URL('../../app/self-study-textbook.css', import.meta.url), 'utf8');
+  assert.match(css, /\.self-study-output-template\s*\{[\s\S]*?align-self:\s*start/);
 });
 
 test('P1T1-N04 output copy treats the current page as the task result page', () => {

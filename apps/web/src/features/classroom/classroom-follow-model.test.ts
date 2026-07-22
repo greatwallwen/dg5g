@@ -38,6 +38,7 @@ test('builds one current unit and fails closed for unknown or mismatched cursors
   const result = model.buildClassroomFollowViewModel({
     sessionId: 'demo-class',
     revision: 7,
+    actionIndex: 7,
     phase: 'lecture',
     activeNodeId: current.nodeId,
     activeUnitId: current.unitId,
@@ -45,6 +46,7 @@ test('builds one current unit and fails closed for unknown or mismatched cursors
   }, content, { href: '/learn/P1T3-N02', nodeId: 'P1T3-N02' });
 
   assert.equal(result.ok, true);
+  assert.equal(result.value.actionIndex, 7);
   assert.equal(result.value.currentUnit.nodeId, 'P1T1-N02');
   assert.equal(result.value.classroomActivity.state, 'open');
   assert.equal(result.value.returnToSelfStudy.href, '/learn/P1T3-N02');
@@ -56,6 +58,7 @@ test('builds one current unit and fails closed for unknown or mismatched cursors
     const unavailable = model.buildClassroomFollowViewModel({
       sessionId: 'demo-class',
       revision: 8,
+      actionIndex: 8,
       phase: 'lecture',
       activeNodeId: cursor.activeNodeId,
       activeUnitId: cursor.activeUnitId,

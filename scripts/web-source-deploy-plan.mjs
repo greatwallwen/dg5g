@@ -329,10 +329,25 @@ tar -tzf "$archive" > "$state/archive-entries.log"
 if grep -Eq '(^/|(^|/)\\.\\.(/|$))' "$state/archive-entries.log"; then exit 25; fi
 tar -xzf "$archive" -C "$release_dir" --strip-components=1
 cd "$release_dir"
-test "$(node --version)" = 'v20.20.2'
+test "$(node --version)" = 'v24.15.0'
 corepack enable > "$state/corepack.log" 2>&1 || true
 test "$(pnpm --version)" = '9.15.0'
+if find . -type d -name node_modules -print -quit | grep -q .; then exit 29; fi
 pnpm install --frozen-lockfile > "$state/install.log" 2>&1
+pnpm --filter @dgbook/web rebuild better-sqlite3 > "$state/better-sqlite3-rebuild.log" 2>&1
+node --input-type=commonjs - "apps/web/package.json" > "$state/source-sqlite-smoke.log" 2>&1 <<'DGBOOK_SOURCE_SQLITE_SMOKE'
+const path = require('node:path');
+const { createRequire } = require('node:module');
+const requireFromWeb = createRequire(path.resolve(process.argv[2]));
+const Database = requireFromWeb('better-sqlite3');
+const database = new Database(':memory:');
+try {
+  const row = database.prepare('SELECT 1 AS ok').get();
+  if (row.ok !== 1) throw new Error('source SQLite smoke query failed');
+} finally {
+  database.close();
+}
+DGBOOK_SOURCE_SQLITE_SMOKE
 DGBOOK_WEB_STANDALONE=1 DGBOOK_WEB_RELEASE_ID=${shellQuote(plan.releaseId)} DGBOOK_WEB_SOURCE_SHA256="$expected_sha" pnpm --filter @dgbook/web build > "$state/build.log" 2>&1
 runtime_dir="$release_dir/runtime"
 if [ -e "$runtime_dir" ] || [ -L "$runtime_dir" ]; then exit 27; fi

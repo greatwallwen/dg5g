@@ -37,9 +37,27 @@ const contentResiduePatterns = [
   ['visible-action-title-trace', /\b(?:stage\s+overview|stage\s+\d+\s+(?:transition\s+)?cursor|semantic\s+connector|scene\s+transition|final\s+caption)\b|转场游标|阶段\d+游标/i],
 ];
 const sourceExts = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.py', '.md', '.mdx', '.json']);
-const ignoredSegments = new Set(['node_modules', '.git', '.astro', 'dist', localReferenceProject, '__pycache__']);
+const ignoredSegments = new Set([
+  'node_modules',
+  '.git',
+  '.astro',
+  '.cache',
+  '.next',
+  'dist',
+  localReferenceProject,
+  '__pycache__',
+]);
 const ignoredRoots = [
   path.join(root, 'archive'),
+  path.join(root, 'artifacts'),
+  path.join(root, '.codex'),
+  path.join(root, '.codex-runtime'),
+  path.join(root, '.codegraph'),
+  path.join(root, '.playwright-cli'),
+  path.join(root, '.playwright-mcp'),
+  path.join(root, '.pnpm-store'),
+  path.join(root, '.superpowers'),
+  path.join(root, '.worktrees'),
   path.join(root, 'research', 'vendor'),
   path.join(root, 'site', 'dist'),
   path.join(root, 'site', 'public', 'media'),
@@ -64,12 +82,18 @@ if (failures.length) {
 async function scan(dir) {
   if (ignoredRoots.some((ignored) => dir === ignored || dir.startsWith(`${ignored}${path.sep}`))) return;
   const rel = path.relative(root, dir);
-  if (rel.split(path.sep).some((segment) => ignoredSegments.has(segment))) return;
+  if (rel.split(path.sep).some(isIgnoredSegment)) return;
   for (const entry of await readdir(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) await scan(full);
     else if (sourceExts.has(path.extname(entry.name))) await check(full);
   }
+}
+
+function isIgnoredSegment(segment) {
+  return ignoredSegments.has(segment)
+    || segment.startsWith('.next-')
+    || segment.startsWith('.next.');
 }
 
 async function check(file) {

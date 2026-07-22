@@ -6,12 +6,10 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { TextbookSceneMode } from '@/platform/models';
 import { createDemoTaskProfiles, getDemoTaskProfileForNode, type DemoTaskProfiles } from '@/features/platform/deep-textbook-demo-data';
 import { recordLearningEvent, type LearningProgressSnapshot } from '@/features/skill-tree/skill-progress-client';
-import { fetchAuthoritativeSnapshot } from '@/features/snapshot/authoritative-snapshot-client';
 import { skillGameForNode } from '@/platform/fixtures/skill-game-fixtures';
 import { nodeLearningPolicies, type P1TaskId } from '@/platform/learning-policy';
 import { projectNodeAccess, projectTaskAccess } from '@/platform/node-access-projection';
 import { professionalOutputSchemaForTask } from '@/features/portfolio/output-schema';
-import { projectStudentLearningSnapshot } from '@/platform/learning-compatibility-projection';
 import { Icon } from '@/ui/foundation/icons';
 import { AccountMenu } from '@/features/auth/account-menu';
 import { projectLegacyGraphNodes, projectLegacyGraphTasks } from '@/features/capability-map/graph-snapshot-model';
@@ -24,8 +22,10 @@ import { playbackSceneForLearningUnit } from './learning-playback';
 import { LearningScene } from './learning-scene';
 import { classifyCompletedLearningNode } from './textbook-scene-policy';
 import { profileForTask, SceneContext, SceneRail, UnavailableNodeNotice } from './textbook-scene-support';
+import { selfStudySectionDefinitions } from './self-study-types';
 import type { SelfStudyDocument } from './self-study-types';
 import type { TextbookSceneShellProps } from './textbook-scene-shell-types';
+import { fetchStudentLearningCut, syncLearningUrl } from './textbook-scene-client';
 type DemoTaskId = P1TaskId;
 const graphTaskIdByDemoTask: Record<P1TaskId, string> = { P01: 'P1-T1', P02: 'P1-T2', P03: 'P1-T3' };
 export function TextbookSceneShell(props: TextbookSceneShellProps) {
@@ -87,7 +87,7 @@ function SupportedTextbookSceneShell({ displayName, focusedActivityId, graph, in
 
   useEffect(() => {
     if (mode !== 'challenge') return;
-    const pollProgress = () => fetchStudentCut(sessionId).then(setSnapshot).catch(() => undefined);
+    const pollProgress = () => fetchStudentLearningCut(sessionId).then(setSnapshot).catch(() => undefined);
     const timer = window.setInterval(pollProgress, 5000);
     return () => window.clearInterval(timer);
   }, [mode, sessionId]);
@@ -130,6 +130,7 @@ function SupportedTextbookSceneShell({ displayName, focusedActivityId, graph, in
     setTaskId(destination.taskId);
     setSelectedNodeId(nodeId);
     setMode('learning');
+    syncLearningUrl(nodeId);
   }
 
   function chooseGraphNode(nodeId: string, action: CourseGraphNodeAction) {
@@ -144,7 +145,7 @@ function SupportedTextbookSceneShell({ displayName, focusedActivityId, graph, in
     setSaving(true);
     try {
       let commandSnapshot: LearningProgressSnapshot = snapshot;
-      for (const sectionId of ['understand', 'evidence', 'explain', 'practice']) {
+      for (const { id: sectionId } of selfStudySectionDefinitions) {
         commandSnapshot = await recordLearningEvent({
           eventId: `${commandSnapshot.studentId}:${selectedNodeId}:self-study:${sectionId}`,
           nodeId: selectedNodeId,
@@ -155,7 +156,7 @@ function SupportedTextbookSceneShell({ displayName, focusedActivityId, graph, in
           completed: true,
         }, commandSnapshot.version);
       }
-      const nextSnapshot = await fetchStudentCut(sessionId);
+      const nextSnapshot = await fetchStudentLearningCut(sessionId);
       setSnapshot(nextSnapshot);
       const destination = classifyCompletedLearningNode(selectedNodeId);
       if (destination.kind === 'unavailable') {
@@ -175,7 +176,7 @@ function SupportedTextbookSceneShell({ displayName, focusedActivityId, graph, in
   }
 
   async function refreshAfterGame() {
-    const next = await fetchStudentCut(sessionId).catch(() => null);
+    const next = await fetchStudentLearningCut(sessionId).catch(() => null);
     if (next) setSnapshot(next);
   }
 
@@ -242,8 +243,4 @@ function SupportedTextbookSceneShell({ displayName, focusedActivityId, graph, in
       ) : null}
     </div>
   );
-}
-async function fetchStudentCut(sessionId: string): Promise<LearningProgressSnapshot> {
-  const studentCut = await fetchAuthoritativeSnapshot('student', sessionId);
-  return projectStudentLearningSnapshot(studentCut.me.learning);
 }
