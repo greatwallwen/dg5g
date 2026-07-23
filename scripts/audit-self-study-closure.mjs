@@ -55,6 +55,10 @@ try {
             'shared-operator-cabinet': 'out-of-scope',
             'room-02-cabinets': 'out-of-scope',
           },
+          reasons: {
+            'shared-operator-cabinet': '柜门标识属于其他运营商，不能混入本次任务台账。',
+            'room-02-cabinets': '02号机房不在任务单指定的01号机房范围内，本次排除。',
+          },
         },
       },
     );

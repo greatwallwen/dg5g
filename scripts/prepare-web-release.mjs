@@ -4,10 +4,7 @@ import { createReadStream } from 'node:fs';
 import { cp, mkdir, rm, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
-import {
-  auditExactMediaTree,
-  resolveAcceptedMediaCutoverManifest,
-} from './web-media-cutover-plan.mjs';
+import { verifyWebRuntimeMedia } from './web-runtime-media-contract.mjs';
 
 const rootDir = process.cwd();
 const appDir = path.join(rootDir, 'apps', 'web');
@@ -20,13 +17,9 @@ async function main() {
     await run('build web', pnpmCommand(), pnpmArgs(['--filter', '@dgbook/web', 'build']), { env: { DGBOOK_WEB_STANDALONE: '1' } });
   }
   await assertFile(path.join(appDir, '.next', 'standalone', 'apps', 'web', 'server.js'));
-  const acceptedMedia = await resolveAcceptedMediaCutoverManifest({ repositoryRoot: rootDir });
-  const targetMediaAudit = await auditExactMediaTree({
-    root: path.join(appDir, 'public', 'media'),
-    entries: acceptedMedia.manifest.entries,
-  });
-  if (!targetMediaAudit.passed) {
-    throw new Error(`web release media target failed exact-tree audit: ${JSON.stringify(targetMediaAudit.issues)}`);
+  const runtimeMedia = await verifyWebRuntimeMedia({ repositoryRoot: rootDir });
+  if (!runtimeMedia.targetAudit.passed) {
+    throw new Error(`web release media target failed exact-tree audit: ${JSON.stringify(runtimeMedia.targetAudit.issues)}`);
   }
   await rm(packageDir, { recursive: true, force: true });
   await mkdir(packageDir, { recursive: true });
@@ -65,11 +58,11 @@ async function main() {
       '/present/P1T3-N01',
     ],
     mediaRoots: ['apps/web/public/media'],
-    mediaCutover: {
-      releaseId: acceptedMedia.manifest.releaseId,
-      planSha256: acceptedMedia.manifest.planSha256,
-      fileCount: acceptedMedia.manifest.summary.fileCount,
-      totalBytes: acceptedMedia.manifest.summary.totalBytes,
+    runtimeMedia: {
+      contractId: runtimeMedia.contract.contractId,
+      contractSha256: runtimeMedia.contract.contractSha256,
+      fileCount: runtimeMedia.contract.summary.fileCount,
+      totalBytes: runtimeMedia.contract.summary.totalBytes,
     },
   };
   await writeFile(path.join(packageDir, 'deploy-manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');

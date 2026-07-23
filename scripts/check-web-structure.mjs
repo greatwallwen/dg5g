@@ -1836,42 +1836,31 @@ function checkWebReleaseScriptContract() {
 
 function checkCurrentDocsContract() {
   const readmeFile = join(root, 'README.md');
-  const productRalphFile = join(root, 'docs', 'architecture', 'product-closure-ralph-loop.md');
-  const iterationRalphFile = join(root, 'docs', 'architecture', 'ralph-loop-iteration-plan.md');
-  const docs = [readmeFile, productRalphFile, iterationRalphFile];
+  const docs = [
+    readmeFile,
+    join(root, 'docs', 'requirements', 'p1-digital-textbook-demo.md'),
+    join(root, 'docs', 'experience', 'p1-digital-textbook-lessons.md'),
+    join(root, 'docs', 'guides', 'dgbook-p1-使用教程.md'),
+    join(root, 'docs', 'design', 'image2', 'README.md'),
+    join(root, 'docs', 'asset-spec.md'),
+  ];
   for (const file of docs) {
-    if (!exists(file)) fail(slash(relative(root, file)) + ' is required by the current design/Ralph documentation contract');
+    if (!exists(file)) fail(slash(relative(root, file)) + ' is required by the current product/design documentation contract');
   }
   if (!docs.every(exists)) return;
 
   const readmeText = readFileSync(readmeFile, 'utf8');
-  for (const snippet of ['apps/web', 'TypeScript + React + Next.js']) {
-    if (!readmeText.includes(snippet)) fail('README.md must identify the current web platform through ' + snippet);
-  }
-
-  const productRalphText = readFileSync(productRalphFile, 'utf8');
-  for (const snippet of ['Ralph Loop', 'SQLite', 'Review', 'Analyze', 'Layout', 'Produce', 'Harden']) {
-    if (!productRalphText.includes(snippet)) fail('product closure Ralph contract must include ' + snippet);
-  }
-
-  const iterationRalphText = readFileSync(iterationRalphFile, 'utf8');
   for (const snippet of [
-    '1 名教师、3 名学生',
+    'apps/web',
+    'SQLite',
+    'content/5g/5g.docx',
+    '一名教师和三名学生',
     'pnpm web:test:unit',
-    'pnpm web:typecheck',
-    'pnpm web:build',
-    'P01/P02/P03',
+    'pnpm qa:gates',
+    'docs/requirements/p1-digital-textbook-demo.md',
+    'docs/design/image2/README.md',
   ]) {
-    if (!iterationRalphText.includes(snippet)) fail('Ralph iteration plan must point to current evidence through ' + snippet);
-  }
-
-  const legacyDoc = 'docs/edugame-template-expansion-plan.md';
-  for (const [file, text] of [
-    [readmeFile, readmeText],
-    [productRalphFile, productRalphText],
-    [iterationRalphFile, iterationRalphText],
-  ]) {
-    if (text.includes(legacyDoc)) fail(slash(relative(root, file)) + ' must not point to deleted legacy documentation');
+    if (!readmeText.includes(snippet)) fail('README.md must define the current engineering handoff through ' + snippet);
   }
 }
 

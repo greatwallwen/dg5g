@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "dgbook.p1-demo-content/v1",
+  "$id": "dgbook.p1-demo-content.v1",
   "title": "DGBook P1 demo content contract",
   "type": "object",
   "additionalProperties": false,

@@ -303,48 +303,25 @@ test('does not supersede a stale run whose own required evidence is incomplete',
   }]);
 });
 
-test('loads the final workspace evidence and confirms locked P1 final, S3 rollback, and canonical final-run decisions', async () => {
-  const { evidenceMetadataForPath, loadDefaultReleaseEvidenceIndex } = await import('./release-evidence-index.mjs');
+test('loads a clean default evidence index without historical workspace dependencies', async () => {
+  const {
+    DEFAULT_RELEASE_EVIDENCE_SPEC,
+    evidenceMetadataForPath,
+    loadDefaultReleaseEvidenceIndex,
+  } = await import('./release-evidence-index.mjs');
   const index = await loadDefaultReleaseEvidenceIndex({ repositoryRoot: REPOSITORY_ROOT });
 
-  const current = index.releases.find(({ evidenceRole }) => evidenceRole === 'current');
-  assert.equal(current?.releaseId, 'p1-final-20260715t224419z');
-  assert.equal(current?.path, 'artifacts/web-source-release-history/p1-final-20260715t224419z');
-  assert.equal(current?.sha256, CURRENT_SHA);
-  assert.equal(current?.confirmed, true);
-  assert.equal(
-    evidenceMetadataForPath(index, `${current.path}/dgbook-web-source.tar.gz`).evidenceRole,
-    'current',
-  );
-  assert.equal(
-    evidenceMetadataForPath(index, 'artifacts/web-source-release/dgbook-web-source.tar.gz').evidenceRole,
-    'unknown',
-  );
-
-  const previous = index.releases.find(({ evidenceRole }) => evidenceRole === 'previous');
-  assert.equal(previous?.releaseId, 's3-classroom-unified-snapshot-fix1-20260715T190407Z');
-  assert.equal(previous?.path, 'artifacts/web-source-release-history/s3-classroom-unified-snapshot-fix1-20260715T190407Z');
-  assert.equal(previous?.sha256, PREVIOUS_SHA);
-  assert.equal(previous?.confirmed, true);
-
-  const finalRun = index.finalRuns.find(({ runId }) => runId === 'p1-final-20260715t224419z');
-  assert.equal(finalRun?.path, 'output/playwright/p1-final/p1-final-20260715t224419z');
-  assert.equal(finalRun?.eligible, true);
-  assert.equal(finalRun?.evidenceRole, 'final');
-  assert.deepEqual(finalRun?.issues, []);
-  assert.equal(
-    finalRun?.reportPaths.includes(
-      'output/playwright/p1-final/p1-final-20260715t224419z/web-runtime/report.json',
-    ),
-    true,
-  );
-
-  assert.equal(
-    index.finalRuns.some(({ runId }) => runId === 'task8-final6-20260716T0455Z'),
-    false,
-  );
+  assert.deepEqual(DEFAULT_RELEASE_EVIDENCE_SPEC.releases, []);
+  assert.deepEqual(DEFAULT_RELEASE_EVIDENCE_SPEC.finalRuns, []);
+  assert.deepEqual(DEFAULT_RELEASE_EVIDENCE_SPEC.staleCandidates, []);
+  assert.deepEqual(index.releases, []);
+  assert.deepEqual(index.finalRuns, []);
   assert.deepEqual(index.staleCandidates, []);
   assert.deepEqual(index.issues, []);
+  assert.equal(
+    evidenceMetadataForPath(index, 'output/playwright/new-run/report.json').evidenceRole,
+    'unknown',
+  );
 });
 
 function releaseFixture({ releaseId, evidenceRole, path, sha256 }) {

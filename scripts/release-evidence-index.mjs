@@ -25,45 +25,10 @@ const REQUIRED_P1_JOURNEY_CHECKPOINTS = [
   'portfolio-and-graph-authoritative-update',
 ];
 
-const CURRENT_RELEASE_ROOT = 'artifacts/web-source-release-history/p1-final-20260715t224419z';
-const PREVIOUS_RELEASE_ROOT = 'artifacts/web-source-release-history/s3-classroom-unified-snapshot-fix1-20260715T190407Z';
-const FINAL_RUN_ID = 'p1-final-20260715t224419z';
-const FINAL_RUN_ROOT = `output/playwright/p1-final/${FINAL_RUN_ID}`;
-
 export const DEFAULT_RELEASE_EVIDENCE_SPEC = Object.freeze({
-  releases: [
-    {
-      releaseId: 'p1-final-20260715t224419z',
-      evidenceRole: 'current',
-      path: CURRENT_RELEASE_ROOT,
-      expectedSha256: '6fdc0726527dd9e5d2944aae2cef6e7affd46cc5ef0e91cc40eeac6b21109477',
-      manifestPath: `${CURRENT_RELEASE_ROOT}/dgbook-web-source.upload-manifest.json`,
-      sidecarPath: `${CURRENT_RELEASE_ROOT}/dgbook-web-source.tar.gz.sha256`,
-      archivePath: `${CURRENT_RELEASE_ROOT}/dgbook-web-source.tar.gz`,
-      releaseReportPath: '.superpowers/sdd/p1-final-release-report.md',
-      runtimeReportPath: `${FINAL_RUN_ROOT}/web-runtime/report.json`,
-    },
-    {
-      releaseId: 's3-classroom-unified-snapshot-fix1-20260715T190407Z',
-      evidenceRole: 'previous',
-      path: PREVIOUS_RELEASE_ROOT,
-      expectedSha256: '9433b8acc08f0f9a5be546b0fb73a85dcd53838e4b803c24c811e4ec3a3d6bbb',
-      manifestPath: `${PREVIOUS_RELEASE_ROOT}/dgbook-web-source.upload-manifest.json`,
-      sidecarPath: `${PREVIOUS_RELEASE_ROOT}/dgbook-web-source.tar.gz.sha256`,
-      archivePath: `${PREVIOUS_RELEASE_ROOT}/dgbook-web-source.tar.gz`,
-      releaseReportPath: '.superpowers/sdd/s3-remote-release-report.md',
-      runtimeReportPath: 'output/playwright/s3-classroom-unified-snapshot/s3-classroom-unified-snapshot-fix1-20260715T190407Z/report.json',
-    },
-  ],
-  finalRuns: [
-    finalRunSpec(FINAL_RUN_ID, {
-      root: FINAL_RUN_ROOT,
-      attestationPath: '.superpowers/sdd/p1-final-release-attestation.md',
-    }),
-  ],
-  selectedFinalRunId: FINAL_RUN_ID,
-  // The live index contains only the currently protected release and final
-  // evidence roots. Quarantine manifests retain supersession history.
+  releases: [],
+  finalRuns: [],
+  selectedFinalRunId: undefined,
   staleCandidates: [],
 });
 

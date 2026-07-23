@@ -12,10 +12,7 @@ import {
   WEB_SOURCE_ROOT_FILES,
   shouldPackageWebSourceFile,
 } from './web-source-release-policy.mjs';
-import {
-  parseAcceptedMediaManifest,
-  verifyAcceptedWebMediaRelease,
-} from './verify-accepted-web-media-release.mjs';
+import { verifyWebRuntimeMedia } from './web-runtime-media-contract.mjs';
 
 const rootDir = process.cwd();
 const outRoot = path.join(rootDir, 'artifacts', 'web-source-release');
@@ -40,8 +37,8 @@ async function main() {
   const files = await collectWebSourceFiles({ repositoryRoot: rootDir });
   if (!files.length) throw new Error('no source files selected for web source release');
   assertRequiredWebSourceFiles(files);
-  const acceptedMedia = await verifyAcceptedWebMediaRelease({ repositoryRoot: rootDir });
-  assertExactWebMediaFiles(files, acceptedMedia.manifest);
+  const runtimeMedia = await verifyWebRuntimeMedia({ repositoryRoot: rootDir });
+  assertExactWebMediaFiles(files, runtimeMedia.contract);
   await assertNoWebSourceSecrets({ rootDirectory: rootDir, files });
   const estimatedBytes = await estimateBytes(files);
   console.log(JSON.stringify({
@@ -79,11 +76,11 @@ async function main() {
       '/present/P1T1-N01',
     ],
     requiredRuntimeFiles: REQUIRED_WEB_SOURCE_RUNTIME_FILES,
-    mediaCutover: {
-      releaseId: acceptedMedia.manifest.releaseId,
-      planSha256: acceptedMedia.manifest.planSha256,
-      fileCount: acceptedMedia.manifest.summary.fileCount,
-      totalBytes: acceptedMedia.manifest.summary.totalBytes,
+    runtimeMedia: {
+      contractId: runtimeMedia.contract.contractId,
+      contractSha256: runtimeMedia.contract.contractSha256,
+      fileCount: runtimeMedia.contract.summary.fileCount,
+      totalBytes: runtimeMedia.contract.summary.totalBytes,
     },
     fileCount: files.length,
   };
@@ -248,10 +245,10 @@ export function assertRequiredWebSourceFiles(files) {
   }
 }
 
-export function assertExactWebMediaFiles(files, manifest) {
+export function assertExactWebMediaFiles(files, contract) {
   const normalizedFiles = files.map((file) => file.replaceAll('\\', '/'));
   const actual = normalizedFiles.filter((file) => file.toLowerCase().startsWith('apps/web/public/media/'));
-  const expected = parseAcceptedMediaManifest(manifest).entries.map(({ targetPath }) => targetPath);
+  const expected = contract.entries.map(({ targetPath }) => targetPath);
   const actualSet = new Set(actual);
   const expectedSet = new Set(expected);
   const missing = expected.filter((file) => !actualSet.has(file));

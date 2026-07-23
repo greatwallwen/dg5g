@@ -162,7 +162,7 @@ test('loads the current repository deterministically and reports a legacy-free a
   assert.deepEqual(audit.unknownCommands, []);
   assert.deepEqual(audit.blockers, []);
   assert.equal(audit.references.every(({ blocking }) => blocking === false), true);
-  assert.equal(audit.executableFiles.includes('scripts/verify-accepted-web-media-release.mjs'), true);
+  assert.equal(audit.executableFiles.includes('scripts/web-runtime-media-contract.mjs'), true);
   assert.equal(audit.executableFiles.includes('scripts/web-media-cutover-plan.mjs'), false);
 });
 

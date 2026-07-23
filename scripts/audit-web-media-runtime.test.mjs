@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import test from 'node:test';
 
 import { auditMediaUrls } from './audit-web-media-runtime.mjs';
+import { buildWebRuntimeMediaContract } from './web-runtime-media-contract.mjs';
 
 const body = Buffer.from('verified media');
 const entry = {
@@ -15,6 +16,18 @@ const manifest = {
   summary: { fileCount: 1, totalBytes: body.byteLength },
   entries: [entry],
 };
+
+test('runtime media manifest is available from tracked source without historical artifacts', () => {
+  const trackedManifest = buildWebRuntimeMediaContract();
+
+  assert.equal(trackedManifest.contractId, 'tracked-runtime-media-v1');
+  assert.equal(trackedManifest.summary.fileCount, 40);
+  assert.equal(trackedManifest.summary.totalBytes, 12_627_129);
+  assert.equal(trackedManifest.entries.length, 40);
+  assert.ok(trackedManifest.entries.some(({ url }) => url.includes('/p01/')));
+  assert.ok(trackedManifest.entries.some(({ url }) => url.includes('/p02/')));
+  assert.ok(trackedManifest.entries.some(({ url }) => url.includes('/p03/')));
+});
 
 test('runtime media audit requires exact status, bytes, SHA, type and cache semantics', async () => {
   const success = await auditMediaUrls({

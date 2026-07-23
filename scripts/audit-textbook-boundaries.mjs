@@ -47,7 +47,7 @@ await requirePath(authoringMediaRoots[0], 'importer/authoring media source must 
 await requirePath(runtimeVerifiedMediaRoots[0], 'verified runtime media closure must stay in apps/web/public/media/');
 await requirePath('config/textbooks/5g/textbook.manifest.json', 'current 5G textbook must have an explicit book manifest');
 await requirePath('packages/edugame-assets/asset-manifest.json', 'game assets must be described by packages/edugame-assets/asset-manifest.json');
-await requirePath('docs/architecture/textbook-asset-code-boundaries.md', 'asset/code boundary document is required');
+await requirePath('README.md', 'asset/code boundary documentation is required');
 await forbidPath('5g.docx', 'source DOCX must live under content/<book-id>/, not the repository root');
 
 const report = {

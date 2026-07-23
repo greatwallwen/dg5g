@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { mkdir, mkdtemp, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
+import { removeRuntimeAuditDirectory } from './runtime-audit-temp.mjs';
 
 const port = readArg('--port', '3162');
 const host = readArg('--host', '127.0.0.1');
@@ -77,7 +78,7 @@ try {
   console.log(`web runtime audits passed: ${outRoot}`);
 } finally {
   if (server) await stopServer(server);
-  await rm(databaseDirectory, { recursive: true, force: true });
+  await removeRuntimeAuditDirectory(databaseDirectory);
 }
 
 function readArg(name, fallback) {

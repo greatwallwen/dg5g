@@ -7,7 +7,6 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const contractFile = 'docs/design/image2/image2-route-contract.json';
 const documents = [
   'docs/design/image2/README.md',
-  'docs/architecture/image2-ui-reference-loop.md',
   contractFile,
 ];
 const viewportProfiles = {

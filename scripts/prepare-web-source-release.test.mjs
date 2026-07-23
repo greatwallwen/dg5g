@@ -5,7 +5,7 @@ import path from 'node:path';
 import test from 'node:test';
 
 import * as sourcePackager from './prepare-web-source-release.mjs';
-import { verifyAcceptedWebMediaRelease } from './verify-accepted-web-media-release.mjs';
+import { verifyWebRuntimeMedia } from './web-runtime-media-contract.mjs';
 import { REQUIRED_WEB_SOURCE_RUNTIME_FILES } from './web-source-release-policy.mjs';
 
 test('source package validation accepts regular files and rejects selected symbolic links', async () => {
@@ -225,43 +225,43 @@ test('source package audit fails closed when any authoritative runtime file is a
   }
 });
 
-test('source archive media files must exactly equal the immutable 40-file cutover manifest', async () => {
+test('source archive media files must exactly equal the tracked 40-file runtime contract', async () => {
   assert.equal(typeof sourcePackager.assertExactWebMediaFiles, 'function');
   const repositoryRoot = path.resolve(import.meta.dirname, '..');
-  const accepted = await verifyAcceptedWebMediaRelease({ repositoryRoot });
-  const { manifest, targetPaths: expected } = accepted;
+  const verified = await verifyWebRuntimeMedia({ repositoryRoot });
+  const { contract, targetPaths: expected } = verified;
   const sourceFiles = ['package.json', 'apps/web/src/app/page.tsx', ...expected];
 
-  assert.doesNotThrow(() => sourcePackager.assertExactWebMediaFiles(sourceFiles, manifest));
+  assert.doesNotThrow(() => sourcePackager.assertExactWebMediaFiles(sourceFiles, contract));
   assert.throws(
-    () => sourcePackager.assertExactWebMediaFiles(sourceFiles.filter((file) => file !== expected[0]), manifest),
+    () => sourcePackager.assertExactWebMediaFiles(sourceFiles.filter((file) => file !== expected[0]), contract),
     /media exact-set mismatch.*missing/i,
   );
   assert.throws(
-    () => sourcePackager.assertExactWebMediaFiles([...sourceFiles, 'apps/web/public/media/tts/unapproved.wav'], manifest),
+    () => sourcePackager.assertExactWebMediaFiles([...sourceFiles, 'apps/web/public/media/tts/unapproved.wav'], contract),
     /media exact-set mismatch.*extra/i,
   );
   assert.throws(
-    () => sourcePackager.assertExactWebMediaFiles([...sourceFiles, expected[0].toUpperCase()], manifest),
+    () => sourcePackager.assertExactWebMediaFiles([...sourceFiles, expected[0].toUpperCase()], contract),
     /media exact-set mismatch.*extra/i,
   );
 });
 
-test('source release resolves the accepted pointer before copying any media into the archive', async () => {
+test('source release verifies the tracked runtime media contract before copying files', async () => {
   const source = await readFile(new URL('./prepare-web-source-release.mjs', import.meta.url), 'utf8');
-  const resolveAccepted = source.indexOf('verifyAcceptedWebMediaRelease({ repositoryRoot: rootDir })');
-  const exactSet = source.indexOf('assertExactWebMediaFiles(files, acceptedMedia.manifest)');
+  const resolveAccepted = source.indexOf('verifyWebRuntimeMedia({ repositoryRoot: rootDir })');
+  const exactSet = source.indexOf('assertExactWebMediaFiles(files, runtimeMedia.contract)');
   const clearPackage = source.indexOf('await rm(packageDir');
   assert.ok(resolveAccepted >= 0);
   assert.ok(exactSet > resolveAccepted);
   assert.ok(clearPackage > exactSet, 'accepted media exact-set must be checked before package mutation');
   assert.doesNotMatch(source, /web-media-cutover-plan\.mjs/);
-  assert.match(source, /mediaCutover:\s*\{[\s\S]*?releaseId:[\s\S]*?planSha256:[\s\S]*?fileCount:[\s\S]*?totalBytes:/);
+  assert.match(source, /runtimeMedia:\s*\{[\s\S]*?contractId:[\s\S]*?contractSha256:[\s\S]*?fileCount:[\s\S]*?totalBytes:/);
 });
 
 test('source release scans selected source and the complete staging directory before archiving', async () => {
   const source = await readFile(new URL('./prepare-web-source-release.mjs', import.meta.url), 'utf8');
-  const exactSet = source.indexOf('assertExactWebMediaFiles(files, acceptedMedia.manifest)');
+  const exactSet = source.indexOf('assertExactWebMediaFiles(files, runtimeMedia.contract)');
   const selectedScan = source.indexOf('await assertNoWebSourceSecrets({ rootDirectory: rootDir, files })');
   const clearPackage = source.indexOf('await rm(packageDir');
   const writeStageManifest = source.indexOf("await writeFile(path.join(packageDir, 'deploy-source-manifest.json')");

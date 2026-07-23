@@ -87,7 +87,6 @@ async function validateMarkdown(source) {
 async function validateDsl(targets) {
   const files = targets.length ? targets : [
     'templates/lesson/minimal-lesson.yaml',
-    'docs/architecture/examples/minimal-lesson.yaml',
   ];
   const diagnostics = [];
   for (const file of files) {

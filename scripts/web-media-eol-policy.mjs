@@ -3,14 +3,14 @@ import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { promisify } from 'node:util';
 
-import { verifyAcceptedWebMediaRelease } from './verify-accepted-web-media-release.mjs';
+import { verifyWebRuntimeMedia } from './web-runtime-media-contract.mjs';
 
 const execFileAsync = promisify(execFile);
 
 export async function auditAcceptedMediaGitCheckout({ repositoryRoot } = {}) {
   const root = path.resolve(repositoryRoot);
-  const accepted = await verifyAcceptedWebMediaRelease({ repositoryRoot: root });
-  const entries = accepted.manifest.entries;
+  const verified = await verifyWebRuntimeMedia({ repositoryRoot: root });
+  const entries = verified.contract.entries;
   const targetPaths = entries.map(({ targetPath }) => targetPath);
   const issues = [];
 

@@ -91,7 +91,7 @@ async function createFixture(t, options = {}) {
   await mkdir(path.join(root, 'textbook/5g/projects'), { recursive: true });
   await mkdir(path.join(root, 'textbook/5g/widgets'), { recursive: true });
   await writeFixtureFile(root, 'packages/edugame-assets/asset-manifest.json', '{}\n');
-  await writeFixtureFile(root, 'docs/architecture/textbook-asset-code-boundaries.md', '# fixture\n');
+  await writeFixtureFile(root, 'README.md', '# fixture\n');
   await writeFixtureFile(root, 'apps/web/src/app/icon.svg', '<svg xmlns="http://www.w3.org/2000/svg"/>\n');
   if (options.authoringMedia !== false) await mkdir(path.join(root, 'site/public/media'), { recursive: true });
   if (options.runtimeMedia !== false) await mkdir(path.join(root, 'apps/web/public/media'), { recursive: true });

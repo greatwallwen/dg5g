@@ -5,7 +5,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { resolveAcceptedMediaCutoverManifest } from './web-media-cutover-plan.mjs';
+import { buildWebRuntimeMediaContract } from './web-runtime-media-contract.mjs';
 
 export async function auditMediaUrls({ manifest, baseUrl, fetchImpl = fetch }) {
   const checks = [];
@@ -48,7 +48,7 @@ export async function auditMediaUrls({ manifest, baseUrl, fetchImpl = fetch }) {
   return Object.freeze({
     schema: 'dgbook.web-media-runtime-audit/v1',
     baseUrl: new URL(baseUrl).toString(),
-    releaseId: manifest.releaseId,
+    releaseId: manifest.contractId ?? manifest.releaseId,
     expectedFiles: manifest.summary.fileCount,
     expectedBytes: manifest.summary.totalBytes,
     checks,
@@ -58,11 +58,10 @@ export async function auditMediaUrls({ manifest, baseUrl, fetchImpl = fetch }) {
 }
 
 async function main() {
-  const repositoryRoot = path.resolve(import.meta.dirname, '..');
   const baseUrl = readArg('--base-url', 'http://127.0.0.1:3157/');
   const out = readArg('--out');
-  const accepted = await resolveAcceptedMediaCutoverManifest({ repositoryRoot });
-  const report = await auditMediaUrls({ manifest: accepted.manifest, baseUrl });
+  const manifest = buildWebRuntimeMediaContract();
+  const report = await auditMediaUrls({ manifest, baseUrl });
   if (out) {
     const reportPath = path.join(out, 'report.json');
     await mkdir(path.dirname(reportPath), { recursive: true });

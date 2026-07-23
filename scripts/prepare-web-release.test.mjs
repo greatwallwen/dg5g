@@ -11,14 +11,12 @@ test('standalone release copies the single web public tree and declares no legac
   assert.doesNotMatch(source, /site\/public\/media\/(?:tts|capability-maps|home)/);
 });
 
-test('standalone release verifies the accepted 40-file target before mutating its package directory', async () => {
+test('standalone release verifies the tracked 40-file target before mutating its package directory', async () => {
   const source = await readFile(new URL('./prepare-web-release.mjs', import.meta.url), 'utf8');
-  const accepted = source.indexOf('resolveAcceptedMediaCutoverManifest({ repositoryRoot: rootDir })');
-  const audited = source.indexOf('auditExactMediaTree({');
-  const passed = source.indexOf('targetMediaAudit.passed');
+  const accepted = source.indexOf('verifyWebRuntimeMedia({ repositoryRoot: rootDir })');
+  const passed = source.indexOf('runtimeMedia.targetAudit.passed');
   const clearPackage = source.indexOf('await rm(packageDir');
   assert.ok(accepted >= 0);
-  assert.ok(audited > accepted);
-  assert.ok(passed > audited);
+  assert.ok(passed > accepted);
   assert.ok(clearPackage > passed, 'target exact-tree audit must pass before package mutation');
 });

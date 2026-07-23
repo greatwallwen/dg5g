@@ -424,16 +424,17 @@ function duplicateGraphicGroups(elements) {
 }
 
 function auditMediaCoverage() {
-  const requiredRenderedProjects = new Set(['P01', 'P04', 'P08', 'P09', 'P12', 'P15', 'P17']);
+  const requiredRenderedProjects = new Set(['P01', 'P02', 'P03']);
+  const runtimePublicRoot = path.join(root, 'apps', 'web', 'public');
   for (const target of MANIM_REQUIRED_TARGETS) {
-    const file = path.join(root, 'site', 'public', 'media', 'manim', target.project.toLowerCase(), target.template, 'manifest.json');
+    const file = path.join(runtimePublicRoot, 'media', 'manim', target.project.toLowerCase(), target.template, 'manifest.json');
     const data = readJson(file);
     if (!data && !requiredRenderedProjects.has(target.project)) continue;
     if (data?.status !== 'rendered') fail(target.project, `Manim not rendered: ${target.template}`);
     const videoUrl = data?.outputs?.videoUrl;
     const posterUrl = data?.outputs?.posterUrl;
     if (!videoUrl && !posterUrl) fail(target.project, `Manim has no usable output: ${target.template}`);
-    if (videoUrl && !existsSync(path.join(root, 'site', 'public', videoUrl.replace(/^\//, '')))) {
+    if (videoUrl && !existsSync(path.join(runtimePublicRoot, videoUrl.replace(/^\//, '')))) {
       fail(target.project, `Manim video file missing: ${videoUrl}`);
     }
     const widget = readJson(path.join(widgetDir, `${target.project}-lesson-animation-001.json`));

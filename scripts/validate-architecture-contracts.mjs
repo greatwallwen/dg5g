@@ -4,7 +4,7 @@ import path from 'node:path';
 
 const root = process.cwd();
 const schemaRoot = 'schemas';
-const exampleRoots = ['docs/architecture/examples', 'templates'];
+const exampleRoots = ['templates'];
 const requiredSchemas = [
   'schemas/lesson/v1.schema.json',
   'schemas/assets/animation.v1.schema.json',
@@ -15,14 +15,11 @@ const requiredSchemas = [
   'schemas/assets/manim-animation.v1.schema.json',
   'schemas/templates/knowledge-animation-template.v1.schema.json',
 ];
-const requiredArchitectureDocs = [
-  'docs/architecture/output-contracts.md',
-  'docs/architecture/ralph-loop-iteration-plan.md',
+const requiredDesignDocs = [
+  'docs/design/image2/README.md',
+  'docs/asset-spec.md',
 ];
 const requiredExamples = [
-  ['docs/architecture/examples/minimal-lesson.yaml', 'dgbook.lesson/v1'],
-  ['docs/architecture/examples/minimal-animation.yaml', 'dgbook.asset.animation/v1'],
-  ['docs/architecture/examples/minimal-narration.yaml', 'dgbook.asset.narration/v1'],
   ['templates/lesson/minimal-lesson.yaml', 'dgbook.lesson/v1'],
   ['templates/animation/5g-knowledge-animation-template.yaml', 'dgbook.template.knowledge-animation/v1'],
 ];
@@ -40,11 +37,11 @@ for (const [file, schemaId] of requiredExamples) await checkYamlHeader(file, sch
 for (const file of await listYamlFiles(exampleRoots)) {
   await checkYamlHeader(file);
 }
-for (const file of requiredArchitectureDocs) {
+for (const file of requiredDesignDocs) {
   await checkFileExists(file);
-  await checkReadmeIndex('docs/README.md', file.replace(/^docs\//, ''));
+  await checkReadmeIndex('README.md', file);
 }
-await checkMarkdownLineLimits('docs/architecture', 300);
+await checkMarkdownLineLimits('docs/design', 300);
 
 if (diagnostics.length) {
   for (const item of diagnostics) console.error(`${item.level.toUpperCase()} ${item.code}: ${item.message}`);
